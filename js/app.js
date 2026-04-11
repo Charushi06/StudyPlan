@@ -10,6 +10,77 @@ const pasteInput = document.getElementById('paste-input');
 const extractBtn = document.getElementById('extract-btn');
 const clearBtn = document.getElementById('clear-btn');
 const addItemsBtn = document.getElementById('add-btn');
+const subjectModal = document.getElementById('subject-modal');
+const subjectForm = document.getElementById('subject-form');
+const addSubjectBtn = document.querySelector('.add-subject');
+const modalClose = document.getElementById('modal-close');
+const modalCancel = document.getElementById('modal-cancel');
+const subjectNameInput = document.getElementById('subject-name');
+const colorOptions = document.querySelectorAll('.color-option');
+
+// Subject Modal Functions
+function openSubjectModal() {
+  subjectModal.classList.remove('hidden');
+  subjectNameInput.focus();
+}
+
+function closeSubjectModal() {
+  subjectModal.classList.add('hidden');
+  subjectForm.reset();
+  colorOptions[0].checked = true; // Reset to first color
+}
+
+function handleSubjectFormSubmit(e) {
+  e.preventDefault();
+  const name = subjectNameInput.value.trim();
+  const selectedColor = document.querySelector('.color-option:checked').value;
+  
+  if (!name) {
+    alert('Please enter a subject name');
+    return;
+  }
+  
+  store.addSubject(name, selectedColor).then(() => {
+    closeSubjectModal();
+    renderSidebar();
+  });
+}
+
+function renderSidebar() {
+  const subjectsContainer = document.querySelector('.sidebar');
+  if (!subjectsContainer) return;
+  
+  // Find the subjects header and existing subject items
+  const subjectsHeader = Array.from(subjectsContainer.querySelectorAll('.sidebar-header')).find(h => h.textContent === 'Subjects');
+  if (!subjectsHeader) return;
+  
+  // Remove old subject items and add button
+  let currentElement = subjectsHeader.nextElementSibling;
+  while (currentElement && !currentElement.classList.contains('sidebar-divider')) {
+    if (currentElement.classList.contains('nav-item') || currentElement.classList.contains('add-subject')) {
+      const toRemove = currentElement;
+      currentElement = currentElement.nextElementSibling;
+      toRemove.remove();
+    } else {
+      currentElement = currentElement.nextElementSibling;
+    }
+  }
+  
+  // Re-render subjects
+  store.subjects.forEach(subject => {
+    const subjectItem = document.createElement('div');
+    subjectItem.className = 'nav-item';
+    subjectItem.innerHTML = `<span class="nav-dot" style="background:${subject.color}"></span>${subject.name}<span class="badge">0</span>`;
+    subjectsHeader.parentElement.insertBefore(subjectItem, subjectsHeader.nextElementSibling.nextElementSibling);
+  });
+  
+  // Add the "Add subject" button back
+  const addBtn = document.createElement('div');
+  addBtn.className = 'add-subject';
+  addBtn.innerHTML = `<svg width="14" height="14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Add subject`;
+  addBtn.addEventListener('click', openSubjectModal);
+  subjectsHeader.parentElement.appendChild(addBtn);
+}
 
 function formatDate(dateStr) {
   if (!dateStr) return 'No Date';
@@ -307,6 +378,29 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('cal-next').addEventListener('click', () => {
     currentMonthDate.setMonth(currentMonthDate.getMonth() + 1);
     renderCalendar();
+  });
+});
+
+// Event listeners for subject modal
+addSubjectBtn.addEventListener('click', openSubjectModal);
+modalClose.addEventListener('click', closeSubjectModal);
+modalCancel.addEventListener('click', closeSubjectModal);
+subjectForm.addEventListener('submit', handleSubjectFormSubmit);
+
+// Close modal when clicking overlay
+subjectModal.addEventListener('click', (e) => {
+  if (e.target === subjectModal || e.target === document.querySelector('.modal-overlay')) {
+    closeSubjectModal();
+  }
+});
+
+// Single radio button behavior for colors
+colorOptions.forEach(option => {
+  option.addEventListener('change', () => {
+    if (option.checked) {
+      colorOptions.forEach(o => o.checked = false);
+      option.checked = true;
+    }
   });
 });
 

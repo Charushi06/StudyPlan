@@ -80,5 +80,30 @@ export const store = {
   clearExtracted() {
     this.currentPaste = null;
     this.notify();
+  },
+
+  async addSubject(name, color) {
+    try {
+      const res = await fetch('/api/subjects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          color: color || 'var(--color-text-info)',
+          short_code: name.substring(0, 3).toUpperCase()
+        })
+      });
+      if (res.ok) {
+        const newSubject = await res.json();
+        this.subjects.push(newSubject);
+        this.notify();
+        return newSubject;
+      } else {
+        const error = await res.json();
+        console.error('Failed to add subject', error);
+      }
+    } catch (e) {
+      console.error('Failed to add subject', e);
+    }
   }
 };
