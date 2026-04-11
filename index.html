@@ -100,6 +100,48 @@
       <button id="add-btn" class="add-btn" disabled>Add items to planner</button>
     </div>
   </div>
+
+  <!-- Subject Modal -->
+  <div id="subject-modal" class="modal hidden">
+    <div class="modal-overlay"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">Add New Subject</h2>
+        <button id="modal-close" class="modal-close">×</button>
+      </div>
+      <div class="modal-body">
+        <form id="subject-form" class="subject-form">
+          <div class="form-group">
+            <label for="subject-name" class="form-label">Subject Name</label>
+            <input type="text" id="subject-name" class="form-input" placeholder="e.g., Physics, Chemistry" required>
+          </div>
+          <div class="form-group">
+            <label for="subject-color" class="form-label">Color</label>
+            <div class="color-picker">
+              <input type="checkbox" id="color-info" name="color" value="var(--color-text-info)" class="color-option" checked>
+              <label for="color-info" class="color-label" style="background: var(--color-text-info)" title="Blue"></label>
+              
+              <input type="checkbox" id="color-success" name="color" value="var(--color-text-success)" class="color-option">
+              <label for="color-success" class="color-label" style="background: var(--color-text-success)" title="Green"></label>
+              
+              <input type="checkbox" id="color-purple" name="color" value="var(--color-text-purple)" class="color-option">
+              <label for="color-purple" class="color-label" style="background: var(--color-text-purple)" title="Purple"></label>
+              
+              <input type="checkbox" id="color-warning" name="color" value="var(--color-text-warning)" class="color-option">
+              <label for="color-warning" class="color-label" style="background: var(--color-text-warning)" title="Warning"></label>
+              
+              <input type="checkbox" id="color-danger" name="color" value="var(--color-text-danger)" class="color-option">
+              <label for="color-danger" class="color-label" style="background: var(--color-text-danger)" title="Red"></label>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="button" id="modal-cancel" class="btn">Cancel</button>
+            <button type="submit" class="btn btn-primary">Add Subject</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 </div>
 
   <script type="module" src="/js/app.js"></script>

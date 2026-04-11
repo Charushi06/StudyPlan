@@ -26,6 +26,22 @@ app.get('/api/subjects', (req, res) => {
   });
 });
 
+// POST /api/subjects
+app.post('/api/subjects', (req, res) => {
+  const { name, short_code, color } = req.body;
+  if (!name) return res.status(400).json({ error: 'Subject name is required' });
+  
+  const id = 'sub_' + Date.now() + Math.random().toString(36).substr(2, 5);
+  db.run(
+    'INSERT INTO subjects (id, name, short_code, color) VALUES (?, ?, ?, ?)',
+    [id, name, short_code || name.substring(0, 3).toUpperCase(), color || 'var(--color-text-info)'],
+    function(err) {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ id, name, short_code: short_code || name.substring(0, 3).toUpperCase(), color: color || 'var(--color-text-info)' });
+    }
+  );
+});
+
 // GET /api/tasks
 app.get('/api/tasks', (req, res) => {
   db.all('SELECT * FROM tasks ORDER BY due_at ASC', (err, rows) => {
