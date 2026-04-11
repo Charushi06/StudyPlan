@@ -1,6 +1,6 @@
 # StudyPlan
  
-**AI-powered study planner and deadline manager.** Paste any text — an email, assignment brief, or WhatsApp message — and StudyPlan extracts deadlines, subjects, and tasks, then automatically adds them to your calendar and to-do list.
+**AI-powered study planner and deadline manager.** Paste any text, an email, assignment brief, or WhatsApp message and StudyPlan extracts deadlines, subjects, and tasks, then automatically adds them to your calendar and to-do list.
  
 ---
  
@@ -35,6 +35,9 @@ StudyPlan eliminates that step entirely.
 - **Backend API**: Node.js & Express REST architecture.
 - **Database**: SQLite3.
 - **AI Engine**: `@google/genai` (Google Gemini 2.5 Flash model).
+
+## Deployed Link
+https://studyplan-jvgd.onrender.com/
 
 ## Getting Started Locally
 
@@ -74,18 +77,22 @@ StudyPlan eliminates that step entirely.
 ## Project Structure
  
 ```
-studyplan/
-├── src/
-│   ├── components/       # UI components (Calendar, TaskList, PastePanel, Sidebar)
-│   ├── lib/
-│   │   ├── extract.ts    # AI extraction pipeline
-│   │   ├── dates.ts      # Date parsing and normalisation
-│   │   └── dedupe.ts     # Duplicate detection logic
-│   ├── store/            # App state (subjects, tasks, sessions)
-│   └── app/              # Pages and routing
-├── public/
-├── docs/
-│   └── PRD.docx          # Full product requirements document
-└── README.md
+ StudyPlan
+├──  css
+│   └──  index.css           # Contains all styling rules, variables, and animations
+├──  js
+│   ├──  utils
+│   │   ├──  aiMock.js       # The original mock UI extraction hook (deprecated)
+│   │   └──  api.js          # The live fetch logic communicating with our Express API
+│   ├──  app.js              # The main controller (handles DOM UI, event bindings, and Calendar)
+│   └──  store.js            # The Custom State Manager handling our frontend Pub/Sub state
+├──  .env.example            # Template file for setting the GEMINI_API_KEY
+├──  .gitignore              # Tells git to ignore databases, environments, and node packages
+├──  database.js             # Initializes the SQLite database and executes DB table schemas
+├──  index.html              # The frontend structural entry point
+├──  package.json            # Node project configuration and backend dependencies
+├──  README.md               # The comprehensive project documentation
+├──  server.js               # The primary Node.js & Express REST Backend logic
+└──  studyplan.db
 ```
  
