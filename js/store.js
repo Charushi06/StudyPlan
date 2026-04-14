@@ -1,6 +1,10 @@
 export const store = {
   subjects: [],
   tasks: [],
+  summaries: {
+    daily: null,
+    weekly: null
+  },
   currentPaste: null,
   listeners: [],
   
@@ -20,6 +24,7 @@ export const store = {
       ]);
       this.subjects = await subsRes.json();
       this.tasks = await tasksRes.json();
+      await this.refreshSummaries();
       this.notify();
     } catch (e) {
       console.error('Failed to load initial data', e);
@@ -37,6 +42,7 @@ export const store = {
         // reload tasks
         const tasksRes = await fetch('/api/tasks');
         this.tasks = await tasksRes.json();
+        await this.refreshSummaries();
         this.notify();
       }
     } catch (e) {
@@ -57,6 +63,8 @@ export const store = {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status: newStatus })
         });
+        await this.refreshSummaries();
+        this.notify();
       } catch (e) {
         // revert on fail
         task.status = newStatus === 'Done' ? 'Not Started' : 'Done';
@@ -80,5 +88,20 @@ export const store = {
   clearExtracted() {
     this.currentPaste = null;
     this.notify();
+  },
+
+  async refreshSummaries() {
+    try {
+      const { fetchSummary } = await import('./utils/api.js');
+      const [daily, weekly] = await Promise.all([
+        fetchSummary('daily'),
+        fetchSummary('weekly')
+      ]);
+
+      this.summaries.daily = daily;
+      this.summaries.weekly = weekly;
+    } catch (e) {
+      console.error('Failed to refresh summaries', e);
+    }
   }
 };

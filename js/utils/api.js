@@ -17,3 +17,19 @@ export async function extractTasksFromText(text) {
     return [];
   }
 }
+
+export async function fetchSummary(period = 'weekly') {
+  try {
+    const res = await fetch(`/api/summary?period=${encodeURIComponent(period)}`);
+
+    if (!res.ok) {
+      console.error('Summary fetch failed', await res.text());
+      return null;
+    }
+
+    return await res.json();
+  } catch (e) {
+    console.error('Error hitting summary endpoint', e);
+    return null;
+  }
+}
