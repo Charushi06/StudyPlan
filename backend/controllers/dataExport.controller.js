@@ -1,5 +1,15 @@
 const { db } = require("../../database.js");
 
+/**
+ * [GET] /api/download
+ * 
+ * @param {*} req 
+ * @param {*} res 
+ * @returns status code 200 and the csv file
+ * @returns status code 500 and the error message
+ */
+
+
 function downloadData(req, res) {
     try {
         const data = db.prepare(`
