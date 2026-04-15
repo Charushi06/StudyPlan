@@ -87,6 +87,7 @@ function renderTasks() {
               <span class="task-pill ${pillClass}">${sub.short_code}</span>
             </div>
           </div>
+          <button class="task-delete-btn" data-id="${t.id}" title="Delete task">×</button>
         </div>
       `;
     });
@@ -105,8 +106,14 @@ function renderTasks() {
   }
                            
   document.querySelectorAll('.task-item').forEach(el => {
-    el.addEventListener('click', () => {
-      store.toggleTaskStatus(el.dataset.id);
+    el.addEventListener('click', (e) => {
+      if (e.target.classList.contains('task-delete-btn')) {
+        e.stopPropagation();
+        const taskId = e.target.dataset.id;
+        openDeleteModal(taskId);
+      } else {
+        store.toggleTaskStatus(el.dataset.id);
+      }
     });
   });
 }
@@ -296,6 +303,33 @@ store.subscribe(renderTasks);
 store.subscribe(renderExtraction);
 store.subscribe(renderCalendar);
 
+// Delete Modal functions (defined outside DOMContentLoaded)
+const deleteModal = document.getElementById('delete-modal');
+const deleteModalClose = document.getElementById('delete-modal-close');
+const deleteCancel = document.getElementById('delete-cancel');
+const deleteConfirm = document.getElementById('delete-confirm');
+let pendingDeleteId = null;
+
+function openDeleteModal(taskId) {
+  pendingDeleteId = taskId;
+  deleteModal.classList.remove('hidden');
+}
+
+function closeDeleteModal() {
+  deleteModal.classList.add('hidden');
+  pendingDeleteId = null;
+}
+
+if (deleteModalClose) deleteModalClose.addEventListener('click', closeDeleteModal);
+if (deleteCancel) deleteCancel.addEventListener('click', closeDeleteModal);
+if (deleteModal) deleteModal.querySelector('.modal-backdrop').addEventListener('click', closeDeleteModal);
+if (deleteConfirm) deleteConfirm.addEventListener('click', () => {
+  if (pendingDeleteId) {
+    store.deleteTask(pendingDeleteId);
+    closeDeleteModal();
+  }
+});
+
 document.addEventListener('DOMContentLoaded', () => {
   store.fetchInitialData();
   
@@ -307,6 +341,62 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('cal-next').addEventListener('click', () => {
     currentMonthDate.setMonth(currentMonthDate.getMonth() + 1);
     renderCalendar();
+  });
+
+  // Add Task Modal
+  const addTaskBtn = document.getElementById('add-task-btn');
+  const modal = document.getElementById('add-task-modal');
+  const modalClose = document.getElementById('modal-close');
+  const modalCancel = document.getElementById('modal-cancel');
+  const modalSave = document.getElementById('modal-save');
+  const subjectSelect = document.getElementById('task-subject');
+  const titleInput = document.getElementById('task-title');
+  const dueInput = document.getElementById('task-due');
+  const prioritySelect = document.getElementById('task-priority');
+  const notesInput = document.getElementById('task-notes');
+
+  function openModal() {
+    subjectSelect.innerHTML = store.subjects.map(s => 
+      `<option value="${s.id}">${s.name}</option>`
+    ).join('');
+    titleInput.value = '';
+    dueInput.value = '';
+    prioritySelect.value = 'medium';
+    notesInput.value = '';
+    modal.classList.remove('hidden');
+  }
+
+  function closeModal() {
+    modal.classList.add('hidden');
+  }
+
+  addTaskBtn.addEventListener('click', openModal);
+  modalClose.addEventListener('click', closeModal);
+  modalCancel.addEventListener('click', closeModal);
+  modal.querySelector('.modal-backdrop').addEventListener('click', closeModal);
+
+  modalSave.addEventListener('click', () => {
+    const subjectId = subjectSelect.value;
+    const title = titleInput.value.trim();
+    const dueAt = dueInput.value ? new Date(dueInput.value).toISOString() : '';
+    const priority = prioritySelect.value;
+    const notes = notesInput.value.trim();
+
+    if (!title) {
+      titleInput.focus();
+      return;
+    }
+
+    store.addTasks([{
+      subject_id: subjectId,
+      title: title,
+      due_at: dueAt,
+      priority: priority,
+      notes: notes,
+      status: 'Not Started'
+    }]);
+
+    closeModal();
   });
 });
 

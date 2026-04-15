@@ -80,5 +80,21 @@ export const store = {
   clearExtracted() {
     this.currentPaste = null;
     this.notify();
+  },
+
+  async deleteTask(taskId) {
+    const taskIndex = this.tasks.findIndex(t => t.id === taskId);
+    if (taskIndex === -1) return;
+    
+    const deletedTask = this.tasks[taskIndex];
+    this.tasks.splice(taskIndex, 1);
+    this.notify();
+    
+    try {
+      await fetch(`/api/tasks/${taskId}`, { method: 'DELETE' });
+    } catch (e) {
+      this.tasks.splice(taskIndex, 0, deletedTask);
+      this.notify();
+    }
   }
 };

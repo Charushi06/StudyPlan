@@ -44,7 +44,7 @@
       <div class="topbar">
         <div class="topbar-title">April 2026</div>
         <button class="btn">Week</button>
-        <button class="btn btn-primary">
+        <button id="add-task-btn" class="btn btn-primary">
           <svg width="12" height="12" fill="none" style="margin-right:2px"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> New task
         </button>
       </div>
@@ -98,6 +98,59 @@
       </div>
 
       <button id="add-btn" class="add-btn" disabled>Add items to planner</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Task Modal -->
+<div id="add-task-modal" class="modal hidden">
+  <div class="modal-backdrop"></div>
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="modal-title">Add New Task</div>
+      <button class="modal-close" id="modal-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <label class="form-label">Subject</label>
+      <select id="task-subject" class="form-input"></select>
+      
+      <label class="form-label">Task Name</label>
+      <input id="task-title" type="text" class="form-input" placeholder="e.g. Assignment 1">
+      
+      <label class="form-label">Due Date</label>
+      <input id="task-due" type="datetime-local" class="form-input">
+      
+      <label class="form-label">Priority</label>
+      <select id="task-priority" class="form-input">
+        <option value="low">Low</option>
+        <option value="medium" selected>Medium</option>
+        <option value="high">High</option>
+      </select>
+      
+      <label class="form-label">Notes</label>
+      <input id="task-notes" type="text" class="form-input" placeholder="Optional notes">
+    </div>
+    <div class="modal-footer">
+      <button id="modal-cancel" class="btn">Cancel</button>
+      <button id="modal-save" class="btn btn-primary">Add Task</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="delete-modal" class="modal hidden">
+  <div class="modal-backdrop"></div>
+  <div class="modal-content" style="max-width: 360px;">
+    <div class="modal-header">
+      <div class="modal-title">Delete Task</div>
+      <button class="modal-close" id="delete-modal-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p>Are you sure you want to delete this task? This action cannot be undone.</p>
+    </div>
+    <div class="modal-footer">
+      <button id="delete-cancel" class="btn">Cancel</button>
+      <button id="delete-confirm" class="btn" style="background: var(--color-text-danger); color: white;">Delete</button>
     </div>
   </div>
 </div>
