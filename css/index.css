@@ -1,6 +1,18 @@
 /* css/index.css */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+.mobile-menu-btn { display: none; position: fixed; top: 12px; left: 12px; z-index: 50; width: 40px; height: 40px; border: none; border-radius: var(--border-radius-sm); background: var(--color-background-primary); box-shadow: var(--shadow-md); cursor: pointer; align-items: center; justify-content: center; flex-direction: column; gap: 5px; }
+.mobile-menu-btn span { width: 18px; height: 2px; background: var(--color-text-primary); border-radius: 2px; transition: all 0.3s; }
+.mobile-menu-btn.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+.mobile-menu-btn.active span:nth-child(2) { opacity: 0; }
+.mobile-menu-btn.active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+
+.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 40; }
+.overlay.open { display: block; }
+
+.panel-close { display: none; position: absolute; top: 12px; right: 12px; width: 28px; height: 28px; border: none; background: transparent; font-size: 18px; cursor: pointer; color: var(--color-text-tertiary); border-radius: 4px; }
+.panel-close:hover { background: var(--color-background-tertiary); color: var(--color-text-primary); }
+
 :root {
   --color-background-primary: #ffffff;
   --color-background-secondary: #f7f7f5;
@@ -273,3 +285,180 @@ body {
 .form-label { font-size: 11px; font-weight: 700; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.04em; }
 .form-input { width: 100%; padding: 10px 12px; font-size: 13px; border: 1px solid var(--color-border-secondary); border-radius: var(--border-radius-sm); background: var(--color-background-primary); color: var(--color-text-primary); }
 .form-input:focus { outline: none; border-color: var(--color-text-primary); }
+
+.modal-content { max-width: 360px; }
+@media (max-width: 400px) {
+  .modal-content { max-width: calc(100% - 24px); margin: 12px; }
+  .modal-body { padding: 16px; }
+  .modal-header, .modal-footer { padding: 12px 16px; }
+}
+
+@media (max-width: 900px) {
+  body { padding: 60px 12px 12px; align-items: flex-start; }
+  .mobile-menu-btn { display: flex; }
+  .wrapper { max-width: 100%; }
+  .app { grid-template-columns: 1fr; grid-template-rows: 1fr; height: calc(100vh - 80px); border-radius: var(--border-radius-md); }
+  .sidebar { position: fixed; left: -280px; top: 0; bottom: 0; width: 260px; z-index: 45; transition: left 0.3s ease; overflow-y: auto; }
+  .sidebar.open { left: 0; }
+  .overlay { display: none; }
+  .overlay.open { display: block; }
+  #open-panel-btn { display: inline-flex !important; }
+  .panel { display: none; }
+  .panel.mobile-open { display: flex; position: fixed; right: -340px; left: auto; top: 0; bottom: 0; width: 320px; z-index: 45; transition: right 0.3s ease; }
+  .panel.mobile-open.open { right: 0; }
+  .panel-close { display: flex; }
+  .topbar { padding: 12px 16px; }
+  .cal-section { padding: 12px 16px; }
+  .tasks-section { padding: 0 16px 16px; }
+  .tasks-group { margin-top: 16px; }
+  .task-item { padding: 10px 12px; }
+}
+
+@media (max-width: 600px) {
+  body { padding: 60px 8px 8px; }
+  .app { border-radius: var(--border-radius-sm); height: calc(100vh - 76px); }
+  .topbar { flex-wrap: wrap; gap: 8px; padding: 10px 12px; }
+  .topbar-title { font-size: 15px; width: 100%; order: -1; margin-bottom: 4px; }
+  .btn { padding: 6px 10px; font-size: 12px; }
+  #open-panel-btn { display: inline-flex !important; font-size: 11px; padding: 5px 8px; }
+  #add-task-btn { padding: 6px 10px; }
+  #add-task-btn svg { display: none; }
+  .cal-section { padding: 10px 12px; }
+  .cal-grid { gap: 2px; }
+  .cal-day-label { font-size: 9px; padding-bottom: 2px; }
+  .cal-day { height: 26px; font-size: 11px; }
+  .cal-day-indicators { bottom: 1px; }
+  .cal-day-indicator { width: 3px; height: 3px; }
+  .cal-legend { gap: 8px; margin-top: 10px; font-size: 9px; flex-wrap: wrap; }
+  .legend-dot { width: 6px; height: 6px; }
+  .cal-header { margin-bottom: 10px; }
+  .cal-title { font-size: 13px; }
+  .cal-nav { font-size: 16px; padding: 2px 6px; }
+  .tasks-section { padding: 0 12px 12px; }
+  .tasks-group { margin-top: 12px; }
+  .tasks-group-header { margin-bottom: 6px; }
+  .tasks-group-header span { font-size: 10px; }
+  .task-meta { font-size: 10px; flex-wrap: wrap; }
+  .task-pill { font-size: 9px; padding: 2px 5px; }
+  .task-name { font-size: 12px; }
+  .task-item { padding: 8px 10px; gap: 8px; }
+  .task-check { width: 16px; height: 16px; margin-top: 1px; }
+  .task-delete-btn { width: 20px; height: 20px; font-size: 16px; }
+  .sidebar { width: 240px; left: -250px; }
+  .sidebar-header { font-size: 10px; padding: 6px 10px; }
+  .nav-item { padding: 8px 10px; font-size: 13px; gap: 10px; }
+  .badge { font-size: 11px; padding: 1px 6px; }
+  .add-subject { font-size: 12px; padding: 6px 10px; }
+  .panel.mobile-open { width: 280px; }
+  .panel-header { padding: 16px 16px 12px; }
+  .panel-title { font-size: 14px; }
+  .panel-subtitle { font-size: 11px; }
+  .paste-zone { margin: 12px 12px 10px; padding: 16px 12px; min-height: 100px; }
+  .paste-icon { font-size: 20px; margin-bottom: 6px; }
+  .paste-label { font-size: 13px; }
+  .paste-hint { font-size: 11px; }
+  .paste-actions { padding: 0 12px 12px; gap: 8px; }
+  .paste-actions .btn { padding: 8px 10px; font-size: 12px; }
+  .extract-preview { padding: 0 12px 12px; }
+  .extract-title { font-size: 10px; margin-bottom: 10px; }
+  .extract-card { padding: 10px 12px; margin-bottom: 10px; }
+  .extract-subject { font-size: 10px; }
+  .extract-task-name { font-size: 13px; }
+  .extract-row { font-size: 11px; }
+  .conf-label { font-size: 10px; }
+  .add-btn { margin: 0 12px 12px; padding: 10px; font-size: 13px; }
+  .modal-content { max-width: calc(100% - 16px); margin: 8px; }
+  .modal-body { padding: 14px; }
+  .modal-header, .modal-footer { padding: 10px 14px; }
+  .form-label { font-size: 10px; }
+  .form-input { padding: 8px 10px; font-size: 12px; }
+}
+
+@media (max-width: 400px) {
+  body { padding: 56px 4px 4px; }
+  .app { height: calc(100vh - 64px); }
+  .topbar { padding: 8px 10px; flex-wrap: wrap; gap: 6px; }
+  .topbar-title { font-size: 13px; width: 100%; order: -1; margin-bottom: 2px; }
+  .btn { padding: 4px 8px; font-size: 10px; }
+  #open-panel-btn, #add-task-btn { padding: 4px 6px; font-size: 10px; }
+  .cal-section { padding: 8px 10px; }
+  .cal-header { margin-bottom: 6px; }
+  .cal-title { font-size: 12px; }
+  .cal-nav { font-size: 14px; padding: 2px 4px; }
+  .cal-grid { gap: 1px; }
+  .cal-day-label { font-size: 8px; }
+  .cal-day { height: 22px; font-size: 10px; }
+  .cal-legend { gap: 4px; font-size: 8px; }
+  .legend-dot { width: 5px; height: 5px; }
+  .task-item { padding: 6px 8px; gap: 6px; }
+  .task-check { width: 14px; height: 14px; }
+  .task-info { min-width: 0; }
+  .task-name { font-size: 11px; }
+  .task-meta { font-size: 9px; gap: 4px; }
+  .task-pill { font-size: 8px; padding: 1px 4px; }
+  .task-delete-btn { width: 18px; height: 18px; min-width: 18px; min-height: 18px; font-size: 14px; }
+  .sidebar { width: 220px; left: -230px; }
+  .sidebar-header { font-size: 9px; padding: 4px 8px; }
+  .nav-item { padding: 6px 8px; font-size: 12px; gap: 8px; }
+  .badge { font-size: 10px; padding: 1px 4px; }
+  .nav-dot { width: 8px; height: 8px; }
+  .add-subject { font-size: 11px; padding: 4px 8px; }
+  .panel.mobile-open { width: 100%; right: -100%; }
+  .panel-header { padding: 12px 12px 10px; }
+  .panel-title { font-size: 13px; }
+  .panel-title svg { width: 16px; height: 16px; }
+  .panel-subtitle { font-size: 10px; }
+  .paste-zone { margin: 10px 10px 8px; padding: 12px 10px; min-height: 80px; }
+  .paste-icon { font-size: 18px; }
+  .paste-label { font-size: 12px; }
+  .paste-hint { font-size: 10px; }
+  .paste-actions { padding: 0 10px 10px; gap: 6px; }
+  .paste-actions .btn { padding: 6px 8px; font-size: 11px; }
+  .extract-preview { padding: 0 10px 10px; }
+  .extract-title { font-size: 9px; }
+  .extract-card { padding: 8px 10px; margin-bottom: 8px; }
+  .extract-subject { font-size: 9px; }
+  .extract-task-name { font-size: 12px; }
+  .extract-row { font-size: 10px; }
+  .conf-bar { height: 3px; margin-top: 8px; }
+  .conf-label { font-size: 9px; }
+  .add-btn { margin: 0 10px 10px; padding: 8px; font-size: 12px; }
+}
+
+@media (max-width: 360px) {
+  body { padding: 52px 2px 2px; }
+  .app { height: calc(100vh - 60px); border-radius: var(--border-radius-sm); }
+  .mobile-menu-btn { width: 36px; height: 36px; top: 8px; left: 8px; }
+  .mobile-menu-btn span { width: 14px; }
+  .topbar { padding: 6px 8px; gap: 4px; }
+  .topbar-title { font-size: 12px; }
+  .btn { padding: 3px 6px; font-size: 9px; }
+  #open-panel-btn, #add-task-btn { padding: 3px 5px; }
+  .cal-section { padding: 6px 8px; }
+  .cal-title { font-size: 11px; }
+  .cal-nav { font-size: 12px; }
+  .cal-day { height: 18px; font-size: 9px; }
+  .cal-day-label { font-size: 7px; }
+  .cal-legend { font-size: 7px; }
+  .legend-dot { width: 4px; height: 4px; }
+  .tasks-section { padding: 0 8px 8px; }
+  .task-item { padding: 5px 6px; gap: 5px; }
+  .task-check { width: 12px; height: 12px; }
+  .task-name { font-size: 10px; }
+  .task-meta { font-size: 8px; }
+  .task-pill { font-size: 7px; }
+  .task-delete-btn { width: 16px; height: 16px; font-size: 12px; }
+  .sidebar { width: 200px; left: -210px; }
+  .nav-item { padding: 5px 6px; font-size: 11px; }
+  .sidebar-header { font-size: 8px; }
+  .panel.mobile-open { width: 100%; }
+  .panel-header { padding: 10px 10px 8px; }
+  .panel-title { font-size: 12px; }
+  .paste-zone { margin: 8px; padding: 10px; min-height: 60px; }
+  .paste-label { font-size: 11px; }
+  .paste-hint { font-size: 9px; }
+  .extract-card { padding: 6px 8px; margin-bottom: 6px; }
+  .extract-task-name { font-size: 11px; }
+  .add-btn { margin: 0 8px 8px; padding: 6px; font-size: 11px; }
+  .modal-content { max-width: calc(100% - 8px); margin: 4px; }
+}
