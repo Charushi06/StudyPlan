@@ -180,10 +180,25 @@ body {
   filter: brightness(0.98);
   transform: translateY(-1px);
 }
+.task-action-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  filter: none;
+}
 .task-action-btn-secondary {
   border-color: var(--color-border-info);
   background: var(--color-background-info);
   color: var(--color-text-info);
+}
+.tasks-empty-state {
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: var(--border-radius-md);
+  border: 1px dashed var(--color-border-secondary);
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  background: var(--color-background-secondary);
 }
 .tasks-group { margin-top: 24px; animation: fadeIn 0.4s ease forwards; }
 .tasks-group-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }

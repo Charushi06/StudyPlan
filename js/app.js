@@ -101,27 +101,33 @@ function renderTasks() {
   
   if (selectedDate) {
     const selStr = selectedDate.toLocaleDateString('en-US', {month:'short', day:'numeric'});
-    const actionBar = pending.length > 0
-      ? `<div class="tasks-actions-bar">
-           <button id="mark-all-pending-btn" class="task-action-btn">Mark all pending completed (${pending.length})</button>
-           <button id="mark-day-complete-btn" class="task-action-btn task-action-btn-secondary">Mark selected day completed</button>
-         </div>`
+    const actionBar = `<div class="tasks-actions-bar">
+           <button id="mark-all-pending-btn" class="task-action-btn" ${pending.length === 0 ? 'disabled' : ''}>Mark all pending completed (${pending.length})</button>
+           <button id="mark-day-complete-btn" class="task-action-btn task-action-btn-secondary" ${pending.length === 0 ? 'disabled' : ''}>Mark selected day completed</button>
+         </div>`;
+
+    const emptyState = dueSoon.length === 0 && completed.length === 0
+      ? `<div class="tasks-empty-state">No tasks for this day yet.</div>`
       : '';
 
     tasksSection.innerHTML = actionBar +
                              renderGroup(`Tasks for ${selStr}`, dueSoon, 'var(--color-text-primary)') +
-                             renderGroup('Completed', completed, 'var(--color-text-tertiary)');
+                             renderGroup('Completed', completed, 'var(--color-text-tertiary)') +
+                             emptyState;
   } else {
-    const actionBar = pending.length > 0
-      ? `<div class="tasks-actions-bar">
-           <button id="mark-all-pending-btn" class="task-action-btn">Mark all pending completed (${pending.length})</button>
-         </div>`
+    const actionBar = `<div class="tasks-actions-bar">
+           <button id="mark-all-pending-btn" class="task-action-btn" ${pending.length === 0 ? 'disabled' : ''}>Mark all pending completed (${pending.length})</button>
+         </div>`;
+
+    const emptyState = dueSoon.length === 0 && thisWeek.length === 0 && completed.length === 0
+      ? `<div class="tasks-empty-state">No tasks yet. Add tasks from Smart Paste to get started.</div>`
       : '';
 
     tasksSection.innerHTML = actionBar +
                              renderGroup('⚠ Due soon', dueSoon, 'var(--color-text-danger)') +
                              renderGroup('This week', thisWeek, 'var(--color-text-secondary)', true) +
-                             renderGroup('Completed', completed, 'var(--color-text-tertiary)');
+                             renderGroup('Completed', completed, 'var(--color-text-tertiary)') +
+                             emptyState;
   }
                            
   document.querySelectorAll('.task-item').forEach(el => {
