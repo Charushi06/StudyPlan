@@ -4,6 +4,7 @@ const cors = require('cors');
 const { db, initDb } = require('./database');
 const { GoogleGenAI } = require('@google/genai');
 const path = require('path');
+const csvDownloadRouter = require('./backend/routers/csvDownload.router.js');
 
 const app = express();
 app.use(cors());
@@ -17,6 +18,9 @@ app.use(express.static(__dirname));
 initDb();
 
 const ai = process.env.GEMINI_API_KEY ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY }) : null;
+
+// CSV Download Router
+app.use('/api', csvDownloadRouter);
 
 // GET /api/subjects
 app.get('/api/subjects', (req, res) => {
@@ -37,18 +41,18 @@ app.get('/api/tasks', (req, res) => {
 // POST /api/tasks
 app.post('/api/tasks', (req, res) => {
   const tasks = Array.isArray(req.body) ? req.body : [req.body];
-  
+
   const stmt = db.prepare(`INSERT INTO tasks 
     (id, subject_id, title, due_at, status, priority, confidence_score, notes) 
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`);
-    
+
   tasks.forEach(t => {
     const id = 'task_' + Date.now() + Math.random().toString(36).substr(2, 5);
     stmt.run(id, t.subject_id, t.title, t.due_at, t.status || 'Not Started', t.priority || 'medium', t.confidence_score || 100, t.notes || '');
   });
-  
+
   stmt.finalize((err) => {
-    if(err) return res.status(500).json({ error: err.message });
+    if (err) return res.status(500).json({ error: err.message });
     res.json({ success: true, count: tasks.length });
   });
 });
@@ -57,16 +61,16 @@ app.post('/api/tasks', (req, res) => {
 app.put('/api/tasks/:id', (req, res) => {
   const { status } = req.body;
   if (!status) return res.status(400).json({ error: 'Status is required' });
-  db.run('UPDATE tasks SET status = ? WHERE id = ?', [status, req.params.id], function(err) {
-    if(err) return res.status(500).json({ error: err.message });
+  db.run('UPDATE tasks SET status = ? WHERE id = ?', [status, req.params.id], function (err) {
+    if (err) return res.status(500).json({ error: err.message });
     res.json({ success: true, changes: this.changes });
   });
 });
 
 // DELETE /api/tasks/:id
 app.delete('/api/tasks/:id', (req, res) => {
-  db.run('DELETE FROM tasks WHERE id = ?', [req.params.id], function(err) {
-    if(err) return res.status(500).json({ error: err.message });
+  db.run('DELETE FROM tasks WHERE id = ?', [req.params.id], function (err) {
+    if (err) return res.status(500).json({ error: err.message });
     res.json({ success: true, changes: this.changes });
   });
 });
@@ -76,7 +80,7 @@ app.delete('/api/tasks/:id', (req, res) => {
 app.post('/api/extract', async (req, res) => {
   const { text } = req.body;
   if (!text) return res.status(400).json({ error: 'Text is required' });
-  
+
   if (ai) {
     try {
       const prompt = `
@@ -92,14 +96,14 @@ Return ONLY structured JSON adhering exactly to the following array structure:
   "notes": "Submission method or extra notes"
 }]
 Text: "${text}"`;
-      
+
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
         contents: prompt
       });
-      
+
       let rawText = (typeof response.text === 'function' ? response.text() : response.text).trim();
-      if(rawText.startsWith('\`\`\`json')){
+      if (rawText.startsWith('\`\`\`json')) {
         rawText = rawText.replace(/\`\`\`json/g, '').replace(/\`\`\`/g, '').trim();
       } else if (rawText.startsWith('\`\`\`')) {
         rawText = rawText.replace(/\`\`\`/g, '').trim();
