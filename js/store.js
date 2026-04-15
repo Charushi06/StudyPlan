@@ -26,6 +26,7 @@ export const store = {
     }
   },
 
+  // ================= UPDATED FUNCTION =================
   async addTasks(newTasks) {
     try {
       const res = await fetch('/api/tasks', {
@@ -33,14 +34,42 @@ export const store = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newTasks)
       });
-      if (res.ok) {
-        // reload tasks
-        const tasksRes = await fetch('/api/tasks');
-        this.tasks = await tasksRes.json();
-        this.notify();
+
+      const data = await res.json(); // always parse response
+
+      if (!res.ok) {
+        //  Backend error
+        alert(`❌ ${data.message || "Failed to add tasks"}`);
+        console.error('Add task error:', data);
+        return;
       }
+
+      // ================= USER MESSAGES =================
+
+      if (data.duplicates?.length > 0) {
+        alert(`⚠ ${data.duplicates.length} duplicate task(s) skipped`);
+      }
+
+      if (data.errors?.length > 0) {
+        alert(`❌ ${data.errors.length} task(s) failed to add`);
+      }
+
+      if (
+        data.inserted > 0 &&
+        (data.duplicates?.length || 0) === 0 &&
+        (data.errors?.length || 0) === 0
+      ) {
+        alert("✅ Tasks added successfully");
+      }
+
+      // ================= REFRESH =================
+      const tasksRes = await fetch('/api/tasks');
+      this.tasks = await tasksRes.json();
+      this.notify();
+
     } catch (e) {
       console.error('Failed to add tasks', e);
+      alert("❌ Network error. Please try again.");
     }
   },
 
@@ -48,9 +77,9 @@ export const store = {
     const task = this.tasks.find(t => t.id === taskId);
     if (task) {
       const newStatus = task.status === 'Done' ? 'Not Started' : 'Done';
-      // optimistic update
       task.status = newStatus;
       this.notify();
+
       try {
         await fetch(`/api/tasks/${taskId}`, {
           method: 'PUT',
@@ -58,7 +87,6 @@ export const store = {
           body: JSON.stringify({ status: newStatus })
         });
       } catch (e) {
-        // revert on fail
         task.status = newStatus === 'Done' ? 'Not Started' : 'Done';
         this.notify();
       }
