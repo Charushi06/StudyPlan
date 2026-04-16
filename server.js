@@ -18,6 +18,134 @@ initDb();
 
 const ai = process.env.GEMINI_API_KEY ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY }) : null;
 
+function getDateRange(period) {
+  const now = new Date();
+  const start = new Date(now);
+  start.setHours(0, 0, 0, 0);
+
+  const end = new Date(start);
+  if (period === 'daily') {
+    end.setDate(end.getDate() + 1);
+  } else {
+    end.setDate(end.getDate() + 7);
+  }
+
+  return { now, start, end };
+}
+
+function buildHeuristicSummary(tasks, period, subjects) {
+  const activeTasks = tasks.filter(task => task.status !== 'Done');
+  const deadlineCount = activeTasks.length;
+  const highPriority = activeTasks.filter(task => task.priority === 'high');
+
+  const subjectLoad = activeTasks.reduce((acc, task) => {
+    const subjectName = task.subject_name || 'General';
+    if (!acc[subjectName]) {
+      acc[subjectName] = { count: 0, urgent: 0 };
+    }
+
+    acc[subjectName].count += 1;
+    if (task.priority === 'high') {
+      acc[subjectName].urgent += 1;
+    }
+
+    return acc;
+  }, {});
+
+  const focusAreas = Object.entries(subjectLoad)
+    .sort((a, b) => {
+      if (b[1].urgent !== a[1].urgent) return b[1].urgent - a[1].urgent;
+      return b[1].count - a[1].count;
+    })
+    .slice(0, 3)
+    .map(([subjectName, stats]) => {
+      if (stats.urgent > 0) {
+        return `${subjectName}: ${stats.urgent} high-priority ${stats.urgent === 1 ? 'task needs' : 'tasks need'} attention.`;
+      }
+      return `${subjectName}: ${stats.count} ${stats.count === 1 ? 'deadline is' : 'deadlines are'} coming up.`;
+    });
+
+  if (focusAreas.length === 0) {
+    focusAreas.push('You are clear right now. Use this window to review notes or get ahead on the next topic.');
+  }
+
+  const subjectCount = new Set(activeTasks.map(task => task.subject_id).filter(Boolean)).size;
+  const periodLabel = period === 'daily' ? 'today' : 'this week';
+  let overview;
+
+  if (deadlineCount === 0) {
+    overview = `You have no active deadlines ${periodLabel}.`;
+  } else if (deadlineCount === 1) {
+    overview = `You have 1 active deadline ${periodLabel}.`;
+  } else {
+    overview = `This ${period === 'daily' ? 'day' : 'week'} you have ${deadlineCount} active deadlines across ${subjectCount || subjects.length || 1} subject${(subjectCount || subjects.length || 1) === 1 ? '' : 's'}.`;
+  }
+
+  if (highPriority.length > 0) {
+    overview += ` ${highPriority.length} ${highPriority.length === 1 ? 'is marked' : 'are marked'} high priority.`;
+  }
+
+  return {
+    period,
+    overview,
+    focusAreas,
+    taskCount: deadlineCount,
+    highPriorityCount: highPriority.length
+  };
+}
+
+async function generateStudySummary(tasks, period, subjects) {
+  const heuristic = buildHeuristicSummary(tasks, period, subjects);
+
+  if (!ai) {
+    return heuristic;
+  }
+
+  try {
+    const prompt = `
+You are an AI study coach creating a short planner summary.
+Current Date: ${new Date().toISOString()}
+Period: ${period}
+
+Return ONLY valid JSON with this exact shape:
+{
+  "overview": "2 sentences max",
+  "focusAreas": ["short actionable suggestion", "short actionable suggestion", "short actionable suggestion"]
+}
+
+Use the task data below. Keep the tone clear and encouraging. Mention the number of deadlines naturally.
+Tasks:
+${JSON.stringify(tasks, null, 2)}
+Subjects:
+${JSON.stringify(subjects, null, 2)}
+`;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt
+    });
+
+    let rawText = (typeof response.text === 'function' ? response.text() : response.text).trim();
+    if (rawText.startsWith('```json')) {
+      rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+    } else if (rawText.startsWith('```')) {
+      rawText = rawText.replace(/```/g, '').trim();
+    }
+
+    const parsed = JSON.parse(rawText);
+    return {
+      period,
+      overview: parsed.overview || heuristic.overview,
+      focusAreas: Array.isArray(parsed.focusAreas) && parsed.focusAreas.length ? parsed.focusAreas.slice(0, 3) : heuristic.focusAreas,
+      taskCount: heuristic.taskCount,
+      highPriorityCount: heuristic.highPriorityCount
+    };
+  } catch (error) {
+    console.error('Summary generation failed, falling back to heuristic summary', error);
+    return heuristic;
+  }
+}
+
 // GET /api/subjects
 app.get('/api/subjects', (req, res) => {
   db.all('SELECT * FROM subjects', (err, rows) => {
@@ -31,6 +159,37 @@ app.get('/api/tasks', (req, res) => {
   db.all('SELECT * FROM tasks ORDER BY due_at ASC', (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(rows);
+  });
+});
+
+// GET /api/summary?period=daily|weekly
+app.get('/api/summary', (req, res) => {
+  const period = req.query.period === 'daily' ? 'daily' : 'weekly';
+  const { start, end } = getDateRange(period);
+
+  const tasksQuery = `
+    SELECT tasks.*, subjects.name AS subject_name, subjects.short_code AS subject_short_code
+    FROM tasks
+    LEFT JOIN subjects ON tasks.subject_id = subjects.id
+    WHERE tasks.due_at IS NOT NULL
+      AND datetime(tasks.due_at) >= datetime(?)
+      AND datetime(tasks.due_at) < datetime(?)
+    ORDER BY datetime(tasks.due_at) ASC
+  `;
+
+  db.all(tasksQuery, [start.toISOString(), end.toISOString()], (taskErr, tasks) => {
+    if (taskErr) return res.status(500).json({ error: taskErr.message });
+
+    db.all('SELECT * FROM subjects', async (subjectErr, subjects) => {
+      if (subjectErr) return res.status(500).json({ error: subjectErr.message });
+
+      try {
+        const summary = await generateStudySummary(tasks, period, subjects);
+        res.json(summary);
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+    });
   });
 });
 
@@ -81,7 +240,7 @@ app.post('/api/extract', async (req, res) => {
     try {
       const prompt = `
 You are an AI study planner. Extract deadlines and tasks from the following unstructured text.
-Current Date: 2026-04-11T12:00:00Z
+Current Date: ${new Date().toISOString()}
 Return ONLY structured JSON adhering exactly to the following array structure:
 [{
   "subject_name": "Inferred subject name or keyword",

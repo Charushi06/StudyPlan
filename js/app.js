@@ -5,6 +5,7 @@ let currentMonthDate = new Date();
 let selectedDate = null;
 
 const tasksSection = document.getElementById('tasks-section');
+const summarySection = document.getElementById('summary-section');
 const extractPreview = document.getElementById('extract-preview');
 const pasteInput = document.getElementById('paste-input');
 const extractBtn = document.getElementById('extract-btn');
@@ -109,6 +110,47 @@ function renderTasks() {
       store.toggleTaskStatus(el.dataset.id);
     });
   });
+}
+
+function renderSummaries() {
+  if (!summarySection) return;
+
+  const { daily, weekly } = store.summaries;
+  const summaries = [daily, weekly].filter(Boolean);
+
+  if (summaries.length === 0) {
+    summarySection.innerHTML = '';
+    return;
+  }
+
+  summarySection.innerHTML = summaries.map(summary => {
+    const title = summary.period === 'daily' ? 'Daily Summary' : 'Weekly Summary';
+    const metricLabel = summary.period === 'daily' ? 'Due today' : 'Due this week';
+
+    const focusAreasHtml = (summary.focusAreas || [])
+      .slice(0, 3)
+      .map(item => `<li>${item}</li>`)
+      .join('');
+
+    return `
+      <div class="summary-card">
+        <div class="summary-card-top">
+          <div>
+            <div class="summary-eyebrow">${title}</div>
+            <div class="summary-overview">${summary.overview}</div>
+          </div>
+          <div class="summary-metric">
+            <span class="summary-metric-value">${summary.taskCount || 0}</span>
+            <span class="summary-metric-label">${metricLabel}</span>
+          </div>
+        </div>
+        <div class="summary-focus-title">Suggested focus areas</div>
+        <ul class="summary-focus-list">
+          ${focusAreasHtml}
+        </ul>
+      </div>
+    `;
+  }).join('');
 }
 
 function renderCalendar() {
@@ -293,6 +335,7 @@ function renderExtraction() {
 }
 
 store.subscribe(renderTasks);
+store.subscribe(renderSummaries);
 store.subscribe(renderExtraction);
 store.subscribe(renderCalendar);
 
