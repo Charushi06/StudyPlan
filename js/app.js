@@ -85,6 +85,9 @@ function renderTasks() {
             <div class="task-meta">
               <span class="task-pill ${isDone ? 'pill-green' : (isUrgent ? 'pill-red' : 'pill-amber')}">${isDone ? 'Done' : 'Due ' + formatDate(t.due_at)}</span>
               <span class="task-pill ${pillClass}">${sub.short_code}</span>
+              <span class="task-pill pill-orange">Exam</span>
+              <span class="task-pill pill-cyan">Revision</span>
+              <span class="task-pill pill-pink">Project</span>
             </div>
           </div>
         </div>

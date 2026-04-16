@@ -252,3 +252,21 @@ body {
 
 /* Utility classes */
 .hidden { display: none !important; }
+/* --- Custom Labels for Better Planning --- */
+.pill-orange {
+  background: #fff4e5;
+  color: #b45309;
+  border-color: rgba(180, 83, 9, 0.2);
+}
+
+.pill-cyan {
+  background: #ecfeff;
+  color: #0e7490;
+  border-color: rgba(14, 116, 144, 0.2);
+}
+
+.pill-pink {
+  background: #fdf2f8;
+  color: #be185d;
+  border-color: rgba(190, 24, 93, 0.2);
+}
