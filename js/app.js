@@ -10,11 +10,36 @@ const pasteInput = document.getElementById('paste-input');
 const extractBtn = document.getElementById('extract-btn');
 const clearBtn = document.getElementById('clear-btn');
 const addItemsBtn = document.getElementById('add-btn');
+const downloadBtn = document.getElementById('download-btn');
 
 function formatDate(dateStr) {
   if (!dateStr) return 'No Date';
   const d = new Date(dateStr);
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' });
+}
+
+async function downloadData() {
+    try {
+        const response = await fetch('/api/download');
+        
+        if (!response.ok) {
+            throw new Error('Failed to download data');
+        }
+
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'study_data.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 100);
+
+    } catch (error) {
+        console.error(error);
+        alert('Failed to download data');
+    }
 }
 
 function renderTasks() {
@@ -378,4 +403,8 @@ addItemsBtn.addEventListener('click', () => {
     store.clearExtracted();
     pasteInput.value = '';
   }
+});
+
+downloadBtn.addEventListener('click', () => {
+  downloadData();
 });

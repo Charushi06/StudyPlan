@@ -4,6 +4,7 @@ const cors = require('cors');
 const { db, initDb } = require('./database');
 const { GoogleGenAI } = require('@google/genai');
 const path = require('path');
+const csvDownloadRouter = require('./backend/routers/csvDownload.router.js');
 
 const app = express();
 app.use(cors());
@@ -19,6 +20,9 @@ initDb();
 const ai = process.env.GEMINI_API_KEY
   ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
   : null;
+
+// ============== CSV Download Router ==============
+app.use('/api', csvDownloadRouter);
 
 // ================= SUBJECTS =================
 app.get('/api/subjects', (req, res) => {
@@ -90,14 +94,14 @@ app.post('/api/tasks', (req, res) => {
 
           if (err) {
             errors.push({ task: t, error: err.message });
-          } 
+          }
           else if (existing) {
             duplicates.push({
               title: t.title,
               due_at: t.due_at,
               subject_id: t.subject_id
             });
-          } 
+          }
           else {
             const id = 'task_' + Date.now() + Math.random().toString(36).substr(2, 5);
 
@@ -110,7 +114,7 @@ app.post('/api/tasks', (req, res) => {
               t.priority || 'medium',
               t.confidence_score || 100,
               t.notes || '',
-              function(insertErr) {
+              function (insertErr) {
                 if (insertErr) {
                   errors.push({ task: t, error: insertErr.message });
                 } else {
@@ -142,10 +146,10 @@ app.post('/api/tasks', (req, res) => {
                   errors.length > 0 && duplicates.length > 0
                     ? "Some tasks failed and some duplicates were skipped"
                     : errors.length > 0
-                    ? "Some tasks failed to add"
-                    : duplicates.length > 0
-                    ? "Duplicate tasks were skipped"
-                    : "All tasks added successfully"
+                      ? "Some tasks failed to add"
+                      : duplicates.length > 0
+                        ? "Duplicate tasks were skipped"
+                        : "All tasks added successfully"
               });
             });
           }
@@ -173,7 +177,7 @@ app.put('/api/tasks/:id', (req, res) => {
   db.run(
     'UPDATE tasks SET status = ? WHERE id = ?',
     [status, req.params.id],
-    function(err) {
+    function (err) {
       if (err) return res.status(500).json({ error: err.message });
       res.json({ success: true, changes: this.changes });
     }
@@ -185,7 +189,7 @@ app.delete('/api/tasks/:id', (req, res) => {
   db.run(
     'DELETE FROM tasks WHERE id = ?',
     [req.params.id],
-    function(err) {
+    function (err) {
       if (err) return res.status(500).json({ error: err.message });
       res.json({ success: true, changes: this.changes });
     }
