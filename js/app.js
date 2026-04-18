@@ -30,13 +30,17 @@ function renderTasks() {
   const dueSoon = [];
   const thisWeek = [];
   const completed = [];
+  const pending = [];
   
   if (selectedDate) {
     sorted.forEach(t => {
       const d = new Date(t.due_at);
       if (d.getDate() === selectedDate.getDate() && d.getMonth() === selectedDate.getMonth() && d.getFullYear() === selectedDate.getFullYear()) {
         if (t.status === 'Done') completed.push(t);
-        else dueSoon.push(t);
+        else {
+          dueSoon.push(t);
+          pending.push(t);
+        }
       }
     });
   } else {
@@ -45,6 +49,7 @@ function renderTasks() {
         completed.push(t);
         return;
       }
+      pending.push(t);
       const d = new Date(t.due_at);
       const diffDays = (d - now) / (1000 * 60 * 60 * 24);
       if (diffDays <= 3) dueSoon.push(t);
@@ -99,12 +104,33 @@ function renderTasks() {
   
   if (selectedDate) {
     const selStr = selectedDate.toLocaleDateString('en-US', {month:'short', day:'numeric'});
-    tasksSection.innerHTML = renderGroup(`Tasks for ${selStr}`, dueSoon, 'var(--color-text-primary)') +
-                             renderGroup('Completed', completed, 'var(--color-text-tertiary)');
+    const actionBar = `<div class="tasks-actions-bar">
+           <button id="mark-all-pending-btn" class="task-action-btn" ${pending.length === 0 ? 'disabled' : ''}>Mark all pending completed (${pending.length})</button>
+           <button id="mark-day-complete-btn" class="task-action-btn task-action-btn-secondary" ${pending.length === 0 ? 'disabled' : ''}>Mark selected day completed</button>
+         </div>`;
+
+    const emptyState = dueSoon.length === 0 && completed.length === 0
+      ? `<div class="tasks-empty-state">No tasks for this day yet.</div>`
+      : '';
+
+    tasksSection.innerHTML = actionBar +
+                             renderGroup(`Tasks for ${selStr}`, dueSoon, 'var(--color-text-primary)') +
+                             renderGroup('Completed', completed, 'var(--color-text-tertiary)') +
+                             emptyState;
   } else {
-    tasksSection.innerHTML = renderGroup('⚠ Due soon', dueSoon, 'var(--color-text-danger)') +
+    const actionBar = `<div class="tasks-actions-bar">
+           <button id="mark-all-pending-btn" class="task-action-btn" ${pending.length === 0 ? 'disabled' : ''}>Mark all pending completed (${pending.length})</button>
+         </div>`;
+
+    const emptyState = dueSoon.length === 0 && thisWeek.length === 0 && completed.length === 0
+      ? `<div class="tasks-empty-state">No tasks yet. Add tasks from Smart Paste to get started.</div>`
+      : '';
+
+    tasksSection.innerHTML = actionBar +
+                             renderGroup('⚠ Due soon', dueSoon, 'var(--color-text-danger)') +
                              renderGroup('This week', thisWeek, 'var(--color-text-secondary)', true) +
-                             renderGroup('Completed', completed, 'var(--color-text-tertiary)');
+                             renderGroup('Completed', completed, 'var(--color-text-tertiary)') +
+                             emptyState;
   }
                            
   document.querySelectorAll('.task-item').forEach(el => {
@@ -112,6 +138,22 @@ function renderTasks() {
       store.toggleTaskStatus(el.dataset.id);
     });
   });
+
+  const markAllPendingBtn = document.getElementById('mark-all-pending-btn');
+  if (markAllPendingBtn) {
+    markAllPendingBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      store.markAllPendingCompleted();
+    });
+  }
+
+  const markDayCompleteBtn = document.getElementById('mark-day-complete-btn');
+  if (markDayCompleteBtn) {
+    markDayCompleteBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      store.markPendingTasksForDateCompleted(selectedDate);
+    });
+  }
 }
 
 function renderCalendar() {

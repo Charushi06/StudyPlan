@@ -81,6 +81,7 @@ body {
   color: var(--color-text-primary);
   min-height: 100vh;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 32px 16px;
@@ -159,6 +160,47 @@ body {
 .tasks-section { flex: 1; overflow-y: auto; padding: 0 24px 24px; scroll-behavior: smooth; }
 .tasks-section::-webkit-scrollbar { width: 6px; }
 .tasks-section::-webkit-scrollbar-thumb { background: var(--color-border-secondary); border-radius: 10px; }
+.tasks-actions-bar {
+  margin-top: 18px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.task-action-btn {
+  border: 1px solid var(--color-border-success);
+  background: var(--color-background-success);
+  color: var(--color-text-success);
+  border-radius: var(--border-radius-sm);
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.task-action-btn:hover {
+  filter: brightness(0.98);
+  transform: translateY(-1px);
+}
+.task-action-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  filter: none;
+}
+.task-action-btn-secondary {
+  border-color: var(--color-border-info);
+  background: var(--color-background-info);
+  color: var(--color-text-info);
+}
+.tasks-empty-state {
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: var(--border-radius-md);
+  border: 1px dashed var(--color-border-secondary);
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  background: var(--color-background-secondary);
+}
 .tasks-group { margin-top: 24px; animation: fadeIn 0.4s ease forwards; }
 .tasks-group-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
 .tasks-group-header span { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
@@ -269,4 +311,97 @@ body {
   background: #fdf2f8;
   color: #be185d;
   border-color: rgba(190, 24, 93, 0.2);
+
+
+
+/* Header */
+.site-header {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto 16px auto;
+  padding: 16px 24px;
+  background: var(--color-background-primary);
+  border: 1px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-md);
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 2px;
+}
+
+.site-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.header-nav {
+  display: flex;
+  gap: 24px;
+}
+
+.header-nav a {
+  text-decoration: none;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.header-nav a:hover {
+  color: var(--color-text-primary);
+}
+
+.profile-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: var(--border-radius-md);
+  background: var(--color-text-primary);
+  color: var(--color-background-primary);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+/* Footer */
+.site-footer {
+  width: 100%;
+  max-width: 1200px;
+  margin: 16px auto 0 auto;
+  padding: 16px 24px;
+  background: var(--color-background-primary);
+  border: 1px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-md);
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+}
+
+.footer-links {
+  display: flex;
+  gap: 16px;
+}
+
+.footer-links a {
+  text-decoration: none;
+  color: var(--color-text-secondary);
+}
+
+.footer-links a:hover {
+  color: var(--color-text-primary);
 }

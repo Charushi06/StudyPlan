@@ -96,3 +96,4 @@ https://studyplan-jvgd.onrender.com/
 └──  studyplan.db
 ```
  
+Included as a project for Nexus Spring of Code open source
