@@ -3,8 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "node server.js",
-    "postinstall": "npm rebuild sqlite3 --build-from-source"
+    "start": "node server.js"
   },
   "keywords": [],
   "author": "",
