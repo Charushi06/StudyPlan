@@ -17,6 +17,31 @@ function formatDate(dateStr) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' });
 }
 
+function applyButtonAnimations() {
+  document.querySelectorAll('button').forEach(btn => {
+    if (btn.dataset.animated) return; // prevent duplicate binding
+    btn.dataset.animated = "true";
+
+    btn.style.transition = 'transform 0.15s ease';
+
+    btn.addEventListener('mouseenter', () => {
+      btn.style.transform = 'scale(1.05)';
+    });
+
+    btn.addEventListener('mouseleave', () => {
+      btn.style.transform = 'scale(1)';
+    });
+
+    btn.addEventListener('mousedown', () => {
+      btn.style.transform = 'scale(0.95)';
+    });
+
+    btn.addEventListener('mouseup', () => {
+      btn.style.transform = 'scale(1.05)';
+    });
+  });
+}
+
 function renderTasks() {
   const tasks = store.tasks;
   const subjects = store.subjects;
@@ -84,7 +109,11 @@ function renderTasks() {
       
       html += `
         <div class="task-item ${isUrgent ? 'urgent' : ''} ${isDone ? 'done' : ''}" data-id="${t.id}">
-          <div class="task-check ${isDone ? 'done' : ''}"></div>
+          <div class="task-check ${isDone ? 'done' : ''}">
+            <svg viewBox="0 0 24 24" class="check-svg">
+              <path d="M5 13l4 4L19 7" class="check-path"/>
+            </svg>
+          </div>
           <div class="task-info">
             <div class="task-name">${t.title}</div>
             <div class="task-meta">
@@ -114,6 +143,7 @@ function renderTasks() {
                              renderGroup(`Tasks for ${selStr}`, dueSoon, 'var(--color-text-primary)') +
                              renderGroup('Completed', completed, 'var(--color-text-tertiary)') +
                              emptyState;
+    applyButtonAnimations();
   } else {
     const actionBar = `<div class="tasks-actions-bar">
            <button id="mark-all-pending-btn" class="task-action-btn" ${pending.length === 0 ? 'disabled' : ''}>Mark all pending completed (${pending.length})</button>
@@ -128,11 +158,31 @@ function renderTasks() {
                              renderGroup('This week', thisWeek, 'var(--color-text-secondary)', true) +
                              renderGroup('Completed', completed, 'var(--color-text-tertiary)') +
                              emptyState;
+    applyButtonAnimations();
+
+    requestAnimationFrame(() => {
+      document.querySelectorAll('.task-item').forEach((el, index) => {
+        el.style.opacity = 0;
+        el.style.transform = 'translateY(12px)';
+
+        setTimeout(() => {
+          el.style.transition = 'all 0.25s ease';
+          el.style.opacity = 1;
+          el.style.transform = 'translateY(0)';
+        }, index * 40);
+      });
+    });                             
   }
                            
   document.querySelectorAll('.task-item').forEach(el => {
     el.addEventListener('click', () => {
-      store.toggleTaskStatus(el.dataset.id);
+      el.style.transition = 'transform 0.15s ease';
+      el.style.transform = 'scale(0.92)';
+
+      setTimeout(() => {
+        el.style.transform = 'scale(1)';
+        store.toggleTaskStatus(el.dataset.id);
+      }, 120);
     });
   });
 
@@ -151,6 +201,20 @@ function renderTasks() {
       store.markPendingTasksForDateCompleted(selectedDate);
     });
   }
+  requestAnimationFrame(() => {
+    document.querySelectorAll('.task-item.done .check-path').forEach(path => {
+      if (path.dataset.animated) return;
+      path.dataset.animated = "true";
+
+      path.style.strokeDasharray = 24;
+      path.style.strokeDashoffset = 24;
+
+      setTimeout(() => {
+        path.style.transition = 'stroke-dashoffset 0.4s ease';
+        path.style.strokeDashoffset = 0;
+      }, 100);
+    });
+  });
 }
 
 function renderCalendar() {
@@ -229,8 +293,15 @@ function renderCalendar() {
       } else {
         selectedDate = clickedDate;
       }
-      renderCalendar();
-      renderTasks();
+      tasksSection.style.opacity = 0;
+
+      setTimeout(() => {
+        renderCalendar();
+        renderTasks();
+
+        tasksSection.style.transition = 'opacity 0.25s ease';
+        tasksSection.style.opacity = 1;
+      }, 120);
     });
   });
 }
@@ -297,6 +368,21 @@ function renderExtraction() {
   });
   
   extractPreview.innerHTML = html;
+
+  requestAnimationFrame(() => {
+  document.querySelectorAll('.extract-card').forEach((card, index) => {
+      card.style.opacity = 0;
+      card.style.transform = 'translateY(10px)';
+
+      setTimeout(() => {
+        card.style.transition = 'all 0.3s ease';
+        card.style.opacity = 1;
+        card.style.transform = 'translateY(0)';
+      }, index * 60);
+    });
+  });
+
+  applyButtonAnimations();
   
   setTimeout(() => {
     document.querySelectorAll('.conf-fill').forEach(el => {
@@ -339,6 +425,7 @@ store.subscribe(renderExtraction);
 store.subscribe(renderCalendar);
 
 document.addEventListener('DOMContentLoaded', () => {
+  applyButtonAnimations();
   store.fetchInitialData();
   
   document.getElementById('cal-prev').addEventListener('click', () => {
