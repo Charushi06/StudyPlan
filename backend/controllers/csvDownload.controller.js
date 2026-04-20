@@ -25,7 +25,7 @@ async function downloadData(req, res) {
         });
 
         const rows = [
-            ["Task ID", "Subject", "Title", "Due At", "Status", "Priority", "Confidence Score", "Notes"],
+            ["Task ID", "Subject", "Title", "Due At", "Status", "Priority", "Estimated Duration (min)", "Confidence Score", "Notes"],
             ...data.map(task => [
                 task.id,
                 task.subject_name,
@@ -33,6 +33,7 @@ async function downloadData(req, res) {
                 task.due_at,
                 task.status,
                 task.priority,
+                task.estimated_duration_minutes || '',
                 task.confidence_score,
                 `"${(task.notes || '').replace(/"/g, '""')}"`
             ])

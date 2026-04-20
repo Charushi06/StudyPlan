@@ -57,8 +57,8 @@ app.post('/api/tasks', (req, res) => {
     let errors = [];
 
     const stmt = db.prepare(`INSERT INTO tasks 
-      (id, subject_id, title, due_at, status, priority, confidence_score, notes) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`);
+      (id, subject_id, title, due_at, status, priority, estimated_duration_minutes, confidence_score, notes) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`);
 
     let pending = tasks.length;
 
@@ -82,6 +82,11 @@ app.post('/api/tasks', (req, res) => {
         }
         return;
       }
+
+      const parsedDuration = Number.parseInt(t.estimated_duration_minutes, 10);
+      const estimatedDurationMinutes = Number.isFinite(parsedDuration) && parsedDuration > 0
+        ? parsedDuration
+        : null;
 
       // ================= DUPLICATE CHECK =================
       db.get(
@@ -112,6 +117,7 @@ app.post('/api/tasks', (req, res) => {
               t.due_at,
               t.status || 'Not Started',
               t.priority || 'medium',
+              estimatedDurationMinutes,
               t.confidence_score || 100,
               t.notes || '',
               function (insertErr) {

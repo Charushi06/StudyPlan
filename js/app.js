@@ -18,6 +18,21 @@ function formatDate(dateStr) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' });
 }
 
+function formatDuration(minutes) {
+  const parsed = Number.parseInt(minutes, 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) return '';
+  if (parsed % 60 === 0) {
+    const hours = parsed / 60;
+    return `${hours}h`;
+  }
+  if (parsed > 60) {
+    const hours = Math.floor(parsed / 60);
+    const mins = parsed % 60;
+    return `${hours}h ${mins}m`;
+  }
+  return `${parsed}m`;
+}
+
 async function downloadData() {
     try {
         const response = await fetch('/api/download');
@@ -56,11 +71,13 @@ function renderTasks() {
   const thisWeek = [];
   const completed = [];
   const pending = [];
+  const selectedDayTasks = [];
   
   if (selectedDate) {
     sorted.forEach(t => {
       const d = new Date(t.due_at);
       if (d.getDate() === selectedDate.getDate() && d.getMonth() === selectedDate.getMonth() && d.getFullYear() === selectedDate.getFullYear()) {
+        selectedDayTasks.push(t);
         if (t.status === 'Done') completed.push(t);
         else {
           dueSoon.push(t);
@@ -115,6 +132,7 @@ function renderTasks() {
             <div class="task-meta">
               <span class="task-pill ${isDone ? 'pill-green' : (isUrgent ? 'pill-red' : 'pill-amber')}">${isDone ? 'Done' : 'Due ' + formatDate(t.due_at)}</span>
               <span class="task-pill ${pillClass}">${sub.short_code}</span>
+              ${formatDuration(t.estimated_duration_minutes) ? `<span class="task-pill pill-blue">ETC ${formatDuration(t.estimated_duration_minutes)}</span>` : ''}
             </div>
           </div>
         </div>
@@ -126,6 +144,18 @@ function renderTasks() {
   
   if (selectedDate) {
     const selStr = selectedDate.toLocaleDateString('en-US', {month:'short', day:'numeric'});
+    const totalEstimatedMinutes = selectedDayTasks.reduce((sum, task) => {
+      const taskMinutes = Number.parseInt(task.estimated_duration_minutes, 10);
+      return Number.isFinite(taskMinutes) && taskMinutes > 0 ? sum + taskMinutes : sum;
+    }, 0);
+    const totalEstimatedLabel = totalEstimatedMinutes > 0 ? formatDuration(totalEstimatedMinutes) : 'No estimates yet';
+    const workloadAlert = totalEstimatedMinutes >= 600
+      ? `<div class="workload-alert">⚠ Heavy workload: ${totalEstimatedLabel} planned for this day. Consider splitting tasks across multiple days.</div>`
+      : '';
+    const summaryBar = `<div class="daily-summary-card">
+        <span class="daily-summary-label">Total Estimated Study Time</span>
+        <span class="daily-summary-value">${totalEstimatedLabel}</span>
+      </div>${workloadAlert}`;
     const actionBar = `<div class="tasks-actions-bar">
            <button id="mark-all-pending-btn" class="task-action-btn" ${pending.length === 0 ? 'disabled' : ''}>Mark all pending completed (${pending.length})</button>
            <button id="mark-day-complete-btn" class="task-action-btn task-action-btn-secondary" ${pending.length === 0 ? 'disabled' : ''}>Mark selected day completed</button>
@@ -135,7 +165,8 @@ function renderTasks() {
       ? `<div class="tasks-empty-state">No tasks for this day yet.</div>`
       : '';
 
-    tasksSection.innerHTML = actionBar +
+    tasksSection.innerHTML = summaryBar +
+                 actionBar +
                              renderGroup(`Tasks for ${selStr}`, dueSoon, 'var(--color-text-primary)') +
                              renderGroup('Completed', completed, 'var(--color-text-tertiary)') +
                              emptyState;
@@ -299,6 +330,15 @@ function renderExtraction() {
           <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Deadline</label>
           <input class="edit-date-input edit-field" type="datetime-local" value="${localDate}" data-index="${index}" style="width:100%; margin-bottom: 12px; font-size:12px; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
 
+          <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Estimated Duration</label>
+          <div style="display:flex; gap:8px; margin-bottom: 12px;">
+            <input class="edit-duration-input edit-field" type="number" min="1" value="${item.estimated_duration_minutes ? Number.parseInt(item.estimated_duration_minutes, 10) >= 60 && Number.parseInt(item.estimated_duration_minutes, 10) % 60 === 0 ? Number.parseInt(item.estimated_duration_minutes, 10) / 60 : Number.parseInt(item.estimated_duration_minutes, 10) : ''}" data-index="${index}" placeholder="e.g. 90" style="width:60%; font-size:12px; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
+            <select class="edit-duration-unit-input edit-field" data-index="${index}" style="width:40%; font-size:12px; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
+              <option value="minutes" ${item.estimated_duration_minutes && (Number.parseInt(item.estimated_duration_minutes, 10) % 60 !== 0) ? 'selected' : ''}>minutes</option>
+              <option value="hours" ${item.estimated_duration_minutes && (Number.parseInt(item.estimated_duration_minutes, 10) % 60 === 0) ? 'selected' : ''}>hours</option>
+            </select>
+          </div>
+
           <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Notes</label>
           <input class="edit-notes-input edit-field" type="text" value="${item.notes || ''}" data-index="${index}" placeholder="Notes..." style="width:100%; margin-bottom: 12px; font-size:12px; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
 
@@ -313,6 +353,7 @@ function renderExtraction() {
           <div class="extract-subject" style="color:${sub.color}">${sub.name}</div>
           <div class="extract-task-name">${item.title}</div>
           <div class="extract-row"><span class="extract-icon">${item.icon || '📅'}</span> ${formatDate(item.due_at)}</div>
+          ${formatDuration(item.estimated_duration_minutes) ? `<div class="extract-row"><span class="extract-icon">⏱</span> ETC ${formatDuration(item.estimated_duration_minutes)}</div>` : ''}
           <div class="extract-row"><span class="extract-icon">📎</span> ${item.notes || 'No notes attached'}</div>
           <div class="conf-bar"><div class="conf-fill" style="width:0%;background:${item.confidence_score > 75 ? 'var(--color-text-success)' : 'var(--color-text-warning)'}" data-width="${item.confidence_score}"></div></div>
           <div class="conf-label">${item.confidence_score}% confidence <span class="conf-edit" data-index="${index}" tabindex="0">Edit</span></div>
@@ -343,7 +384,13 @@ function renderExtraction() {
       const subjectId = card.querySelector('.edit-subject-input').value;
       const title = card.querySelector('.edit-title-input').value;
       let dateVal = card.querySelector('.edit-date-input').value;
+      const durationVal = card.querySelector('.edit-duration-input').value;
+      const durationUnit = card.querySelector('.edit-duration-unit-input').value;
       const notes = card.querySelector('.edit-notes-input').value;
+      const parsedDuration = Number.parseInt(durationVal, 10);
+      const estimatedDurationMinutes = Number.isFinite(parsedDuration) && parsedDuration > 0
+        ? (durationUnit === 'hours' ? parsedDuration * 60 : parsedDuration)
+        : null;
       
       const newSubject = store.subjects.find(s => s.id === subjectId);
       
@@ -352,6 +399,7 @@ function renderExtraction() {
         subject_name: newSubject ? newSubject.name : 'General',
         title: title,
         due_at: dateVal ? new Date(dateVal).toISOString() : '',
+        estimated_duration_minutes: estimatedDurationMinutes,
         notes: notes,
         _isEditing: false
       });

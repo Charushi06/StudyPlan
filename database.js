@@ -23,11 +23,20 @@ function initDb() {
       due_at DATETIME,
       status TEXT DEFAULT 'Not Started',
       priority TEXT DEFAULT 'medium',
+      estimated_duration_minutes INTEGER,
       confidence_score REAL,
       notes TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (subject_id) REFERENCES subjects(id)
     )`);
+
+    db.all('PRAGMA table_info(tasks)', (err, columns) => {
+      if (err || !Array.isArray(columns)) return;
+      const hasDuration = columns.some(col => col.name === 'estimated_duration_minutes');
+      if (!hasDuration) {
+        db.run('ALTER TABLE tasks ADD COLUMN estimated_duration_minutes INTEGER');
+      }
+    });
 
     // Pre-populate some subjects if empty
     db.get('SELECT COUNT(*) as count FROM subjects', (err, row) => {

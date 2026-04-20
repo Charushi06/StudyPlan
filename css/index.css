@@ -160,6 +160,40 @@ body {
 .tasks-section { flex: 1; overflow-y: auto; padding: 0 24px 24px; scroll-behavior: smooth; }
 .tasks-section::-webkit-scrollbar { width: 6px; }
 .tasks-section::-webkit-scrollbar-thumb { background: var(--color-border-secondary); border-radius: 10px; }
+.daily-summary-card {
+  margin-top: 18px;
+  border: 1px solid var(--color-border-info);
+  background: var(--color-background-info);
+  border-radius: var(--border-radius-md);
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.daily-summary-label {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.daily-summary-value {
+  font-size: 14px;
+  color: var(--color-text-info);
+  font-weight: 700;
+}
+.workload-alert {
+  margin-top: 10px;
+  border: 1px solid var(--color-border-danger);
+  background: var(--color-background-danger);
+  color: var(--color-text-danger);
+  border-radius: var(--border-radius-md);
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+}
 .tasks-actions-bar {
   margin-top: 18px;
   display: flex;
