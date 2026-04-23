@@ -388,3 +388,36 @@ body {
 .footer-links a:hover {
   color: var(--color-text-primary);
 }
+/* ===== UI Enhancement Hover Effects ===== */
+
+.nav-item,
+.btn,
+.profile-btn,
+.add-btn,
+.cal-day {
+  transition: all 0.25s ease;
+}
+
+.nav-item:hover {
+  background: var(--color-background-primary);
+  transform: translateX(4px);
+}
+
+.btn:hover,
+.profile-btn:hover,
+.add-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+}
+
+.cal-day:hover {
+  transform: scale(1.05);
+  background: var(--color-background-primary);
+}
+
+.site-header,
+.sidebar,
+.panel,
+.main {
+  transition: all 0.3s ease;
+}
