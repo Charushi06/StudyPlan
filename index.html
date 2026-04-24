@@ -45,9 +45,10 @@
     <a href="#">Settings</a>
   </nav>
 
-  <div class="header-right">
+<div class="header-right">
+    <button id="theme-toggle" onclick="toggleTheme()" style="background:none;border:1px solid #555;color:inherit;padding:6px 12px;border-radius:8px;cursor:pointer;margin-right:8px;">☀️ Light</button>
     <button class="profile-btn">Profile</button>
-  </div>
+</div>
 </header>
 
 
@@ -219,6 +220,18 @@
   if (localStorage.getItem('studyplan_user')) {
     document.getElementById('auth-modal').style.display = 'none';
   }
+    // Dark mode toggle
+function toggleTheme() {
+  const isLight = document.body.classList.toggle('light-mode');
+  localStorage.setItem('theme', isLight ? 'light' : 'dark');
+  document.getElementById('theme-toggle').textContent = isLight ? '🌙 Dark' : '☀️ Light';
+}
+
+// Page load pe saved theme apply karo
+if (localStorage.getItem('theme') === 'light') {
+  document.body.classList.add('light-mode');
+  document.getElementById('theme-toggle').textContent = '🌙 Dark';
+}
 </script>
 </body>
 </html>
