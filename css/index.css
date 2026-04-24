@@ -424,3 +424,16 @@ body {
 .footer-links a:hover {
   color: var(--color-text-primary);
 }
+
+/* Manual light mode toggle */
+body.light-mode {
+  --color-background-primary: #ffffff;
+  --color-background-secondary: #f7f7f5;
+  --color-background-tertiary: #efefec;
+  --color-text-primary: #1a1a18;
+  --color-text-secondary: #6b6b66;
+  --color-text-tertiary: #9c9a92;
+  --color-border-tertiary: rgba(0,0,0,0.08);
+  --color-border-secondary: rgba(0,0,0,0.15);
+  --color-border-primary: rgba(0,0,0,0.30);
+}
