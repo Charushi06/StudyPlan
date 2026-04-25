@@ -445,6 +445,72 @@ app.post('/api/auth/login', (req, res) => {
 app.post('/api/auth/logout', (req, res) => {
   res.json({ success: true, message: 'Logged out successfully' });
 });
+// ================= GOOGLE CALENDAR =================
+const { getAuthUrl, getTokensFromCode, getCalendarClient, taskToEvent } = require('./backend/calendar');
+
+app.get('/auth/google', (req, res) => {
+  res.redirect(getAuthUrl());
+});
+
+app.get('/auth/google/callback', async (req, res) => {
+  const { code, error } = req.query;
+  if (error || !code) return res.redirect('/?calendar=denied');
+  try {
+    const tokens = await getTokensFromCode(code);
+    db.run(
+      `INSERT INTO user_tokens (email, access_token, refresh_token, expiry)
+       VALUES ('default', ?, ?, ?)
+       ON CONFLICT(email) DO UPDATE SET access_token=excluded.access_token,
+       refresh_token=excluded.refresh_token, expiry=excluded.expiry`,
+      [tokens.access_token, tokens.refresh_token, tokens.expiry_date],
+      () => res.redirect('/?calendar=connected')
+    );
+  } catch (e) {
+    console.error('OAuth error:', e.message);
+    res.redirect('/?calendar=error');
+  }
+});
+
+app.get('/api/calendar/status', (req, res) => {
+  db.get(`SELECT * FROM user_tokens WHERE email = 'default'`, (err, row) => {
+    res.json({ connected: !!row });
+  });
+});
+
+app.post('/api/calendar/sync/:id', async (req, res) => {
+  db.get(`SELECT * FROM tasks WHERE id = ?`, [req.params.id], async (err, task) => {
+    if (!task) return res.status(404).json({ error: 'Task not found' });
+    db.get(`SELECT * FROM user_tokens WHERE email = 'default'`, async (err2, tokenRow) => {
+      if (!tokenRow) return res.status(401).json({ error: 'Calendar not connected' });
+      try {
+        const calendar = await getCalendarClient({
+          access_token: tokenRow.access_token,
+          refresh_token: tokenRow.refresh_token,
+          expiry_date: tokenRow.expiry
+        });
+        if (task.calendar_event_id) {
+          await calendar.events.patch({
+            calendarId: 'primary',
+            eventId: task.calendar_event_id,
+            requestBody: taskToEvent(task)
+          });
+          res.json({ success: true, action: 'updated' });
+        } else {
+          const event = await calendar.events.insert({
+            calendarId: 'primary',
+            requestBody: taskToEvent(task)
+          });
+          db.run(`UPDATE tasks SET calendar_event_id = ? WHERE id = ?`,
+            [event.data.id, task.id]);
+          res.json({ success: true, action: 'created', eventId: event.data.id });
+        }
+      } catch (e) {
+        console.error('Calendar sync error:', e.message);
+        res.status(500).json({ error: 'Sync failed', detail: e.message });
+      }
+    });
+  });
+});
 // ================= SERVER =================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
