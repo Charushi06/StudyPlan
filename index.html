@@ -46,7 +46,7 @@
   </nav>
 
 <div class="header-right">
-    <button id="theme-toggle" onclick="toggleTheme()" style="background:none;border:1px solid #555;color:inherit;padding:6px 12px;border-radius:8px;cursor:pointer;margin-right:8px;">☀️ Light</button>
+    <button id="theme-toggle" onclick="toggleTheme()" style="background:none;border:1px solid #555;color:inherit;padding:6px 12px;border-radius:8px;cursor:pointer;margin-right:8px;">☀️</button>
     <button class="profile-btn">Profile</button>
 </div>
 </header>
@@ -224,13 +224,12 @@
 function toggleTheme() {
   const isLight = document.body.classList.toggle('light-mode');
   localStorage.setItem('theme', isLight ? 'light' : 'dark');
-  document.getElementById('theme-toggle').textContent = isLight ? '🌙 Dark' : '☀️ Light';
-}
+document.getElementById('theme-toggle').textContent = isLight ? '🌙' : '☀️';
+  } 
 
-// Page load pe saved theme apply karo
 if (localStorage.getItem('theme') === 'light') {
   document.body.classList.add('light-mode');
-  document.getElementById('theme-toggle').textContent = '🌙 Dark';
+  document.getElementById('theme-toggle').textContent = '🌙';
 }
 </script>
 </body>
