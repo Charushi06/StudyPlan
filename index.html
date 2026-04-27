@@ -220,15 +220,17 @@
   if (localStorage.getItem('studyplan_user')) {
     document.getElementById('auth-modal').style.display = 'none';
   }
-    // Dark mode toggle
-function toggleTheme() {
+    
+    function toggleTheme() {
   const isLight = document.body.classList.toggle('light-mode');
+  document.documentElement.classList.toggle('light-mode-active', isLight);
   localStorage.setItem('theme', isLight ? 'light' : 'dark');
-document.getElementById('theme-toggle').textContent = isLight ? '🌙' : '☀️';
-  } 
+  document.getElementById('theme-toggle').textContent = isLight ? '🌙' : '☀️';
+}
 
 if (localStorage.getItem('theme') === 'light') {
   document.body.classList.add('light-mode');
+  document.documentElement.classList.add('light-mode-active');
   document.getElementById('theme-toggle').textContent = '🌙';
 }
 </script>
