@@ -45,7 +45,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not(.light-mode-active) {    
     --color-background-primary: #181816;
     --color-background-secondary: #20201e;
     --color-background-tertiary: #272725;
