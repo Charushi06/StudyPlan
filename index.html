@@ -14,10 +14,32 @@
 </head>
 
 <body>
+  <!-- Auth Modal -->
+<div id="auth-modal" style="display:flex; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+  <div style="background:white; border-radius:16px; padding:32px; width:360px; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+    
+    <h2 id="auth-title" style="margin:0 0 8px; font-size:22px; font-weight:700;">Welcome back</h2>
+    <p id="auth-subtitle" style="margin:0 0 24px; color:#666; font-size:14px;">Sign in to your StudyPlan account</p>
+
+    <input id="auth-email" type="email" placeholder="Email address" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:12px; box-sizing:border-box;">
+    
+    <input id="auth-password" type="password" placeholder="Password" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:20px; box-sizing:border-box;">
+
+    <button id="auth-submit-btn" style="width:100%; padding:12px; background:#4f46e5; color:white; border:none; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer;">
+      Sign In
+    </button>
+
+    <p style="text-align:center; margin:16px 0 0; font-size:13px; color:#666;">
+      <span id="auth-toggle-text">Don't have an account?</span>
+      <a id="auth-toggle-btn" href="#" style="color:#4f46e5; font-weight:600; margin-left:4px;">Sign Up</a>
+    </p>
+
+    <p id="auth-error" style="color:red; font-size:13px; text-align:center; margin:8px 0 0; display:none;"></p>
+  </div>
+</div>
 
   <!-- ================= HEADER ================= -->
   <header class="site-header">
-<<<<<<< HEAD
   <div class="header-left">
     <img src="/logo.png" alt="Logo" class="logo">
     <h1 class="site-title">StudyPlan</h1>
@@ -43,11 +65,11 @@
     <!-- Sidebar -->
     <div class="sidebar">
       <div class="sidebar-header">Study Planner</div>
-      <div class="nav-item active">
+      <div class="nav-item active" id="calendar-btn">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M1 6h14" stroke="currentColor" stroke-width="1.5"/><path d="M5 1v2M11 1v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         Calendar
       </div>
-      <div class="nav-item">
+      <div class="nav-item" id="all-tasks-btn">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h9M2 12h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         All Tasks
         <span class="badge">7</span>
@@ -55,6 +77,11 @@
       <div class="nav-item">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         Focus Mode
+      </div>
+      <div class="nav-item" id="archived-tasks-btn">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 3h12v2H2V3zm1 3h10v7H3V6zm2 2v3h2V8H5zm4 0v3h2V8H9z" fill="currentColor"/></svg>
+        Archived Tasks
+        <span class="badge">0</span>
       </div>
       <div class="nav-item" id="download-btn">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h9M2 12h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
@@ -70,11 +97,9 @@
       <div class="add-subject">
         <svg width="14" height="14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Add subject
       </div>
-=======
     <div class="header-left">
       <img src="/logo.png" alt="StudyPlan Logo" class="logo" />
       <h1 class="site-title">StudyPlan</h1>
->>>>>>> 3575667 (Updated files)
     </div>
 
     <nav class="header-nav" aria-label="Main navigation">
@@ -251,5 +276,60 @@
   <!-- JS -->
   <script type="module" src="/js/app.js"></script>
 
+  <script>
+  let isLogin = true;
+
+  document.getElementById('auth-toggle-btn').addEventListener('click', (e) => {
+    e.preventDefault();
+    isLogin = !isLogin;
+    document.getElementById('auth-title').textContent = isLogin ? 'Welcome back' : 'Create account';
+    document.getElementById('auth-subtitle').textContent = isLogin ? 'Sign in to your StudyPlan account' : 'Start planning your studies';
+    document.getElementById('auth-submit-btn').textContent = isLogin ? 'Sign In' : 'Sign Up';
+    document.getElementById('auth-toggle-text').textContent = isLogin ? "Don't have an account?" : 'Already have an account?';
+    document.getElementById('auth-toggle-btn').textContent = isLogin ? 'Sign Up' : 'Sign In';
+    document.getElementById('auth-error').style.display = 'none';
+  });
+
+  document.getElementById('auth-submit-btn').addEventListener('click', async () => {
+    const email = document.getElementById('auth-email').value.trim();
+    const password = document.getElementById('auth-password').value.trim();
+    const errorEl = document.getElementById('auth-error');
+
+    if (!email || !password) {
+      errorEl.textContent = 'Please fill in all fields';
+      errorEl.style.display = 'block';
+      return;
+    }
+
+    const endpoint = isLogin ? '/api/auth/login' : '/api/auth/signup';
+
+    try {
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        errorEl.textContent = data.error || 'Something went wrong';
+        errorEl.style.display = 'block';
+        return;
+      }
+
+      localStorage.setItem('studyplan_user', JSON.stringify({ email: data.email }));
+      document.getElementById('auth-modal').style.display = 'none';
+
+    } catch (err) {
+      errorEl.textContent = 'Network error. Please try again.';
+      errorEl.style.display = 'block';
+    }
+  });
+
+  // Check if already logged in
+  if (localStorage.getItem('studyplan_user')) {
+    document.getElementById('auth-modal').style.display = 'none';
+  }
+</script>
 </body>
 </html>

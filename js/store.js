@@ -101,6 +101,64 @@ export const store = {
     }
   },
 
+  async archiveTask(taskId) {
+    const task = this.tasks.find(t => String(t.id) === String(taskId));
+    if (task) {
+      task.archived = 1;
+      this.notify();
+      try {
+        await fetch(`/api/tasks/${taskId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ archived: 1 })
+        });
+      } catch (e) {
+        task.archived = 0;
+        this.notify();
+        console.error('Failed to archive task', e);
+      }
+    }
+  },
+
+  async restoreTask(taskId) {
+    const task = this.tasks.find(t => String(t.id) === String(taskId));
+    if (task) {
+      task.archived = 0;
+      this.notify();
+      try {
+        await fetch(`/api/tasks/${taskId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ archived: 0 })
+        });
+      } catch (e) {
+        task.archived = 1;
+        this.notify();
+        console.error('Failed to restore task', e);
+      }
+    }
+  },
+
+  async deleteTask(taskId) {
+    const confirmed = confirm('Are you sure you want to permanently delete this task?');
+    if (!confirmed) return;
+
+    const taskIndex = this.tasks.findIndex(t => String(t.id) === String(taskId));
+    if (taskIndex !== -1) {
+      const removedTask = this.tasks.splice(taskIndex, 1)[0];
+      this.notify();
+      try {
+        await fetch(`/api/tasks/${taskId}`, {
+          method: 'DELETE'
+        });
+      } catch (e) {
+        this.tasks.splice(taskIndex, 0, removedTask);
+        this.notify();
+        console.error('Failed to delete task', e);
+      }
+    }
+  },
+
   async markAllPendingCompleted() {
     const pendingTasks = this.tasks.filter(t => t.status !== 'Done');
     if (pendingTasks.length === 0) return;
