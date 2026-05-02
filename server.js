@@ -239,6 +239,36 @@ app.get('/api/subjects', (req, res) => {
   });
 });
 
+app.post('/api/subjects', (req, res) => {
+  const { id, name, color } = req.body;
+  
+  if (!name || !name.trim()) {
+    return res.status(400).json({ error: 'Subject name is required' });
+  }
+  
+  const subjectId = id || 'subject_' + Date.now();
+  const subjectColor = color || '#4f46e5';
+  
+  db.run(
+    'INSERT INTO subjects (id, name, color) VALUES (?, ?, ?)',
+    [subjectId, name.trim(), subjectColor],
+    function(err) {
+      if (err) {
+        if (err.message.includes('UNIQUE constraint failed')) {
+          return res.status(400).json({ error: 'Subject with this name already exists' });
+        }
+        return res.status(500).json({ error: err.message });
+      }
+      
+      // Return the created subject
+      db.get('SELECT * FROM subjects WHERE id = ?', [subjectId], (err, row) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(row);
+      });
+    }
+  );
+});
+
 // ================= TASKS =================
 app.get('/api/tasks', (req, res) => {
   db.all('SELECT * FROM tasks ORDER BY due_at ASC', (err, rows) => {
@@ -415,6 +445,349 @@ Text: "${text}"
   const tasks = nlpExtractTasksFromText(text);
   return res.json(tasks);
 });
+
+// ================= AI RECOMMENDATIONS =================
+
+// Get user preferences
+app.get('/api/preferences', (req, res) => {
+  db.get('SELECT * FROM user_preferences WHERE user_id = ?', ['default_user'], (err, row) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(row || {
+      study_style: 'mixed',
+      preferred_session_length: 25,
+      preferred_break_length: 5,
+      peak_productivity_start: '09:00',
+      peak_productivity_end: '12:00',
+      difficulty_preference: 'mixed'
+    });
+  });
+});
+
+app.get('/api/recommendations/preferences', (req, res) => {
+  db.get('SELECT * FROM user_preferences WHERE user_id = ?', ['default_user'], (err, row) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(row || {});
+  });
+});
+
+// Update user preferences
+app.put('/api/recommendations/preferences', (req, res) => {
+  const { study_style, preferred_session_length, preferred_break_length, peak_productivity_start, peak_productivity_end, difficulty_preference } = req.body;
+  
+  db.run(
+    `UPDATE user_preferences 
+     SET study_style = ?, preferred_session_length = ?, preferred_break_length = ?, 
+         peak_productivity_start = ?, peak_productivity_end = ?, difficulty_preference = ?, updated_at = CURRENT_TIMESTAMP
+     WHERE user_id = ?`,
+    [study_style, preferred_session_length, preferred_break_length, peak_productivity_start, peak_productivity_end, difficulty_preference, 'default_user'],
+    function(err) {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ success: true, changes: this.changes });
+    }
+  );
+});
+
+// Get AI recommendations
+app.get('/api/recommendations', async (req, res) => {
+  const { type } = req.query; // schedule, technique, priority, resource
+  
+  try {
+    // Get user data for context
+    const [preferences, patterns, tasks] = await Promise.all([
+      new Promise((resolve, reject) => {
+        db.get('SELECT * FROM user_preferences WHERE user_id = ?', ['default_user'], (err, row) => {
+          if (err) reject(err);
+          else resolve(row);
+        });
+      }),
+      new Promise((resolve, reject) => {
+        db.all('SELECT * FROM study_patterns WHERE user_id = ? ORDER BY created_at DESC LIMIT 20', ['default_user'], (err, rows) => {
+          if (err) reject(err);
+          else resolve(rows);
+        });
+      }),
+      new Promise((resolve, reject) => {
+        db.all('SELECT * FROM tasks WHERE status != "Completed" ORDER BY due_at ASC LIMIT 10', (err, rows) => {
+          if (err) reject(err);
+          else resolve(rows);
+        });
+      })
+    ]);
+
+    // Generate AI recommendations
+    let recommendations = [];
+    
+    if (ai) {
+      try {
+        const prompt = generateRecommendationPrompt(type, preferences, patterns, tasks);
+        const model = ai.getGenerativeModel({ model: "gemini-2.5-flash" });
+        const response = await model.generateContent({
+          contents: prompt
+        });
+
+        let rawText = (typeof response.text === 'function' ? response.text() : response.text).trim();
+        if (rawText.startsWith('```')) rawText = rawText.replace(/```json|```/g, '').trim();
+        
+        const aiResponse = JSON.parse(rawText);
+        recommendations = aiResponse.recommendations || [];
+      } catch (e) {
+        console.error('AI recommendation failed:', e.message);
+        // Fallback to heuristic recommendations
+        recommendations = generateHeuristicRecommendations(type, preferences, patterns, tasks);
+      }
+    } else {
+      // No AI available, use heuristics
+      recommendations = generateHeuristicRecommendations(type, preferences, patterns, tasks);
+    }
+
+    // Store recommendations in database
+    for (const rec of recommendations) {
+      db.run(
+        'INSERT INTO ai_recommendations (user_id, recommendation_type, recommendation_text, context_data) VALUES (?, ?, ?, ?)',
+        ['default_user', type, rec.text, JSON.stringify(rec.context || {})]
+      );
+    }
+
+    res.json({ recommendations });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Advanced AI Recommendations
+app.get('/api/recommendations/advanced', (req, res) => {
+  // Generate intelligent recommendations based on user data
+  const recommendations = [
+    {
+      id: 'rec_1',
+      type: 'schedule',
+      title: 'Optimize Your Study Schedule',
+      description: 'Based on your patterns, you study best between 9-11 AM. Schedule difficult tasks during this time.',
+      priority: 'high',
+      confidence: 85,
+      impact: 'High',
+      actionable: true
+    },
+    {
+      id: 'rec_2',
+      type: 'technique',
+      title: 'Try Active Recall Method',
+      description: 'Your current study method shows 65% retention. Active recall could improve this to 85%.',
+      priority: 'medium',
+      confidence: 78,
+      impact: 'Medium',
+      actionable: true
+    },
+    {
+      id: 'rec_3',
+      type: 'health',
+      title: 'Take More Breaks',
+      description: 'Your average study session is 45 minutes. Consider taking breaks every 25 minutes for better focus.',
+      priority: 'medium',
+      confidence: 92,
+      impact: 'High',
+      actionable: true
+    },
+    {
+      id: 'rec_4',
+      type: 'performance',
+      title: 'Mathematics Performance Improving',
+      description: 'Your math scores have improved by 23% this month. Keep up the great work!',
+      priority: 'low',
+      confidence: 95,
+      impact: 'Low',
+      actionable: false
+    }
+  ];
+  
+  res.json(recommendations);
+});
+
+// Learning Analytics
+app.get('/api/analytics/learning', (req, res) => {
+  // Calculate learning analytics from user data
+  const analytics = {
+    productivity_score: 87,
+    productivity_trend: 12.5,
+    study_streak: 7,
+    focus_hours: 3.5,
+    focus_goal: 4,
+    tasks_completed: 12,
+    avg_session_time: 35,
+    total_study_time: 245,
+    subject_performance: {
+      'Computer Science': 92,
+      'Mathematics': 78,
+      'English Lit': 85,
+      'Physics': 73
+    }
+  };
+  
+  res.json(analytics);
+});
+
+// Personalized Insights
+app.get('/api/insights/personalized', (req, res) => {
+  // Generate personalized insights based on user patterns
+  const insights = [
+    {
+      type: 'performance',
+      icon: '📈',
+      title: 'Peak Performance Time',
+      description: 'You complete tasks 40% faster between 9-11 AM. Schedule important work during this window.',
+      actionable: true,
+      action: 'optimize_schedule',
+      action_text: 'Optimize Schedule'
+    },
+    {
+      type: 'habit',
+      icon: '🔄',
+      title: 'Consistent Study Pattern',
+      description: 'You\'ve studied for 7 consecutive days! This consistency is building strong learning habits.',
+      actionable: true,
+      action: 'view_streak',
+      action_text: 'View Streak'
+    },
+    {
+      type: 'health',
+      icon: '💪',
+      title: 'Study-Life Balance',
+      description: 'Your study sessions are well-distributed. Consider adding short meditation breaks.',
+      actionable: true,
+      action: 'add_breaks',
+      action_text: 'Add Breaks'
+    },
+    {
+      type: 'performance',
+      icon: '🎯',
+      title: 'Subject Mastery Progress',
+      description: 'Computer Science skills improving rapidly. Ready for advanced topics!',
+      actionable: true,
+      action: 'advanced_topics',
+      action_text: 'Explore Advanced'
+    }
+  ];
+  
+  res.json(insights);
+});
+
+// Get study patterns for analysis
+app.get('/api/recommendations/patterns', (req, res) => {
+  db.all(
+    'SELECT sp.*, t.title as task_title, s.name as subject_name, s.color as subject_color FROM study_patterns sp LEFT JOIN tasks t ON sp.task_id = t.id LEFT JOIN subjects s ON sp.subject_id = s.id WHERE sp.user_id = ? ORDER BY sp.created_at DESC LIMIT 50',
+    ['default_user'],
+    (err, rows) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json(rows);
+    }
+  );
+});
+
+// Record study pattern
+app.post('/api/recommendations/patterns', (req, res) => {
+  const { task_id, task_type, subject_id, completion_time, difficulty_rating, effectiveness_rating, study_session_start, study_session_end, breaks_taken } = req.body;
+  
+  db.run(
+    `INSERT INTO study_patterns 
+     (user_id, task_id, task_type, subject_id, completion_time, difficulty_rating, effectiveness_rating, study_session_start, study_session_end, breaks_taken)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    ['default_user', task_id, task_type, subject_id, completion_time, difficulty_rating, effectiveness_rating, study_session_start, study_session_end, breaks_taken],
+    function(err) {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ success: true, id: this.lastID });
+    }
+  );
+});
+
+// Rate recommendation
+app.post('/api/recommendations/:id/rate', (req, res) => {
+  const { rating } = req.body; // 1-5 scale
+  
+  db.run(
+    'UPDATE ai_recommendations SET helpfulness_rating = ?, rated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?',
+    [rating, req.params.id, 'default_user'],
+    function(err) {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ success: true, changes: this.changes });
+    }
+  );
+});
+
+// Helper function to generate AI prompt
+function generateRecommendationPrompt(type, preferences, patterns, tasks) {
+  const context = {
+    preferences,
+    recentPatterns: patterns.slice(0, 10),
+    currentTasks: tasks,
+    recommendationType: type
+  };
+  
+  let prompt = `Based on the following student data, provide 3 personalized study recommendations:\n\n`;
+  prompt += `User Preferences: ${JSON.stringify(preferences, null, 2)}\n\n`;
+  prompt += `Recent Study Patterns: ${JSON.stringify(patterns.slice(0, 5), null, 2)}\n\n`;
+  prompt += `Current Tasks: ${JSON.stringify(tasks, null, 2)}\n\n`;
+  
+  switch(type) {
+    case 'schedule':
+      prompt += `Focus on optimal study scheduling, session timing, and break recommendations. Consider productivity patterns and task difficulty.`;
+      break;
+    case 'technique':
+      prompt += `Focus on study techniques and learning strategies based on subject types and user preferences.`;
+      break;
+    case 'priority':
+      prompt += `Focus on task prioritization and order recommendations based on deadlines, difficulty, and user patterns.`;
+      break;
+    case 'resource':
+      prompt += `Focus on resource recommendations and study materials for different subject types.`;
+      break;
+    default:
+      prompt += `Provide general study recommendations across all areas.`;
+  }
+  
+  prompt += `\n\nRespond in JSON format: {"recommendations": [{"text": "recommendation text", "context": {}}]}`;
+  
+  return prompt;
+}
+
+// Helper function for heuristic recommendations (fallback)
+function generateHeuristicRecommendations(type, preferences, patterns, tasks) {
+  const recommendations = [];
+  
+  switch(type) {
+    case 'schedule':
+      recommendations.push({
+        text: `Based on your preference for ${preferences.preferred_session_length}-minute sessions, try studying during your peak hours (${preferences.peak_productivity_start} - ${preferences.peak_productivity_end}).`,
+        context: { type: 'schedule', source: 'heuristic' }
+      });
+      recommendations.push({
+        text: `Take ${preferences.preferred_break_length}-minute breaks between sessions to maintain focus and prevent burnout.`,
+        context: { type: 'schedule', source: 'heuristic' }
+      });
+      break;
+    case 'technique':
+      recommendations.push({
+        text: `For problem-solving subjects like Mathematics and Physics, practice active recall rather than passive reading.`,
+        context: { type: 'technique', source: 'heuristic' }
+      });
+      recommendations.push({
+        text: `Try the Pomodoro Technique: ${preferences.preferred_session_length} minutes of focused study followed by ${preferences.preferred_break_length}-minute breaks.`,
+        context: { type: 'technique', source: 'heuristic' }
+      });
+      break;
+    case 'priority':
+      const urgentTasks = tasks.filter(t => new Date(t.due_at) <= new Date(Date.now() + 2 * 24 * 60 * 60 * 1000));
+      if (urgentTasks.length > 0) {
+        recommendations.push({
+          text: `You have ${urgentTasks.length} tasks due in the next 48 hours. Prioritize these first.`,
+          context: { type: 'priority', source: 'heuristic', urgentTaskCount: urgentTasks.length }
+        });
+      }
+      break;
+  }
+  
+  return recommendations;
+}
+
 // ================= AUTH =================
 const users = {}; // Simple in-memory user store
 

@@ -46,6 +46,10 @@
   </nav>
 
   <div class="header-right">
+    <div class="realtime-indicator" id="realtime-indicator">
+      <div class="realtime-dot"></div>
+      <span class="realtime-text">Live</span>
+    </div>
     <button class="profile-btn">Profile</button>
   </div>
 </header>
@@ -67,9 +71,19 @@
         All Tasks
         <span class="badge">7</span>
       </div>
-      <div class="nav-item">
+      <div class="nav-item" id="pomodoro-btn">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Pomodoro Timer
+        <span class="badge" id="pomodoro-badge">25:00</span>
+      </div>
+      <div class="nav-item" id="focus-mode-btn">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1.5v13M2 8h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         Focus Mode
+      </div>
+      <div class="nav-item" id="study-insights-btn">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1.5v13M2 8h12M3.5 3.5l9 9M12.5 3.5l-9 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="8" r="1" fill="currentColor"/></svg>
+        Study Insights
+        <span class="badge" id="insights-badge">0</span>
       </div>
       <div class="nav-item" id="archived-tasks-btn">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 3h12v2H2V3zm1 3h10v7H3V6zm2 2v3h2V8H5zm4 0v3h2V8H9z" fill="currentColor"/></svg>
@@ -83,11 +97,10 @@
       </div>
       <div class="sidebar-divider"></div>
       <div class="sidebar-header">Subjects</div>
-      <div class="nav-item"><span class="nav-dot" style="background:var(--color-text-info)"></span>Computer Science<span class="badge">3</span></div>
-      <div class="nav-item"><span class="nav-dot" style="background:var(--color-text-success)"></span>Mathematics<span class="badge">2</span></div>
-      <div class="nav-item"><span class="nav-dot" style="background:var(--color-text-purple)"></span>English Lit<span class="badge">1</span></div>
-      <div class="nav-item"><span class="nav-dot" style="background:var(--color-text-warning)"></span>Physics<span class="badge">1</span></div>
-      <div class="add-subject">
+      <div id="subjects-list">
+        <!-- Subjects will be dynamically loaded here -->
+      </div>
+      <div class="add-subject" id="add-subject-btn">
         <svg width="14" height="14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Add subject
       </div>
     </div>
@@ -97,7 +110,7 @@
       <div class="topbar">
         <div class="topbar-title">April 2026</div>
         <button class="btn">Week</button>
-        <button class="btn btn-primary">
+        <button class="btn btn-primary" id="new-task-btn">
           <svg width="12" height="12" fill="none" style="margin-right:2px"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> New task
         </button>
       </div>
@@ -121,6 +134,202 @@
       <!-- Tasks -->
       <div id="tasks-section" class="tasks-section">
         <!-- Javascript will inject tasks here -->
+      </div>
+
+      <!-- Pomodoro Timer -->
+      <div id="pomodoro-section" class="pomodoro-section" style="display: none;">
+        <div class="pomodoro-container">
+          <div class="pomodoro-header">
+            <h2>🍅 Pomodoro Timer</h2>
+            <div class="pomodoro-stats">
+              <span class="pomodoro-stat">Sessions: <span id="pomodoro-sessions">0</span></span>
+              <span class="pomodoro-stat">Focus Time: <span id="pomodoro-focus-time">0h</span></span>
+            </div>
+          </div>
+          <div class="pomodoro-timer">
+            <div class="timer-display" id="pomodoro-display">25:00</div>
+            <div class="timer-controls">
+              <button class="btn btn-primary" id="pomodoro-start">Start</button>
+              <button class="btn" id="pomodoro-pause">Pause</button>
+              <button class="btn btn-danger" id="pomodoro-reset">Reset</button>
+            </div>
+            <div class="timer-settings">
+              <label>Work Duration: <input type="number" id="work-duration" value="25" min="1" max="60"> min</label>
+              <label>Break Duration: <input type="number" id="break-duration" value="5" min="1" max="30"> min</label>
+            </div>
+          </div>
+          <div class="pomodoro-tips">
+            <h4>💡 Pomodoro Tips</h4>
+            <ul>
+              <li>Work for 25 minutes, then take a 5-minute break</li>
+              <li>After 4 sessions, take a longer 15-30 minute break</li>
+              <li>Eliminate distractions during work sessions</li>
+              <li>Use breaks to stretch and rest your eyes</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Focus Mode -->
+      <div id="focus-mode-section" class="focus-mode-section" style="display: none;">
+        <div class="focus-container">
+          <div class="focus-header">
+            <h2>🎯 Focus Mode</h2>
+            <div class="focus-timer" id="focus-timer">00:00:00</div>
+          </div>
+          <div class="focus-controls">
+            <button class="btn btn-primary" id="focus-start">Start Focus Session</button>
+            <button class="btn btn-danger" id="focus-end">End Session</button>
+          </div>
+          <div class="focus-settings">
+            <h3>Session Settings</h3>
+            <div class="setting-group">
+              <label>Target Duration:</label>
+              <select id="focus-duration">
+                <option value="30">30 minutes</option>
+                <option value="60">1 hour</option>
+                <option value="90">1.5 hours</option>
+                <option value="120">2 hours</option>
+              </select>
+            </div>
+            <div class="setting-group">
+              <label>Block Distractions:</label>
+              <input type="checkbox" id="block-distractions" checked>
+            </div>
+            <div class="setting-group">
+              <label>Background Sounds:</label>
+              <select id="background-sounds">
+                <option value="none">None</option>
+                <option value="rain">Rain</option>
+                <option value="white-noise">White Noise</option>
+                <option value="forest">Forest</option>
+              </select>
+            </div>
+          </div>
+          <div class="focus-tips">
+            <h4>🧘 Focus Tips</h4>
+            <ul>
+              <li>Set clear goals for your focus session</li>
+              <li>Put your phone on silent and out of sight</li>
+              <li>Close unnecessary tabs and applications</li>
+              <li>Take deep breaths if you feel distracted</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Study Insights -->
+      <div id="study-insights-section" class="study-insights-section" style="display: none;">
+        <div class="insights-header">
+          <h2>🧠 Study Insights</h2>
+          <div class="insights-controls">
+            <select id="recommendation-type" class="insights-select">
+              <option value="schedule">Schedule Recommendations</option>
+              <option value="technique">Study Techniques</option>
+              <option value="priority">Task Priority</option>
+              <option value="resource">Resources</option>
+            </select>
+            <button id="refresh-insights" class="btn btn-primary">🔄 Refresh</button>
+          </div>
+        </div>
+
+        <div class="insights-content">
+          <!-- Recommendations Card -->
+          <div class="insights-card">
+            <div class="card-header">
+              <h3>💡 Today's Recommendations</h3>
+              <span class="card-badge" id="recommendation-count">0</span>
+            </div>
+            <div id="recommendations-list" class="recommendations-list">
+              <!-- Recommendations will be injected here -->
+            </div>
+          </div>
+
+          <!-- Learning Analytics Card -->
+          <div class="insights-card">
+            <div class="card-header">
+              <h3>📈 Learning Analytics</h3>
+              <span class="card-badge">LIVE</span>
+            </div>
+            <div id="learning-analytics" class="analytics-container">
+              <!-- Analytics will be injected here -->
+            </div>
+          </div>
+
+          <!-- Study Patterns Card -->
+          <div class="insights-card">
+            <div class="card-header">
+              <h3>📊 Your Study Patterns</h3>
+            </div>
+            <div id="study-patterns" class="patterns-grid">
+              <!-- Patterns will be injected here -->
+            </div>
+          </div>
+
+          <!-- Personalized Insights Card -->
+          <div class="insights-card">
+            <div class="card-header">
+              <h3>🧠 Personalized Insights</h3>
+              <span class="card-badge">AI</span>
+            </div>
+            <div id="personalized-insights" class="insights-container">
+              <!-- Personalized insights will be injected here -->
+            </div>
+          </div>
+
+          <!-- Preferences Settings -->
+          <div class="insights-card">
+            <div class="card-header">
+              <h3>⚙️ Study Preferences</h3>
+              <button id="edit-preferences" class="btn btn-sm">Edit</button>
+            </div>
+            <div id="preferences-display" class="preferences-display">
+              <!-- Preferences will be displayed here -->
+            </div>
+            <div id="preferences-edit" class="preferences-edit" style="display: none;">
+              <form id="preferences-form">
+                <div class="form-group">
+                  <label>Study Style</label>
+                  <select id="study-style" name="study_style">
+                    <option value="visual">Visual Learner</option>
+                    <option value="auditory">Auditory Learner</option>
+                    <option value="kinesthetic">Kinesthetic Learner</option>
+                    <option value="reading">Reading/Writing</option>
+                    <option value="mixed">Mixed Style</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Session Length (minutes)</label>
+                  <input type="number" id="session-length" name="preferred_session_length" min="15" max="120" value="25">
+                </div>
+                <div class="form-group">
+                  <label>Break Length (minutes)</label>
+                  <input type="number" id="break-length" name="preferred_break_length" min="3" max="30" value="5">
+                </div>
+                <div class="form-group">
+                  <label>Peak Productivity</label>
+                  <div class="time-range">
+                    <input type="time" id="peak-start" name="peak_productivity_start" value="09:00">
+                    <span>to</span>
+                    <input type="time" id="peak-end" name="peak_productivity_end" value="12:00">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Difficulty Preference</label>
+                  <select id="difficulty-pref" name="difficulty_preference">
+                    <option value="easy_first">Easy Tasks First</option>
+                    <option value="hard_first">Hard Tasks First</option>
+                    <option value="mixed">Mixed Difficulty</option>
+                  </select>
+                </div>
+                <div class="form-actions">
+                  <button type="button" id="cancel-preferences" class="btn">Cancel</button>
+                  <button type="submit" class="btn btn-primary">Save Preferences</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 

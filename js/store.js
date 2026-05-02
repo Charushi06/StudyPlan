@@ -3,6 +3,8 @@ export const store = {
   tasks: [],
   currentPaste: null,
   listeners: [],
+  pollingInterval: null,
+  lastUpdateTimestamp: null,
 
   isSameCalendarDate(dateA, dateB) {
     return (
@@ -85,6 +87,7 @@ export const store = {
     const task = this.tasks.find(t => String(t.id) === String(taskId));
     if (task) {
       const newStatus = task.status === 'Done' ? 'Not Started' : 'Done';
+      const wasCompleted = task.status === 'Done';
       task.status = newStatus;
       this.notify();
 
@@ -94,11 +97,73 @@ export const store = {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status: newStatus })
         });
+
+        // Create study pattern when task is marked as Done
+        if (newStatus === 'Done' && !wasCompleted) {
+          await this.createStudyPattern(task);
+        }
       } catch (e) {
         task.status = newStatus === 'Done' ? 'Not Started' : 'Done';
         this.notify();
       }
     }
+  },
+
+  async createStudyPattern(task) {
+    try {
+      const subject = this.subjects.find(s => s.id === task.subject_id);
+      const patternData = {
+        user_id: 'default_user',
+        task_id: task.id,
+        task_type: 'assignment', // Default task type
+        subject_id: task.subject_id,
+        completion_time: this.estimateCompletionTime(task, subject),
+        difficulty_rating: this.estimateDifficulty(task, subject),
+        effectiveness_rating: 4, // Default effectiveness rating
+        study_session_start: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30 mins ago
+        study_session_end: new Date().toISOString(),
+        breaks_taken: 0
+      };
+
+      await fetch('/api/recommendations/patterns', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(patternData)
+      });
+
+      console.log('Study pattern created for task:', task.title);
+    } catch (e) {
+      console.error('Failed to create study pattern:', e);
+    }
+  },
+
+  estimateCompletionTime(task, subject) {
+    // Simple heuristic based on task title length and subject
+    const baseTime = 25; // 25 minutes base
+    const titleComplexity = Math.min(task.title.length / 10, 30); // Add time based on title length
+    const subjectMultiplier = {
+      'Computer Science': 1.2,
+      'Mathematics': 1.5,
+      'English Lit': 1.0,
+      'Physics': 1.3
+    }[subject?.name] || 1.0;
+
+    return Math.round(baseTime + titleComplexity) * subjectMultiplier;
+  },
+
+  estimateDifficulty(task, subject) {
+    // Simple heuristic based on priority and subject
+    const priorityScores = { 'low': 1, 'medium': 2, 'high': 3 };
+    const baseDifficulty = priorityScores[task.priority] || 2;
+    
+    const subjectDifficulty = {
+      'Computer Science': 3,
+      'Mathematics': 4,
+      'English Lit': 2,
+      'Physics': 4
+    }[subject?.name] || 2;
+
+    return Math.min(5, Math.round((baseDifficulty + subjectDifficulty) / 2));
   },
 
   async archiveTask(taskId) {
@@ -242,5 +307,206 @@ export const store = {
   clearExtracted() {
     this.currentPaste = null;
     this.notify();
+  },
+
+  // ================= REAL-TIME FUNCTIONALITY =================
+  startRealtimeUpdates(intervalMs = 5000) {
+    // Clear existing interval if any
+    this.stopRealtimeUpdates();
+    
+    // Initial fetch
+    this.fetchRealtimeData();
+    
+    // Set up polling
+    this.pollingInterval = setInterval(() => {
+      this.fetchRealtimeData();
+    }, intervalMs);
+    
+    console.log('Real-time updates started with interval:', intervalMs);
+  },
+
+  stopRealtimeUpdates() {
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+      this.pollingInterval = null;
+      console.log('Real-time updates stopped');
+    }
+  },
+
+  async fetchRealtimeData() {
+    try {
+      const [subsRes, tasksRes] = await Promise.all([
+        fetch('/api/subjects'),
+        fetch('/api/tasks')
+      ]);
+      
+      const newSubjects = await subsRes.json();
+      const newTasks = await tasksRes.json();
+      
+      // Check if data has changed
+      const subjectsChanged = JSON.stringify(newSubjects) !== JSON.stringify(this.subjects);
+      const tasksChanged = JSON.stringify(newTasks) !== JSON.stringify(this.tasks);
+      
+      if (subjectsChanged || tasksChanged) {
+        this.subjects = newSubjects;
+        this.tasks = newTasks;
+        this.lastUpdateTimestamp = new Date().toISOString();
+        this.notify();
+        
+        // Trigger real-time notifications
+        if (tasksChanged) {
+          this.handleTaskChanges(newTasks);
+        }
+      }
+    } catch (e) {
+      console.error('Failed to fetch realtime data:', e);
+    }
+  },
+
+  handleTaskChanges(newTasks) {
+    // Detect task completions, new tasks, etc.
+    const oldTasks = this.tasks;
+    
+    // Find newly completed tasks
+    const newlyCompleted = newTasks.filter(task => 
+      task.status === 'Done' && 
+      !oldTasks.find(oldTask => oldTask.id === task.id && oldTask.status === 'Done')
+    );
+    
+    // Find new tasks
+    const newTasksAdded = newTasks.filter(task => 
+      !oldTasks.find(oldTask => oldTask.id === task.id)
+    );
+    
+    // Show notifications
+    if (newlyCompleted.length > 0) {
+      this.showNotification(`🎉 ${newlyCompleted.length} task(s) completed!`, 'success');
+    }
+    
+    if (newTasksAdded.length > 0) {
+      this.showNotification(`📝 ${newTasksAdded.length} new task(s) added!`, 'info');
+    }
+  },
+
+  showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `realtime-notification realtime-${type}`;
+    notification.innerHTML = `
+      <div class="notification-content">
+        <span class="notification-message">${message}</span>
+        <button class="notification-close" onclick="this.parentElement.parentElement.remove()">×</button>
+      </div>
+    `;
+    
+    // Add notification styles if not already present
+    if (!document.querySelector('#realtime-styles')) {
+      const style = document.createElement('style');
+      style.id = 'realtime-styles';
+      style.textContent = `
+        .realtime-notification {
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          background: var(--color-background-primary);
+          border: 1px solid var(--color-border-secondary);
+          border-radius: var(--border-radius-md);
+          box-shadow: var(--shadow-lg);
+          z-index: 1000;
+          animation: slideInRight 0.3s ease-out;
+          max-width: 300px;
+        }
+        
+        .realtime-notification.realtime-success {
+          border-left: 4px solid var(--color-text-success);
+        }
+        
+        .realtime-notification.realtime-info {
+          border-left: 4px solid var(--color-text-info);
+        }
+        
+        .realtime-notification.realtime-warning {
+          border-left: 4px solid var(--color-text-warning);
+        }
+        
+        .notification-content {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 12px 16px;
+        }
+        
+        .notification-message {
+          font-size: 14px;
+          font-weight: 500;
+          color: var(--color-text-primary);
+        }
+        
+        .notification-close {
+          background: none;
+          border: none;
+          color: var(--color-text-secondary);
+          font-size: 18px;
+          cursor: pointer;
+          padding: 0;
+          margin-left: 12px;
+          line-height: 1;
+        }
+        
+        .notification-close:hover {
+          color: var(--color-text-primary);
+        }
+        
+        @keyframes slideInRight {
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+    
+    // Add to page and auto-remove after 5 seconds
+    document.body.appendChild(notification);
+    setTimeout(() => {
+      if (notification.parentElement) {
+        notification.remove();
+      }
+    }, 5000);
+  },
+
+  // ================= CROSS-TAB SYNCHRONIZATION =================
+  initCrossTabSync() {
+    // Listen for storage events from other tabs
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'studyplan_update') {
+        // Another tab updated data, refresh this tab
+        console.log('Cross-tab update detected, refreshing data...');
+        this.fetchRealtimeData();
+      }
+    });
+
+    // Notify other tabs when we update data
+    this.subscribe(() => {
+      this.notifyOtherTabs();
+    });
+  },
+
+  notifyOtherTabs() {
+    // Send update notification to other tabs
+    localStorage.setItem('studyplan_update', JSON.stringify({
+      timestamp: Date.now(),
+      source: 'tab_' + Math.random().toString(36).substr(2, 9)
+    }));
+    
+    // Clear immediately to avoid storage buildup
+    setTimeout(() => {
+      localStorage.removeItem('studyplan_update');
+    }, 100);
   }
 };
