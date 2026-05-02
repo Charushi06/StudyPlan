@@ -81,6 +81,44 @@ export const store = {
     }
   },
 
+  setTaskEditing(taskId, isEditing) {
+    const task = this.tasks.find(t => String(t.id) === String(taskId));
+    if (task) {
+      task._isEditing = isEditing;
+      this.notify();
+    }
+  },
+
+  async updateTask(taskId, updatedFields) {
+    const taskIndex = this.tasks.findIndex(t => String(t.id) === String(taskId));
+    if (taskIndex === -1) return;
+    
+    // Store original in case of failure
+    const originalTask = { ...this.tasks[taskIndex] };
+    
+    // Optimistic update
+    this.tasks[taskIndex] = { ...this.tasks[taskIndex], ...updatedFields, _isEditing: false };
+    this.notify();
+
+    try {
+      const res = await fetch(`/api/tasks/${taskId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedFields)
+      });
+      
+      if (!res.ok) {
+        throw new Error('Update failed');
+      }
+    } catch (e) {
+      console.error('Failed to update task', e);
+      alert("❌ Failed to save task changes. Please try again.");
+      // Revert
+      this.tasks[taskIndex] = originalTask;
+      this.notify();
+    }
+  },
+
   async toggleTaskStatus(taskId) {
     const task = this.tasks.find(t => String(t.id) === String(taskId));
     if (task) {
@@ -97,6 +135,64 @@ export const store = {
       } catch (e) {
         task.status = newStatus === 'Done' ? 'Not Started' : 'Done';
         this.notify();
+      }
+    }
+  },
+
+  async archiveTask(taskId) {
+    const task = this.tasks.find(t => String(t.id) === String(taskId));
+    if (task) {
+      task.archived = 1;
+      this.notify();
+      try {
+        await fetch(`/api/tasks/${taskId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ archived: 1 })
+        });
+      } catch (e) {
+        task.archived = 0;
+        this.notify();
+        console.error('Failed to archive task', e);
+      }
+    }
+  },
+
+  async restoreTask(taskId) {
+    const task = this.tasks.find(t => String(t.id) === String(taskId));
+    if (task) {
+      task.archived = 0;
+      this.notify();
+      try {
+        await fetch(`/api/tasks/${taskId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ archived: 0 })
+        });
+      } catch (e) {
+        task.archived = 1;
+        this.notify();
+        console.error('Failed to restore task', e);
+      }
+    }
+  },
+
+  async deleteTask(taskId) {
+    const confirmed = confirm('Are you sure you want to permanently delete this task?');
+    if (!confirmed) return;
+
+    const taskIndex = this.tasks.findIndex(t => String(t.id) === String(taskId));
+    if (taskIndex !== -1) {
+      const removedTask = this.tasks.splice(taskIndex, 1)[0];
+      this.notify();
+      try {
+        await fetch(`/api/tasks/${taskId}`, {
+          method: 'DELETE'
+        });
+      } catch (e) {
+        this.tasks.splice(taskIndex, 0, removedTask);
+        this.notify();
+        console.error('Failed to delete task', e);
       }
     }
   },
