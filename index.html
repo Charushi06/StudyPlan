@@ -69,7 +69,7 @@
       <div class="nav-item" id="all-tasks-btn">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h9M2 12h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         All Tasks
-        <span class="badge">7</span>
+        <span class="badge">9</span>
       </div>
       <div class="nav-item" id="pomodoro-btn">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
@@ -79,6 +79,7 @@
       <div class="nav-item" id="focus-mode-btn">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1.5v13M2 8h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         Focus Mode
+        
       </div>
       <div class="nav-item" id="study-insights-btn">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1.5v13M2 8h12M3.5 3.5l9 9M12.5 3.5l-9 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="8" r="1" fill="currentColor"/></svg>
@@ -134,6 +135,48 @@
       <!-- Tasks -->
       <div id="tasks-section" class="tasks-section">
         <!-- Javascript will inject tasks here -->
+        
+      </div>
+
+      <!-- Focus Mode -->
+      <div id="focus-section" class="focus-section hidden">
+        <div class="focus-dashboard">
+          <div class="timer-container">
+            <svg class="timer-svg" viewBox="0 0 100 100">
+              <circle class="timer-path-elapsed" cx="50" cy="50" r="45" />
+              <path id="timer-path-remaining" stroke-dasharray="283" class="timer-path-remaining" d="
+                M 50, 50
+                m -45, 0
+                a 45,45 0 1,0 90,0
+                a 45,45 0 1,0 -90,0
+              "></path>
+            </svg>
+            <div id="timer-text" class="timer-text">25:00</div>
+          </div>
+          <div class="timer-duration-row">
+            <label for="timer-duration-input" class="timer-duration-label">Duration (min)</label>
+            <input id="timer-duration-input" type="number" class="timer-duration-input" value="25" min="1" max="120">
+          </div>
+          <div class="timer-controls">
+            <button id="timer-start-btn" class="btn btn-primary">Start Focus</button>
+            <button id="timer-pause-btn" class="btn hidden">Pause</button>
+            <button id="timer-reset-btn" class="btn">Reset</button>
+          </div>
+          
+          <div class="focus-task-container">
+            <div class="focus-task-header">Current Focus Task</div>
+            <div id="active-focus-task" class="active-focus-task">
+              <div class="no-task-selected">No task selected. Choose one below.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="focus-task-selector">
+          <div class="focus-task-header">Select a task to focus on</div>
+          <div id="focus-task-list" class="focus-task-list">
+            <!-- JS will populate tasks -->
+          </div>
+        </div>
       </div>
 
       <!-- Pomodoro Timer -->
@@ -336,11 +379,16 @@
     <!-- Right Panel -->
     <div class="panel">
       <div class="panel-header">
-        <div class="panel-title">
-          <svg width="18" height="18" fill="none"><path d="M9 13V5M9 5L5 9M9 5l4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Smart Paste
+        <button id="panel-toggle-btn" class="panel-toggle-btn" title="Toggle Smart Paste">
+          <svg id="panel-toggle-icon" width="16" height="16" fill="none" viewBox="0 0 16 16"><path d="M10 4l-4 4 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div>
+          <div class="panel-title">
+            <svg width="18" height="18" fill="none"><path d="M9 13V5M9 5L5 9M9 5l4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Smart Paste
+          </div>
+          <div class="panel-subtitle">Drop any text — email, brief, message</div>
         </div>
-        <div class="panel-subtitle">Drop any text — email, brief, message</div>
       </div>
 
       <div class="paste-zone">
@@ -429,5 +477,30 @@
     document.getElementById('auth-modal').style.display = 'none';
   }
 </script>
+
+
+//ADD TASK MODEL
+<div id="new-task-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0;  z-index:9998; align-items:center; justify-content:center;">
+  <div class="modal-card" style=" border-radius:12px; padding:20px; width:320px; box-shadow:0 12px 40px rgba(0,0,0,0.25);">
+    <h3 style="margin:0 0 12px; font-size:18px; font-weight:600;">New task</h3>
+
+    <label style="display:block; font-size:12px; margin-bottom:4px;">Subject</label>
+    <select id="new-task-subject" paceholder="Subject" style="width:100%; padding:6px; margin-bottom:10px;"></select>
+
+    <label style="display:block; font-size:12px; margin-bottom:4px;">Task name</label>
+    <input id="new-task-title" type="text" style="width:100%; padding:6px; margin-bottom:10px;"placeholder="TaskName">
+
+    <label style="display:block; font-size:12px; margin-bottom:4px;">Deadline</label>
+    <input id="new-task-date" type="datetime-local" style="width:100%; padding:6px; margin-bottom:10px;" placeholder="Deadline">
+
+    <!-- <label style="display:block; font-size:12px; margin-bottom:4px;">Notes</label> -->
+    <input id="new-task-notes" type="text" style="width:100%; padding:6px; margin-bottom:16px;" placeholder="Notes">
+
+    <div style="display:flex; justify-content:flex-end; gap:8px;">
+      <button id="new-task-cancel" class="btn" style="padding:6px 10px;">Cancel</button>
+      <button id="new-task-save" class="btn btn-primary" style="padding:6px 12px;">Save</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
