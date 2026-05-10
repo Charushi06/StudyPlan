@@ -81,6 +81,44 @@ export const store = {
     }
   },
 
+  setTaskEditing(taskId, isEditing) {
+    const task = this.tasks.find(t => String(t.id) === String(taskId));
+    if (task) {
+      task._isEditing = isEditing;
+      this.notify();
+    }
+  },
+
+  async updateTask(taskId, updatedFields) {
+    const taskIndex = this.tasks.findIndex(t => String(t.id) === String(taskId));
+    if (taskIndex === -1) return;
+    
+    // Store original in case of failure
+    const originalTask = { ...this.tasks[taskIndex] };
+    
+    // Optimistic update
+    this.tasks[taskIndex] = { ...this.tasks[taskIndex], ...updatedFields, _isEditing: false };
+    this.notify();
+
+    try {
+      const res = await fetch(`/api/tasks/${taskId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedFields)
+      });
+      
+      if (!res.ok) {
+        throw new Error('Update failed');
+      }
+    } catch (e) {
+      console.error('Failed to update task', e);
+      alert("❌ Failed to save task changes. Please try again.");
+      // Revert
+      this.tasks[taskIndex] = originalTask;
+      this.notify();
+    }
+  },
+
   async toggleTaskStatus(taskId) {
     const task = this.tasks.find(t => String(t.id) === String(taskId));
     if (task) {
