@@ -20,6 +20,75 @@ const newTaskBtn = document.getElementById('add-task-btn');
 
 
 
+const SUBJECT_COLORS = [
+  'var(--color-text-info)',
+  'var(--color-text-success)',
+  'var(--color-text-purple)',
+  'var(--color-text-warning)',
+  'var(--color-text-danger)',
+  'var(--color-text-secondary)',
+];
+
+let selectedNewSubjectColor = SUBJECT_COLORS[0];
+
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+const newSubjectModal = document.getElementById('new-subject-modal');
+const newSubjectName = document.getElementById('new-subject-name');
+const newSubjectColorsEl = document.getElementById('new-subject-colors');
+const newSubjectCancel = document.getElementById('new-subject-cancel');
+const newSubjectSave = document.getElementById('new-subject-save');
+const addSubjectBtn = document.getElementById('add-subject-btn');
+
+function syncNewSubjectColorSwatches() {
+  if (!newSubjectColorsEl) return;
+  newSubjectColorsEl.querySelectorAll('.subject-color-swatch').forEach(btn => {
+    const on = btn.dataset.color === selectedNewSubjectColor;
+    btn.classList.toggle('subject-color-swatch--selected', on);
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+}
+
+function openNewSubjectModal() {
+  if (!newSubjectModal || !newSubjectName) return;
+  newSubjectName.value = '';
+  selectedNewSubjectColor = SUBJECT_COLORS[0];
+  syncNewSubjectColorSwatches();
+  newSubjectModal.style.display = 'flex';
+  newSubjectName.focus();
+}
+
+function renderSidebarSubjects() {
+  const listEl = document.getElementById('subjects-sidebar-list');
+  if (!listEl) return;
+
+  const subjects = store.subjects;
+  const tasks = store.tasks;
+
+  const countBySubject = {};
+  subjects.forEach(s => {
+    countBySubject[s.id] = 0;
+  });
+  tasks.forEach(t => {
+    if (t.archived || !t.subject_id || countBySubject[t.subject_id] === undefined) return;
+    countBySubject[t.subject_id]++;
+  });
+
+  listEl.innerHTML = subjects.map(s => {
+    const n = countBySubject[s.id] ?? 0;
+    const safeColor = s.color ? escapeHtml(s.color) : 'var(--color-text-info)';
+    return `<div class="nav-item subject-sidebar-item" data-subject-id="${escapeHtml(s.id)}">
+      <span class="nav-dot" style="background:${safeColor}"></span>${escapeHtml(s.name)}<span class="badge">${n}</span>
+    </div>`;
+  }).join('');
+}
+
 const newTaskModal = document.getElementById('new-task-modal');
 const newTaskSubject = document.getElementById('new-task-subject');
 const newTaskTitle = document.getElementById('new-task-title');
@@ -172,9 +241,9 @@ function renderFocusTasks() {
     focusTaskList.innerHTML = dueSoon.map(t => {
       const sub = subjects.find(s => s.id === t.subject_id) || subjects[0] || { short_code: 'Gen' };
       let pillClass = '';
-      if(sub.code === 'CS') pillClass = 'pill-blue';
-      else if(sub.code === 'Maths') pillClass = 'pill-green';
-      else if(sub.code === 'English') pillClass = 'pill-purple';
+      if(sub.short_code === 'CS') pillClass = 'pill-blue';
+      else if(sub.short_code === 'Maths') pillClass = 'pill-green';
+      else if(sub.short_code === 'English') pillClass = 'pill-purple';
       else pillClass = 'pill-amber';
       
       return `
@@ -343,9 +412,9 @@ function renderTasks() {
       const isDone = t.status === 'Done';
       
       let pillClass = '';
-      if(sub.code === 'CS') pillClass = 'pill-blue';
-      else if(sub.code === 'Maths') pillClass = 'pill-green';
-      else if(sub.code === 'English') pillClass = 'pill-purple';
+      if(sub.short_code === 'CS') pillClass = 'pill-blue';
+      else if(sub.short_code === 'Maths') pillClass = 'pill-green';
+      else if(sub.short_code === 'English') pillClass = 'pill-purple';
       else pillClass = 'pill-amber';
       
       if (t._isEditing) {
@@ -727,8 +796,63 @@ store.subscribe(renderTasks);
 store.subscribe(renderExtraction);
 store.subscribe(renderCalendar);
 store.subscribe(renderFocusTasks);
+store.subscribe(renderSidebarSubjects);
 
 document.addEventListener('DOMContentLoaded', () => {
+  if (newSubjectColorsEl) {
+    SUBJECT_COLORS.forEach(c => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'subject-color-swatch';
+      btn.dataset.color = c;
+      btn.style.background = c;
+      btn.addEventListener('click', () => {
+        selectedNewSubjectColor = c;
+        syncNewSubjectColorSwatches();
+      });
+      newSubjectColorsEl.appendChild(btn);
+    });
+    syncNewSubjectColorSwatches();
+  }
+
+  if (addSubjectBtn) {
+    addSubjectBtn.addEventListener('click', () => openNewSubjectModal());
+    addSubjectBtn.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openNewSubjectModal();
+      }
+    });
+  }
+
+  if (newSubjectCancel) {
+    newSubjectCancel.addEventListener('click', () => {
+      if (newSubjectModal) newSubjectModal.style.display = 'none';
+    });
+  }
+
+  if (newSubjectModal) {
+    newSubjectModal.addEventListener('click', (e) => {
+      if (e.target === newSubjectModal) newSubjectModal.style.display = 'none';
+    });
+  }
+
+  if (newSubjectSave) {
+    newSubjectSave.addEventListener('click', async () => {
+      const ok = await store.addSubject({ name: newSubjectName.value, color: selectedNewSubjectColor });
+      if (ok && newSubjectModal) newSubjectModal.style.display = 'none';
+    });
+  }
+
+  if (newSubjectName) {
+    newSubjectName.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        newSubjectSave?.click();
+      }
+    });
+  }
+
   store.fetchInitialData();
   
   const calendarBtn = document.getElementById('calendar-btn');

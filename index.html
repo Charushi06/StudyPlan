@@ -42,7 +42,7 @@
     <a href="#">Dashboard</a>
     <a href="#">Tasks</a>
     <a href="#">Calendar</a>
-    <a href="#">Settings</a>
+    <a href="#" id="nav-settings">Settings</a>
   </nav>
 
 <div class="header-right">
@@ -85,11 +85,8 @@
       </div>
       <div class="sidebar-divider"></div>
       <div class="sidebar-header">Subjects</div>
-      <div class="nav-item"><span class="nav-dot" style="background:var(--color-text-info)"></span>Computer Science<span class="badge">3</span></div>
-      <div class="nav-item"><span class="nav-dot" style="background:var(--color-text-success)"></span>Mathematics<span class="badge">2</span></div>
-      <div class="nav-item"><span class="nav-dot" style="background:var(--color-text-purple)"></span>English Lit<span class="badge">1</span></div>
-      <div class="nav-item"><span class="nav-dot" style="background:var(--color-text-warning)"></span>Physics<span class="badge">1</span></div>
-      <div class="add-subject">
+      <div id="subjects-sidebar-list"></div>
+      <div class="add-subject" id="add-subject-btn" role="button" tabindex="0">
         <svg width="14" height="14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Add subject
       </div>
     </div>
@@ -213,6 +210,56 @@
   </div>
 </footer>
 
+<!-- Settings Modal -->
+<div id="settings-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
+  <div style="background:var(--color-background-primary); border:1px solid var(--color-border-tertiary); border-radius:16px; padding:32px; width:400px; box-shadow:var(--shadow-lg); color:var(--color-text-primary);">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+      <h2 style="margin:0; font-size:20px; font-weight:700;">Settings</h2>
+      <button id="settings-close" style="background:none; border:none; font-size:24px; cursor:pointer; color:var(--color-text-secondary);">&times;</button>
+    </div>
+    
+    <div style="margin-bottom: 24px;">
+      <h3 style="font-size:12px; font-weight:700; text-transform:uppercase; color:var(--color-text-tertiary); margin-bottom:16px; letter-spacing:0.05em;">Appearance</h3>
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 16px;">
+        <span style="font-size:14px; font-weight:500;">Dark Mode</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="dark-mode-toggle">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div style="display:flex; align-items:center; justify-content:space-between;">
+        <span style="font-size:14px; font-weight:500;">Compact View</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="compact-view-toggle">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div style="margin-bottom: 24px;">
+      <h3 style="font-size:12px; font-weight:700; text-transform:uppercase; color:var(--color-text-tertiary); margin-bottom:16px; letter-spacing:0.05em;">Notifications</h3>
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 16px;">
+        <span style="font-size:14px; font-weight:500;">Email Reminders</span>
+        <label class="toggle-switch">
+          <input type="checkbox" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div style="display:flex; align-items:center; justify-content:space-between;">
+        <span style="font-size:14px; font-weight:500;">Browser Notifications</span>
+        <label class="toggle-switch">
+          <input type="checkbox">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <button id="settings-save" style="width:100%; padding:12px; background:var(--color-text-primary); color:var(--color-background-primary); border:none; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; margin-top:8px;">
+      Save Changes
+    </button>
+  </div>
+</div>
+
   <script type="module" src="/js/app.js"></script>
   <script>
   let isLogin = true;
@@ -281,10 +328,99 @@ if (localStorage.getItem('theme') === 'light') {
   document.documentElement.classList.add('light-mode-active');
   document.getElementById('theme-toggle').textContent = '🌙';
 }
+  // Settings Modal Logic
+  const settingsModal = document.getElementById('settings-modal');
+  const navSettings = document.getElementById('nav-settings');
+  const settingsClose = document.getElementById('settings-close');
+  const settingsSave = document.getElementById('settings-save');
+
+  navSettings.addEventListener('click', (e) => {
+    e.preventDefault();
+    settingsModal.style.display = 'flex';
+  });
+
+  settingsClose.addEventListener('click', () => {
+    settingsModal.style.display = 'none';
+  });
+
+  settingsSave.addEventListener('click', () => {
+    settingsModal.style.display = 'none';
+  });
+
+  window.addEventListener('click', (e) => {
+    if (e.target === settingsModal) {
+      settingsModal.style.display = 'none';
+    }
+  });
+
+  // Settings Toggles State Management
+  const darkModeToggle = document.getElementById('dark-mode-toggle');
+  const compactViewToggle = document.getElementById('compact-view-toggle');
+
+  // Load preferences
+  const loadPreferences = () => {
+    const isDarkMode = localStorage.getItem('studyplan_dark_mode') === 'true';
+    const isCompactView = localStorage.getItem('studyplan_compact_view') === 'true';
+
+    darkModeToggle.checked = isDarkMode;
+    compactViewToggle.checked = isCompactView;
+
+    if (isDarkMode) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    } else {
+      document.documentElement.setAttribute('data-theme', 'light');
+    }
+
+    if (isCompactView) {
+      document.body.classList.add('compact-view');
+    } else {
+      document.body.classList.remove('compact-view');
+    }
+  };
+
+  // Run on load
+  loadPreferences();
+
+  // Save changes when user clicks "Save Changes"
+  settingsSave.addEventListener('click', () => {
+    localStorage.setItem('studyplan_dark_mode', darkModeToggle.checked);
+    localStorage.setItem('studyplan_compact_view', compactViewToggle.checked);
+    loadPreferences();
+    settingsModal.style.display = 'none';
+  });
+
+  // Also apply immediately on toggle for better UX
+  darkModeToggle.addEventListener('change', (e) => {
+    if (e.target.checked) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    } else {
+      document.documentElement.setAttribute('data-theme', 'light');
+    }
+  });
+
+  compactViewToggle.addEventListener('change', (e) => {
+    if (e.target.checked) {
+      document.body.classList.add('compact-view');
+    } else {
+      document.body.classList.remove('compact-view');
+    }
+  });
 </script>
 
+<div id="new-subject-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0; z-index:9998; align-items:center; justify-content:center;">
+  <div class="modal-card" style="border-radius:12px; padding:20px; width:320px; box-shadow:0 12px 40px rgba(0,0,0,0.25);">
+    <h3 style="margin:0 0 12px; font-size:18px; font-weight:600;">New subject</h3>
+    <label style="display:block; font-size:12px; margin-bottom:4px;">Subject name</label>
+    <input id="new-subject-name" type="text" style="width:100%; padding:6px; margin-bottom:12px;" placeholder="e.g. History">
+    <label style="display:block; font-size:12px; margin-bottom:6px;">Color</label>
+    <div id="new-subject-colors" class="subject-color-swatches"></div>
+    <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
+      <button id="new-subject-cancel" class="btn" style="padding:6px 10px;">Cancel</button>
+      <button id="new-subject-save" class="btn btn-primary" style="padding:6px 12px;">Save</button>
+    </div>
+  </div>
+</div>
 
-//ADD TASK MODEL
 <div id="new-task-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0;  z-index:9998; align-items:center; justify-content:center;">
   <div class="modal-card" style=" border-radius:12px; padding:20px; width:320px; box-shadow:0 12px 40px rgba(0,0,0,0.25);">
     <h3 style="margin:0 0 12px; font-size:18px; font-weight:600;">New task</h3>
