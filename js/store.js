@@ -34,6 +34,34 @@ export const store = {
     }
   },
 
+  async addSubject({ name, color }) {
+    const trimmed = String(name || '').trim();
+    if (!trimmed) {
+      alert('Please enter a subject name');
+      return false;
+    }
+    try {
+      const res = await fetch('/api/subjects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: trimmed, color: color || 'var(--color-text-info)' })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        alert(data.error || 'Failed to add subject');
+        return false;
+      }
+      const subsRes = await fetch('/api/subjects');
+      this.subjects = await subsRes.json();
+      this.notify();
+      return true;
+    } catch (e) {
+      console.error('Failed to add subject', e);
+      alert('Network error. Please try again.');
+      return false;
+    }
+  },
+
   // ================= UPDATED FUNCTION =================
   async addTasks(newTasks) {
     try {
@@ -78,6 +106,44 @@ export const store = {
     } catch (e) {
       console.error('Failed to add tasks', e);
       alert("❌ Network error. Please try again.");
+    }
+  },
+
+  setTaskEditing(taskId, isEditing) {
+    const task = this.tasks.find(t => String(t.id) === String(taskId));
+    if (task) {
+      task._isEditing = isEditing;
+      this.notify();
+    }
+  },
+
+  async updateTask(taskId, updatedFields) {
+    const taskIndex = this.tasks.findIndex(t => String(t.id) === String(taskId));
+    if (taskIndex === -1) return;
+    
+    // Store original in case of failure
+    const originalTask = { ...this.tasks[taskIndex] };
+    
+    // Optimistic update
+    this.tasks[taskIndex] = { ...this.tasks[taskIndex], ...updatedFields, _isEditing: false };
+    this.notify();
+
+    try {
+      const res = await fetch(`/api/tasks/${taskId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedFields)
+      });
+      
+      if (!res.ok) {
+        throw new Error('Update failed');
+      }
+    } catch (e) {
+      console.error('Failed to update task', e);
+      alert("❌ Failed to save task changes. Please try again.");
+      // Revert
+      this.tasks[taskIndex] = originalTask;
+      this.notify();
     }
   },
 

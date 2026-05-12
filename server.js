@@ -10,6 +10,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+const page404Path = path.join(__dirname, '404.html');
+const page500Path = path.join(__dirname, 'error.html');
+
+// Static
 app.use('/css', express.static(path.join(__dirname, 'css')));
 app.use('/js', express.static(path.join(__dirname, 'js')));
 app.use(express.static(__dirname));
@@ -228,15 +232,42 @@ function nlpExtractTasksFromText(text) {
 
 // ============================================================
 
-// ============== CSV Download Router ==============
-app.use('/api', csvDownloadRouter);
-
 // ================= SUBJECTS =================
 app.get('/api/subjects', (req, res) => {
   db.all('SELECT * FROM subjects', (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(rows);
   });
+});
+
+const ALLOWED_SUBJECT_COLORS = new Set([
+  'var(--color-text-info)',
+  'var(--color-text-success)',
+  'var(--color-text-purple)',
+  'var(--color-text-warning)',
+  'var(--color-text-danger)',
+  'var(--color-text-secondary)',
+]);
+
+app.post('/api/subjects', (req, res) => {
+  const name = String(req.body?.name || '').trim();
+  let color = String(req.body?.color || '').trim() || 'var(--color-text-info)';
+  if (!name) {
+    return res.status(400).json({ error: 'Subject name is required' });
+  }
+  if (!ALLOWED_SUBJECT_COLORS.has(color)) {
+    color = 'var(--color-text-info)';
+  }
+  const shortCode = name.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 4) || 'SUB';
+  const id = `sub_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+  db.run(
+    'INSERT INTO subjects (id, name, short_code, color) VALUES (?, ?, ?, ?)',
+    [id, name, shortCode, color],
+    function (err) {
+      if (err) return res.status(500).json({ error: err.message });
+      res.status(201).json({ id, name, short_code: shortCode, color });
+    }
+  );
 });
 
 // ================= TASKS =================
@@ -340,27 +371,25 @@ app.post('/api/tasks', (req, res) => {
 
 // ================= UPDATE =================
 app.put('/api/tasks/:id', (req, res) => {
-  const { status, archived } = req.body;
+  const { status, archived, title, subject_id, due_at, notes, priority } = req.body;
 
   let query = 'UPDATE tasks SET ';
   const params = [];
+  const updates = [];
 
-  if (status !== undefined) {
-    query += 'status = ? ';
-    params.push(status);
-  }
+  if (status !== undefined) { updates.push('status = ?'); params.push(status); }
+  if (archived !== undefined) { updates.push('archived = ?'); params.push(archived); }
+  if (title !== undefined) { updates.push('title = ?'); params.push(title); }
+  if (subject_id !== undefined) { updates.push('subject_id = ?'); params.push(subject_id); }
+  if (due_at !== undefined) { updates.push('due_at = ?'); params.push(due_at); }
+  if (notes !== undefined) { updates.push('notes = ?'); params.push(notes); }
+  if (priority !== undefined) { updates.push('priority = ?'); params.push(priority); }
 
-  if (archived !== undefined) {
-    if (params.length > 0) query += ', ';
-    query += 'archived = ? ';
-    params.push(archived);
-  }
-
-  if (params.length === 0) {
+  if (updates.length === 0) {
     return res.status(400).json({ error: 'No fields to update' });
   }
 
-  query += 'WHERE id = ?';
+  query += updates.join(', ') + ' WHERE id = ?';
   params.push(req.params.id);
 
   db.run(query, params, function (err) {
@@ -442,9 +471,39 @@ app.post('/api/auth/login', (req, res) => {
   res.json({ success: true, email: user.email });
 });
 
-app.post('/api/auth/logout', (req, res) => {
-  res.json({ success: true, message: 'Logged out successfully' });
+// Intentional test route for verifying server error page behavior.
+app.get('/debug/force-error', (req, res, next) => {
+  next(new Error('Intentional test error'));
 });
+
+app.use('/api', csvDownloadRouter);
+
+app.use('/api', (req, res) => {
+  return res.status(404).json({ error: 'API route not found' });
+});
+
+app.use((req, res, next) => {
+  if (req.method !== 'GET') {
+    return next();
+  }
+
+  return res.status(404).sendFile(page404Path);
+});
+
+app.use((err, req, res, next) => {
+  console.error('Unhandled server error:', err);
+
+  if (res.headersSent) {
+    return next(err);
+  }
+
+  if (req.path.startsWith('/api')) {
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+
+  return res.status(500).sendFile(page500Path);
+});
+
 // ================= SERVER =================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
