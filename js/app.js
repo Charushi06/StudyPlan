@@ -1172,7 +1172,6 @@ if(viewBtns.length > 0) {
   }
 
 document.getElementById('cal-prev').addEventListener('click', () => {
-
   if(currentCalendarView === 'month') {
     currentMonthDate.setMonth(currentMonthDate.getMonth() - 1);
     renderCalendar();
@@ -1183,7 +1182,6 @@ document.getElementById('cal-prev').addEventListener('click', () => {
     currentMonthDate.setDate(currentMonthDate.getDate() - 1);
     renderDayView();
   }
-
   renderTasks();
 });
 
@@ -1200,7 +1198,6 @@ document.getElementById('cal-next').addEventListener('click', () => {
   }
   renderTasks();
 });
-
 
 newTaskBtn.addEventListener('click', () => {
   
