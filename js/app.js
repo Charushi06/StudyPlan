@@ -7,7 +7,7 @@ initGlobalErrorBoundary();
 let currentMonthDate = new Date();
 let selectedDate = null;
 let currentView = 'calendar'; // 'calendar', 'all-tasks', 'archived'
-
+let currentCalendarView = 'month';
 const tasksSection = document.getElementById('tasks-section');
 const focusSection = document.getElementById('focus-section');
 const extractPreview = document.getElementById('extract-preview');
@@ -610,6 +610,137 @@ function renderTasks() {
   }
 }
 
+
+function renderDayView() {
+  const year = currentMonthDate.getFullYear();
+  const month = currentMonthDate.getMonth();
+  const day = currentMonthDate.getDate();
+  
+  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  
+  // Update title
+  const topbarTitle = document.querySelector('.topbar-title');
+  if(topbarTitle) {
+    topbarTitle.textContent = `${monthNames[month]} ${day}, ${year}`;
+  }
+  document.getElementById('cal-month-title').textContent = `${monthNames[month]} ${day}, ${year}`;
+  
+  // Get tasks for this day
+  const dayTasks = store.tasks.filter(t => {
+    if (t.archived) return false;
+    if (!t.due_at) return false;
+    const d = new Date(t.due_at);
+    return d.getDate() === day && d.getMonth() === month && d.getFullYear() === year;
+  });
+  
+  // Filter tasks
+  const pending = dayTasks.filter(t => t.status !== 'Done');
+  const completed = dayTasks.filter(t => t.status === 'Done');
+  
+  // Sort pending by time
+  pending.sort((a, b) => new Date(a.due_at) - new Date(b.due_at));
+  
+  let html = `<div style="padding: 20px;">`;
+  
+  // Simple header
+  html += `<div style="margin-bottom: 24px;">
+    <h3 style="margin: 0 0 8px 0; font-size: 18px;">Tasks for Today</h3>
+    <div style="color: #666; font-size: 13px;">${pending.length} pending · ${completed.length} completed</div>
+  </div>`;
+  
+  if (pending.length === 0 && completed.length === 0) {
+    html += `<div style="text-align: center; padding: 60px 20px; color: #999;">
+      <div style="font-size: 48px; margin-bottom: 12px;">-</div>
+      <div>No tasks for today</div>
+      <div style="font-size: 12px; margin-top: 8px;">Click "New task" to add one</div>
+    </div>`;
+  } else {
+    // Pending tasks
+    if (pending.length > 0) {
+      html += `<div style="margin-bottom: 24px;">
+        <div style="font-weight: 600; margin-bottom: 12px; color: #333;">To do</div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">`;
+      
+      pending.forEach(task => {
+        const sub = store.subjects.find(s => s.id === task.subject_id) || store.subjects[0];
+        const timeStr = new Date(task.due_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        
+        html += `
+          <div onclick="window.toggleTask('${task.id}')" style="
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            padding: 12px;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+          ">
+            <div style="width: 18px; height: 18px; border: 2px solid #ddd; border-radius: 4px;"></div>
+            <div style="flex: 1;">
+              <div style="font-weight: 500;">${escapeHtml(task.title)}</div>
+              <div style="display: flex; gap: 12px; margin-top: 4px;">
+                <span style="font-size: 12px; color: #666;" ${timeStr}</span>
+                <span style="font-size: 11px; padding: 2px 8px; background: ${sub?.color || '#999'}20; color: ${sub?.color || '#999'}; border-radius: 12px;">${sub?.short_code || 'Task'}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      
+      html += `</div></div>`;
+    }
+    
+    // Completed tasks
+    if (completed.length > 0) {
+      html += `<div>
+        <div style="font-weight: 600; margin-bottom: 12px; color: #666;">Done</div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">`;
+      
+      completed.forEach(task => {
+        const sub = store.subjects.find(s => s.id === task.subject_id) || store.subjects[0];
+        
+        html += `
+          <div style="
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            padding: 12px;
+            background: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            opacity: 0.7;
+          ">
+            <div style="width: 18px; height: 18px; background: #4caf50; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px;">✓</div>
+            <div style="flex: 1;">
+              <div style="text-decoration: line-through; color: #999;">${escapeHtml(task.title)}</div>
+              <span style="font-size: 11px; padding: 2px 8px; background: ${sub?.color || '#999'}20; color: ${sub?.color || '#999'}; border-radius: 12px;">${sub?.short_code || 'Task'}</span>
+            </div>
+          </div>
+        `;
+      });
+      
+      html += `</div></div>`;
+    }
+  }
+  
+  html += `</div>`;
+  
+  document.getElementById('cal-grid').innerHTML = html;
+}
+
+// Add this helper function for toggling tasks from inline onclick
+window.toggleTask = function(taskId) {
+  store.toggleTaskStatus(taskId);
+  setTimeout(() => {
+    if (currentCalendarView === 'day') renderDayView();
+    else if (currentCalendarView === 'week') renderWeekCalendar();
+    else if (currentCalendarView === 'month') renderCalendar();
+    renderTasks();
+  }, 50);
+};
+
+
 function renderCalendar() {
   const calTitle = document.getElementById('cal-month-title');
   const calGrid = document.getElementById('cal-grid');
@@ -652,11 +783,11 @@ function renderCalendar() {
     let indicatorHtml = '';
     if (dayTasks.length > 0) {
       indicatorHtml = `<div class="cal-day-indicators">`;
-      dayTasks.forEach((t, idx) => {
-         if (idx > 2) return;
-         const sub = store.subjects.find(s => s.id === t.subject_id) || store.subjects[0];
-         indicatorHtml += `<div class="cal-day-indicator" style="background:${sub ? sub.color : 'var(--color-text-danger)'}"></div>`;
+      dayTasks.slice(0, 3).forEach(t => {
+        const sub = store.subjects.find(s => s.id === t.subject_id) || store.subjects[0];
+        indicatorHtml += `<div class="cal-day-indicator" style="background:${sub ? sub.color : 'var(--color-text-danger)'}"></div>`;
       });
+      indicatorHtml += `<div class="task-count">${dayTasks.length}</div>`; // ADD THIS LINE
       indicatorHtml += `</div>`;
     }
 
@@ -692,6 +823,93 @@ function renderCalendar() {
     });
   });
 }
+
+
+function renderWeekCalendar() {
+  const year = currentMonthDate.getFullYear();
+  const month = currentMonthDate.getMonth();
+  const today = currentMonthDate.getDate();
+
+  const currentDay = new Date(year, month, today);
+  const dayOfWeek = currentDay.getDay();
+  const monday = new Date(currentDay);
+  monday.setDate(currentDay.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1));
+  
+  const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  
+  // Update the title to show week range
+  const weekEnd = new Date(monday);
+  weekEnd.setDate(monday.getDate() + 6);
+  const topbarTitle = document.querySelector('.topbar-title');
+  if(topbarTitle) {
+    topbarTitle.textContent = `${monthNames[monday.getMonth()]} ${monday.getDate()} - ${monthNames[weekEnd.getMonth()]} ${weekEnd.getDate()}, ${monday.getFullYear()}`;
+  }
+  
+  document.getElementById('cal-month-title').textContent = `${monthNames[month]} ${year}`;
+
+  let html = `<div class="cal-day-label">Mon</div>
+  <div class="cal-day-label">Tue</div>
+  <div class="cal-day-label">Wed</div>
+  <div class="cal-day-label">Thu</div>
+  <div class="cal-day-label">Fri</div>
+  <div class="cal-day-label">Sat</div>
+  <div class="cal-day-label">Sun</div>`;
+  
+  for(let i = 0; i < 7; i++){
+    const date = new Date(monday);
+    date.setDate(monday.getDate() + i);
+    const dayNum = date.getDate();
+    const isToday = dayNum === new Date().getDate() && 
+                    date.getMonth() === new Date().getMonth() && 
+                    date.getFullYear() === new Date().getFullYear();
+    
+    // Check if this day has tasks
+    const dayTasks = store.tasks.filter(t => {
+      if (t.archived) return false;
+      if (t.status === 'Done') return false;
+      if (!t.due_at) return false;
+      const d = new Date(t.due_at);
+      return d.getDate() === dayNum && d.getMonth() === date.getMonth() && d.getFullYear() === date.getFullYear();
+    });
+
+    let indicatorHtml = '';
+    if (dayTasks.length > 0) {
+      indicatorHtml = `<div class="cal-day-indicators">`;
+      dayTasks.forEach((t, idx) => {
+        if (idx > 2) return;
+        const sub = store.subjects.find(s => s.id === t.subject_id) || store.subjects[0];
+        indicatorHtml += `<div class="cal-day-indicator" style="background:${sub ? sub.color : 'var(--color-text-danger)'}"></div>`;
+      });
+      indicatorHtml += `</div>`;
+    }
+    
+    html += `<div class="cal-day interactive-day ${isToday ? 'today' : ''}" data-day="${dayNum}" data-month="${date.getMonth()}" data-year="${date.getFullYear()}">
+      ${dayNum}
+      ${indicatorHtml}
+    </div>`;
+  }
+  
+  document.getElementById('cal-grid').innerHTML = html;
+  
+ document.querySelectorAll('#cal-grid .interactive-day').forEach(el => {
+  el.addEventListener('click', (e) => {
+    const day = parseInt(el.dataset.day);
+    const month = parseInt(el.dataset.month);
+    const year = parseInt(el.dataset.year);
+    currentMonthDate = new Date(year, month, day);
+    currentCalendarView = 'day';
+    
+    document.querySelectorAll('.view-btn').forEach(btn => {
+      btn.classList.remove('active');
+      if(btn.dataset.view === 'day') btn.classList.add('active');
+    });
+    
+    renderDayView();
+    renderTasks();
+  });
+});
+}
+
 
 function renderExtraction() {
   const pasteItems = store.currentPaste;
@@ -797,6 +1015,11 @@ store.subscribe(renderExtraction);
 store.subscribe(renderCalendar);
 store.subscribe(renderFocusTasks);
 store.subscribe(renderSidebarSubjects);
+store.subscribe(() => {
+  if (currentCalendarView === 'month') renderCalendar();
+  else if (currentCalendarView === 'week') renderWeekCalendar();
+  else if (currentCalendarView === 'day') renderDayView();
+});
 
 document.addEventListener('DOMContentLoaded', () => {
   if (newSubjectColorsEl) {
@@ -844,6 +1067,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+
+
   if (newSubjectName) {
     newSubjectName.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
@@ -859,6 +1084,48 @@ document.addEventListener('DOMContentLoaded', () => {
   const allTasksBtn = document.getElementById('all-tasks-btn');
   const archivedTasksBtn = document.getElementById('archived-tasks-btn');
   const focusModeBtn = document.getElementById('focus-mode-btn');
+
+ // View toggle buttons - replace the old week button code
+const viewBtns = document.querySelectorAll('.view-btn');
+if(viewBtns.length > 0) {
+  viewBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentCalendarView = btn.dataset.view;
+      
+      // Update active class
+      viewBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      
+      // Render the selected view
+      if(currentCalendarView === 'month') {
+        renderCalendar();
+      } else if(currentCalendarView === 'week') {
+        renderWeekCalendar();
+      } else if(currentCalendarView === 'day') {
+        renderDayView();
+      }
+      renderTasks();
+    });
+  });
+} else {
+
+
+    const weekBtn = document.querySelector('.topbar .btn');
+  if(weekBtn && weekBtn.textContent === 'Week') {
+    weekBtn.addEventListener('click', () => {
+      if(currentCalendarView === 'month') {
+        currentCalendarView = 'week';
+        renderWeekCalendar();
+        weekBtn.textContent = 'Month';
+      } else {
+        currentCalendarView = 'month';
+        renderCalendar();
+        weekBtn.textContent = 'Week';
+      }
+      renderTasks();
+    });
+  }
+}
 
   function updateSidebarActive(id) {
     document.querySelectorAll('.sidebar .nav-item').forEach(el => el.classList.remove('active'));
@@ -892,6 +1159,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderTasks();
   });
 
+
   if(focusModeBtn) {
     focusModeBtn.addEventListener('click', () => {
       currentView = 'focus';
@@ -903,18 +1171,37 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  document.getElementById('cal-prev').addEventListener('click', () => {
+document.getElementById('cal-prev').addEventListener('click', () => {
+
+  if(currentCalendarView === 'month') {
     currentMonthDate.setMonth(currentMonthDate.getMonth() - 1);
     renderCalendar();
-  });
+  } else if(currentCalendarView === 'week') {
+    currentMonthDate.setDate(currentMonthDate.getDate() - 7);
+    renderWeekCalendar();
+  } else if(currentCalendarView === 'day') {
+    currentMonthDate.setDate(currentMonthDate.getDate() - 1);
+    renderDayView();
+  }
 
-  document.getElementById('cal-next').addEventListener('click', () => {
+  renderTasks();
+});
+
+document.getElementById('cal-next').addEventListener('click', () => {
+  if(currentCalendarView === 'month') {
     currentMonthDate.setMonth(currentMonthDate.getMonth() + 1);
     renderCalendar();
-  });
+  } else if(currentCalendarView === 'week') {
+    currentMonthDate.setDate(currentMonthDate.getDate() + 7);
+    renderWeekCalendar();
+  } else if(currentCalendarView === 'day') {
+    currentMonthDate.setDate(currentMonthDate.getDate() + 1);
+    renderDayView();
+  }
+  renderTasks();
+});
 
 
-//NEw Task addition event listeners
 newTaskBtn.addEventListener('click', () => {
   
   if (!store.subjects || store.subjects.length === 0) {
