@@ -357,7 +357,13 @@ function renderFocusTasks() {
 function formatDate(dateStr) {
   if (!dateStr) return 'No Date';
   const d = new Date(dateStr);
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' });
+
+  return d.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
 }
 
 async function downloadData() {
@@ -405,7 +411,11 @@ function renderTasks() {
   }
   
   const displayTasks = currentView === 'archived' ? archivedTasks : activeTasks;
-  const sorted = [...displayTasks].sort((a,b) => new Date(a.due_at) - new Date(b.due_at));
+const sorted = [...displayTasks].sort((a, b) => {
+  if (!a.due_at) return 1;
+  if (!b.due_at) return -1;
+  return new Date(a.due_at) - new Date(b.due_at);
+});
   
   const now = new Date(); 
   
@@ -562,10 +572,10 @@ function renderTasks() {
       : '';
 
     tasksSection.innerHTML = actionBar +
-                             renderGroup(titlePrefix + '⚠ Due soon', dueSoon, 'var(--color-text-danger)', true)
-                             renderGroup(titlePrefix + 'This week', thisWeek, 'var(--color-text-secondary)', true) +
-                             renderGroup(titlePrefix + 'Completed', completed, 'var(--color-text-tertiary)') +
-                             emptyState;
+                         renderGroup(titlePrefix + '⚠ Due soon', dueSoon, 'var(--color-text-danger)', true) +
+                         renderGroup(titlePrefix + 'This week', thisWeek, 'var(--color-text-secondary)', true) +
+                         renderGroup(titlePrefix + 'Completed', completed, 'var(--color-text-tertiary)') +
+                         emptyState;
   }
                            
   document.querySelectorAll('.task-item').forEach(el => {
