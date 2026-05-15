@@ -911,6 +911,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const allTasksBtn = document.getElementById('all-tasks-btn');
   const archivedTasksBtn = document.getElementById('archived-tasks-btn');
   const focusModeBtn = document.getElementById('focus-mode-btn');
+  const weekBtn = document.getElementById('week-btn');
 
   function updateSidebarActive(id) {
     document.querySelectorAll('.sidebar .nav-item').forEach(el => el.classList.remove('active'));
@@ -925,7 +926,14 @@ document.addEventListener('DOMContentLoaded', () => {
     updateSidebarActive('calendar-btn');
     renderTasks();
   });
+ weekBtn.addEventListener('click', () => {
+    currentView = 'week';
+    document.querySelector('.topbar-title').textContent = 'Weekly View';
 
+    alert('Switched to Weekly View');
+    
+    console.log('Switched to week view');
+});
   allTasksBtn.addEventListener('click', () => {
     currentView = 'all-tasks';
     document.querySelector('.cal-section').classList.add('hidden');
