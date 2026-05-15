@@ -46,7 +46,7 @@
   </nav>
 
   <div class="header-right">
-    <button class="profile-btn">Profile</button>
+    <button class="profile-btn" id="profile-btn">Profile</button>
   </div>
 </header>
 
@@ -321,6 +321,13 @@
   if (localStorage.getItem('studyplan_user')) {
     document.getElementById('auth-modal').style.display = 'none';
   }
+
+  const profileBtn = document.getElementById('profile-btn');
+
+profileBtn.addEventListener('click', () => {
+  window.location.href = '/profile.html';
+});
+
   // Settings Modal Logic
   const settingsModal = document.getElementById('settings-modal');
   const navSettings = document.getElementById('nav-settings');
