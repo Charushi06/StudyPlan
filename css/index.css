@@ -132,11 +132,44 @@ body {
 .main { display: flex; flex-direction: column; overflow: hidden; position: relative; }
 .topbar { display: flex; align-items: center; gap: 12px; padding: 16px 24px; border-bottom: 1px solid var(--color-border-tertiary); flex-shrink: 0; background: rgba(var(--color-background-primary), 0.8); backdrop-filter: blur(10px); z-index: 10; }
 .topbar-title { font-size: 18px; font-weight: 600; color: var(--color-text-primary); flex: 1; }
-.btn { font-family: inherit; font-size: 13px; font-weight: 600; padding: 8px 16px; border: 1px solid var(--color-border-secondary); border-radius: var(--border-radius-sm); background: var(--color-background-primary); color: var(--color-text-primary); cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: var(--shadow-sm); display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
-.btn:hover { background: var(--color-background-secondary); transform: translateY(-1px); box-shadow: var(--shadow-md); }
-.btn:active { transform: translateY(0); box-shadow: 0 0 0; }
-.btn-primary { background: var(--color-text-primary); color: var(--color-background-primary); border-color: transparent; }
-.btn-primary:hover { background: var(--color-text-secondary); }
+.btn {
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 18px;
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-md);
+  background: var(--color-background-primary);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  letter-spacing: -0.01em;
+}
+.btn:hover {
+  background: var(--color-background-secondary);
+  transform: translateY(-1.5px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  border-color: var(--color-text-tertiary);
+}
+.btn:active {
+  transform: translateY(0.5px) scale(0.98);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+.btn-primary {
+  background: var(--color-text-primary);
+  color: var(--color-background-primary);
+  border-color: transparent;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+}
+.btn-primary:hover {
+  background: var(--color-text-secondary);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
 
 /* Calendar */
 .cal-section { padding: 16px 24px; border-bottom: 1px solid var(--color-border-tertiary); flex-shrink: 0; }
