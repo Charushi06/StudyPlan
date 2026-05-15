@@ -19,7 +19,7 @@ By participating in this project, you agree to abide by our Code of Conduct.
 1. Fork the repository.
 2. Clone your fork:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/StudyPlan.git
+   git clone https://github.com/Charushi06/StudyPlan.git
    cd StudyPlan
    ```
 3. Install dependencies:
