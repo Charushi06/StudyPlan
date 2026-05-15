@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>StudyPlan</title>
   <link rel="stylesheet" href="/css/index.css">
+  <link rel="stylesheet" href="./css/chatbot.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -429,5 +430,30 @@
     </div>
   </div>
 </div>
+
+<div class="chatbot-container">
+
+    <div class="chat-header">
+        AI Assistant
+    </div>
+
+    <div id="chat-box"></div>
+
+    <div class="chat-input-area">
+
+        <input
+            type="text"
+            id="user-input"
+            placeholder="Ask something..."
+        />
+
+        <button id="send-btn">
+            Send
+        </button>
+
+    </div>
+</div>
+
+<script src="./js/chatbot.js"></script>
 </body>
 </html>
