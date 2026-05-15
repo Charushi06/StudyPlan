@@ -1,14 +1,23 @@
 {
   "name": "study-plan",
   "version": "1.0.0",
+  "description": "> ⚡ Paste anything. Get a structured study plan instantly.  \r > No manual entry. No missed deadlines.",
+  "keywords": [],
+  "homepage": "https://github.com/Nikhilesh-sarraf/StudyPlan-gssoc-26-#readme",
+  "bugs": {
+    "url": "https://github.com/Nikhilesh-sarraf/StudyPlan-gssoc-26-/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nikhilesh-sarraf/StudyPlan-gssoc-26-.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
   "main": "index.js",
   "scripts": {
     "start": "node server.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "dependencies": {
     "@google/genai": "^1.49.0",
     "cors": "^2.8.6",
