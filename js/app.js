@@ -1076,3 +1076,12 @@ addItemsBtn.addEventListener('click', () => {
 downloadBtn.addEventListener('click', () => {
   downloadData();
 });
+const logoutBtn = document.getElementById('logout-btn');
+
+if (logoutBtn) {
+  logoutBtn.addEventListener('click', () => {
+    localStorage.clear();
+    alert('Logged out successfully!');
+    location.reload();
+  });
+}

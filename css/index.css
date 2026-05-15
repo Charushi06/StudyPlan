@@ -462,18 +462,16 @@ body {
 
 /* Header */
 .site-header {
+
   width: 100%;
   max-width: 1200px;
-  margin: 0 auto 16px auto;
+  margin: 16px auto;
   padding: 16px 24px;
-  background: var(--color-background-primary);
-  border: 1px solid var(--color-border-tertiary);
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-md);
-
   display: flex;
   align-items: center;
   justify-content: space-between;
+  background: var(--color-background-primary);
+  border-radius: var(--border-radius-lg);
 }
 
 .header-left {
@@ -518,6 +516,29 @@ body {
   color: var(--color-background-primary);
   cursor: pointer;
   font-weight: 600;
+  .header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+}
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.logout-btn {
+  background: #ff4d4f;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.logout-btn:hover {
+  opacity: 0.9;
 }
 
 /* Footer */
