@@ -1015,8 +1015,12 @@ newTaskSave.addEventListener('click', async () => {
   const notes = newTaskNotes.value.trim();
   const dateVal = newTaskDate.value;
 
+  // Reset errors
+  newTaskTitle.style.borderColor = '';
+
   if (!title) {
-    alert('Please enter a task name');
+    newTaskTitle.style.borderColor = 'var(--color-text-danger)';
+    newTaskTitle.focus();
     return;
   }
 
@@ -1032,7 +1036,13 @@ newTaskSave.addEventListener('click', async () => {
     archived: 0
   };
 
+  newTaskSave.disabled = true;
+  newTaskSave.innerHTML = '<span class="loader-spinner"></span>';
+
   await store.addTasks([newTask]);
+  
+  newTaskSave.disabled = false;
+  newTaskSave.innerHTML = 'Save';
   newTaskModal.style.display = 'none';
 });
 
