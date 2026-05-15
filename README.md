@@ -1,5 +1,10 @@
 # 📚 StudyPlan — Turn Chaos into Clarity
 
+![License](https://img.shields.io/github/license/Charushi06/StudyPlan?style=for-the-badge)
+![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=for-the-badge)
+![Issues](https://img.shields.io/github/issues/Charushi06/StudyPlan?style=for-the-badge)
+![Stars](https://img.shields.io/github/stars/Charushi06/StudyPlan?style=for-the-badge)
+
 > ⚡ Paste anything. Get a structured study plan instantly.  
 > No manual entry. No missed deadlines.
 
