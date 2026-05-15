@@ -856,6 +856,30 @@ store.subscribe(renderCalendar);
 store.subscribe(renderFocusTasks);
 store.subscribe(renderSidebarSubjects);
 
+function resetSessionView() {
+  currentView = 'calendar';
+  selectedDate = null;
+  activeFocusTaskId = null;
+  resetTimer();
+  if (pasteInput) pasteInput.value = '';
+  if (newTaskModal) newTaskModal.style.display = 'none';
+  if (newSubjectModal) newSubjectModal.style.display = 'none';
+  document.querySelector('.cal-section')?.classList.remove('hidden');
+  document.getElementById('tasks-section')?.classList.remove('hidden');
+  document.getElementById('focus-section')?.classList.add('hidden');
+  document.querySelectorAll('.sidebar .nav-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('calendar-btn')?.classList.add('active');
+  store.resetSession();
+}
+
+window.addEventListener('studyplan:login', () => {
+  store.fetchInitialData();
+});
+
+window.addEventListener('studyplan:logout', () => {
+  resetSessionView();
+});
+
 document.addEventListener('DOMContentLoaded', () => {
   if (newSubjectColorsEl) {
     SUBJECT_COLORS.forEach(c => {
@@ -911,7 +935,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  store.fetchInitialData();
+  if (localStorage.getItem('studyplan_user')) {
+    store.fetchInitialData();
+  }
   
   const calendarBtn = document.getElementById('calendar-btn');
   const allTasksBtn = document.getElementById('all-tasks-btn');
