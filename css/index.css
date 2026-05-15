@@ -2159,3 +2159,18 @@ body {
   color: #ffcc66;
   font-weight: 600;
 }
+.dark-mode {
+    background-color: #121212;
+    color: white;
+}
+
+.dark-mode a {
+    color: #90caf9;
+}
+
+.dark-mode input,
+.dark-mode textarea {
+    background-color: #1e1e1e;
+    color: white;
+    border: 1px solid #555;
+}
