@@ -64,6 +64,17 @@ const clearBtn = document.getElementById('clear-btn');
 const addItemsBtn = document.getElementById('add-btn');
 const downloadBtn = document.getElementById('download-btn');
 const newTaskBtn = document.getElementById('add-task-btn');
+const navDashboard = document.getElementById('nav-dashboard');
+const navTasks = document.getElementById('nav-tasks');
+const navCalendar = document.getElementById('nav-calendar');
+const profileBtn = document.getElementById('profile-btn');
+const profileModal = document.getElementById('profile-modal');
+const profileClose = document.getElementById('profile-close');
+const profileCloseSecondary = document.getElementById('profile-close-secondary');
+const profileEmail = document.getElementById('profile-email');
+const profileStatus = document.getElementById('profile-status');
+const profileAvatar = document.getElementById('profile-avatar');
+const profileSignOut = document.getElementById('profile-signout');
 
 
 
@@ -162,6 +173,66 @@ let TIME_LIMIT = 25 * 60;
 let timePassed = 0;
 let timeLeft = TIME_LIMIT;
 let timerInterval = null;
+
+function getStoredUser() {
+  const raw = localStorage.getItem('studyplan_user');
+  if (!raw) return null;
+
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+function syncProfileModal() {
+  if (!profileModal) return;
+
+  const user = getStoredUser();
+  const email = user?.email || 'Not signed in';
+
+  if (profileEmail) profileEmail.textContent = email;
+  if (profileStatus) profileStatus.textContent = user ? 'Active' : 'Guest';
+  if (profileAvatar) {
+    profileAvatar.textContent = user?.email
+      ? user.email.slice(0, 2).toUpperCase()
+      : 'SP';
+  }
+}
+
+function openProfileModal() {
+  syncProfileModal();
+  if (profileModal) profileModal.style.display = 'flex';
+}
+
+function closeProfileModal() {
+  if (profileModal) profileModal.style.display = 'none';
+}
+
+function setMainView(view) {
+  currentView = view;
+
+  const calSection = document.querySelector('.cal-section');
+  const focusView = document.getElementById('focus-section');
+  const tasksView = document.getElementById('tasks-section');
+
+  if (view === 'focus') {
+    calSection?.classList.add('hidden');
+    tasksView?.classList.add('hidden');
+    focusView?.classList.remove('hidden');
+    updateSidebarActive('focus-mode-btn');
+    renderFocusTasks();
+    return;
+  }
+
+  selectedDate = null;
+  calSection?.classList.toggle('hidden', view === 'all-tasks' || view === 'archived');
+  tasksView?.classList.remove('hidden');
+  focusView?.classList.add('hidden');
+  updateSidebarActive(view === 'all-tasks' ? 'all-tasks-btn' : view === 'archived' ? 'archived-tasks-btn' : 'calendar-btn');
+  renderCalendar();
+  renderTasks();
+}
 
 const timerDurationInput = document.getElementById('timer-duration-input');
 
@@ -923,41 +994,78 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById(id).classList.add('active');
   }
 
+  const scrollToTopOfDashboard = () => {
+    document.getElementById('dashboard-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  if (navDashboard) {
+    navDashboard.addEventListener('click', (e) => {
+      e.preventDefault();
+      setMainView('calendar');
+      scrollToTopOfDashboard();
+    });
+  }
+
+  if (navTasks) {
+    navTasks.addEventListener('click', (e) => {
+      e.preventDefault();
+      setMainView('all-tasks');
+      document.getElementById('tasks-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
+  if (navCalendar) {
+    navCalendar.addEventListener('click', (e) => {
+      e.preventDefault();
+      setMainView('calendar');
+      scrollToTopOfDashboard();
+    });
+  }
+
+  if (profileBtn) {
+    profileBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      openProfileModal();
+    });
+  }
+
+  if (profileClose) {
+    profileClose.addEventListener('click', closeProfileModal);
+  }
+
+  if (profileCloseSecondary) {
+    profileCloseSecondary.addEventListener('click', closeProfileModal);
+  }
+
+  if (profileModal) {
+    profileModal.addEventListener('click', (e) => {
+      if (e.target === profileModal) closeProfileModal();
+    });
+  }
+
+  if (profileSignOut) {
+    profileSignOut.addEventListener('click', () => {
+      localStorage.removeItem('studyplan_user');
+      closeProfileModal();
+      document.getElementById('auth-modal').style.display = 'flex';
+    });
+  }
+
   calendarBtn.addEventListener('click', () => {
-    currentView = 'calendar';
-    document.querySelector('.cal-section').classList.remove('hidden');
-    document.getElementById('tasks-section').classList.remove('hidden');
-    document.getElementById('focus-section').classList.add('hidden');
-    updateSidebarActive('calendar-btn');
-    renderTasks();
+    setMainView('calendar');
   });
 
   allTasksBtn.addEventListener('click', () => {
-    currentView = 'all-tasks';
-    document.querySelector('.cal-section').classList.add('hidden');
-    document.getElementById('tasks-section').classList.remove('hidden');
-    document.getElementById('focus-section').classList.add('hidden');
-    updateSidebarActive('all-tasks-btn');
-    renderTasks();
+    setMainView('all-tasks');
   });
 
   archivedTasksBtn.addEventListener('click', () => {
-    currentView = 'archived';
-    document.querySelector('.cal-section').classList.add('hidden');
-    document.getElementById('tasks-section').classList.remove('hidden');
-    document.getElementById('focus-section').classList.add('hidden');
-    updateSidebarActive('archived-tasks-btn');
-    renderTasks();
+    setMainView('archived');
   });
 
   if(focusModeBtn) {
     focusModeBtn.addEventListener('click', () => {
-      currentView = 'focus';
-      document.querySelector('.cal-section').classList.add('hidden');
-      document.getElementById('tasks-section').classList.add('hidden');
-      document.getElementById('focus-section').classList.remove('hidden');
-      updateSidebarActive('focus-mode-btn');
-      renderFocusTasks();
+      setMainView('focus');
     });
   }
 
