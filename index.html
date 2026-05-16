@@ -39,9 +39,9 @@
   </div>
 
   <nav class="header-nav">
-    <a href="#">Dashboard</a>
-    <a href="#">Tasks</a>
-    <a href="#">Calendar</a>
+    <a href="#" id="nav-dashboard">Dashboard</a>
+    <a href="#" id="nav-tasks">Tasks</a>
+    <a href="#" id="nav-calendar">Calendar</a>
     <a href="#" id="nav-settings">Settings</a>
   </nav>
 
@@ -308,7 +308,7 @@
         return;
       }
 
-      localStorage.setItem('studyplan_user', JSON.stringify({ email: data.email }));
+      localStorage.setItem('studyplan_user', JSON.stringify({ email: data.email || email }));
       document.getElementById('auth-modal').style.display = 'none';
 
     } catch (err) {
@@ -326,6 +326,16 @@
   const navSettings = document.getElementById('nav-settings');
   const settingsClose = document.getElementById('settings-close');
   const settingsSave = document.getElementById('settings-save');
+  const profileBtn = document.querySelector('.profile-btn:not(#logout-btn)');
+
+  profileBtn.addEventListener('click', () => {
+    if (localStorage.getItem('studyplan_user')) {
+      settingsModal.style.display = 'flex';
+      return;
+    }
+
+    document.getElementById('auth-modal').style.display = 'flex';
+  });
 
   navSettings.addEventListener('click', (e) => {
     e.preventDefault();

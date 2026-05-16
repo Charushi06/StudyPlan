@@ -917,38 +917,59 @@ document.addEventListener('DOMContentLoaded', () => {
   const allTasksBtn = document.getElementById('all-tasks-btn');
   const archivedTasksBtn = document.getElementById('archived-tasks-btn');
   const focusModeBtn = document.getElementById('focus-mode-btn');
+  const navDashboard = document.getElementById('nav-dashboard');
+  const navTasks = document.getElementById('nav-tasks');
+  const navCalendar = document.getElementById('nav-calendar');
 
   function updateSidebarActive(id) {
     document.querySelectorAll('.sidebar .nav-item').forEach(el => el.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
+    document.getElementById(id)?.classList.add('active');
   }
 
-  calendarBtn.addEventListener('click', () => {
+  function showCalendarView() {
     currentView = 'calendar';
-    document.querySelector('.cal-section').classList.remove('hidden');
-    document.getElementById('tasks-section').classList.remove('hidden');
-    document.getElementById('focus-section').classList.add('hidden');
+    document.querySelector('.cal-section')?.classList.remove('hidden');
+    document.getElementById('tasks-section')?.classList.remove('hidden');
+    document.getElementById('focus-section')?.classList.add('hidden');
     updateSidebarActive('calendar-btn');
+    renderCalendar();
     renderTasks();
-  });
+  }
 
-  allTasksBtn.addEventListener('click', () => {
+  function showAllTasksView() {
     currentView = 'all-tasks';
-    document.querySelector('.cal-section').classList.add('hidden');
-    document.getElementById('tasks-section').classList.remove('hidden');
-    document.getElementById('focus-section').classList.add('hidden');
+    document.querySelector('.cal-section')?.classList.add('hidden');
+    document.getElementById('tasks-section')?.classList.remove('hidden');
+    document.getElementById('focus-section')?.classList.add('hidden');
     updateSidebarActive('all-tasks-btn');
     renderTasks();
-  });
+  }
 
-  archivedTasksBtn.addEventListener('click', () => {
+  function showArchivedTasksView() {
     currentView = 'archived';
-    document.querySelector('.cal-section').classList.add('hidden');
-    document.getElementById('tasks-section').classList.remove('hidden');
-    document.getElementById('focus-section').classList.add('hidden');
+    document.querySelector('.cal-section')?.classList.add('hidden');
+    document.getElementById('tasks-section')?.classList.remove('hidden');
+    document.getElementById('focus-section')?.classList.add('hidden');
     updateSidebarActive('archived-tasks-btn');
     renderTasks();
-  });
+  }
+
+  function bindHeaderNav(link, handler) {
+    link?.addEventListener('click', (e) => {
+      e.preventDefault();
+      handler();
+    });
+  }
+
+  calendarBtn.addEventListener('click', showCalendarView);
+
+  allTasksBtn.addEventListener('click', showAllTasksView);
+
+  archivedTasksBtn.addEventListener('click', showArchivedTasksView);
+
+  bindHeaderNav(navDashboard, showCalendarView);
+  bindHeaderNav(navTasks, showAllTasksView);
+  bindHeaderNav(navCalendar, showCalendarView);
 
   if(focusModeBtn) {
     focusModeBtn.addEventListener('click', () => {
