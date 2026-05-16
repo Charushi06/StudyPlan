@@ -49,6 +49,28 @@
     <button class="profile-btn">Profile</button>
   </div>
 </header>
+<!-- Profile Modal -->
+<div id="profile-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
+  <div style="background:var(--color-background-primary); border:1px solid var(--color-border-tertiary); border-radius:16px; padding:28px; width:340px; box-shadow:0 12px 40px rgba(0,0,0,0.25); position:relative; color:var(--color-text-primary);">
+    <button id="profile-close" style="position:absolute; top:14px; right:16px; background:none; border:none; font-size:20px; cursor:pointer; color:var(--color-text-secondary);">✕</button>
+    <div style="text-align:center; margin-bottom:20px;">
+      <div style="width:64px; height:64px; border-radius:50%; background:var(--color-background-info); display:flex; align-items:center; justify-content:center; font-size:28px; margin:0 auto 12px;">👤</div>
+      <h2 id="profile-email-display" style="margin:0 0 4px; font-size:18px; font-weight:700;">Loading...</h2>
+      <p style="margin:0; font-size:13px; color:var(--color-text-tertiary);">StudyPlan Member</p>
+    </div>
+    <div style="background:var(--color-background-secondary); border-radius:10px; padding:14px; font-size:14px; color:var(--color-text-secondary);">
+      <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+        <span>📧 Email</span>
+        <span id="profile-email-value" style="font-weight:600; color:var(--color-text-primary);">—</span>
+      </div>
+      <div style="display:flex; justify-content:space-between;">
+        <span>📚 Status</span>
+        <span style="font-weight:600; color:var(--color-text-success);">Active</span>
+      </div>
+    </div>
+    <button id="profile-logout" style="width:100%; margin-top:16px; padding:10px; color:var(--color-text-danger); border:1px solid var(--color-border-danger); background:var(--color-background-danger); border-radius:8px; font-weight:600; cursor:pointer; font-size:14px;">Log out</button>
+  </div>
+</div>
 
 
 <div class="wrapper">
@@ -397,6 +419,34 @@
     } else {
       document.body.classList.remove('compact-view');
     }
+  });
+  // ── Profile Modal ──────────────────────────────────────────────
+  const profileBtn    = document.querySelector('.profile-btn');
+  const profileModal  = document.getElementById('profile-modal');
+  const profileClose  = document.getElementById('profile-close');
+  const profileLogout = document.getElementById('profile-logout');
+
+  profileBtn.addEventListener('click', () => {
+    const raw   = localStorage.getItem('studyplan_user');
+    const user  = raw ? JSON.parse(raw) : null;
+    const email = user?.email || 'Not logged in';
+    document.getElementById('profile-email-display').textContent = email;
+    document.getElementById('profile-email-value').textContent   = email;
+    profileModal.style.display = 'flex';
+  });
+
+  profileClose.addEventListener('click', () => {
+    profileModal.style.display = 'none';
+  });
+
+  profileLogout.addEventListener('click', () => {
+    localStorage.removeItem('studyplan_user');
+    profileModal.style.display = 'none';
+    document.getElementById('auth-modal').style.display = 'flex';
+  });
+
+  window.addEventListener('click', (e) => {
+    if (e.target === profileModal) profileModal.style.display = 'none';
   });
 </script>
 

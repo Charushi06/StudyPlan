@@ -1145,11 +1145,13 @@ body {
 .summary-box {
   margin-top: 16px;
   padding: 14px;
-  background: linear-gradient(135deg, #eef2ff, #f8fafc);
+  background: var(--color-background-secondary);
   border-radius: 12px;
   font-size: 14px;
   line-height: 1.6;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-border-secondary);
+  color: var(--color-text-primary);
+  transition: background 0.2s, border-color 0.2s;
 }
 
 .paste-input:focus, .paste-input:not(:placeholder-shown) { opacity: 1; z-index: 10; background: var(--color-background-primary); color: var(--color-text-primary); outline: none; }
