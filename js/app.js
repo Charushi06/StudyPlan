@@ -856,6 +856,14 @@ store.subscribe(renderCalendar);
 store.subscribe(renderFocusTasks);
 store.subscribe(renderSidebarSubjects);
 
+let initialDataLoaded = false;
+
+function ensureInitialDataLoaded() {
+  if (initialDataLoaded) return;
+  initialDataLoaded = true;
+  store.fetchInitialData();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   if (newSubjectColorsEl) {
     SUBJECT_COLORS.forEach(c => {
@@ -910,17 +918,88 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
+  
+  const profileModal = document.getElementById('profile-modal');
+  const profileClose = document.getElementById('profile-close');
+  const profileLogout = document.getElementById('profile-logout');
+  const profileSettingsBtn = document.getElementById('profile-settings');
+  
+  if (profileClose && profileModal) {
+    profileClose.addEventListener('click', () => { profileModal.style.display = 'none'; });
+  }
+  
+  if (profileLogout && profileModal) {
+    profileLogout.addEventListener('click', () => {
+      localStorage.removeItem('studyplan_user');
+      // lock UI and show auth
+      document.body.classList.add('auth-locked');
+      document.getElementById('auth-modal').style.display = 'flex';
+      profileModal.style.display = 'none';
+    });
+  }
+  
+  if (profileSettingsBtn) {
+    profileSettingsBtn.addEventListener('click', () => {
+      if (profileModal) profileModal.style.display = 'none';
+      if (settingsModal) settingsModal.style.display = 'flex';
+    });
+  }
 
-  store.fetchInitialData();
+  if (localStorage.getItem('studyplan_user')) {
+    ensureInitialDataLoaded();
+  }
+
+  window.addEventListener('studyplan:authenticated', ensureInitialDataLoaded, { once: true });
   
   const calendarBtn = document.getElementById('calendar-btn');
   const allTasksBtn = document.getElementById('all-tasks-btn');
   const archivedTasksBtn = document.getElementById('archived-tasks-btn');
   const focusModeBtn = document.getElementById('focus-mode-btn');
+  const navDashboard = document.getElementById('nav-dashboard');
+  const navTasks = document.getElementById('nav-tasks');
+  const navCalendar = document.getElementById('nav-calendar');
+  const navProfile = document.getElementById('nav-profile');
 
   function updateSidebarActive(id) {
     document.querySelectorAll('.sidebar .nav-item').forEach(el => el.classList.remove('active'));
     document.getElementById(id).classList.add('active');
+  }
+
+  // Top header nav wiring
+  if (navDashboard) {
+    navDashboard.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (calendarBtn) calendarBtn.click();
+    });
+  }
+
+  if (navTasks) {
+    navTasks.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (allTasksBtn) allTasksBtn.click();
+    });
+  }
+
+  if (navCalendar) {
+    navCalendar.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (calendarBtn) calendarBtn.click();
+    });
+  }
+
+  if (navProfile) {
+    navProfile.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (profileModal) {
+        // populate email if available
+        const user = JSON.parse(localStorage.getItem('studyplan_user') || 'null');
+        const emailEl = document.getElementById('profile-email');
+        if (emailEl) emailEl.textContent = user ? user.email : 'Not signed in';
+        profileModal.style.display = 'flex';
+      } else if (settingsModal) {
+        settingsModal.style.display = 'flex';
+      }
+    });
   }
 
   calendarBtn.addEventListener('click', () => {

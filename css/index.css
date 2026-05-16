@@ -88,6 +88,18 @@ body {
   overflow-x: hidden;
 }
 
+body.auth-locked {
+  background:
+    radial-gradient(circle at top, rgba(79, 70, 229, 0.12), transparent 36%),
+    linear-gradient(180deg, #f5f5fb 0%, #ececf6 100%);
+}
+
+body.auth-locked .site-header,
+body.auth-locked .wrapper,
+body.auth-locked .site-footer {
+  display: none;
+}
+
 /* Animations */
 @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes popIn { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
