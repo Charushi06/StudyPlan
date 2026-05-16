@@ -897,8 +897,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (newSubjectSave) {
     newSubjectSave.addEventListener('click', async () => {
+      const subjectNameValue = newSubjectName.value.trim();
+
+      if (!subjectNameValue) {
+        alert("Subject name cannot be empty!");
+        return;
+      }
+      const sidebarItems = document.querySelectorAll('#subjects-sidebar-list *');
+
+      const currentSidebarSubjects = Array.from(sidebarItems)
+        .map(item => item.textContent.replace(/[0-9]/g, '').trim().toLowerCase())
+        .filter(text => text.length > 0);
+      console.log("DEBUG - Current subjects found on screen:", currentSidebarSubjects);
+
+      if (currentSidebarSubjects.includes(subjectNameValue.toLowerCase())) {
+        alert("This subject already exists!");
+        return;
+      }
+
       const ok = await store.addSubject({
-        name: newSubjectName.value,
+        name: subjectNameValue,
         color: selectedNewSubjectColor
       });
 
