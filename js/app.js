@@ -856,6 +856,14 @@ store.subscribe(renderCalendar);
 store.subscribe(renderFocusTasks);
 store.subscribe(renderSidebarSubjects);
 
+let initialDataLoaded = false;
+
+function ensureInitialDataLoaded() {
+  if (initialDataLoaded) return;
+  initialDataLoaded = true;
+  store.fetchInitialData();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   if (newSubjectColorsEl) {
     SUBJECT_COLORS.forEach(c => {
@@ -911,7 +919,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  store.fetchInitialData();
+  if (localStorage.getItem('studyplan_user')) {
+    ensureInitialDataLoaded();
+  }
+
+  window.addEventListener('studyplan:authenticated', ensureInitialDataLoaded, { once: true });
   
   const calendarBtn = document.getElementById('calendar-btn');
   const allTasksBtn = document.getElementById('all-tasks-btn');

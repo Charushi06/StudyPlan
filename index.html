@@ -6,14 +6,21 @@
   <title>StudyPlan</title>
   <link rel="stylesheet" href="/css/index.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body.auth-locked .site-header,
+    body.auth-locked .wrapper,
+    body.auth-locked .site-footer {
+      display: none;
+    }
+  </style>
 </head>
-<body>
+<body class="auth-locked">
   <!-- Auth Modal -->
 <div id="auth-modal" style="display:flex; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
   <div style="background:white; border-radius:16px; padding:32px; width:360px; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
     
-    <h2 id="auth-title" style="margin:0 0 8px; font-size:22px; font-weight:700;">Welcome back</h2>
-    <p id="auth-subtitle" style="margin:0 0 24px; color:#666; font-size:14px;">Sign in to your StudyPlan account</p>
+    <h2 id="auth-title" style="margin:0 0 8px; font-size:22px; font-weight:700;">Welcome to StudyPlan</h2>
+    <p id="auth-subtitle" style="margin:0 0 24px; color:#666; font-size:14px;">Sign in or create an account to continue</p>
 
     <input id="auth-email" type="email" placeholder="Email address" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:12px; box-sizing:border-box;">
     
@@ -24,7 +31,7 @@
     </button>
 
     <p style="text-align:center; margin:16px 0 0; font-size:13px; color:#666;">
-      <span id="auth-toggle-text">Don't have an account?</span>
+      <span id="auth-toggle-text">Need an account?</span>
       <a id="auth-toggle-btn" href="#" style="color:#4f46e5; font-weight:600; margin-left:4px;">Sign Up</a>
     </p>
 
@@ -269,16 +276,23 @@
   <script type="module" src="/js/app.js"></script>
   <script>
   let isLogin = true;
+  const authModal = document.getElementById('auth-modal');
+
+  function setAuthMode(loginMode) {
+    isLogin = loginMode;
+    document.getElementById('auth-title').textContent = isLogin ? 'Welcome to StudyPlan' : 'Create your account';
+    document.getElementById('auth-subtitle').textContent = isLogin ? 'Sign in or create an account to continue' : 'Start planning your studies';
+    document.getElementById('auth-submit-btn').textContent = isLogin ? 'Sign In' : 'Sign Up';
+    document.getElementById('auth-toggle-text').textContent = isLogin ? 'Need an account?' : 'Already have an account?';
+    document.getElementById('auth-toggle-btn').textContent = isLogin ? 'Sign Up' : 'Sign In';
+    const authError = document.getElementById('auth-error');
+    authError.style.display = 'none';
+    authError.style.color = 'red';
+  }
 
   document.getElementById('auth-toggle-btn').addEventListener('click', (e) => {
     e.preventDefault();
-    isLogin = !isLogin;
-    document.getElementById('auth-title').textContent = isLogin ? 'Welcome back' : 'Create account';
-    document.getElementById('auth-subtitle').textContent = isLogin ? 'Sign in to your StudyPlan account' : 'Start planning your studies';
-    document.getElementById('auth-submit-btn').textContent = isLogin ? 'Sign In' : 'Sign Up';
-    document.getElementById('auth-toggle-text').textContent = isLogin ? "Don't have an account?" : 'Already have an account?';
-    document.getElementById('auth-toggle-btn').textContent = isLogin ? 'Sign Up' : 'Sign In';
-    document.getElementById('auth-error').style.display = 'none';
+    setAuthMode(!isLogin);
   });
 
   document.getElementById('auth-submit-btn').addEventListener('click', async () => {
@@ -308,8 +322,19 @@
         return;
       }
 
+      if (!isLogin) {
+        document.getElementById('auth-password').value = '';
+        setAuthMode(true);
+        errorEl.style.color = '#166534';
+        errorEl.textContent = 'Account created. Please sign in.';
+        errorEl.style.display = 'block';
+        return;
+      }
+
       localStorage.setItem('studyplan_user', JSON.stringify({ email: data.email }));
-      document.getElementById('auth-modal').style.display = 'none';
+      document.body.classList.remove('auth-locked');
+      authModal.style.display = 'none';
+      window.dispatchEvent(new CustomEvent('studyplan:authenticated'));
 
     } catch (err) {
       errorEl.textContent = 'Network error. Please try again.';
@@ -319,7 +344,10 @@
 
   // Check if already logged in
   if (localStorage.getItem('studyplan_user')) {
-    document.getElementById('auth-modal').style.display = 'none';
+    document.body.classList.remove('auth-locked');
+    authModal.style.display = 'none';
+  } else {
+    setAuthMode(true);
   }
   // Settings Modal Logic
   const settingsModal = document.getElementById('settings-modal');
