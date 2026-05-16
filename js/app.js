@@ -1076,3 +1076,4 @@ addItemsBtn.addEventListener('click', () => {
 downloadBtn.addEventListener('click', () => {
   downloadData();
 });
+
