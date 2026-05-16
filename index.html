@@ -46,14 +46,14 @@
   </div>
 
   <nav class="header-nav">
-    <a href="#">Dashboard</a>
-    <a href="#">Tasks</a>
-    <a href="#">Calendar</a>
+    <a id="nav-dashboard" href="#">Dashboard</a>
+    <a id="nav-tasks" href="#">Tasks</a>
+    <a id="nav-calendar" href="#">Calendar</a>
     <a href="#" id="nav-settings">Settings</a>
   </nav>
 
   <div class="header-right">
-    <button class="profile-btn">Profile</button>
+    <button id="nav-profile" class="profile-btn" onclick="(function(){ const m=document.getElementById('profile-modal'); if(m) m.style.display='flex'; })()">Profile</button>
   </div>
 </header>
 
@@ -248,6 +248,22 @@
         </label>
       </div>
     </div>
+
+      <!-- Profile Modal -->
+      <div id="profile-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.35); z-index:10000; align-items:center; justify-content:center;">
+        <div style="background:var(--color-background-primary); border:1px solid var(--color-border-tertiary); border-radius:12px; padding:20px; width:320px; box-shadow:var(--shadow-lg);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <h3 style="margin:0; font-size:16px;">Profile</h3>
+            <button id="profile-close" style="background:none; border:none; font-size:20px; cursor:pointer;">&times;</button>
+          </div>
+          <div style="margin-bottom:12px; font-size:14px; color:var(--color-text-secondary);">Signed in as</div>
+          <div id="profile-email" style="font-weight:600; margin-bottom:12px;"></div>
+          <div style="display:flex; gap:8px;">
+            <button id="profile-logout" class="btn" style="flex:1;">Logout</button>
+            <button id="profile-settings" class="btn btn-primary" style="flex:1;">Settings</button>
+          </div>
+        </div>
+      </div>
 
     <div style="margin-bottom: 24px;">
       <h3 style="font-size:12px; font-weight:700; text-transform:uppercase; color:var(--color-text-tertiary); margin-bottom:16px; letter-spacing:0.05em;">Notifications</h3>
