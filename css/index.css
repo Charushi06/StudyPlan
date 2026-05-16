@@ -1303,6 +1303,114 @@ body {
   padding: 16px;
 }
 
+
+.cal-grid:has(.day-view-checklist) {
+  display: block;
+  width: 100%;
+}
+
+.day-view-checklist {
+  padding: 24px;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+}
+
+.checklist-header {
+  font-size: 18px;
+  font-weight: 600;
+  padding-bottom: 16px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid var(--color-border-secondary);
+}
+
+.checklist-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--color-border-secondary);
+}
+
+.checklist-box {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--color-border-primary);
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.checklist-box.checked {
+  background: #4caf50;
+  border-color: #4caf50;
+  position: relative;
+}
+
+.checklist-box.checked::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 6px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.checklist-text {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.checklist-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.checklist-title.done {
+  text-decoration: line-through;
+  color: var(--color-text-tertiary);
+}
+
+.checklist-subject {
+  font-size: 12px;
+  padding: 2px 12px;
+  border-radius: 12px;
+  background: var(--color-background-secondary);
+  font-weight: 500;
+}
+
+.checklist-empty {
+  text-align: center;
+  padding: 80px 20px;
+  color: var(--color-text-tertiary);
+  font-size: 14px;
+}
+
+.checklist-add-btn {
+  width: 100%;
+  padding: 12px;
+  margin-top: 24px;
+  background: transparent;
+  border: 1px dashed var(--color-border-primary);
+  border-radius: 8px;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.checklist-add-btn:hover {
+  background: var(--color-background-hover);
+  border-color: var(--color-text-info);
+  color: var(--color-text-info);
+}
+
 .day-header-simple {
   margin-bottom: 24px;
   padding-bottom: 12px;

@@ -664,14 +664,12 @@ function renderDayView() {
   
   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   
-  // Update title
   const topbarTitle = document.querySelector('.topbar-title');
   if(topbarTitle) {
     topbarTitle.textContent = `${monthNames[month]} ${day}, ${year}`;
   }
   document.getElementById('cal-month-title').textContent = `${monthNames[month]} ${day}, ${year}`;
   
-  // Get tasks for this day
   const dayTasks = store.tasks.filter(t => {
     if (t.archived) return false;
     if (!t.due_at) return false;
@@ -679,100 +677,83 @@ function renderDayView() {
     return d.getDate() === day && d.getMonth() === month && d.getFullYear() === year;
   });
   
-  // Filter tasks
   const pending = dayTasks.filter(t => t.status !== 'Done');
   const completed = dayTasks.filter(t => t.status === 'Done');
-  
-  // Sort pending by time
   pending.sort((a, b) => new Date(a.due_at) - new Date(b.due_at));
   
-  let html = `<div style="padding: 20px;">`;
+  let html = '<div class="day-view-checklist">';
   
-  // Simple header
-  html += `<div style="margin-bottom: 24px;">
-    <h3 style="margin: 0 0 8px 0; font-size: 18px;">Tasks for Today</h3>
-    <div style="color: #666; font-size: 13px;">${pending.length} pending · ${completed.length} completed</div>
-  </div>`;
+  html += '<div class="checklist-header">';
+  html += 'Tasks on ' + monthNames[month] + ' ' + day + ', ' + year;
+  html += '</div>';
   
   if (pending.length === 0 && completed.length === 0) {
-    html += `<div style="text-align: center; padding: 60px 20px; color: #999;">
-      <div style="font-size: 48px; margin-bottom: 12px;">-</div>
-      <div>No tasks for today</div>
-      <div style="font-size: 12px; margin-top: 8px;">Click "New task" to add one</div>
-    </div>`;
+    html += '<div class="checklist-empty">No tasks for this day</div>';
+    html += '<button class="checklist-add-btn" id="day-add-task-btn">+ Add Task</button>';
   } else {
-    // Pending tasks
     if (pending.length > 0) {
-      html += `<div style="margin-bottom: 24px;">
-        <div style="font-weight: 600; margin-bottom: 12px; color: #333;">To do</div>
-        <div style="display: flex; flex-direction: column; gap: 8px;">`;
-      
-      pending.forEach(task => {
+      for (let i = 0; i < pending.length; i++) {
+        const task = pending[i];
         const sub = store.subjects.find(s => s.id === task.subject_id) || store.subjects[0];
-        const timeStr = new Date(task.due_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-        
-        html += `
-          <div onclick="window.toggleTask('${task.id}')" style="
-            display: flex; 
-            align-items: center; 
-            gap: 12px; 
-            padding: 12px;
-            background: white;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            cursor: pointer;
-          ">
-            <div style="width: 18px; height: 18px; border: 2px solid #ddd; border-radius: 4px;"></div>
-            <div style="flex: 1;">
-              <div style="font-weight: 500;">${escapeHtml(task.title)}</div>
-              <div style="display: flex; gap: 12px; margin-top: 4px;">
-                <span style="font-size: 12px; color: #666;">${timeStr}</span>
-                <span style="font-size: 11px; padding: 2px 8px; background: ${sub?.color || '#999'}20; color: ${sub?.color || '#999'}; border-radius: 12px;">${sub?.short_code || 'Task'}</span>
-              </div>
-            </div>
-          </div>
-        `;
-      });
-      
-      html += `</div></div>`;
+        html += '<div class="checklist-item" data-id="' + task.id + '">';
+        html += '<div class="checklist-box"></div>';
+        html += '<div class="checklist-text">';
+        html += '<span class="checklist-title">' + escapeHtml(task.title) + '</span>';
+        html += '<span class="checklist-subject" style="color:' + (sub?.color || '#666') + '">' + (sub?.short_code || 'Task') + '</span>';
+        html += '</div>';
+        html += '</div>';
+      }
     }
     
-    // Completed tasks
     if (completed.length > 0) {
-      html += `<div>
-        <div style="font-weight: 600; margin-bottom: 12px; color: #666;">Done</div>
-        <div style="display: flex; flex-direction: column; gap: 8px;">`;
-      
-      completed.forEach(task => {
+      for (let i = 0; i < completed.length; i++) {
+        const task = completed[i];
         const sub = store.subjects.find(s => s.id === task.subject_id) || store.subjects[0];
-        
-        html += `
-          <div style="
-            display: flex; 
-            align-items: center; 
-            gap: 12px; 
-            padding: 12px;
-            background: #f9f9f9;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            opacity: 0.7;
-          ">
-            <div style="width: 18px; height: 18px; background: #4caf50; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px;">✓</div>
-            <div style="flex: 1;">
-              <div style="text-decoration: line-through; color: #999;">${escapeHtml(task.title)}</div>
-              <span style="font-size: 11px; padding: 2px 8px; background: ${sub?.color || '#999'}20; color: ${sub?.color || '#999'}; border-radius: 12px;">${sub?.short_code || 'Task'}</span>
-            </div>
-          </div>
-        `;
-      });
-      
-      html += `</div></div>`;
+        html += '<div class="checklist-item completed" data-id="' + task.id + '">';
+        html += '<div class="checklist-box checked"></div>';
+        html += '<div class="checklist-text">';
+        html += '<span class="checklist-title done">' + escapeHtml(task.title) + '</span>';
+        html += '<span class="checklist-subject" style="color:' + (sub?.color || '#666') + '">' + (sub?.short_code || 'Task') + '</span>';
+        html += '</div>';
+        html += '</div>';
+      }
     }
   }
   
-  html += `</div>`;
-  
+  html += '</div>';
   document.getElementById('cal-grid').innerHTML = html;
+  
+  const items = document.querySelectorAll('.checklist-item');
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    item.addEventListener('click', function(e) {
+      if (e.target.classList.contains('checklist-box')) return;
+      const taskId = this.dataset.id;
+      if (taskId) {
+        store.toggleTaskStatus(taskId);
+        setTimeout(function() { renderDayView(); }, 50);
+      }
+    });
+    
+    const box = item.querySelector('.checklist-box');
+    if (box) {
+      box.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const taskId = item.dataset.id;
+        if (taskId) {
+          store.toggleTaskStatus(taskId);
+          setTimeout(function() { renderDayView(); }, 50);
+        }
+      });
+    }
+  }
+  
+  const addBtn = document.getElementById('day-add-task-btn');
+  if (addBtn) {
+    addBtn.addEventListener('click', function() {
+      document.getElementById('add-task-btn').click();
+    });
+  }
 }
 
 // Add this helper function for toggling tasks from inline onclick
