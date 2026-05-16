@@ -1,8 +1,55 @@
 import { store } from './store.js';
 import { extractTasksFromText } from './utils/api.js';
 import { initGlobalErrorBoundary } from './utils/errorBoundary.js';
+import { analyzeWorkload } from './utils/scheduler.js';
 
 initGlobalErrorBoundary();
+
+function generateSummary(tasks, subjects) {
+  const now = new Date();
+  const weekEnd = new Date();
+  weekEnd.setDate(now.getDate() + 7);
+
+  let todayCount = 0;
+  let weekCount = 0;
+  let subjectCount = {};
+
+  tasks.forEach(t => {
+    if (t.archived || t.status === 'Done' || !t.due_at) return;
+
+    const d = new Date(t.due_at);
+
+    // today
+    if (d.toDateString() === now.toDateString()) {
+      todayCount++;
+    }
+
+    // this week
+    if (d >= now && d <= weekEnd) {
+      weekCount++;
+    }
+
+    const sub = subjects.find(s => s.id === t.subject_id);
+    const name = sub ? sub.name : 'General';
+    subjectCount[name] = (subjectCount[name] || 0) + 1;
+  });
+
+  const topSubject = Object.keys(subjectCount).length
+    ? Object.keys(subjectCount).reduce((a, b) =>
+        subjectCount[a] > subjectCount[b] ? a : b
+      )
+    : 'no specific subject';
+
+  return `
+    <strong>📅 Daily</strong><br>
+    Today you have <b>${todayCount}</b> task(s).<br>
+    Focus on <b>${topSubject}</b>.<br><br>
+
+    <strong>📊 Weekly</strong><br>
+    This week you have <b>${weekCount}</b> task(s).<br>
+    Most work is in <b>${topSubject}</b>.
+  `;
+}
 
 let currentMonthDate = new Date();
 let selectedDate = null;
@@ -421,12 +468,17 @@ function renderTasks() {
         <span style="color:${titleColor}">${title}</span>
       </div>`;
     
-    if (showConflict && items.length >= 3) {
-      html += `<div class="conflict-card" style="margin-bottom: 12px;">
-         <span class="conflict-icon">⚡</span>
-         <div>Multiple deadlines detected. Consider starting early to spread the load.</div>
-       </div>`;
+    if (showConflict) {
+      const workloadSuggestions = analyzeWorkload(items);
+      workloadSuggestions.forEach(workload => {
+        html += ` <div class="conflict-card smart-workload-card ${workload.level}">
+        <div class="smart-workload-title"> ⚠ Heavy workload detected on ${workload.date} </div>
+        <div class="smart-workload-score"> Workload Score: ${workload.score} </div>
+        <ul class="smart-suggestion-list"> ${workload.suggestions.map(s => `<li class="${s.includes('Suggested reschedule') ? 'smart-highlight' : ''}"> ${s} </li>`).join('')} </ul>
+        </div>`;
+      });
     }
+    
       
     items.forEach(t => {
       const sub = subjects.find(s => s.id === t.subject_id) || subjects[0];
@@ -532,7 +584,7 @@ function renderTasks() {
       : '';
 
     tasksSection.innerHTML = actionBar +
-                             renderGroup(titlePrefix + '⚠ Due soon', dueSoon, 'var(--color-text-danger)') +
+                             renderGroup(titlePrefix + '⚠ Due soon', dueSoon, 'var(--color-text-danger)', true)
                              renderGroup(titlePrefix + 'This week', thisWeek, 'var(--color-text-secondary)', true) +
                              renderGroup(titlePrefix + 'Completed', completed, 'var(--color-text-tertiary)') +
                              emptyState;
@@ -630,6 +682,12 @@ function renderTasks() {
       store.markPendingTasksForDateCompleted(selectedDate);
     });
   }
+}
+
+
+const summaryBox = document.getElementById('summary-box');
+if (summaryBox) {
+  summaryBox.innerHTML = generateSummary(store.tasks, store.subjects);
 }
 
 function renderCalendar() {
