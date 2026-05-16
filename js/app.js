@@ -2,6 +2,7 @@ import { store } from './store.js';
 import { extractTasksFromText } from './utils/api.js';
 import { initGlobalErrorBoundary } from './utils/errorBoundary.js';
 import { analyzeWorkload } from './utils/scheduler.js';
+import { exportStudyPlanAsPDF } from './utils/pdfExport.js';
 
 initGlobalErrorBoundary();
 
@@ -63,6 +64,7 @@ const extractBtn = document.getElementById('extract-btn');
 const clearBtn = document.getElementById('clear-btn');
 const addItemsBtn = document.getElementById('add-btn');
 const downloadBtn = document.getElementById('download-btn');
+const exportPdfBtn = document.getElementById('export-pdf-btn');
 const newTaskBtn = document.getElementById('add-task-btn');
 
 
@@ -562,7 +564,7 @@ function renderTasks() {
       : '';
 
     tasksSection.innerHTML = actionBar +
-                             renderGroup(titlePrefix + '⚠ Due soon', dueSoon, 'var(--color-text-danger)', true)
+                             renderGroup(titlePrefix + '⚠ Due soon', dueSoon, 'var(--color-text-danger)', true) +
                              renderGroup(titlePrefix + 'This week', thisWeek, 'var(--color-text-secondary)', true) +
                              renderGroup(titlePrefix + 'Completed', completed, 'var(--color-text-tertiary)') +
                              emptyState;
@@ -1075,4 +1077,8 @@ addItemsBtn.addEventListener('click', () => {
 
 downloadBtn.addEventListener('click', () => {
   downloadData();
+});
+
+exportPdfBtn.addEventListener('click', () => {
+  exportStudyPlanAsPDF(store.tasks, store.subjects);
 });
