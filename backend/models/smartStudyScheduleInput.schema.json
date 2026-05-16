@@ -1,0 +1,146 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://studyplan.local/schemas/smart-study-schedule-input.schema.json",
+  "title": "Smart Study Schedule Generator Input",
+  "description": "Standard input payload for a future AI-based Smart Study Schedule Generator. This schema defines the data contract only; it does not implement schedule generation.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["subjects", "tasks", "study_hours"],
+  "properties": {
+    "subjects": {
+      "type": "array",
+      "description": "Subjects available for scheduling.",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Optional existing StudyPlan subject id, such as sub_1."
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Subject name shown to the student."
+          },
+          "short_code": {
+            "type": "string",
+            "description": "Optional compact label used in the UI."
+          }
+        }
+      }
+    },
+    "tasks": {
+      "type": "array",
+      "description": "Topics, assignments, exams, or study tasks that need scheduled study time.",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["title", "subject_name", "due_at", "estimated_hours", "difficulty", "priority"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Optional existing StudyPlan task id."
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Task, topic, chapter, assignment, or exam title."
+          },
+          "subject_id": {
+            "type": "string",
+            "description": "Optional existing StudyPlan subject id."
+          },
+          "subject_name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Subject name, matching one item in subjects when possible."
+          },
+          "due_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Deadline in ISO 8601 datetime format."
+          },
+          "estimated_hours": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "Estimated total study hours needed for this task."
+          },
+          "difficulty": {
+            "type": "string",
+            "enum": ["low", "medium", "high"],
+            "description": "Student-perceived difficulty."
+          },
+          "priority": {
+            "type": "string",
+            "enum": ["low", "medium", "high"],
+            "description": "Scheduling priority. High priority tasks should be favored when time is constrained."
+          },
+          "notes": {
+            "type": "string",
+            "description": "Optional task context, instructions, or extracted notes."
+          }
+        }
+      }
+    },
+    "study_hours": {
+      "type": "object",
+      "description": "Student availability for study sessions.",
+      "additionalProperties": false,
+      "required": ["timezone", "start_date", "end_date", "hours_per_day"],
+      "properties": {
+        "timezone": {
+          "type": "string",
+          "description": "IANA timezone for interpreting dates and study windows, such as Asia/Kolkata."
+        },
+        "start_date": {
+          "type": "string",
+          "format": "date",
+          "description": "First date the schedule may use."
+        },
+        "end_date": {
+          "type": "string",
+          "format": "date",
+          "description": "Last date the schedule may use."
+        },
+        "hours_per_day": {
+          "type": "object",
+          "description": "Available study hours by weekday. Missing days are treated as unavailable.",
+          "additionalProperties": false,
+          "properties": {
+            "monday": { "$ref": "#/$defs/nonNegativeHours" },
+            "tuesday": { "$ref": "#/$defs/nonNegativeHours" },
+            "wednesday": { "$ref": "#/$defs/nonNegativeHours" },
+            "thursday": { "$ref": "#/$defs/nonNegativeHours" },
+            "friday": { "$ref": "#/$defs/nonNegativeHours" },
+            "saturday": { "$ref": "#/$defs/nonNegativeHours" },
+            "sunday": { "$ref": "#/$defs/nonNegativeHours" }
+          }
+        },
+        "preferred_session_minutes": {
+          "type": "integer",
+          "minimum": 15,
+          "maximum": 240,
+          "default": 60,
+          "description": "Preferred length for one study session."
+        },
+        "max_session_minutes": {
+          "type": "integer",
+          "minimum": 15,
+          "maximum": 360,
+          "description": "Optional upper limit for one study session."
+        }
+      }
+    }
+  },
+  "$defs": {
+    "nonNegativeHours": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 24
+    }
+  }
+}

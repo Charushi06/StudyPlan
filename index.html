@@ -47,6 +47,7 @@
 
   <div class="header-right">
     <button class="profile-btn">Profile</button>
+    <button id="logout-btn" class="profile-btn" style="display:none;">Logout</button>
   </div>
 </header>
 
@@ -270,6 +271,22 @@
   <script>
   let isLogin = true;
 
+  function setAuthModeToLogin() {
+    isLogin = true;
+    document.getElementById('auth-title').textContent = 'Welcome back';
+    document.getElementById('auth-subtitle').textContent = 'Sign in to your StudyPlan account';
+    document.getElementById('auth-submit-btn').textContent = 'Sign In';
+    document.getElementById('auth-toggle-text').textContent = "Don't have an account?";
+    document.getElementById('auth-toggle-btn').textContent = 'Sign Up';
+    document.getElementById('auth-error').style.display = 'none';
+  }
+
+  function updateAuthDisplay() {
+    const isAuthenticated = !!localStorage.getItem('studyplan_user');
+    document.getElementById('auth-modal').style.display = isAuthenticated ? 'none' : 'flex';
+    document.getElementById('logout-btn').style.display = isAuthenticated ? 'inline-block' : 'none';
+  }
+
   document.getElementById('auth-toggle-btn').addEventListener('click', (e) => {
     e.preventDefault();
     isLogin = !isLogin;
@@ -309,7 +326,8 @@
       }
 
       localStorage.setItem('studyplan_user', JSON.stringify({ email: data.email }));
-      document.getElementById('auth-modal').style.display = 'none';
+      updateAuthDisplay();
+      window.dispatchEvent(new CustomEvent('studyplan:login'));
 
     } catch (err) {
       errorEl.textContent = 'Network error. Please try again.';
@@ -318,9 +336,18 @@
   });
 
   // Check if already logged in
-  if (localStorage.getItem('studyplan_user')) {
-    document.getElementById('auth-modal').style.display = 'none';
-  }
+  updateAuthDisplay();
+
+  document.getElementById('logout-btn').addEventListener('click', () => {
+    localStorage.removeItem('studyplan_user');
+    setAuthModeToLogin();
+    document.getElementById('auth-email').value = '';
+    document.getElementById('auth-password').value = '';
+    document.getElementById('settings-modal').style.display = 'none';
+    window.dispatchEvent(new CustomEvent('studyplan:logout'));
+    updateAuthDisplay();
+  });
+
   // Settings Modal Logic
   const settingsModal = document.getElementById('settings-modal');
   const navSettings = document.getElementById('nav-settings');

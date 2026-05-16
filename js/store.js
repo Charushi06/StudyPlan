@@ -19,6 +19,13 @@ export const store = {
   notify() {
     this.listeners.forEach(l => l());
   },
+
+  resetSession() {
+    this.subjects = [];
+    this.tasks = [];
+    this.currentPaste = null;
+    this.notify();
+  },
   
   async fetchInitialData() {
     try {
