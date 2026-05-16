@@ -98,6 +98,22 @@ State Management + UI Sync
 
 ---
 
+## Smart Study Schedule Input Schema
+
+The AI-based Smart Study Schedule Generator should use the standardized input schema defined in:
+
+`backend/models/smartStudyScheduleInput.schema.json`
+
+This schema documents the required payload only. It includes:
+
+- `subjects`: available subjects, with optional existing StudyPlan subject IDs
+- `tasks`: topics, assignments, or study tasks with deadlines, estimated study hours, difficulty, priority, and notes
+- `study_hours`: timezone, schedule date range, weekday availability, and session length preferences
+
+The schema is a data contract for future generator work and does not implement schedule generation.
+
+---
+
 ## 🛠 Tech Stack
 
 | Layer | Technology |
@@ -153,6 +169,9 @@ Open → http://localhost:3000
  
 ```
  StudyPlan
+├──  backend
+│   └──  models
+│       └──  smartStudyScheduleInput.schema.json  # Input schema for future smart schedule generation
 ├──  css
 │   └──  index.css           # Contains all styling rules, variables, and animations
 ├──  js
