@@ -1,77 +1,152 @@
-# StudyPlan
- 
-**AI-powered study planner and deadline manager.** Paste any text, an email, assignment brief, or WhatsApp message and StudyPlan extracts deadlines, subjects, and tasks, then automatically adds them to your calendar and to-do list.
- 
+# 📚 StudyPlan — Turn Chaos into Clarity
+
+> ⚡ Paste anything. Get a structured study plan instantly.  
+> No manual entry. No missed deadlines.
+
+🌍 **Live App:** https://studyplan-jvgd.onrender.com/
+
 ---
- 
-## The Problem
- 
-Students already have all the information they need. It's buried in emails, group chats, and course portals. Re-entering it manually into a planner is tedious, error-prone, and where things get missed.
- 
-StudyPlan eliminates that step entirely.
- 
+
+## 🧠 The Idea
+
+Students don’t lack information.  
+They lack **organization**.
+
+Assignments live in:
+- 📧 Emails  
+- 💬 WhatsApp groups  
+- 📄 PDFs & portals  
+
+And the biggest problem?
+> ❌ You have to manually re-enter everything into a planner  
+
 ---
- 
-## How It Works
- 
-1. Paste any text into the Smart Paste panel
-2. The AI extracts tasks, deadlines, subjects, and notes
-3. Review extracted items, edit anything, confirm ambiguous dates
-4. Hit **Add to planner**, calendar and to-do list update instantly
+
+## 💡 Solution
+
+**StudyPlan removes manual planning completely.**
+
+Just:
+1. Paste messy text  
+2. AI extracts tasks  
+3. Everything becomes structured  
+
+> 🎯 From chaos → clean plan in seconds
+
+---
+
+## ⚙️ How It Works
+
+```text
+User Paste
+↓
+AI Extraction (Gemini)
+↓
+Structured Tasks (Dates, Subjects)
+↓
+User Review + Edit
+↓
+Planner + Calendar Update
+```
 
 
-## Features
+---
 
-- **Smart AI Extraction**: Powered by Google Gen AI (Gemini), instantly map chaotic, unstructured messages into structured task definitions.
-- **Dynamic Task Board**: Categorizes tasks intuitively into 'Due Soon', 'This Week', and 'Completed'.
-- **Inline Editing Workspace**: Fast, modal-free inline viewing allows you to adjust dates, subjects, titles, and notes natively within the extraction view before saving.
-- **Interactive Global Calendar**: Cycle seamlessly through months, automatically tracks color-coded deadlines, and click on any specific date to natively filter your live task board.
-- **Conflict Notifications**: Automatically detects deadline clustering and visually warns you to spread out your study load.
-- **Persistent Local DB**: Lightweight, local SQLite tracking for full relational entity mapping (Tasks + Subjects).
+## ✨ Features
 
-## Tech Stack
+### 🤖 AI Intelligence
+- Smart extraction from unstructured text
+- Detects **deadlines, subjects, tasks, notes**
+- Handles ambiguous dates with user confirmation
 
-- **Frontend**: Custom Vanilla HTML, CSS, & Javascript. Engineered with extreme attention to aesthetic detail (Glassmorphism, CSS variable themes, smooth transition animations).
-- **Backend API**: Node.js & Express REST architecture.
-- **Database**: SQLite3.
-- **AI Engine**: `@google/genai` (Google Gemini 2.5 Flash model).
+### 📊 Smart Planning System
+- Auto-categorized boards:
+  - Due Soon
+  - This Week
+  - Completed
+- Conflict detection (deadline clustering alerts)
 
-## Deployed Link
-https://studyplan-jvgd.onrender.com/
+### 📅 Interactive Calendar
+- Global calendar view
+- Click a date → filter tasks instantly
+- Color-coded deadlines
 
-## Getting Started Locally
+### 🧩 Seamless Editing
+- Inline editing (no popups)
+- Modify extracted data before saving
 
-### Prerequisites
-- [Node.js](https://nodejs.org/) installed on your machine.
+### 💾 Persistent Storage
+- SQLite-based local database
+- Structured task + subject mapping
 
-### Installation
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/Charushi06/StudyPlan.git
-   cd "StudyPlan"
-   ```
+---
 
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
+## 🧠 System Architecture
 
-3. Enable Full AI Extraction Capabilities:
-   Copy `.env.example` to a new file named `.env` in the root directory and paste your Google Gemini API key:
-   ```text
-   GEMINI_API_KEY=your_gen_ai_key_here
-   ```
-   *Note: Without a key, the backend utilizes an internally built heuristic fallback mock capable of parsing dates/subjects but lacking complete NLP flexibility.*
+```text
+Frontend (Vanilla JS UI)
+↓
+Node.js Express API
+↓
+AI Layer (Gemini API)
+↓
+SQLite Database
+↓
+State Management + UI Sync
+```
 
-4. Boot up the local server:
-   ```bash
-   node server.js
-   ```
 
-5. Launch the application:
-   Head perfectly local to [http://localhost:3000](http://localhost:3000) in your modern browser of choice.
+---
 
- 
+## 🛠 Tech Stack
+
+| Layer | Technology |
+|------|-----------|
+| Frontend | HTML, CSS (Glassmorphism), Vanilla JS |
+| Backend | Node.js + Express |
+| Database | SQLite |
+| AI | Google Gemini (GenAI SDK) |
+
+---
+
+## 🚀 Key Differentiators
+
+| Feature | StudyPlan | Typical Planners |
+|--------|----------|-----------------|
+| AI Extraction | ✅ | ❌ |
+| Zero Manual Entry | ✅ | ❌ |
+| Conflict Detection | ✅ | ❌ |
+| Inline Editing | ✅ | ❌ |
+
+---
+
+## 📦 Installation
+
+```bash
+git clone https://github.com/Charushi06/StudyPlan.git
+cd StudyPlan
+npm install
+```
+
+---
+
+## 🔑 Environment Setup
+
+Create `.env`:
+
+```env
+GEMINI_API_KEY=your_gen_ai_key_here
+```
+
+---
+
+## ▶️ Run Locally
+
+```bash
+node server.js
+```
+Open → http://localhost:3000
+
 ---
  
 ## Project Structure
@@ -95,5 +170,87 @@ https://studyplan-jvgd.onrender.com/
 ├──  server.js               # The primary Node.js & Express REST Backend logic
 └──  studyplan.db
 ```
- 
-Included as a project for Nexus Spring of Code open source
+
+---
+
+## 🔮 Future Roadmap
+- 🤖 Smarter AI parsing (multi-language)
+- 📊 Study analytics dashboard
+- 🔔 Smart reminders & notifications
+- 📱 Mobile version
+- 🧠 AI study assistant
+- 🤝 Contributing
+
+---
+
+## Want to improve StudyPlan? 🚀
+
+### 🔥 High-impact contributions:
+- Improve AI parsing accuracy
+- Add calendar enhancements
+- UI/UX upgrades
+- Notification system
+
+#### Steps:
+
+```bash
+git checkout -b feature/your-feature
+git commit -m "feat: add feature"
+git push origin feature/your-feature
+```
+
+Open a PR with:
+
+- Clear description
+- Screenshots (if UI changes)
+
+---
+
+## 🐛 Issues
+
+Found a bug? Open an issue!
+
+---
+
+## 💡 Why This Project?
+
+Because planning should not feel like work.
+
+It should feel like:
+
+- ⚡ Instant
+- 🧠 Intelligent
+- 🎯 Effortless
+
+---
+
+## ⭐ Support
+
+If you like this project:
+👉 Star ⭐ the repo
+👉 Share it
+
+---
+
+## 📄 License
+
+MIT License
+
+---
+
+## ⚡ Author
+
+Charushi
+GitHub: https://github.com/Charushi06
+
+---
+
+## 🌱 Nexus Spring of Code 2026
+
+This project is part of NSoC 2026
+
+---
+
+Built with AI, code, and a mission to simplify student life.
+
+---

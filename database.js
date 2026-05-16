@@ -25,6 +25,7 @@ function initDb() {
       priority TEXT DEFAULT 'medium',
       confidence_score REAL,
       notes TEXT,
+      archived INTEGER DEFAULT 0,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (subject_id) REFERENCES subjects(id)
     )`);

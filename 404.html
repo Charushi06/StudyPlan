@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Page Not Found | StudyPlan</title>
+  <style>
+    :root {
+      --bg: #f1f4ef;
+      --card: #ffffff;
+      --text: #1c1d1a;
+      --muted: #5f655d;
+      --accent: #1f6d4a;
+      --border: rgba(0, 0, 0, 0.1);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      font-family: "Inter", system-ui, -apple-system, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 10% 10%, rgba(31, 109, 74, 0.17), transparent 38%),
+        radial-gradient(circle at 90% 0%, rgba(24, 95, 165, 0.12), transparent 35%),
+        var(--bg);
+    }
+
+    .card {
+      width: min(640px, 100%);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.08);
+    }
+
+    .art {
+      font-size: 46px;
+      margin: 0 0 12px;
+      letter-spacing: 0.08em;
+    }
+
+    h1 {
+      font-size: 34px;
+      margin: 0 0 10px;
+    }
+
+    p {
+      color: var(--muted);
+      line-height: 1.6;
+      margin: 0 0 16px;
+    }
+
+    .note {
+      font-style: italic;
+      margin-top: 8px;
+    }
+
+    a {
+      display: inline-block;
+      margin-top: 10px;
+      text-decoration: none;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+      padding: 12px 16px;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <p class="art">(=^.^=)  .  .  .  books everywhere</p>
+    <h1>Lost in the library?</h1>
+    <p>
+      Even the best scholars get lost sometimes. This page does not exist,
+      but your study streak still does.
+    </p>
+    <p class="note">Let&apos;s head back to the dashboard.</p>
+    <a href="/">Return to Dashboard</a>
+  </main>
+</body>
+</html>

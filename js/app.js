@@ -1,24 +1,115 @@
 import { store } from './store.js';
 import { extractTasksFromText } from './utils/api.js';
+import { initGlobalErrorBoundary } from './utils/errorBoundary.js';
+import { analyzeWorkload } from './utils/scheduler.js';
+
+initGlobalErrorBoundary();
+
+/* =====================================================
+   SUMMARY
+===================================================== */
+
+function generateSummary(tasks, subjects) {
+  const now = new Date();
+
+  const weekEnd = new Date();
+  weekEnd.setDate(now.getDate() + 7);
+
+  let todayCount = 0;
+  let weekCount = 0;
+
+  const subjectCount = {};
+
+  tasks.forEach(task => {
+
+    if (
+      task.archived ||
+      task.status === 'Done' ||
+      !task.due_at
+    ) return;
+
+    const d = new Date(task.due_at);
+
+    if (d.toDateString() === now.toDateString()) {
+      todayCount++;
+    }
+
+    if (d >= now && d <= weekEnd) {
+      weekCount++;
+    }
+
+    const sub = subjects.find(
+      s => s.id === task.subject_id
+    );
+
+    const name = sub ? sub.name : 'General';
+
+    subjectCount[name] =
+      (subjectCount[name] || 0) + 1;
+  });
+
+  const topSubject =
+    Object.keys(subjectCount).length
+      ? Object.keys(subjectCount).reduce((a, b) =>
+          subjectCount[a] > subjectCount[b]
+            ? a
+            : b
+        )
+      : 'No subject';
+
+  return `
+    <strong>📅 Daily</strong><br>
+    Today you have <b>${todayCount}</b> task(s).<br>
+    Focus on <b>${topSubject}</b>.<br><br>
+
+    <strong>📊 Weekly</strong><br>
+    This week you have <b>${weekCount}</b> task(s).<br>
+    Most work is in <b>${topSubject}</b>.
+  `;
+}
+
+/* =====================================================
+   STATE
+===================================================== */
 
 let currentMonthDate = new Date();
 let selectedDate = null;
+let currentView = 'calendar';
 
-const tasksSection = document.getElementById('tasks-section');
-const extractPreview = document.getElementById('extract-preview');
-const pasteInput = document.getElementById('paste-input');
+/* =====================================================
+   ELEMENTS
+===================================================== */
 
-const extractBtn = document.getElementById('extract-btn');
-const clearBtn = document.getElementById('clear-btn');
-const addItemsBtn = document.getElementById('add-btn');
+const tasksSection =
+  document.getElementById('tasks-section');
 
-const downloadBtn = document.getElementById('download-btn') || null;
+const focusSection =
+  document.getElementById('focus-section');
+
+const extractPreview =
+  document.getElementById('extract-preview');
+
+const pasteInput =
+  document.getElementById('paste-input');
+
+const extractBtn =
+  document.getElementById('extract-btn');
+
+const clearBtn =
+  document.getElementById('clear-btn');
+
+const addItemsBtn =
+  document.getElementById('add-btn');
+
+const downloadBtn =
+  document.getElementById('download-btn');
 
 /* =====================================================
    UTIL
 ===================================================== */
 
 function formatDate(dateStr) {
+
   if (!dateStr) return 'No Date';
 
   const d = new Date(dateStr);
@@ -36,29 +127,33 @@ function formatDate(dateStr) {
 ===================================================== */
 
 function applyButtonAnimations() {
-  document.querySelectorAll('button').forEach(btn => {
-    if (btn.dataset.animated) return;
 
-    btn.dataset.animated = "true";
+  document.querySelectorAll('button')
+    .forEach(btn => {
 
-    btn.style.transition = 'transform 0.15s ease';
+      if (btn.dataset.animated) return;
 
-    btn.addEventListener('mouseenter', () => {
-      btn.style.transform = 'scale(1.05)';
+      btn.dataset.animated = 'true';
+
+      btn.style.transition =
+        'transform 0.15s ease';
+
+      btn.addEventListener('mouseenter', () => {
+        btn.style.transform = 'scale(1.05)';
+      });
+
+      btn.addEventListener('mouseleave', () => {
+        btn.style.transform = 'scale(1)';
+      });
+
+      btn.addEventListener('mousedown', () => {
+        btn.style.transform = 'scale(0.95)';
+      });
+
+      btn.addEventListener('mouseup', () => {
+        btn.style.transform = 'scale(1.05)';
+      });
     });
-
-    btn.addEventListener('mouseleave', () => {
-      btn.style.transform = 'scale(1)';
-    });
-
-    btn.addEventListener('mousedown', () => {
-      btn.style.transform = 'scale(0.95)';
-    });
-
-    btn.addEventListener('mouseup', () => {
-      btn.style.transform = 'scale(1.05)';
-    });
-  });
 }
 
 /* =====================================================
@@ -66,8 +161,11 @@ function applyButtonAnimations() {
 ===================================================== */
 
 async function downloadData() {
+
   try {
-    const response = await fetch('/api/download');
+
+    const response =
+      await fetch('/api/download');
 
     if (!response.ok) {
       throw new Error('Failed to download data');
@@ -75,9 +173,11 @@ async function downloadData() {
 
     const blob = await response.blob();
 
-    const url = URL.createObjectURL(blob);
+    const url =
+      URL.createObjectURL(blob);
 
-    const a = document.createElement('a');
+    const a =
+      document.createElement('a');
 
     a.href = url;
     a.download = 'study_data.csv';
@@ -93,7 +193,9 @@ async function downloadData() {
     }, 100);
 
   } catch (error) {
+
     console.error(error);
+
     alert('Failed to download data');
   }
 }
@@ -103,36 +205,46 @@ async function downloadData() {
 ===================================================== */
 
 function renderCalendar() {
-  const calTitle = document.getElementById('cal-month-title');
-  const calGrid = document.getElementById('cal-grid');
+
+  const calTitle =
+    document.getElementById('cal-month-title');
+
+  const calGrid =
+    document.getElementById('cal-grid');
 
   if (!calGrid) return;
 
-  const year = currentMonthDate.getFullYear();
-  const month = currentMonthDate.getMonth();
+  const year =
+    currentMonthDate.getFullYear();
+
+  const month =
+    currentMonthDate.getMonth();
 
   const monthNames = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December"
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December'
   ];
 
-  calTitle.textContent = `${monthNames[month]} ${year}`;
+  calTitle.textContent =
+    `${monthNames[month]} ${year}`;
 
-  const firstDayRaw = new Date(year, month, 1).getDay();
+  const firstDayRaw =
+    new Date(year, month, 1).getDay();
 
-  const firstDay = firstDayRaw === 0
-    ? 6
-    : firstDayRaw - 1;
+  const firstDay =
+    firstDayRaw === 0
+      ? 6
+      : firstDayRaw - 1;
 
   const daysInMonth =
     new Date(year, month + 1, 0).getDate();
@@ -155,6 +267,7 @@ function renderCalendar() {
   /* PREVIOUS MONTH */
 
   for (let i = 0; i < firstDay; i++) {
+
     html += `
       <div class="cal-day muted">
         ${prevMonthDays - firstDay + i + 1}
@@ -177,29 +290,38 @@ function renderCalendar() {
       month === selectedDate.getMonth() &&
       year === selectedDate.getFullYear();
 
-    const dayTasks = store.tasks.filter(task => {
-      if (!task.due_at || task.status === 'Done') {
-        return false;
-      }
+    const dayTasks =
+      store.tasks.filter(task => {
 
-      const d = new Date(task.due_at);
+        if (
+          !task.due_at ||
+          task.status === 'Done'
+        ) {
+          return false;
+        }
 
-      return (
-        d.getDate() === i &&
-        d.getMonth() === month &&
-        d.getFullYear() === year
-      );
-    });
+        const d = new Date(task.due_at);
+
+        return (
+          d.getDate() === i &&
+          d.getMonth() === month &&
+          d.getFullYear() === year
+        );
+      });
 
     let indicators = '';
 
     if (dayTasks.length) {
-      indicators = `<div class="cal-day-indicators">`;
+
+      indicators =
+        `<div class="cal-day-indicators">`;
 
       dayTasks.slice(0, 3).forEach(task => {
-        const sub = store.subjects.find(
-          s => s.id === task.subject_id
-        );
+
+        const sub =
+          store.subjects.find(
+            s => s.id === task.subject_id
+          );
 
         indicators += `
           <div
@@ -228,12 +350,14 @@ function renderCalendar() {
 
   /* NEXT MONTH */
 
-  const totalCells = firstDay + daysInMonth;
+  const totalCells =
+    firstDay + daysInMonth;
 
   const nextDays =
     (7 - (totalCells % 7)) % 7;
 
   for (let i = 1; i <= nextDays; i++) {
+
     html += `
       <div class="cal-day muted">
         ${i}
@@ -245,14 +369,16 @@ function renderCalendar() {
 
   /* CLICK HANDLERS */
 
-  document.querySelectorAll('.interactive-day')
+  document
+    .querySelectorAll('.interactive-day')
     .forEach(el => {
 
-      el.addEventListener('click', (e) => {
+      el.addEventListener('click', e => {
 
-        const day = parseInt(
-          e.currentTarget.dataset.day
-        );
+        const day =
+          parseInt(
+            e.currentTarget.dataset.day
+          );
 
         const clickedDate =
           new Date(year, month, day);
@@ -283,66 +409,158 @@ function renderTasks() {
 
   let filteredTasks = [...store.tasks];
 
-  if (selectedDate) {
-    filteredTasks = filteredTasks.filter(task => {
+  if (currentView === 'archived') {
 
-      if (!task.due_at) return false;
-
-      const d = new Date(task.due_at);
-
-      return (
-        d.getDate() === selectedDate.getDate() &&
-        d.getMonth() === selectedDate.getMonth() &&
-        d.getFullYear() === selectedDate.getFullYear()
+    filteredTasks =
+      filteredTasks.filter(task =>
+        task.archived
       );
-    });
+
+  } else {
+
+    filteredTasks =
+      filteredTasks.filter(task =>
+        !task.archived
+      );
+  }
+
+  if (
+    selectedDate &&
+    currentView === 'calendar'
+  ) {
+
+    filteredTasks =
+      filteredTasks.filter(task => {
+
+        if (!task.due_at) return false;
+
+        const d = new Date(task.due_at);
+
+        return (
+          d.getDate() === selectedDate.getDate() &&
+          d.getMonth() === selectedDate.getMonth() &&
+          d.getFullYear() === selectedDate.getFullYear()
+        );
+      });
   }
 
   if (!filteredTasks.length) {
+
     tasksSection.innerHTML = `
       <div class="empty-state">
         No tasks found
       </div>
     `;
+
     return;
   }
 
-  tasksSection.innerHTML = filteredTasks.map(task => {
+  tasksSection.innerHTML =
+    filteredTasks.map(task => {
 
-    const subject = store.subjects.find(
-      s => s.id === task.subject_id
+      const subject =
+        store.subjects.find(
+          s => s.id === task.subject_id
+        );
+
+      return `
+        <div class="task-item">
+
+          <div class="task-name">
+            ${task.title}
+          </div>
+
+          <div class="task-meta">
+
+            <span class="task-pill pill-blue">
+              ${subject?.name || 'General'}
+            </span>
+
+            <span class="task-pill pill-amber">
+              ${task.priority || 'Medium'}
+            </span>
+
+            <span class="task-pill pill-green">
+              ${task.status || 'Pending'}
+            </span>
+
+            <span>
+              ${formatDate(task.due_at)}
+            </span>
+
+          </div>
+
+        </div>
+      `;
+    }).join('');
+}
+
+/* =====================================================
+   FOCUS MODE
+===================================================== */
+
+function renderFocusTasks() {
+
+  if (!focusSection) return;
+
+  const result =
+    analyzeWorkload(store.tasks);
+
+  focusSection.innerHTML = `
+    <div class="focus-card">
+      <h2>Focus Mode</h2>
+
+      <p>
+        ${generateSummary(
+          store.tasks,
+          store.subjects
+        )}
+      </p>
+
+      <div class="focus-score">
+        Workload Score:
+        <strong>${result.score}</strong>
+      </div>
+    </div>
+  `;
+}
+
+/* =====================================================
+   SIDEBAR SUBJECTS
+===================================================== */
+
+function renderSidebarSubjects() {
+
+  const container =
+    document.getElementById(
+      'subjects-container'
     );
 
-    return `
-      <div class="task-item">
+  if (!container) return;
 
-        <div class="task-name">
-          ${task.title}
+  container.innerHTML =
+    store.subjects.map(subject => {
+
+      const count =
+        store.tasks.filter(
+          t => t.subject_id === subject.id
+        ).length;
+
+      return `
+        <div class="nav-item">
+          <span
+            class="nav-dot"
+            style="background:${subject.color}">
+          </span>
+
+          ${subject.name}
+
+          <span class="badge">
+            ${count}
+          </span>
         </div>
-
-        <div class="task-meta">
-
-          <span class="task-pill pill-blue">
-            ${subject?.name || 'General'}
-          </span>
-
-          <span class="task-pill pill-amber">
-            ${task.priority || 'Medium'}
-          </span>
-
-          <span class="task-pill pill-green">
-            ${task.status || 'Pending'}
-          </span>
-
-          <span>
-            ${formatDate(task.due_at)}
-          </span>
-
-        </div>
-
-      </div>
-    `;
-  }).join('');
+      `;
+    }).join('');
 }
 
 /* =====================================================
@@ -357,8 +575,11 @@ function renderExtraction() {
     !store.currentPaste ||
     !store.currentPaste.length
   ) {
+
     extractPreview.innerHTML = '';
+
     addItemsBtn.disabled = true;
+
     return;
   }
 
@@ -402,6 +623,8 @@ function renderExtraction() {
 store.subscribe(renderTasks);
 store.subscribe(renderExtraction);
 store.subscribe(renderCalendar);
+store.subscribe(renderFocusTasks);
+store.subscribe(renderSidebarSubjects);
 
 /* =====================================================
    INIT
@@ -413,10 +636,108 @@ document.addEventListener('DOMContentLoaded', () => {
 
   store.fetchInitialData();
 
+  const calendarBtn =
+    document.getElementById('calendar-btn');
+
+  const allTasksBtn =
+    document.getElementById('all-tasks-btn');
+
+  const archivedTasksBtn =
+    document.getElementById(
+      'archived-tasks-btn'
+    );
+
+  const focusModeBtn =
+    document.getElementById(
+      'focus-mode-btn'
+    );
+
+  function updateSidebarActive(id) {
+
+    document
+      .querySelectorAll('.sidebar .nav-item')
+      .forEach(el =>
+        el.classList.remove('active')
+      );
+
+    document
+      .getElementById(id)
+      ?.classList.add('active');
+  }
+
+  calendarBtn?.addEventListener('click', () => {
+
+    currentView = 'calendar';
+
+    document
+      .querySelector('.cal-section')
+      ?.classList.remove('hidden');
+
+    tasksSection?.classList.remove('hidden');
+
+    focusSection?.classList.add('hidden');
+
+    updateSidebarActive('calendar-btn');
+
+    renderTasks();
+  });
+
+  allTasksBtn?.addEventListener('click', () => {
+
+    currentView = 'all-tasks';
+
+    document
+      .querySelector('.cal-section')
+      ?.classList.add('hidden');
+
+    tasksSection?.classList.remove('hidden');
+
+    focusSection?.classList.add('hidden');
+
+    updateSidebarActive('all-tasks-btn');
+
+    renderTasks();
+  });
+
+  archivedTasksBtn?.addEventListener('click', () => {
+
+    currentView = 'archived';
+
+    document
+      .querySelector('.cal-section')
+      ?.classList.add('hidden');
+
+    tasksSection?.classList.remove('hidden');
+
+    focusSection?.classList.add('hidden');
+
+    updateSidebarActive('archived-tasks-btn');
+
+    renderTasks();
+  });
+
+  focusModeBtn?.addEventListener('click', () => {
+
+    currentView = 'focus';
+
+    document
+      .querySelector('.cal-section')
+      ?.classList.add('hidden');
+
+    tasksSection?.classList.add('hidden');
+
+    focusSection?.classList.remove('hidden');
+
+    updateSidebarActive('focus-mode-btn');
+
+    renderFocusTasks();
+  });
+
   renderCalendar();
   renderTasks();
 
-  document.getElementById('cal-prev')
+  document
+    .getElementById('cal-prev')
     ?.addEventListener('click', () => {
 
       currentMonthDate.setMonth(
@@ -426,7 +747,8 @@ document.addEventListener('DOMContentLoaded', () => {
       renderCalendar();
     });
 
-  document.getElementById('cal-next')
+  document
+    .getElementById('cal-next')
     ?.addEventListener('click', () => {
 
       currentMonthDate.setMonth(
