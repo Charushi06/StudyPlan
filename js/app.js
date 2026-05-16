@@ -897,173 +897,156 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (newSubjectSave) {
     newSubjectSave.addEventListener('click', async () => {
-      const subjectNameValue = newSubjectName.value.trim();
-
-      if (!subjectNameValue) {
-        alert("Subject name cannot be empty!");
-        return;
-      }
-
-      const subjectExists = store.subjects.some(sub => {
-        return sub && sub.name && sub.name.trim().toLowerCase() === subjectNameValue.toLowerCase();
-      });
-
-      if (subjectExists) {
-        alert("This subject already exists!");
-        return;
-      }
-
       const ok = await store.addSubject({
-        name: subjectNameValue,
+        name: newSubjectName.value,
         color: selectedNewSubjectColor
       });
 
       if (ok && newSubjectModal) newSubjectModal.style.display = 'none';
     });
   }
-}
 
   if (newSubjectName) {
-  newSubjectName.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      newSubjectSave?.click();
+    newSubjectName.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        newSubjectSave?.click();
+      }
+    });
+  }
+
+  store.fetchInitialData();
+
+  const calendarBtn = document.getElementById('calendar-btn');
+  const allTasksBtn = document.getElementById('all-tasks-btn');
+  const archivedTasksBtn = document.getElementById('archived-tasks-btn');
+  const focusModeBtn = document.getElementById('focus-mode-btn');
+
+  function updateSidebarActive(id) {
+    document.querySelectorAll('.sidebar .nav-item').forEach(el => el.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  calendarBtn.addEventListener('click', () => {
+    currentView = 'calendar';
+    document.querySelector('.cal-section').classList.remove('hidden');
+    document.getElementById('tasks-section').classList.remove('hidden');
+    document.getElementById('focus-section').classList.add('hidden');
+    updateSidebarActive('calendar-btn');
+    renderTasks();
+  });
+
+  allTasksBtn.addEventListener('click', () => {
+    currentView = 'all-tasks';
+    document.querySelector('.cal-section').classList.add('hidden');
+    document.getElementById('tasks-section').classList.remove('hidden');
+    document.getElementById('focus-section').classList.add('hidden');
+    updateSidebarActive('all-tasks-btn');
+    renderTasks();
+  });
+
+  archivedTasksBtn.addEventListener('click', () => {
+    currentView = 'archived';
+    document.querySelector('.cal-section').classList.add('hidden');
+    document.getElementById('tasks-section').classList.remove('hidden');
+    document.getElementById('focus-section').classList.add('hidden');
+    updateSidebarActive('archived-tasks-btn');
+    renderTasks();
+  });
+
+  if (focusModeBtn) {
+    focusModeBtn.addEventListener('click', () => {
+      currentView = 'focus';
+      document.querySelector('.cal-section').classList.add('hidden');
+      document.getElementById('tasks-section').classList.add('hidden');
+      document.getElementById('focus-section').classList.remove('hidden');
+      updateSidebarActive('focus-mode-btn');
+      renderFocusTasks();
+    });
+  }
+
+  document.getElementById('cal-prev').addEventListener('click', () => {
+    currentMonthDate.setMonth(currentMonthDate.getMonth() - 1);
+    renderCalendar();
+  });
+
+  document.getElementById('cal-next').addEventListener('click', () => {
+    currentMonthDate.setMonth(currentMonthDate.getMonth() + 1);
+    renderCalendar();
+  });
+
+
+  //NEw Task addition event listeners
+  newTaskBtn.addEventListener('click', () => {
+
+    if (!store.subjects || store.subjects.length === 0) {
+      alert('Subjects are still loading. Please try again in a moment.');
+      return;
+    }
+
+    newTaskSubject.innerHTML = store.subjects
+      .map(s => `<option value="${s.id}">${s.name}</option>`)
+      .join('');
+
+
+    if (selectedDate) {
+      const d = new Date(selectedDate);
+      d.setHours(18, 0, 0, 0);
+      newTaskDate.value = d.toISOString().substring(0, 16);
+    } else {
+      newTaskDate.value = '';
+    }
+
+    newTaskTitle.value = '';
+    newTaskNotes.value = '';
+
+    newTaskModal.style.display = 'flex';
+  });
+
+  newTaskCancel.addEventListener('click', () => {
+    newTaskModal.style.display = 'none';
+  });
+
+  newTaskModal.addEventListener('click', (e) => {
+    if (e.target === newTaskModal) {
+      newTaskModal.style.display = 'none';
     }
   });
-}
 
-store.fetchInitialData();
+  newTaskSave.addEventListener('click', async () => {
+    const title = newTaskTitle.value.trim();
+    const subject_id = newTaskSubject.value;
+    const notes = newTaskNotes.value.trim();
+    const dateVal = newTaskDate.value;
 
-const calendarBtn = document.getElementById('calendar-btn');
-const allTasksBtn = document.getElementById('all-tasks-btn');
-const archivedTasksBtn = document.getElementById('archived-tasks-btn');
-const focusModeBtn = document.getElementById('focus-mode-btn');
+    if (!title) {
+      alert('Please enter a task name');
+      return;
+    }
 
-function updateSidebarActive(id) {
-  document.querySelectorAll('.sidebar .nav-item').forEach(el => el.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
+    const due_at = dateVal ? new Date(dateVal).toISOString() : '';
 
-calendarBtn.addEventListener('click', () => {
-  currentView = 'calendar';
-  document.querySelector('.cal-section').classList.remove('hidden');
-  document.getElementById('tasks-section').classList.remove('hidden');
-  document.getElementById('focus-section').classList.add('hidden');
-  updateSidebarActive('calendar-btn');
-  renderTasks();
-});
+    const newTask = {
+      title,
+      subject_id,
+      due_at,
+      notes,
+      priority: 'medium',
+      status: 'Not Started',
+      archived: 0
+    };
 
-allTasksBtn.addEventListener('click', () => {
-  currentView = 'all-tasks';
-  document.querySelector('.cal-section').classList.add('hidden');
-  document.getElementById('tasks-section').classList.remove('hidden');
-  document.getElementById('focus-section').classList.add('hidden');
-  updateSidebarActive('all-tasks-btn');
-  renderTasks();
-});
-
-archivedTasksBtn.addEventListener('click', () => {
-  currentView = 'archived';
-  document.querySelector('.cal-section').classList.add('hidden');
-  document.getElementById('tasks-section').classList.remove('hidden');
-  document.getElementById('focus-section').classList.add('hidden');
-  updateSidebarActive('archived-tasks-btn');
-  renderTasks();
-});
-
-if (focusModeBtn) {
-  focusModeBtn.addEventListener('click', () => {
-    currentView = 'focus';
-    document.querySelector('.cal-section').classList.add('hidden');
-    document.getElementById('tasks-section').classList.add('hidden');
-    document.getElementById('focus-section').classList.remove('hidden');
-    updateSidebarActive('focus-mode-btn');
-    renderFocusTasks();
-  });
-}
-
-document.getElementById('cal-prev').addEventListener('click', () => {
-  currentMonthDate.setMonth(currentMonthDate.getMonth() - 1);
-  renderCalendar();
-});
-
-document.getElementById('cal-next').addEventListener('click', () => {
-  currentMonthDate.setMonth(currentMonthDate.getMonth() + 1);
-  renderCalendar();
-});
-
-
-//NEw Task addition event listeners
-newTaskBtn.addEventListener('click', () => {
-
-  if (!store.subjects || store.subjects.length === 0) {
-    alert('Subjects are still loading. Please try again in a moment.');
-    return;
-  }
-
-  newTaskSubject.innerHTML = store.subjects
-    .map(s => `<option value="${s.id}">${s.name}</option>`)
-    .join('');
-
-
-  if (selectedDate) {
-    const d = new Date(selectedDate);
-    d.setHours(18, 0, 0, 0);
-    newTaskDate.value = d.toISOString().substring(0, 16);
-  } else {
-    newTaskDate.value = '';
-  }
-
-  newTaskTitle.value = '';
-  newTaskNotes.value = '';
-
-  newTaskModal.style.display = 'flex';
-});
-
-newTaskCancel.addEventListener('click', () => {
-  newTaskModal.style.display = 'none';
-});
-
-newTaskModal.addEventListener('click', (e) => {
-  if (e.target === newTaskModal) {
+    await store.addTasks([newTask]);
     newTaskModal.style.display = 'none';
-  }
-});
+  });
 
-newTaskSave.addEventListener('click', async () => {
-  const title = newTaskTitle.value.trim();
-  const subject_id = newTaskSubject.value;
-  const notes = newTaskNotes.value.trim();
-  const dateVal = newTaskDate.value;
-
-  if (!title) {
-    alert('Please enter a task name');
-    return;
-  }
-
-  const due_at = dateVal ? new Date(dateVal).toISOString() : '';
-
-  const newTask = {
-    title,
-    subject_id,
-    due_at,
-    notes,
-    priority: 'medium',
-    status: 'Not Started',
-    archived: 0
-  };
-
-  await store.addTasks([newTask]);
-  newTaskModal.style.display = 'none';
-});
-
-addItemsBtn.addEventListener('click', () => {
-  if (store.currentPaste) {
-    store.addTasks(store.currentPaste);
-    store.clearExtracted();
-    pasteInput.value = '';
-  }
-});
+  addItemsBtn.addEventListener('click', () => {
+    if (store.currentPaste) {
+      store.addTasks(store.currentPaste);
+      store.clearExtracted();
+      pasteInput.value = '';
+    }
+  });
 });
 
 extractBtn.addEventListener('click', async () => {
