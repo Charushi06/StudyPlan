@@ -47,6 +47,7 @@
 
   <div class="header-right">
     <button class="profile-btn">Profile</button>
+    <button class="profile-btn" id="logout-btn">Logout</button>
   </div>
 </header>
 
@@ -387,6 +388,12 @@
     } else {
       document.body.classList.remove('compact-view');
     }
+  });
+  const logoutBtn = document.getElementById('logout-btn');
+  logoutBtn.addEventListener('click', () => {
+    localStorage.removeItem('studyplan_user');
+    document.getElementById('auth-modal').style.display = 'flex';
+    window.location.reload();
   });
 </script>
 
