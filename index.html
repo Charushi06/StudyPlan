@@ -292,6 +292,19 @@
       return;
     }
 
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRe.test(email)) {
+      errorEl.textContent = 'Please enter a valid email address';
+      errorEl.style.display = 'block';
+      return;
+    }
+
+    if (!isLogin && password.length < 6) {
+      errorEl.textContent = 'Password must be at least 6 characters long';
+      errorEl.style.display = 'block';
+      return;
+    }
+
     const endpoint = isLogin ? '/api/auth/login' : '/api/auth/signup';
 
     try {
