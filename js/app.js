@@ -508,20 +508,39 @@ function renderTasks() {
              <button class="task-btn task-btn-danger delete-task-btn" data-id="${t.id}" title="Permanent Delete">Delete</button>`;
 
         html += `
-          <div class="task-item ${isUrgent ? 'urgent' : ''} ${isDone ? 'done' : ''}" data-id="${t.id}">
-            <div class="task-check ${isDone ? 'done' : ''}"></div>
-            <div class="task-info">
-              <div class="task-name">${t.title}</div>
-              <div class="task-meta">
-                <span class="task-pill ${isDone ? 'pill-green' : (isUrgent ? 'pill-red' : 'pill-amber')}">${isDone ? 'Done' : 'Due ' + formatDate(t.due_at)}</span>
-                <span class="task-pill ${pillClass}">${sub.short_code}</span>
-              </div>
-            </div>
-            <div class="task-actions">
-              ${archiveBtn}
-            </div>
-          </div>
-        `;
+  <div class="task-item 
+    ${isUrgent ? 'urgent' : ''} 
+    ${isDone ? 'done' : ''} 
+    ${store.selectedTasks.includes(t.id) ? 'selected-task' : ''}
+  " 
+  data-id="${t.id}">
+  
+    <input 
+      type="checkbox"
+      class="task-select-checkbox"
+      data-id="${t.id}"
+      ${store.selectedTasks.includes(t.id) ? 'checked' : ''}
+    />
+
+    <div class="task-check ${isDone ? 'done' : ''}"></div>
+
+    <div class="task-info">
+      <div class="task-name">${t.title}</div>
+      <div class="task-meta">
+        <span class="task-pill ${isDone ? 'pill-green' : (isUrgent ? 'pill-red' : 'pill-amber')}">
+          ${isDone ? 'Done' : 'Due ' + formatDate(t.due_at)}
+        </span>
+        <span class="task-pill ${pillClass}">
+          ${sub.short_code}
+        </span>
+      </div>
+    </div>
+
+    <div class="task-actions">
+      ${archiveBtn}
+    </div>
+  </div>
+`;
       }
     });
     html += `</div>`;
@@ -544,9 +563,49 @@ function renderTasks() {
                              renderGroup('Completed', completed, 'var(--color-text-tertiary)') +
                              emptyState;
   } else {
-    const actionBar = currentView === 'archived' ? '' : `<div class="tasks-actions-bar">
-           <button id="mark-all-pending-btn" class="task-action-btn" ${pending.length === 0 ? 'disabled' : ''}>Mark all pending completed (${pending.length})</button>
-         </div>`;
+    const bulkToolbar = store.selectedTasks.length > 0
+  ? `
+    <div class="bulk-toolbar">
+      <span>${store.selectedTasks.length} selected</span>
+
+      <button id="bulk-complete-btn">
+        Complete
+      </button>
+
+      <button id="bulk-archive-btn">
+        Archive
+      </button>
+
+      <button id="bulk-delete-btn">
+        Delete
+      </button>
+
+      <button id="clear-selection-btn">
+        Clear
+      </button>
+
+      <button id="select-all-btn">
+        Select All
+      </button>
+    </div>
+  `
+  : '';
+
+const actionBar = currentView === 'archived'
+  ? ''
+  : `
+    ${bulkToolbar}
+
+    <div class="tasks-actions-bar">
+      <button
+        id="mark-all-pending-btn"
+        class="task-action-btn"
+        ${pending.length === 0 ? 'disabled' : ''}
+      >
+        Mark all pending completed (${pending.length})
+      </button>
+    </div>
+  `;
 
     const titlePrefix = currentView === 'archived' ? 'Archived: ' : '';
     const emptyStateText = currentView === 'archived' ? 'No archived tasks.' : 'No tasks yet. Add tasks from Smart Paste to get started.';
@@ -561,7 +620,16 @@ function renderTasks() {
                              renderGroup(titlePrefix + 'Completed', completed, 'var(--color-text-tertiary)') +
                              emptyState;
   }
-                           
+  document.querySelectorAll('.task-select-checkbox')
+  .forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+
+      store.toggleTaskSelection(
+        el.dataset.id
+      );
+    });
+});                         
   document.querySelectorAll('.task-item').forEach(el => {
     el.addEventListener('click', (e) => {
       if (e.target.closest('.task-actions') || e.target.closest('.task-check')) return;
@@ -654,6 +722,50 @@ function renderTasks() {
       store.markPendingTasksForDateCompleted(selectedDate);
     });
   }
+  const bulkCompleteBtn =
+  document.getElementById('bulk-complete-btn');
+
+if (bulkCompleteBtn) {
+  bulkCompleteBtn.addEventListener('click', () => {
+    store.bulkCompleteTasks();
+  });
+}
+
+const bulkArchiveBtn =
+  document.getElementById('bulk-archive-btn');
+
+if (bulkArchiveBtn) {
+  bulkArchiveBtn.addEventListener('click', () => {
+    store.bulkArchiveTasks();
+  });
+}
+
+const bulkDeleteBtn =
+  document.getElementById('bulk-delete-btn');
+
+if (bulkDeleteBtn) {
+  bulkDeleteBtn.addEventListener('click', () => {
+    store.bulkDeleteTasks();
+  });
+}
+
+const clearSelectionBtn =
+  document.getElementById('clear-selection-btn');
+
+if (clearSelectionBtn) {
+  clearSelectionBtn.addEventListener('click', () => {
+    store.clearSelectedTasks();
+  });
+}
+
+const selectAllBtn =
+  document.getElementById('select-all-btn');
+
+if (selectAllBtn) {
+  selectAllBtn.addEventListener('click', () => {
+    store.selectAllTasks();
+  });
+}
 }
 
 
