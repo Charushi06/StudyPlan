@@ -509,3 +509,41 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log('Server running on port ' + PORT);
 });
+
+// Update subject (name, color)
+app.put('/api/subjects/:id', (req, res) => {
+  const id = req.params.id;
+  const name = String(req.body?.name || '').trim();
+  let color = String(req.body?.color || '').trim();
+
+  if (!name) return res.status(400).json({ error: 'Subject name is required' });
+  if (!ALLOWED_SUBJECT_COLORS.has(color)) {
+    color = 'var(--color-text-info)';
+  }
+
+  const shortCode = name.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 4) || 'SUB';
+  db.run(
+    'UPDATE subjects SET name = ?, short_code = ?, color = ? WHERE id = ?',
+    [name, shortCode, color, id],
+    function (err) {
+      if (err) return res.status(500).json({ error: err.message });
+      if (this.changes === 0) return res.status(404).json({ error: 'Subject not found' });
+      res.json({ success: true, id, name, short_code: shortCode, color });
+    }
+  );
+});
+
+// Delete subject (dissociate tasks)
+app.delete('/api/subjects/:id', (req, res) => {
+  const id = req.params.id;
+  // First dissociate tasks
+  db.run('UPDATE tasks SET subject_id = NULL WHERE subject_id = ?', [id], function (err) {
+    if (err) return res.status(500).json({ error: err.message });
+
+    db.run('DELETE FROM subjects WHERE id = ?', [id], function (delErr) {
+      if (delErr) return res.status(500).json({ error: delErr.message });
+      if (this.changes === 0) return res.status(404).json({ error: 'Subject not found' });
+      res.json({ success: true, id });
+    });
+  });
+});
