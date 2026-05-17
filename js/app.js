@@ -1076,3 +1076,24 @@ addItemsBtn.addEventListener('click', () => {
 downloadBtn.addEventListener('click', () => {
   downloadData();
 });
+
+// ============================
+// Theme Toggle
+// ============================
+const themeToggleBtn = document.getElementById('theme-toggle-btn');
+const themeToggleIcon = document.getElementById('theme-toggle-icon');
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  themeToggleIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
+  localStorage.setItem('studyplan-theme', theme);
+}
+
+// Init: load saved theme or default to light
+const savedTheme = localStorage.getItem('studyplan-theme') || 'light';
+applyTheme(savedTheme);
+
+themeToggleBtn.addEventListener('click', () => {
+  const current = document.documentElement.getAttribute('data-theme') || 'light';
+  applyTheme(current === 'dark' ? 'light' : 'dark');
+});

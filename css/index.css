@@ -648,13 +648,13 @@ body {
 #new-subject-modal .modal-card {
   width: 100%;
   max-width: 360px;
-  background-color: #0f172a;                     
+  background-color: var(--color-background-primary);
   border-radius: 14px;
   padding: 20px 20px 16px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6) !important;
-  color: #e5e7eb;                        
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
+  color: var(--color-text-primary);
   box-sizing: border-box;
-  border: 1px solid rgba(148, 163, 184, 0.35)  !important;
+  border: 1px solid var(--color-border-secondary) !important;
 }
 
 
@@ -664,7 +664,7 @@ body {
   font-size: 18px;
   font-weight: 600;
   letter-spacing: 0.01em;
-  color: #f9fafb;
+  color: var(--color-text-primary);
 }
 
 
@@ -675,7 +675,7 @@ body {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #9ca3af; /* muted */
+  color: var(--color-text-tertiary);
   margin-bottom: 4px;
 }
 
@@ -690,17 +690,16 @@ body {
   padding: 7px 8px;
   margin-bottom: 10px;
   border-radius: 6px;
-  border: 1px solid #4b5563;              
-  background-color: #111827 !important;                  
-  color: #e5e7eb;
+  border: 1px solid var(--color-border-secondary);
+  background-color: var(--color-background-secondary) !important;
+  color: var(--color-text-primary);
   transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
-  color-scheme: dark;                      
 }
 
 
 #new-task-modal input::placeholder,
 #new-subject-modal input::placeholder {
-  color: #6b7280;
+  color: var(--color-text-tertiary);
 }
 
 
@@ -711,7 +710,7 @@ body {
   outline: none;
   border-color: #4f46e5;
   box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.35);
-  background: #020617;                     
+  background: var(--color-background-tertiary) !important;
 }
 
 
@@ -733,14 +732,14 @@ body {
 
 #new-task-modal .btn:not(.btn-primary),
 #new-subject-modal .btn:not(.btn-primary) {
-  background: rgba(15, 23, 42, 0.9);
-  color: #e5e7eb;
-  border: 1px solid #4b5563;
+  background: var(--color-background-secondary);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-secondary);
 }
 
 #new-task-modal .btn:not(.btn-primary):hover,
 #new-subject-modal .btn:not(.btn-primary):hover {
-  background: #020617;
+  background: var(--color-background-tertiary);
 }
 
 
@@ -1145,11 +1144,12 @@ body {
 .summary-box {
   margin-top: 16px;
   padding: 14px;
-  background: linear-gradient(135deg, #eef2ff, #f8fafc);
+  background: var(--color-background-secondary);
   border-radius: 12px;
   font-size: 14px;
   line-height: 1.6;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-border-tertiary);
+  color: var(--color-text-primary);
 }
 
 .paste-input:focus, .paste-input:not(:placeholder-shown) { opacity: 1; z-index: 10; background: var(--color-background-primary); color: var(--color-text-primary); outline: none; }
@@ -2158,4 +2158,128 @@ body {
 .smart-highlight {
   color: #ffcc66;
   font-weight: 600;
+}
+
+/* ============================
+   Theme Toggle Button
+   ============================ */
+.theme-toggle-btn {
+  background: var(--color-background-secondary);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-md);
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.theme-toggle-btn:hover {
+  background: var(--color-background-tertiary);
+  transform: scale(1.08);
+  box-shadow: var(--shadow-md);
+}
+
+.theme-toggle-icon {
+  display: block;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.theme-toggle-btn:hover .theme-toggle-icon {
+  transform: rotate(20deg);
+}
+
+/* ============================
+   Auth Modal (theme-aware)
+   ============================ */
+.auth-modal-box {
+  background: var(--color-background-primary);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: 16px;
+  padding: 32px;
+  width: 360px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+.auth-modal-title {
+  margin: 0 0 8px;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.auth-modal-subtitle {
+  margin: 0 0 24px;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+}
+
+.auth-modal-input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--color-border-secondary);
+  border-radius: 8px;
+  font-size: 14px;
+  margin-bottom: 12px;
+  box-sizing: border-box;
+  background: var(--color-background-secondary);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.auth-modal-input:focus {
+  outline: none;
+  border-color: var(--color-border-primary);
+  box-shadow: 0 0 0 3px rgba(0,0,0,0.06);
+}
+
+.auth-modal-submit {
+  width: 100%;
+  padding: 12px;
+  background: #4f46e5;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: background 0.2s, transform 0.1s;
+}
+
+.auth-modal-submit:hover {
+  background: #4338ca;
+  transform: translateY(-1px);
+}
+
+.auth-modal-footer {
+  text-align: center;
+  margin: 16px 0 0;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.auth-modal-link {
+  color: #4f46e5;
+  font-weight: 600;
+  margin-left: 4px;
+  text-decoration: none;
+}
+
+.auth-modal-link:hover {
+  text-decoration: underline;
+}
+
+.auth-modal-error {
+  color: var(--color-text-danger);
+  font-size: 13px;
+  text-align: center;
+  margin: 8px 0 0;
+  display: none;
 }

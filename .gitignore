@@ -7,6 +7,7 @@ package-lock.json
 # Environment Variables
 .env
 .env.local
+.env.example
 
 # Database
 studyplan.db
