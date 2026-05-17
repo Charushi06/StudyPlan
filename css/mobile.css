@@ -1,0 +1,210 @@
+/* ==========================================================================
+   Mobile Responsive Overrides
+   ========================================================================== 
+   This file contains all the CSS overrides required to make the StudyPlan 
+   dashboard responsive on mobile devices (screens smaller than 768px).
+   We primarily stack the layout and use an off-canvas menu for the sidebar.
+   ========================================================================== */
+
+/* 
+  Hide elements that should only be visible on mobile devices.
+  These are defined globally but only displayed when the media query hits.
+*/
+.mobile-menu-toggle {
+  display: none;
+}
+
+.sidebar-close-btn {
+  display: none;
+}
+
+
+/* ==========================================================================
+   Media Query for Mobile Devices (max-width: 768px)
+   ========================================================================== */
+@media (max-width: 768px) {
+
+  /* 
+    1. Global Adjustments 
+    ---------------------
+    Reduce base padding to maximize screen real estate on small devices.
+  */
+  body {
+    padding: 16px 8px;
+  }
+  
+  .wrapper {
+    max-width: 100%;
+  }
+
+  /* 
+    2. Header & Top Navigation
+    --------------------------
+    Wrap header items and hide the top links so we don't crowd the top bar.
+  */
+  .site-header {
+    flex-wrap: wrap;
+    padding: 12px 16px;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    flex: 1;
+  }
+
+  /* Hide the top nav links (Dashboard, Tasks, Calendar, etc.) on mobile */
+  .header-nav {
+    display: none; 
+  }
+
+  /* Display the hamburger menu button */
+  .mobile-menu-toggle {
+    display: block !important;
+    background: none;
+    border: none;
+    color: var(--color-text-primary);
+    cursor: pointer;
+    padding: 8px;
+    margin-right: 8px;
+  }
+
+
+  /* 
+    3. Main App Layout (Grid to Flex)
+    ---------------------------------
+    Change the rigid desktop grid into a flexible vertical stack.
+  */
+  .app {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    /* Ensure the app still covers most of the viewport height */
+    min-height: calc(100vh - 120px);
+  }
+
+  .main {
+    flex: 1;
+    overflow: visible;
+  }
+
+
+  /* 
+    4. Off-Canvas Sidebar
+    ---------------------
+    Transform the fixed sidebar into a sliding drawer menu that enters
+    from the left side of the screen when toggled.
+  */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: -280px; /* Hide off-screen by default */
+    width: 280px;
+    height: 100vh;
+    z-index: 9999;
+    box-shadow: var(--shadow-lg);
+    background: var(--color-background-primary);
+    
+    /* Smooth slide-in animation */
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Class added via JavaScript when the menu is opened */
+  .sidebar.open {
+    left: 0;
+  }
+
+  /* Overlay backdrop that dims the rest of the app behind the sidebar */
+  .sidebar-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9998;
+  }
+
+  .sidebar-backdrop.show {
+    display: block;
+  }
+  
+  /* The "X" close button inside the sidebar */
+  .sidebar-close-btn {
+    display: block !important;
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+  }
+
+
+  /* 
+    5. Inner Components (Calendar, Tasks, Focus Timer, Panel)
+    ---------------------------------------------------------
+    Adjust spacing and sizes for individual widgets to fit perfectly.
+  */
+  
+  .topbar {
+    padding: 12px 16px;
+    flex-wrap: wrap;
+  }
+  
+  .tasks-section {
+    padding: 0 16px 16px;
+  }
+
+  .cal-grid {
+    gap: 2px;
+  }
+
+  .cal-day {
+    height: 40px;
+    font-size: 14px;
+  }
+
+  .focus-dashboard {
+    padding: 0;
+  }
+
+  .timer-container {
+    width: 200px;
+    height: 200px;
+  }
+
+  .timer-text {
+    font-size: 36px;
+  }
+  
+  .timer-controls {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  /* Move the Smart Paste panel to the bottom and adjust its borders */
+  .panel {
+    border-left: none;
+    border-top: 1px solid var(--color-border-tertiary);
+    border-bottom-left-radius: var(--border-radius-lg);
+    border-bottom-right-radius: var(--border-radius-lg);
+  }
+
+
+  /* 
+    6. Modals
+    ---------
+    Ensure pop-up modals don't overflow the screen width. 
+  */
+  #auth-modal > div,
+  #settings-modal > div,
+  #new-task-modal .modal-card,
+  #new-subject-modal .modal-card,
+  .crash-card {
+    width: 90% !important;
+    max-width: 400px !important;
+    padding: 24px !important;
+  }
+
+}

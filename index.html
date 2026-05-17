@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>StudyPlan</title>
   <link rel="stylesheet" href="/css/index.css">
+  <link rel="stylesheet" href="/css/mobile.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -34,6 +35,9 @@
 
   <header class="site-header">
   <div class="header-left">
+    <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle Menu">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
     <img src="/logo.png" alt="Logo" class="logo">
     <h1 class="site-title">StudyPlan</h1>
   </div>
@@ -56,7 +60,9 @@
 
   <div class="app">
     <!-- Sidebar -->
-    <div class="sidebar">
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+    <div class="sidebar" id="sidebar">
+      <button class="sidebar-close-btn" id="sidebar-close-btn">&times;</button>
       <div class="sidebar-header">Study Planner</div>
       <div class="nav-item active" id="calendar-btn">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M1 6h14" stroke="currentColor" stroke-width="1.5"/><path d="M5 1v2M11 1v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
@@ -436,5 +442,32 @@
     </div>
   </div>
 </div>
+<script>
+  // Mobile Menu Toggle
+  const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+  const sidebar = document.getElementById('sidebar');
+  const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+  const sidebarCloseBtn = document.getElementById('sidebar-close-btn');
+
+  function openSidebar() {
+    if(sidebar) sidebar.classList.add('open');
+    if(sidebarBackdrop) sidebarBackdrop.classList.add('show');
+  }
+
+  function closeSidebar() {
+    if(sidebar) sidebar.classList.remove('open');
+    if(sidebarBackdrop) sidebarBackdrop.classList.remove('show');
+  }
+
+  if (mobileMenuToggle) {
+    mobileMenuToggle.addEventListener('click', openSidebar);
+  }
+  if (sidebarCloseBtn) {
+    sidebarCloseBtn.addEventListener('click', closeSidebar);
+  }
+  if (sidebarBackdrop) {
+    sidebarBackdrop.addEventListener('click', closeSidebar);
+  }
+</script>
 </body>
 </html>
