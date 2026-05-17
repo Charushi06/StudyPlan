@@ -20,15 +20,16 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --color-background-primary: #181816;
-    --color-background-secondary: #20201e;
+    
+    --color-background-secondary: #242420;
     --color-background-tertiary: #272725;
 
     --color-text-primary: #efede5;
-    --color-text-secondary: #a3a198;
+   --color-text-secondary: #c7c5bd;
 
     --color-border-tertiary: rgba(255,255,255,0.08);
+    --shadow-md: 0 6px 20px rgba(0,0,0,0.45);
 
-    --shadow-md: 0 4px 16px rgba(0,0,0,0.3);
   }
 }
 
