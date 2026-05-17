@@ -50,18 +50,17 @@ Just:
 
 ## ⚙️ How It Works
 
-```text
-User Paste
-↓
-AI Extraction (Gemini)
-↓
-Structured Tasks (Dates, Subjects)
-↓
-User Review + Edit
-↓
-Planner + Calendar Update
-```
-# Preview
+1. Paste assignment or syllabus text
+2. AI extracts:
+
+   * subjects
+   * deadlines
+   * tasks
+   * exam dates
+3. Tasks are automatically added to the planner
+4. Students can track progress and upcoming deadlines
+
+##⭐ Preview
 
 ## Dashboard
 
@@ -82,7 +81,7 @@ Planner + Calendar Update
 
 ---
 
-# Tech Stack
+# ⚙️Tech Stack
 
 ### Frontend
 
@@ -105,7 +104,7 @@ Planner + Calendar Update
 
 ---
 
-# Installation
+#  🚀Installation
 
 ## 1. Clone the Repository
 
@@ -132,7 +131,7 @@ API_KEY=your_ai_api_key
 
 ---
 
-# Running the Project
+#  🚀Running the Project
 
 ## Development Mode
 
@@ -175,21 +174,6 @@ studyplan/
 ├── package.json
 └── README.md
 ```
-
----
-
-# How It Works
-
-1. Paste assignment or syllabus text
-2. AI extracts:
-
-   * subjects
-   * deadlines
-   * tasks
-   * exam dates
-3. Tasks are automatically added to the planner
-4. Students can track progress and upcoming deadlines
-
 ---
 
 # Example Input
@@ -208,7 +192,7 @@ Prepare for Chemistry Quiz on Monday
 
 ---
 
-# Roadmap
+#🌟 Roadmap
 
 ## Planned Features
 
