@@ -151,8 +151,8 @@ function renderSidebarSubjects() {
       <span class="subject-name">${escapeHtml(s.name)}</span>
       <span class="badge">${n}</span>
       <span class="subject-actions" style="margin-left:auto; display:inline-flex; gap:6px;">
-        <button class="subject-edit-btn" data-id="${escapeHtml(s.id)}" title="Edit subject" style="background:transparent;border:none;cursor:pointer;">✏️</button>
-        <button class="subject-delete-btn" data-id="${escapeHtml(s.id)}" title="Delete subject" style="background:transparent;border:none;cursor:pointer;">🗑️</button>
+        <button class="subject-edit-btn" data-id="${escapeHtml(s.id)}" title="Edit subject" style="background:transparent;border:none;cursor:pointer;">📝</button>
+        <button class="subject-delete-btn" data-id="${escapeHtml(s.id)}" title="Delete subject" style="background:transparent;border:none;cursor:pointer;">❌</button>
       </span>
     </div>`;
   }).join('');
