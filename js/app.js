@@ -1071,7 +1071,7 @@ extractBtn.addEventListener('click', async () => {
   const text = pasteInput.value;
   if (!text.trim()) return;
 
-  extractBtn.innerHTML = '<span class="loader-spinner"></span>';
+  extractBtn.innerHTML = '<span class="loader-spinner"></span> Extracting...';
   extractBtn.disabled = true;
 
   const items = await extractTasksFromText(text);
