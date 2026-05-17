@@ -22,7 +22,7 @@ async function downloadData(req, res) {
                 if (err) reject(err);
                 else resolve(rows);
             });
-        });
+        })
 
         const rows = [
             ["Task ID", "Subject", "Title", "Due At", "Status", "Priority", "Confidence Score", "Notes"],
