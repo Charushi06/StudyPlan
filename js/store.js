@@ -62,6 +62,60 @@ export const store = {
     }
   },
 
+  async updateSubject(id, { name, color }) {
+    const idx = this.subjects.findIndex(s => s.id === id);
+    if (idx === -1) return false;
+    const original = { ...this.subjects[idx] };
+    this.subjects[idx] = { ...this.subjects[idx], name: name || this.subjects[idx].name, color: color || this.subjects[idx].color };
+    this.notify();
+    try {
+      const res = await fetch(`/api/subjects/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: this.subjects[idx].name, color: this.subjects[idx].color })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to update subject');
+      }
+      const subsRes = await fetch('/api/subjects');
+      this.subjects = await subsRes.json();
+      this.notify();
+      return true;
+    } catch (e) {
+      console.error('Failed to update subject', e);
+      alert('Failed to update subject. Please try again.');
+      this.subjects[idx] = original;
+      this.notify();
+      return false;
+    }
+  },
+
+  async deleteSubject(id) {
+    const idx = this.subjects.findIndex(s => s.id === id);
+    if (idx === -1) return false;
+    const removed = this.subjects.splice(idx, 1)[0];
+    this.notify();
+    try {
+      const res = await fetch(`/api/subjects/${id}`, { method: 'DELETE' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to delete subject');
+      }
+      const subsRes = await fetch('/api/subjects');
+      this.subjects = await subsRes.json();
+      this.notify();
+      return true;
+    } catch (e) {
+      console.error('Failed to delete subject', e);
+      const message = (e && e.message) || 'Failed to delete subject. Please try again.';
+      alert(message);
+      this.subjects.splice(idx, 0, removed);
+      this.notify();
+      return false;
+    }
+  },
+
   // ================= UPDATED FUNCTION =================
   async addTasks(newTasks) {
     try {

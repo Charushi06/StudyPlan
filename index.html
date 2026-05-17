@@ -402,7 +402,7 @@
 
 <div id="new-subject-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0; z-index:9998; align-items:center; justify-content:center;">
   <div class="modal-card" style="border-radius:12px; padding:20px; width:320px; box-shadow:0 12px 40px rgba(0,0,0,0.25);">
-    <h3 style="margin:0 0 12px; font-size:18px; font-weight:600;">New subject</h3>
+    <h3 id="subject-modal-title" style="margin:0 0 12px; font-size:18px; font-weight:600;">New subject</h3>
     <label style="display:block; font-size:12px; margin-bottom:4px;">Subject name</label>
     <input id="new-subject-name" type="text" style="width:100%; padding:6px; margin-bottom:12px;" placeholder="e.g. History">
     <label style="display:block; font-size:12px; margin-bottom:6px;">Color</label>
@@ -410,6 +410,17 @@
     <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
       <button id="new-subject-cancel" class="btn" style="padding:6px 10px;">Cancel</button>
       <button id="new-subject-save" class="btn btn-primary" style="padding:6px 12px;">Save</button>
+    </div>
+  </div>
+</div>
+
+<div id="delete-subject-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0; z-index:9998; align-items:center; justify-content:center;">
+<div class="modal-card" style="border-radius:12px; padding:20px; width:320px; box-shadow:0 12px 40px; background:rgba(255, 255, 255, 0.98);">    
+  <h3 id="delete-subject-title" style="margin:0 0 12px; font-size:18px; font-weight:600;">Delete subject</h3>
+    <p id="delete-subject-message" style="margin:0 0 18px; color:var(--color-text-secondary); font-size:14px;"></p>
+    <div style="display:flex; justify-content:flex-end; gap:8px;">
+      <button id="delete-subject-cancel" class="btn" style="padding:6px 10px;">Cancel</button>
+      <button id="delete-subject-confirm" class="btn btn-primary" style="padding:6px 12px;">Delete</button>
     </div>
   </div>
 </div>
