@@ -2,19 +2,26 @@ const { db } = require("../../database.js");
 
 /**
  * [GET] /api/download
- * 
- * @param {*} req 
- * @param {*} res 
+ *
+ * @param {*} req
+ * @param {*} res
  * @returns status code 200 and the csv file
  * @returns status code 500 and the error message
  */
 
+// RFC 4180: wrap every field in double-quotes and escape internal quotes as "".
+// This prevents commas, newlines, and leading = / + / - / @ from corrupting
+// the output or triggering formula execution in spreadsheet applications.
+function csvEscape(value) {
+    const str = String(value == null ? '' : value);
+    return `"${str.replace(/"/g, '""')}"`;
+}
 
 async function downloadData(req, res) {
     try {
         const query = `
-            SELECT tasks.*, subjects.name AS subject_name 
-            FROM tasks 
+            SELECT tasks.*, subjects.name AS subject_name
+            FROM tasks
             LEFT JOIN subjects ON tasks.subject_id = subjects.id
         `;
         const data = await new Promise((resolve, reject) => {
@@ -25,16 +32,16 @@ async function downloadData(req, res) {
         });
 
         const rows = [
-            ["Task ID", "Subject", "Title", "Due At", "Status", "Priority", "Confidence Score", "Notes"],
+            ["Task ID", "Subject", "Title", "Due At", "Status", "Priority", "Confidence Score", "Notes"].map(csvEscape),
             ...data.map(task => [
-                task.id,
-                task.subject_name,
-                task.title,
-                task.due_at,
-                task.status,
-                task.priority,
-                task.confidence_score,
-                `"${(task.notes || '').replace(/"/g, '""')}"`
+                csvEscape(task.id),
+                csvEscape(task.subject_name),
+                csvEscape(task.title),
+                csvEscape(task.due_at),
+                csvEscape(task.status),
+                csvEscape(task.priority),
+                csvEscape(task.confidence_score),
+                csvEscape(task.notes || '')
             ])
         ];
 
