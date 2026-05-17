@@ -69,22 +69,29 @@ export const store = {
     this.subjects[idx] = { ...this.subjects[idx], name: name || this.subjects[idx].name, color: color || this.subjects[idx].color };
     this.notify();
     try {
+      console.log(`[updateSubject] Sending PUT to /api/subjects/${id}`, { name, color });
       const res = await fetch(`/api/subjects/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: this.subjects[idx].name, color: this.subjects[idx].color })
       });
-      const data = await res.json().catch(() => ({}));
+      console.log(`[updateSubject] Response status:`, res.status);
+      const data = await res.json().catch((err) => { console.error('[updateSubject] Failed to parse JSON:', err); return {}; });
       if (!res.ok) {
-        throw new Error(data.error || 'Failed to update subject');
+        throw new Error(data.error || `Server error: ${res.status}`);
       }
+      console.log('[updateSubject] PUT successful, refreshing subjects list');
       const subsRes = await fetch('/api/subjects');
+      if (!subsRes.ok) {
+        throw new Error(`Failed to refresh subjects: ${subsRes.status}`);
+      }
       this.subjects = await subsRes.json();
       this.notify();
+      console.log('[updateSubject] Update completed successfully');
       return true;
     } catch (e) {
-      console.error('Failed to update subject', e);
-      alert('Failed to update subject. Please try again.');
+      console.error('Failed to update subject:', e);
+      alert(`Failed to update subject: ${e.message}`);
       this.subjects[idx] = original;
       this.notify();
       return false;
@@ -97,17 +104,24 @@ export const store = {
     const removed = this.subjects.splice(idx, 1)[0];
     this.notify();
     try {
+      console.log(`[deleteSubject] Sending DELETE to /api/subjects/${id}`);
       const res = await fetch(`/api/subjects/${id}`, { method: 'DELETE' });
-      const data = await res.json().catch(() => ({}));
+      console.log(`[deleteSubject] Response status:`, res.status);
+      const data = await res.json().catch((err) => { console.error('[deleteSubject] Failed to parse JSON:', err); return {}; });
       if (!res.ok) {
-        throw new Error(data.error || 'Failed to delete subject');
+        throw new Error(data.error || `Server error: ${res.status}`);
       }
+      console.log('[deleteSubject] DELETE successful, refreshing subjects list');
       const subsRes = await fetch('/api/subjects');
+      if (!subsRes.ok) {
+        throw new Error(`Failed to refresh subjects: ${subsRes.status}`);
+      }
       this.subjects = await subsRes.json();
       this.notify();
+      console.log('[deleteSubject] Delete completed successfully');
       return true;
     } catch (e) {
-      console.error('Failed to delete subject', e);
+      console.error('Failed to delete subject:', e);
       const message = (e && e.message) || 'Failed to delete subject. Please try again.';
       alert(message);
       this.subjects.splice(idx, 0, removed);
