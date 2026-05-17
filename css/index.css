@@ -1143,8 +1143,8 @@ body {
 }
 
 .summary-box {
-  margin-top: 16px;
-  padding: 14px;
+  margin: 16px;
+  padding: 10px;
   background: linear-gradient(135deg, #eef2ff, #f8fafc);
   border-radius: 12px;
   font-size: 14px;
@@ -1190,7 +1190,18 @@ body {
   animation: spin 0.8s linear infinite;
 }
 @media (prefers-color-scheme: dark) {
-  .loader-spinner { border-color: rgba(255,255,255,0.1); border-top-color: #fff; }
+  .loader-spinner { border-color: rgba(255,255,255,0.1); border-top-color: #fff;}
+  .summary-box {
+    background:#181816;
+    border: 1px solid #374151;
+    color: #f9fafb;
+  }
+
+  .summary-box p,
+  .summary-box span,
+  .summary-box strong {
+    color: #f9fafb;
+  }
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
