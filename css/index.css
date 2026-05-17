@@ -1793,6 +1793,38 @@ body {
 .cal-legend span { display: flex; align-items: center; gap: 6px; }
 .legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
 
+.cal-day {
+  position: relative;
+  min-height: 65px;
+  padding: 8px 4px 4px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 13px;
+}
+
+.cal-day-indicators {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2px;
+  margin-top: 4px;
+  max-width: 100%;
+}
+
+.cal-day-indicator {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.task-count {
+  font-size: 8px;
+  color: var(--color-text-tertiary);
+  margin-left: 2px;
+}
+
 /* Tasks */
 .tasks-section { flex: 1; overflow-y: auto; padding: 0 24px 24px; scroll-behavior: smooth; }
 .tasks-section::-webkit-scrollbar { width: 6px; }

@@ -813,14 +813,23 @@ function renderCalendar() {
 
     let indicatorHtml = '';
     if (dayTasks.length > 0) {
-      indicatorHtml = `<div class="cal-day-indicators" style="display: flex; justify-content: center; gap: 3px; margin-top: 6px;">`;
-      dayTasks.slice(0, 3).forEach(t => {
-        const sub = store.subjects.find(s => s.id === t.subject_id) || store.subjects[0];
-        indicatorHtml += `<div class="cal-day-indicator" style="width: 6px; height: 6px; border-radius: 50%; background:${sub ? sub.color : 'var(--color-text-danger)'}; display: inline-block;"></div>`;
-      });
-      if (dayTasks.length > 3) {
-        indicatorHtml += `<span style="font-size: 9px; color: #666;">+${dayTasks.length - 3}</span>`;
+      const maxDots = 3;
+      const hasMore = dayTasks.length > maxDots;
+      const dotsToShow = hasMore ? maxDots - 1 : dayTasks.length;
+      
+      indicatorHtml = `<div class="cal-day-indicators">`;
+      
+      for (let i = 0; i < dotsToShow; i++) {
+        const sub = store.subjects.find(s => s.id === dayTasks[i].subject_id) || store.subjects[0];
+        indicatorHtml += `<div class="cal-day-indicator" style="background:${sub ? sub.color : 'var(--color-text-danger)'}"></div>`;
       }
+      
+      if (hasMore) {
+        indicatorHtml += `<div class="task-count">+${dayTasks.length - (maxDots - 1)}</div>`;
+      } else if (dayTasks.length <= maxDots) {
+        indicatorHtml += `<div class="task-count">${dayTasks.length}</div>`;
+      }
+      
       indicatorHtml += `</div>`;
     }
 
@@ -907,19 +916,26 @@ function renderWeekCalendar() {
 
     let indicatorHtml = '';
     if (dayTasks.length > 0) {
+      const maxDots = 3;
+      const hasMore = dayTasks.length > maxDots;
+      const dotsToShow = hasMore ? maxDots - 1 : dayTasks.length;
+      
       indicatorHtml = `<div class="cal-day-indicators">`;
-      dayTasks.forEach((t, idx) => {
-        if (idx > 2) return;
-        const sub = store.subjects.find(s => s.id === t.subject_id) || store.subjects[0];
+      
+      for (let i = 0; i < dotsToShow; i++) {
+        const sub = store.subjects.find(s => s.id === dayTasks[i].subject_id) || store.subjects[0];
         indicatorHtml += `<div class="cal-day-indicator" style="background:${sub ? sub.color : 'var(--color-text-danger)'}"></div>`;
-      });
+      }
+      
+      if (hasMore) {
+        indicatorHtml += `<div class="task-count">+${dayTasks.length - (maxDots - 1)}</div>`;
+      } else if (dayTasks.length <= maxDots) {
+        indicatorHtml += `<div class="task-count">${dayTasks.length}</div>`;
+      }
+      
       indicatorHtml += `</div>`;
     }
-    
-    html += `<div class="cal-day interactive-day ${isToday ? 'today' : ''}" data-day="${dayNum}" data-month="${date.getMonth()}" data-year="${date.getFullYear()}">
-      ${dayNum}
-      ${indicatorHtml}
-    </div>`;
+
   }
   
   document.getElementById('cal-grid').innerHTML = html;
