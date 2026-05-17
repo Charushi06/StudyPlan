@@ -34,6 +34,19 @@ Just:
 > 🎯 From chaos → clean plan in seconds
 
 ---
+## Features
+
+* AI-based assignment parsing
+* Automatic task extraction from pasted text
+* Calendar-based study planner
+* Deadline tracking
+* Smart scheduling suggestions
+* Conflict detection for overlapping deadlines
+* Responsive modern UI
+* Local task management
+
+---
+
 
 ## ⚙️ How It Works
 
@@ -48,209 +61,231 @@ User Review + Edit
 ↓
 Planner + Calendar Update
 ```
+# Preview
+
+## Dashboard
+
+<img width="990" height="600" alt="Screenshot 2026-05-17 213853" src="https://github.com/user-attachments/assets/59060fd2-218e-4e25-badc-7653bf528542" />
 
 
----
+## Calendar View
 
-## ✨ Features
+<img width="1257" height="549" alt="image" src="https://github.com/user-attachments/assets/39517342-0e94-492e-9103-64ae8359d207" />
 
-### 🤖 AI Intelligence
-- Smart extraction from unstructured text
-- Detects **deadlines, subjects, tasks, notes**
-- Handles ambiguous dates with user confirmation
 
-### 📊 Smart Planning System
-- Auto-categorized boards:
-  - Due Soon
-  - This Week
-  - Completed
-- Conflict detection (deadline clustering alerts)
+## AI Assignment Parsing
 
-### 📅 Interactive Calendar
-- Global calendar view
-- Click a date → filter tasks instantly
-- Color-coded deadlines
+<img width="354" height="525" alt="image" src="https://github.com/user-attachments/assets/422b2c1e-4312-4653-b9b6-12aba9b27ced" />
 
-### 🧩 Seamless Editing
-- Inline editing (no popups)
-- Modify extracted data before saving
-
-### 💾 Persistent Storage
-- SQLite-based local database
-- Structured task + subject mapping
+## Focus Mode
+<img width="1230" height="588" alt="image" src="https://github.com/user-attachments/assets/808a86f5-c2ee-45cb-a448-fd566c209a19" />
 
 ---
 
-## 🧠 System Architecture
+# Tech Stack
 
-```text
-Frontend (Vanilla JS UI)
-↓
-Node.js Express API
-↓
-AI Layer (Gemini API)
-↓
-SQLite Database
-↓
-State Management + UI Sync
-```
+### Frontend
 
+* HTML
+* CSS
+* JavaScript
 
----
+### Backend
 
-## 🛠 Tech Stack
+* Node.js
+* Express.js
 
-| Layer | Technology |
-|------|-----------|
-| Frontend | HTML, CSS (Glassmorphism), Vanilla JS |
-| Backend | Node.js + Express |
-| Database | SQLite |
-| AI | Google Gemini (GenAI SDK) |
+### Database
+
+* MongoDB
+
+### AI Integration
+
+* Gemini API / OpenAI API
 
 ---
 
-## 🚀 Key Differentiators
+# Installation
 
-| Feature | StudyPlan | Typical Planners |
-|--------|----------|-----------------|
-| AI Extraction | ✅ | ❌ |
-| Zero Manual Entry | ✅ | ❌ |
-| Conflict Detection | ✅ | ❌ |
-| Inline Editing | ✅ | ❌ |
-
----
-
-## 📦 Installation
+## 1. Clone the Repository
 
 ```bash
-git clone https://github.com/Charushi06/StudyPlan.git
-cd StudyPlan
+git clone https://github.com/charushi06/studyplan.git
+cd studyplan
+```
+
+## 2. Install Dependencies
+
+```bash
 npm install
 ```
 
----
+## 3. Configure Environment Variables
 
-## 🔑 Environment Setup
-
-Create `.env`:
+Create a `.env` file in the root directory:
 
 ```env
-GEMINI_API_KEY=your_gen_ai_key_here
+PORT=5000
+MONGODB_URI=your_mongodb_connection_string
+API_KEY=your_ai_api_key
 ```
 
 ---
 
-## ▶️ Run Locally
+# Running the Project
+
+## Development Mode
 
 ```bash
-node server.js
-```
-Open → http://localhost:3000
-
----
- 
-## Project Structure
- 
-```
- StudyPlan
-├──  css
-│   └──  index.css           # Contains all styling rules, variables, and animations
-├──  js
-│   ├──  utils
-│   │   ├──  aiMock.js       # The original mock UI extraction hook (deprecated)
-│   │   └──  api.js          # The live fetch logic communicating with our Express API
-│   ├──  app.js              # The main controller (handles DOM UI, event bindings, and Calendar)
-│   └──  store.js            # The Custom State Manager handling our frontend Pub/Sub state
-├──  .env.example            # Template file for setting the GEMINI_API_KEY
-├──  .gitignore              # Tells git to ignore databases, environments, and node packages
-├──  database.js             # Initializes the SQLite database and executes DB table schemas
-├──  index.html              # The frontend structural entry point
-├──  package.json            # Node project configuration and backend dependencies
-├──  README.md               # The comprehensive project documentation
-├──  server.js               # The primary Node.js & Express REST Backend logic
-└──  studyplan.db
+npm run dev
 ```
 
----
-
-## 🔮 Future Roadmap
-- 🤖 Smarter AI parsing (multi-language)
-- 📊 Study analytics dashboard
-- 🔔 Smart reminders & notifications
-- 📱 Mobile version
-- 🧠 AI study assistant
-- 🤝 Contributing
-
----
-
-## Want to improve StudyPlan? 🚀
-
-### 🔥 High-impact contributions:
-- Improve AI parsing accuracy
-- Add calendar enhancements
-- UI/UX upgrades
-- Notification system
-
-#### Steps:
+## Production Mode
 
 ```bash
-git checkout -b feature/your-feature
-git commit -m "feat: add feature"
-git push origin feature/your-feature
+npm start
 ```
 
-Open a PR with:
+Open in browser:
 
-- Clear description
-- Screenshots (if UI changes)
-
----
-
-## 🐛 Issues
-
-Found a bug? Open an issue!
+```text
+http://localhost:5000
+```
 
 ---
 
-## 💡 Why This Project?
+# Project Structure
 
-Because planning should not feel like work.
-
-It should feel like:
-
-- ⚡ Instant
-- 🧠 Intelligent
-- 🎯 Effortless
-
----
-
-## ⭐ Support
-
-If you like this project:
-👉 Star ⭐ the repo
-👉 Share it
-
----
-
-## 📄 License
-
-MIT License
+```text
+studyplan/
+│
+├── client/
+│   ├── assets/
+│   ├── components/
+│   ├── pages/
+│   └── styles/
+│
+├── server/
+│   ├── routes/
+│   ├── controllers/
+│   ├── models/
+│   └── config/
+│
+├── .env
+├── package.json
+└── README.md
+```
 
 ---
 
-## ⚡ Author
+# How It Works
 
-Charushi
-GitHub: https://github.com/Charushi06
+1. Paste assignment or syllabus text
+2. AI extracts:
+
+   * subjects
+   * deadlines
+   * tasks
+   * exam dates
+3. Tasks are automatically added to the planner
+4. Students can track progress and upcoming deadlines
 
 ---
 
-## 🌱 Nexus Spring of Code 2026
+# Example Input
 
-This project is part of NSoC 2026
+```text
+Math Assignment due on 20 May
+Physics Lab Report due next Friday
+Prepare for Chemistry Quiz on Monday
+```
+
+# Example Output
+
+* Math Assignment → 20 May
+* Physics Lab Report → Next Friday
+* Chemistry Quiz Preparation → Monday
 
 ---
 
-Built with AI, code, and a mission to simplify student life.
+# Roadmap
+
+## Planned Features
+
+* Dark mode
+* Push notifications
+* Mobile optimization
+* Drag-and-drop calendar
+* Export study plans as PDF
+* Multi-language assignment parsing
+* Study analytics dashboard
+* Pomodoro timer integration
+
+---
+
+# Contribution Guide
+
+Contributions are welcome.
+
+## Steps
+
+1. Fork the repository
+2. Create a feature branch
+
+```bash
+git checkout -b feature/your-feature-name
+```
+
+3. Commit your changes
+
+```bash
+git commit -m "Add your message"
+```
+
+4. Push to your branch
+
+```bash
+git push origin feature/your-feature-name
+```
+
+5. Open a Pull Request
+
+---
+
+# Good First Issues
+
+These are beginner-friendly contributions:
+
+* Improve mobile responsiveness
+* Add dark mode
+* Improve calendar UI
+* Add task filtering
+* Improve accessibility
+* Add loading animations
+* Add empty-state illustrations
+* Improve form validation
+
+---
+
+# License
+
+This project is licensed under the MIT License.
+
+---
+
+# Acknowledgements
+
+* OpenAI / Gemini APIs
+* MongoDB
+* Express.js
+* Student developer community
+
+---
+
+# Maintainer
+
+Created by Charushi and contributors.
+
+If you like this project, consider giving it a ⭐ on GitHub.
 
 ---
