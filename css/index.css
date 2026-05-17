@@ -1148,8 +1148,9 @@ body {
   border-radius: 12px;
   font-size: 14px;
   line-height: 1.6;
-  border: 1px solid var(--color-border-tertiary);
+  border: 1px solid var(--color-border-secondary);
   color: var(--color-text-primary);
+  transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
 }
 
 .paste-input:focus, .paste-input:not(:placeholder-shown) { opacity: 1; z-index: 10; background: var(--color-background-primary); color: var(--color-text-primary); outline: none; }
@@ -1984,105 +1985,82 @@ body {
 /* Task Addition Model */
 
 
-#new-task-modal{
-
-  position: fixed;
-  inset: 0;
-  z-index: 9998;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  background-color: rgba(0, 0, 0, 0.55) !important; 
-}
-
-
+/* Modal — theme-aware (light & dark) */
 #new-task-modal .modal-card {
-  width: 100%;
-  max-width: 360px;
-  background-color: #0f172a;                     
-  border-radius: 14px;
-  padding: 20px 20px 16px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6) !important;
-  color: #e5e7eb;                        
-  box-sizing: border-box;
-  border: 1px solid rgba(148, 163, 184, 0.35)  !important;
+  background-color: var(--color-background-primary) !important;
+  color: var(--color-text-primary) !important;
+  border: 1px solid var(--color-border-secondary) !important;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25) !important;
+  color-scheme: light;
 }
-
 
 #new-task-modal .modal-card h3 {
-  margin: 0 0 12px;
-  font-size: 18px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  color: #f9fafb;
+  color: var(--color-text-primary);
 }
-
 
 #new-task-modal label {
-  display: block;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #9ca3af; /* muted */
-  margin-bottom: 4px;
+  color: var(--color-text-tertiary);
 }
-
 
 #new-task-modal input,
 #new-task-modal select {
-  width: 100%;
-  box-sizing: border-box;
-  font-size: 13px;
-  padding: 7px 8px;
-  margin-bottom: 10px;
-  border-radius: 6px;
-  border: 1px solid #4b5563;              
-  background-color: #111827 !important;                  
-  color: #e5e7eb;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
-  color-scheme: dark;                      
+  background-color: var(--color-background-secondary) !important;
+  color: var(--color-text-primary) !important;
+  border: 1px solid var(--color-border-secondary) !important;
+  color-scheme: light;
 }
-
 
 #new-task-modal input::placeholder {
-  color: #6b7280;
+  color: var(--color-text-tertiary);
 }
-
 
 #new-task-modal input:focus,
 #new-task-modal select:focus {
-  outline: none;
-  border-color: #4f46e5;
-  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.35);
-  background: #020617;                     
-}
-
-
-#new-task-modal .modal-card > div:last-child {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 6px;
-}
-
-
-#new-task-modal .btn {
-  font-size: 12px;
-  padding: 6px 10px;
-  border-radius: 999px;
+  background-color: var(--color-background-tertiary) !important;
+  border-color: #4f46e5 !important;
+  box-shadow: 0 0 0 2px rgba(79,70,229,0.25);
 }
 
 #new-task-modal .btn:not(.btn-primary) {
-  background: rgba(15, 23, 42, 0.9);
-  color: #e5e7eb;
-  border: 1px solid #4b5563;
+  background: var(--color-background-secondary);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-secondary);
 }
 
 #new-task-modal .btn:not(.btn-primary):hover {
-  background: #020617;
+  background: var(--color-background-tertiary);
 }
 
+/* Dark theme overrides for modal */
+:root[data-theme="dark"] #new-task-modal .modal-card {
+  background-color: #1e2433 !important;
+  border-color: rgba(148,163,184,0.2) !important;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6) !important;
+  color-scheme: dark;
+}
+
+:root[data-theme="dark"] #new-task-modal input,
+:root[data-theme="dark"] #new-task-modal select {
+  background-color: #111827 !important;
+  color: #e5e7eb !important;
+  border-color: #374151 !important;
+  color-scheme: dark;
+}
+
+:root[data-theme="dark"] #new-task-modal input:focus,
+:root[data-theme="dark"] #new-task-modal select:focus {
+  background-color: #0f172a !important;
+}
+
+:root[data-theme="dark"] #new-task-modal .btn:not(.btn-primary) {
+  background: #1e2433;
+  color: #e5e7eb;
+  border-color: #374151;
+}
+
+:root[data-theme="dark"] #new-task-modal .btn:not(.btn-primary):hover {
+  background: #0f172a;
+}
 
 #new-task-modal.showing .modal-card {
   animation: new-task-modal-in 0.16s ease-out;
