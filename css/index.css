@@ -227,19 +227,71 @@ body {
   font-size: 10px;
 }
 
-/* Make month view even more compact */
 .cal-month-view .cal-day {
   min-height: 55px;
 }
 
-/* For week view keep taller cells */
 .cal-week-view .cal-day {
   min-height: 80px;
 }
 
-/* For day view - full height */
 .cal-grid:has(.day-view-checklist) {
   display: block;
+}
+
+/* Collapsible calendar section */
+.cal-section {
+  transition: max-height 0.3s ease;
+  overflow: hidden;
+  position: relative;
+}
+
+.cal-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+  position: relative;
+}
+
+.cal-title {
+  font-size: 15px;
+  font-weight: 600;
+  flex: 1;
+  color: var(--color-text-primary);
+}
+
+.cal-nav {
+  font-size: 18px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 0.2s;
+  margin-left: 4px;
+}
+
+.collapse-icon {
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--color-text-tertiary);
+  padding: 4px 8px;
+  margin-left: 12px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.collapse-icon:hover {
+  background: var(--color-background-secondary);
+  color: var(--color-text-primary);
+}
+
+.cal-section.collapsed {
+  max-height: 60px;
+}
+
+.cal-section.collapsed .cal-grid,
+.cal-section.collapsed .cal-legend {
+  display: none;
 }
 
 /* Tasks */
