@@ -112,10 +112,21 @@ body {
 }
 
 /* Sidebar */
-.sidebar {
-  background: var(--color-background-secondary); border-right: 1px solid var(--color-border-tertiary);
-  padding: 20px 16px; display: flex; flex-direction: column; gap: 4px;
+@media (max-width: 768px) {
+  .app {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--color-border-tertiary);
+    padding: 12px;
+    gap: 8px;
+  }
 }
+
 .sidebar-header { font-size: 11px; font-weight: 700; color: var(--color-text-tertiary); padding: 8px 12px; margin-bottom: 2px; letter-spacing: .06em; text-transform: uppercase; }
 .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: var(--border-radius-md); cursor: pointer; font-size: 14px; font-weight: 500; color: var(--color-text-secondary); transition: all 0.2s ease; position: relative; }
 .nav-item:hover { background: var(--color-background-primary); color: var(--color-text-primary); transform: translateX(2px); }
@@ -2159,4 +2170,119 @@ body {
 .smart-highlight {
   color: #ffcc66;
   font-weight: 600;
+}
+/* Mobile Responsive Fixes */
+@media (max-width: 1024px) {
+  .app {
+    grid-template-columns: 220px 1fr;
+  }
+
+  .panel {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  body {
+    padding: 12px;
+  }
+
+  .app {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--color-border-tertiary);
+  }
+
+  .main {
+    width: 100%;
+  }
+
+  .topbar {
+    padding: 12px 16px;
+    flex-wrap: wrap;
+  }
+
+  .cal-section,
+  .tasks-section {
+    padding: 12px 16px;
+  }
+
+  .site-header,
+  .site-footer {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+
+  .header-nav,
+  .footer-links {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+@media (max-width: 768px) {
+  body {
+    padding: 12px;
+  }
+
+  .app {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--color-border-tertiary);
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .panel {
+    width: 100%;
+  }
+
+  .site-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .header-nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .header-right {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .cal-section,
+  .tasks-section {
+    padding: 12px 16px;
+  }
+}
+.header-nav a {
+  transition: 0.3s ease;
+  cursor: pointer;
+}
+
+.header-nav a:hover {
+  opacity: 0.7;
+}
+@media (max-width: 768px) {
+  .profile-btn {
+    width: auto;
+    padding: 8px 14px;
+  }
 }
