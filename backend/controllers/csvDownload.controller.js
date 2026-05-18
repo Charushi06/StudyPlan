@@ -12,13 +12,19 @@ const { db } = require("../../database.js");
 
 async function downloadData(req, res) {
     try {
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
+
         const query = `
             SELECT tasks.*, subjects.name AS subject_name 
             FROM tasks 
             LEFT JOIN subjects ON tasks.subject_id = subjects.id
+            WHERE tasks.user_id = ?
         `;
         const data = await new Promise((resolve, reject) => {
-            db.all(query, [], (err, rows) => {
+            db.all(query, [userId], (err, rows) => {
                 if (err) reject(err);
                 else resolve(rows);
             });

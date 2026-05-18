@@ -1,3 +1,5 @@
+import { authFetch } from './utils/auth.js';
+
 export const store = {
   subjects: [],
   tasks: [],
@@ -23,8 +25,8 @@ export const store = {
   async fetchInitialData() {
     try {
       const [subsRes, tasksRes] = await Promise.all([
-        fetch('/api/subjects'),
-        fetch('/api/tasks')
+        authFetch('/api/subjects'),
+        authFetch('/api/tasks')
       ]);
       this.subjects = await subsRes.json();
       this.tasks = await tasksRes.json();
@@ -41,7 +43,7 @@ export const store = {
       return false;
     }
     try {
-      const res = await fetch('/api/subjects', {
+      const res = await authFetch('/api/subjects', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: trimmed, color: color || 'var(--color-text-info)' })
@@ -51,7 +53,7 @@ export const store = {
         alert(data.error || 'Failed to add subject');
         return false;
       }
-      const subsRes = await fetch('/api/subjects');
+      const subsRes = await authFetch('/api/subjects');
       this.subjects = await subsRes.json();
       this.notify();
       return true;
@@ -65,7 +67,7 @@ export const store = {
   // ================= UPDATED FUNCTION =================
   async addTasks(newTasks) {
     try {
-      const res = await fetch('/api/tasks', {
+      const res = await authFetch('/api/tasks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newTasks)
@@ -99,7 +101,7 @@ export const store = {
       }
 
       // ================= REFRESH =================
-      const tasksRes = await fetch('/api/tasks');
+      const tasksRes = await authFetch('/api/tasks');
       this.tasks = await tasksRes.json();
       this.notify();
 
@@ -129,7 +131,7 @@ export const store = {
     this.notify();
 
     try {
-      const res = await fetch(`/api/tasks/${taskId}`, {
+      const res = await authFetch(`/api/tasks/${taskId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedFields)
@@ -155,7 +157,7 @@ export const store = {
       this.notify();
 
       try {
-        await fetch(`/api/tasks/${taskId}`, {
+        await authFetch(`/api/tasks/${taskId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status: newStatus })
@@ -173,7 +175,7 @@ export const store = {
       task.archived = 1;
       this.notify();
       try {
-        await fetch(`/api/tasks/${taskId}`, {
+        await authFetch(`/api/tasks/${taskId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ archived: 1 })
@@ -192,7 +194,7 @@ export const store = {
       task.archived = 0;
       this.notify();
       try {
-        await fetch(`/api/tasks/${taskId}`, {
+        await authFetch(`/api/tasks/${taskId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ archived: 0 })
@@ -214,7 +216,7 @@ export const store = {
       const removedTask = this.tasks.splice(taskIndex, 1)[0];
       this.notify();
       try {
-        await fetch(`/api/tasks/${taskId}`, {
+        await authFetch(`/api/tasks/${taskId}`, {
           method: 'DELETE'
         });
       } catch (e) {
@@ -239,7 +241,7 @@ export const store = {
     try {
       await Promise.all(
         pendingTasks.map(t =>
-          fetch(`/api/tasks/${t.id}`, {
+          authFetch(`/api/tasks/${t.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: 'Done' })
@@ -276,7 +278,7 @@ export const store = {
     try {
       await Promise.all(
         pendingTasksForDate.map(t =>
-          fetch(`/api/tasks/${t.id}`, {
+          authFetch(`/api/tasks/${t.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: 'Done' })

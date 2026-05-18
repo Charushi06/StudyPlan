@@ -5,6 +5,16 @@ const db = new sqlite3.Database(path.join(__dirname, 'studyplan.db'));
 
 function initDb() {
   db.serialize(() => {
+    db.run('PRAGMA foreign_keys = ON');
+
+    // Users Table
+    db.run(`CREATE TABLE IF NOT EXISTS users (
+      id TEXT PRIMARY KEY,
+      email TEXT UNIQUE NOT NULL,
+      password_hash TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`);
+
     // Subjects Table
     db.run(`CREATE TABLE IF NOT EXISTS subjects (
       id TEXT PRIMARY KEY,
@@ -17,6 +27,7 @@ function initDb() {
     // Tasks Table
     db.run(`CREATE TABLE IF NOT EXISTS tasks (
       id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
       subject_id TEXT,
       title TEXT NOT NULL,
       description TEXT,
@@ -27,8 +38,18 @@ function initDb() {
       notes TEXT,
       archived INTEGER DEFAULT 0,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (subject_id) REFERENCES subjects(id)
+      FOREIGN KEY (subject_id) REFERENCES subjects(id),
+      FOREIGN KEY (user_id) REFERENCES users(id)
     )`);
+
+    // Migration: ensure user_id exists for older databases
+    db.all('PRAGMA table_info(tasks)', (err, columns) => {
+      if (err) return;
+      const hasUserId = columns.some(col => col.name === 'user_id');
+      if (!hasUserId) {
+        db.run('ALTER TABLE tasks ADD COLUMN user_id TEXT');
+      }
+    });
 
     // Pre-populate some subjects if empty
     db.get('SELECT COUNT(*) as count FROM subjects', (err, row) => {

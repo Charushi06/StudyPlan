@@ -1,5 +1,6 @@
 import { store } from './store.js';
 import { extractTasksFromText } from './utils/api.js';
+import { authFetch } from './utils/auth.js';
 import { initGlobalErrorBoundary } from './utils/errorBoundary.js';
 import { analyzeWorkload } from './utils/scheduler.js';
 
@@ -362,7 +363,7 @@ function formatDate(dateStr) {
 
 async function downloadData() {
     try {
-        const response = await fetch('/api/download');
+        const response = await authFetch('/api/download');
         
         if (!response.ok) {
             throw new Error('Failed to download data');
