@@ -18,7 +18,9 @@
 
     <input id="auth-email" type="email" placeholder="Email address" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:12px; box-sizing:border-box;">
     
-    <input id="auth-password" type="password" placeholder="Password" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:20px; box-sizing:border-box;">
+    <input id="auth-password" type="password" placeholder="Password" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:20px; box-sizing:border-box;" onkeyup="validatePassword()">
+
+    <p id="message"></p>
 
     <button id="auth-submit-btn" style="width:100%; padding:12px; background:#4f46e5; color:white; border:none; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer;">
       Sign In
@@ -275,6 +277,9 @@
   document.getElementById('auth-toggle-btn').addEventListener('click', (e) => {
     e.preventDefault();
     isLogin = !isLogin;
+    document.getElementById('auth-email').value = '';
+    document.getElementById('auth-password').value = '';
+    document.getElementById('message').innerHTML = '';
     document.getElementById('auth-title').textContent = isLogin ? 'Welcome back' : 'Create account';
     document.getElementById('auth-subtitle').textContent = isLogin ? 'Sign in to your StudyPlan account' : 'Start planning your studies';
     document.getElementById('auth-submit-btn').textContent = isLogin ? 'Sign In' : 'Sign Up';
