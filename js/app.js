@@ -1,6 +1,7 @@
 import { store } from './store.js';
 import { extractTasksFromText } from './utils/api.js';
 import { initGlobalErrorBoundary } from './utils/errorBoundary.js';
+import { analyzeWorkload } from './utils/scheduler.js';
 
 initGlobalErrorBoundary();
 
@@ -441,12 +442,37 @@ function renderTasks() {
     });
   }
     
+<<<<<<< week-view-feature
     const renderGroup = (title, items, titleColor, showConflict = false) => {
       if (items.length === 0) return '';
       let html = `<div class="tasks-group">
         <div class="tasks-group-header">
           <span style="color:${titleColor}">${title}</span>
         </div>`;
+=======
+    if (showConflict) {
+      const workloadSuggestions = analyzeWorkload(items);
+      workloadSuggestions.forEach(workload => {
+        html += ` <div class="conflict-card smart-workload-card ${workload.level}">
+        <div class="smart-workload-title"> ⚠ Heavy workload detected on ${workload.date} </div>
+        <div class="smart-workload-score"> Workload Score: ${workload.score} </div>
+        <ul class="smart-suggestion-list"> ${workload.suggestions.map(s => `<li class="${s.includes('Suggested reschedule') ? 'smart-highlight' : ''}"> ${s} </li>`).join('')} </ul>
+        </div>`;
+      });
+    }
+    
+      
+    items.forEach(t => {
+      const sub = subjects.find(s => s.id === t.subject_id) || subjects[0];
+      const isUrgent = t.priority === 'high' && title === '⚠ Due soon';
+      const isDone = t.status === 'Done';
+      
+      let pillClass = '';
+      if(sub.short_code === 'CS') pillClass = 'pill-blue';
+      else if(sub.short_code === 'Maths') pillClass = 'pill-green';
+      else if(sub.short_code === 'English') pillClass = 'pill-purple';
+      else pillClass = 'pill-amber';
+>>>>>>> main
       
       if (showConflict && items.length >= 3) {
         html += `<div class="conflict-card" style="margin-bottom: 12px;">
@@ -524,6 +550,7 @@ function renderTasks() {
                 ${archiveBtn}
               </div>
             </div>
+<<<<<<< week-view-feature
           `;
         }
       });
@@ -541,6 +568,57 @@ function renderTasks() {
       const emptyState = dueSoon.length === 0 && completed.length === 0
         ? `<div class="tasks-empty-state">No tasks for this day yet.</div>`
         : '';
+=======
+          </div>
+        `;
+      }
+    });
+    html += `</div>`;
+    return html;
+  };
+  
+  if (currentView === 'calendar' && selectedDate) {
+    const selStr = selectedDate.toLocaleDateString('en-US', {month:'short', day:'numeric'});
+    const actionBar = `<div class="tasks-actions-bar">
+           <button id="mark-all-pending-btn" class="task-action-btn" ${pending.length === 0 ? 'disabled' : ''}>Mark all pending completed (${pending.length})</button>
+           <button id="mark-day-complete-btn" class="task-action-btn task-action-btn-secondary" ${pending.length === 0 ? 'disabled' : ''}>Mark selected day completed</button>
+         </div>`;
+
+    const emptyState = dueSoon.length === 0 && completed.length === 0
+      ? `<div class="tasks-empty-state">No tasks for this day yet.</div>`
+      : '';
+
+    tasksSection.innerHTML = actionBar +
+                             renderGroup(`Tasks for ${selStr}`, dueSoon, 'var(--color-text-primary)') +
+                             renderGroup('Completed', completed, 'var(--color-text-tertiary)') +
+                             emptyState;
+  } else {
+    const actionBar = currentView === 'archived' ? '' : `<div class="tasks-actions-bar">
+           <button id="mark-all-pending-btn" class="task-action-btn" ${pending.length === 0 ? 'disabled' : ''}>Mark all pending completed (${pending.length})</button>
+         </div>`;
+
+    const titlePrefix = currentView === 'archived' ? 'Archived: ' : '';
+    const emptyStateText = currentView === 'archived' ? 'No archived tasks.' : 'No tasks yet. Add tasks from Smart Paste to get started.';
+
+    const emptyState = dueSoon.length === 0 && thisWeek.length === 0 && completed.length === 0
+      ? `<div class="tasks-empty-state">${emptyStateText}</div>`
+      : '';
+
+    tasksSection.innerHTML = actionBar +
+                             renderGroup(titlePrefix + '⚠ Due soon', dueSoon, 'var(--color-text-danger)', true)
+                             renderGroup(titlePrefix + 'This week', thisWeek, 'var(--color-text-secondary)', true) +
+                             renderGroup(titlePrefix + 'Completed', completed, 'var(--color-text-tertiary)') +
+                             emptyState;
+  }
+                           
+  document.querySelectorAll('.task-item').forEach(el => {
+    el.addEventListener('click', (e) => {
+      if (e.target.closest('.task-actions') || e.target.closest('.task-check')) return;
+      
+      const taskId = el.dataset.id;
+      const task = store.tasks.find(t => String(t.id) === String(taskId));
+      if (task && task._isEditing) return;
+>>>>>>> main
       
       tasksSection.innerHTML = actionBar +
         renderGroup('⚠ Overdue', overdue, 'var(--color-text-danger)') +
