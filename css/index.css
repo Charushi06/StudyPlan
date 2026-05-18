@@ -2160,3 +2160,96 @@ body {
   color: #ffcc66;
   font-weight: 600;
 }
+
+/* Priority Badges & Selectors */
+.priority-badge {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid transparent;
+}
+.priority-badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.priority-high {
+  background: var(--color-background-danger);
+  color: var(--color-text-danger);
+  border-color: var(--color-border-danger);
+}
+.priority-high::before {
+  background: var(--color-text-danger);
+}
+.priority-medium {
+  background: var(--color-background-warning);
+  color: var(--color-text-warning);
+  border-color: rgba(133, 79, 11, 0.25);
+}
+.priority-medium::before {
+  background: var(--color-text-warning);
+}
+.priority-low {
+  background: var(--color-background-info);
+  color: var(--color-text-info);
+  border-color: var(--color-border-info);
+}
+.priority-low::before {
+  background: var(--color-text-info);
+}
+
+.priority-selector-group {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  width: 100%;
+}
+.priority-select-btn {
+  flex: 1;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #4b5563;
+  background-color: #111827;
+  color: #9ca3af;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: center;
+}
+.priority-select-btn:hover {
+  background-color: #1f2937;
+  color: #f9fafb;
+}
+.priority-select-btn:focus-visible {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.35);
+}
+.priority-select-btn[aria-checked="true"][data-priority="low"] {
+  border-color: var(--color-text-info);
+  background-color: rgba(24, 95, 165, 0.2);
+  color: var(--color-text-info);
+  box-shadow: 0 0 8px rgba(24, 95, 165, 0.25);
+}
+.priority-select-btn[aria-checked="true"][data-priority="medium"] {
+  border-color: var(--color-text-warning);
+  background-color: rgba(133, 79, 11, 0.2);
+  color: var(--color-text-warning);
+  box-shadow: 0 0 8px rgba(133, 79, 11, 0.25);
+}
+.priority-select-btn[aria-checked="true"][data-priority="high"] {
+  border-color: var(--color-text-danger);
+  background-color: rgba(163, 45, 45, 0.2);
+  color: var(--color-text-danger);
+  box-shadow: 0 0 8px rgba(163, 45, 45, 0.25);
+}
