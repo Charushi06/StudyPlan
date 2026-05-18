@@ -6,7 +6,7 @@ const { GoogleGenAI } = require('@google/genai');
 const path = require('path');
 const csvDownloadRouter = require('./backend/routers/csvDownload.router.js');
 const { nlpExtractTasksFromText } = require('./backend/utils/nlp.js');
-const authRouter = require('./backend/routers/auth.routers');
+const authRouter = require('./backend/routers/auth.router.js');
 
 const app = express();
 app.use(cors());
