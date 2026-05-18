@@ -1,20 +1,19 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const { db, initDb } = require('./database');
+const { initDb } = require('./database');
 const path = require('path');
 const csvDownloadRouter = require('./backend/routers/csvDownload.router.js');
 const authRouter = require('./backend/routers/auth.router.js');
 const subjectsRouter = require('./backend/routers/subjects.router.js');
 const tasksRouter = require('./backend/routers/tasks.router.js');
 const extractRouter = require('./backend/routers/extract.router.js');
+const debugRouter = require('./backend/routers/debug.router.js');
+const { notFoundApiHandler, notFoundHandler, errorHandler } = require('./backend/middlewares/errorHandler.js');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
-
-const page404Path = path.join(__dirname, '404.html');
-const page500Path = path.join(__dirname, 'error.html');
 
 // Static
 app.use('/css', express.static(path.join(__dirname, 'css')));
@@ -46,37 +45,13 @@ app.use('/api/extract', extractRouter);
 app.use('/api/auth', authRouter);
 
 // Intentional test route for verifying server error page behavior.
-app.get('/debug/force-error', (req, res, next) => {
-  next(new Error('Intentional test error'));
-});
+app.use('/debug', debugRouter);
 
 app.use('/api', csvDownloadRouter);
 
-app.use('/api', (req, res) => {
-  return res.status(404).json({ error: 'API route not found' });
-});
-
-app.use((req, res, next) => {
-  if (req.method !== 'GET') {
-    return next();
-  }
-
-  return res.status(404).sendFile(page404Path);
-});
-
-app.use((err, req, res, next) => {
-  console.error('Unhandled server error:', err);
-
-  if (res.headersSent) {
-    return next(err);
-  }
-
-  if (req.path.startsWith('/api')) {
-    return res.status(500).json({ error: 'Internal server error' });
-  }
-
-  return res.status(500).sendFile(page500Path);
-});
+app.use('/api', notFoundApiHandler);
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 // ================= SERVER =================
 const PORT = process.env.PORT || 3000;
