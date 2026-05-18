@@ -541,7 +541,7 @@ function renderTasks() {
       const emptyState = dueSoon.length === 0 && completed.length === 0
         ? `<div class="tasks-empty-state">No tasks for this day yet.</div>`
         : '';
-
+      
       tasksSection.innerHTML = actionBar +
         renderGroup('⚠ Overdue', overdue, 'var(--color-text-danger)') +
         renderGroup('⚠ Due soon', dueSoon, 'var(--color-text-warning)') +
