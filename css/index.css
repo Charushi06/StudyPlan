@@ -156,6 +156,34 @@ body {
 .cal-legend span { display: flex; align-items: center; gap: 6px; }
 .legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
 
+.cal-week-view .cal-day {
+  min-height: 100px;
+  position: relative;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  padding-top: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.cal-week-view .cal-day-indicators {
+  position: absolute;
+  bottom: 8px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+}
+
+.cal-week-view .cal-day-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
 /* Tasks */
 .tasks-section { flex: 1; overflow-y: auto; padding: 0 24px 24px; scroll-behavior: smooth; }
 .tasks-section::-webkit-scrollbar { width: 6px; }

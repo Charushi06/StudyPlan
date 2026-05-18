@@ -658,9 +658,10 @@ function renderTasks() {
 
 
 function renderDayView() {
-  const year = currentMonthDate.getFullYear();
-  const month = currentMonthDate.getMonth();
-  const day = currentMonthDate.getDate();
+  const targetDate = selectedDate || currentMonthDate;
+  const year = targetDate.getFullYear();
+  const month = targetDate.getMonth();
+  const day = targetDate.getDate();
   
   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   
@@ -755,8 +756,6 @@ function renderDayView() {
     });
   }
 }
-
-// Add this helper function for toggling tasks from inline onclick
 window.toggleTask = function(taskId) {
   store.toggleTaskStatus(taskId);
   setTimeout(() => {
@@ -833,6 +832,7 @@ function renderCalendar() {
       indicatorHtml += `</div>`;
     }
 
+    document.getElementById('cal-grid').className = 'cal-grid cal-month-view';
     const extraStyle = isSelected ? `border: 1.5px solid var(--color-text-primary);` : '';
 
     html += `<div class="cal-day interactive-day ${isToday ? 'today' : ''}" data-day="${i}" style="${extraStyle}">
@@ -915,15 +915,15 @@ function renderWeekCalendar() {
     });
 
     let indicatorHtml = '';
-    if (dayTasks.length > 0) {
+      if (dayTasks.length > 0) {
       const maxDots = 3;
       const hasMore = dayTasks.length > maxDots;
       const dotsToShow = hasMore ? maxDots - 1 : dayTasks.length;
       
       indicatorHtml = `<div class="cal-day-indicators">`;
       
-      for (let i = 0; i < dotsToShow; i++) {
-        const sub = store.subjects.find(s => s.id === dayTasks[i].subject_id) || store.subjects[0];
+      for (let j = 0; j < dotsToShow; j++) {
+        const sub = store.subjects.find(s => s.id === dayTasks[j].subject_id) || store.subjects[0];
         indicatorHtml += `<div class="cal-day-indicator" style="background:${sub ? sub.color : 'var(--color-text-danger)'}"></div>`;
       }
       
@@ -935,6 +935,11 @@ function renderWeekCalendar() {
       
       indicatorHtml += `</div>`;
     }
+    
+    html += `<div class="cal-day interactive-day ${isToday ? 'today' : ''}" data-day="${dayNum}" data-month="${date.getMonth()}" data-year="${date.getFullYear()}">
+      ${dayNum}
+      ${indicatorHtml}
+    </div>`;
 
   }
   
@@ -945,7 +950,7 @@ function renderWeekCalendar() {
     const day = parseInt(el.dataset.day);
     const month = parseInt(el.dataset.month);
     const year = parseInt(el.dataset.year);
-    currentMonthDate = new Date(year, month, day);
+    selectedDate = new Date(year, month, day);
     currentCalendarView = 'day';
     
     document.querySelectorAll('.view-btn').forEach(btn => {
@@ -1134,23 +1139,25 @@ document.addEventListener('DOMContentLoaded', () => {
   const archivedTasksBtn = document.getElementById('archived-tasks-btn');
   const focusModeBtn = document.getElementById('focus-mode-btn');
 
- // View toggle buttons - replace the old week button code
 const viewBtns = document.querySelectorAll('.view-btn');
 if(viewBtns.length > 0) {
   viewBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       currentCalendarView = btn.dataset.view;
       
-      // Update active class
       viewBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       
-      // Render the selected view
       if(currentCalendarView === 'month') {
+        selectedDate = null;
         renderCalendar();
       } else if(currentCalendarView === 'week') {
+        selectedDate = null;
         renderWeekCalendar();
       } else if(currentCalendarView === 'day') {
+        if (!selectedDate) {
+          selectedDate = new Date();
+        }
         renderDayView();
       }
       renderTasks();
@@ -1228,7 +1235,10 @@ document.getElementById('cal-prev').addEventListener('click', () => {
     currentMonthDate.setDate(currentMonthDate.getDate() - 7);
     renderWeekCalendar();
   } else if(currentCalendarView === 'day') {
-    currentMonthDate.setDate(currentMonthDate.getDate() - 1);
+    const currentDate = selectedDate || currentMonthDate;
+    const newDate = new Date(currentDate);
+    newDate.setDate(currentDate.getDate() - 1);
+    selectedDate = newDate;
     renderDayView();
   }
   renderTasks();
@@ -1242,11 +1252,15 @@ document.getElementById('cal-next').addEventListener('click', () => {
     currentMonthDate.setDate(currentMonthDate.getDate() + 7);
     renderWeekCalendar();
   } else if(currentCalendarView === 'day') {
-    currentMonthDate.setDate(currentMonthDate.getDate() + 1);
+    const currentDate = selectedDate || currentMonthDate;
+    const newDate = new Date(currentDate);
+    newDate.setDate(currentDate.getDate() + 1);
+    selectedDate = newDate;
     renderDayView();
   }
   renderTasks();
 });
+
 
 newTaskBtn.addEventListener('click', () => {
   
