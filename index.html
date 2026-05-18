@@ -210,7 +210,7 @@
 </div>
 
 <footer class="site-footer">
-  <p>© 2026 StudyPlan. All rights reserved.</p>
+  <p>© <span id="current-year"></span> StudyPlan. All rights reserved.</p>
   <div class="footer-links">
     <a href="/support-page/index.html#privacy">Privacy</a>
     <a href="/support-page/index.html#terms">Terms</a>
@@ -453,3 +453,5 @@
 </div>
 </body>
 </html>
+// Dynamic Footer Year
+document.getElementById("current-year").textContent = new Date().getFullYear();
