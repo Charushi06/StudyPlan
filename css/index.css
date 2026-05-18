@@ -2160,3 +2160,186 @@ body {
   color: #ffcc66;
   font-weight: 600;
 }
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-background-secondary);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-primary);
+  border-radius: 10px;
+  transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-secondary);
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-primary) var(--color-background-secondary);
+}
+
+/* Theme-specific scrollbar colors */
+html.dark-mode ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+html.dark-mode ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+html.dark-mode ::-webkit-scrollbar-track {
+  background: #20201e;
+}
+
+html.light-mode ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+html.light-mode ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+html.light-mode ::-webkit-scrollbar-track {
+  background: #f7f7f5;
+}
+
+/* Theme Toggle Button */
+.theme-toggle-btn {
+  background: var(--color-background-secondary);
+  border: 1px solid var(--color-border-tertiary);
+  border-radius: 8px;
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  color: var(--color-text-primary);
+}
+
+.theme-toggle-btn:hover {
+  background: var(--color-background-tertiary);
+  border-color: var(--color-border-secondary);
+}
+
+.theme-toggle-btn svg {
+  transition: transform 0.3s ease;
+}
+
+/* Manual Dark Theme */
+html.dark-mode {
+  --color-background-primary: #181816 !important;
+  --color-background-secondary: #20201e !important;
+  --color-background-tertiary: #272725 !important;
+  --color-text-primary: #efede5 !important;
+  --color-text-secondary: #a3a198 !important;
+  --color-text-tertiary: #73726c !important;
+  --color-border-tertiary: rgba(255,255,255,0.06) !important;
+  --color-border-secondary: rgba(255,255,255,0.12) !important;
+  --color-border-primary: rgba(255,255,255,0.22) !important;
+  --color-text-danger: #fc9c9c !important;
+  --color-background-danger: rgba(252, 156, 156, 0.15) !important;
+  --color-border-danger: rgba(252,156,156,0.3) !important;
+  
+  --color-text-info: #9ecdfc !important;
+  --color-background-info: rgba(158, 205, 252, 0.15) !important;
+  --color-border-info: rgba(158,205,252,0.3) !important;
+  
+  --color-text-success: #a0d45a !important;
+  --color-background-success: rgba(160, 212, 90, 0.15) !important;
+  --color-border-success: rgba(160,212,90,0.3) !important;
+
+  --color-text-warning: #fab35e !important;
+  --color-background-warning: rgba(250, 179, 94, 0.15) !important;
+
+  --color-text-purple: #b9b5f5 !important;
+  --color-background-purple: rgba(185, 181, 245, 0.15) !important;
+}
+
+/* Manual Light Theme */
+html.light-mode {
+  --color-background-primary: #ffffff !important;
+  --color-background-secondary: #f7f7f5 !important;
+  --color-background-tertiary: #efefec !important;
+  --color-text-primary: #1a1a18 !important;
+  --color-text-secondary: #6b6b66 !important;
+  --color-text-tertiary: #9c9a92 !important;
+  --color-border-tertiary: rgba(0,0,0,0.08) !important;
+  --color-border-secondary: rgba(0,0,0,0.15) !important;
+  --color-border-primary: rgba(0,0,0,0.30) !important;
+  --color-text-danger: #a32d2d !important;
+  --color-background-danger: #fcebeb !important;
+  --color-border-danger: rgba(163, 45, 45, 0.35) !important;
+  
+  --color-text-info: #185fa5 !important;
+  --color-background-info: #e6f1fb !important;
+  --color-border-info: rgba(24, 95, 165, 0.35) !important;
+  
+  --color-text-success: #166534 !important;
+  --color-background-success: #eaf3de !important;
+  --color-border-success: rgba(22, 101, 52, 0.35) !important;
+
+  --color-text-warning: #854f0b !important;
+  --color-background-warning: #faeeda !important;
+
+  --color-text-purple: #3c3489 !important;
+  --color-background-purple: #eeedfe !important;
+}
+
+/* Header Right Section */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Fix sidebar overflow issue */
+.app {
+  min-width: 0;
+}
+
+/* Fix panel collapse issue */
+.panel.panel-collapsed {
+  width: 0 !important;
+  min-width: 0 !important;
+  border-left: none !important;
+}
+
+.panel.panel-collapsed .panel-header {
+  width: 40px;
+  min-width: 40px;
+}
+
+/* Enhanced Calendar Styling */
+.cal-day {
+  border: 1px solid var(--color-border-tertiary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  background: var(--color-background-primary);
+  transition: all 0.2s ease;
+}
+
+.cal-day:hover {
+  border-color: var(--color-border-secondary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.cal-day.today {
+  border-color: var(--color-text-primary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.cal-day.muted {
+  border-color: var(--color-border-tertiary);
+  opacity: 0.6;
+}
