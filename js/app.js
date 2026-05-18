@@ -43,11 +43,11 @@ function generateSummary(tasks, subjects) {
   return `
     <strong>📅 Daily</strong><br>
     Today you have <b>${todayCount}</b> task(s).<br>
-    Focus on <b>${topSubject}</b>.<br><br>
+    Focus on <b>${escapeHtml(topSubject)}</b>.<br><br>
 
     <strong>📊 Weekly</strong><br>
     This week you have <b>${weekCount}</b> task(s).<br>
-    Most work is in <b>${topSubject}</b>.
+    Most work is in <b>${escapeHtml(topSubject)}</b>.
   `;
 }
 
@@ -295,9 +295,9 @@ function renderFocusTasks() {
       
       return `
         <div class="focus-task-item" data-id="${t.id}">
-          <div class="task-name">${t.title}</div>
+          <div class="task-name">${escapeHtml(t.title)}</div>
           <div class="task-meta">
-            <span class="task-pill ${pillClass}">${sub.short_code}</span>
+            <span class="task-pill ${pillClass}">${escapeHtml(sub.short_code)}</span>
           </div>
         </div>
       `;
@@ -317,10 +317,10 @@ function renderFocusTasks() {
       const sub = subjects.find(s => s.id === activeT.subject_id) || subjects[0] || { name: 'General' };
       activeFocusTask.innerHTML = `
         <div class="task-info" style="width: 100%">
-          <div class="task-name" style="font-size: 16px;">${activeT.title}</div>
+          <div class="task-name" style="font-size: 16px;">${escapeHtml(activeT.title)}</div>
           <div class="task-meta">
             <span class="task-pill pill-amber">Due ${formatDate(activeT.due_at)}</span>
-            <span class="task-pill">${sub.name}</span>
+            <span class="task-pill">${escapeHtml(sub.name)}</span>
           </div>
           <div style="margin-top: 12px; display: flex; gap: 8px;">
             <button class="btn btn-primary complete-focus-task-btn" data-id="${activeT.id}">Mark Done</button>
@@ -452,7 +452,7 @@ function renderTasks() {
         html += ` <div class="conflict-card smart-workload-card ${workload.level}">
         <div class="smart-workload-title"> ⚠ Heavy workload detected on ${workload.date} </div>
         <div class="smart-workload-score"> Workload Score: ${workload.score} </div>
-        <ul class="smart-suggestion-list"> ${workload.suggestions.map(s => `<li class="${s.includes('Suggested reschedule') ? 'smart-highlight' : ''}"> ${s} </li>`).join('')} </ul>
+        <ul class="smart-suggestion-list"> ${workload.suggestions.map(s => `<li class="${s.includes('Suggested reschedule') ? 'smart-highlight' : ''}"> ${escapeHtml(s)} </li>`).join('')} </ul>
         </div>`;
       });
     }
@@ -470,8 +470,8 @@ function renderTasks() {
       else pillClass = 'pill-amber';
       
       if (t._isEditing) {
-        let subjectOptions = subjects.map(s => 
-          `<option value="${s.id}" ${s.id === t.subject_id ? 'selected' : ''}>${s.name}</option>`
+        let subjectOptions = subjects.map(s =>
+          `<option value="${s.id}" ${s.id === t.subject_id ? 'selected' : ''}>${escapeHtml(s.name)}</option>`
         ).join('');
         
         const localDate = t.due_at ? new Date(t.due_at).toISOString().substring(0, 16) : '';
@@ -485,13 +485,13 @@ function renderTasks() {
             </select>
 
             <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Task Name</label>
-            <input class="board-edit-title edit-field" type="text" value="${t.title}" style="width:100%; margin-bottom: 12px; font-size:13px; font-weight:600; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
+            <input class="board-edit-title edit-field" type="text" value="${escapeHtml(t.title)}" style="width:100%; margin-bottom: 12px; font-size:13px; font-weight:600; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
 
             <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Deadline</label>
             <input class="board-edit-date edit-field" type="datetime-local" value="${localDate}" style="width:100%; margin-bottom: 12px; font-size:12px; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
 
             <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Notes</label>
-            <input class="board-edit-notes edit-field" type="text" value="${t.notes || ''}" placeholder="Notes..." style="width:100%; margin-bottom: 12px; font-size:12px; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
+            <input class="board-edit-notes edit-field" type="text" value="${escapeHtml(t.notes || '')}" placeholder="Notes..." style="width:100%; margin-bottom: 12px; font-size:12px; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
 
             <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Priority</label>
             <select class="board-edit-priority edit-field" style="width:100%; margin-bottom: 12px; font-size:12px; padding:4px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
@@ -517,10 +517,10 @@ function renderTasks() {
           <div class="task-item ${isUrgent ? 'urgent' : ''} ${isDone ? 'done' : ''}" data-id="${t.id}">
             <div class="task-check ${isDone ? 'done' : ''}"></div>
             <div class="task-info">
-              <div class="task-name">${t.title}</div>
+              <div class="task-name">${escapeHtml(t.title)}</div>
               <div class="task-meta">
                 <span class="task-pill ${isDone ? 'pill-green' : (isUrgent ? 'pill-red' : 'pill-amber')}">${isDone ? 'Done' : 'Due ' + formatDate(t.due_at)}</span>
-                <span class="task-pill ${pillClass}">${sub.short_code}</span>
+                <span class="task-pill ${pillClass}">${escapeHtml(sub.short_code)}</span>
               </div>
             </div>
             <div class="task-actions">
@@ -771,8 +771,8 @@ function renderExtraction() {
     item.subject_id = sub.id;
     
     if (item._isEditing) {
-      let subjectOptions = store.subjects.map(s => 
-        `<option value="${s.id}" ${s.id === sub.id ? 'selected' : ''}>${s.name}</option>`
+      let subjectOptions = store.subjects.map(s =>
+        `<option value="${s.id}" ${s.id === sub.id ? 'selected' : ''}>${escapeHtml(s.name)}</option>`
       ).join('');
       
       const localDate = item.due_at ? new Date(item.due_at).toISOString().substring(0, 16) : '';
@@ -785,13 +785,13 @@ function renderExtraction() {
           </select>
 
           <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Task Name</label>
-          <input class="edit-title-input edit-field" type="text" value="${item.title}" data-index="${index}" style="width:100%; margin-bottom: 12px; font-size:13px; font-weight:600; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
+          <input class="edit-title-input edit-field" type="text" value="${escapeHtml(item.title)}" data-index="${index}" style="width:100%; margin-bottom: 12px; font-size:13px; font-weight:600; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
 
           <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Deadline</label>
           <input class="edit-date-input edit-field" type="datetime-local" value="${localDate}" data-index="${index}" style="width:100%; margin-bottom: 12px; font-size:12px; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
 
           <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Notes</label>
-          <input class="edit-notes-input edit-field" type="text" value="${item.notes || ''}" data-index="${index}" placeholder="Notes..." style="width:100%; margin-bottom: 12px; font-size:12px; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
+          <input class="edit-notes-input edit-field" type="text" value="${escapeHtml(item.notes || '')}" data-index="${index}" placeholder="Notes..." style="width:100%; margin-bottom: 12px; font-size:12px; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
 
           <div style="display:flex; justify-content: flex-end; gap: 8px; margin-top: 4px;">
             <button class="btn btn-primary save-edit-btn" data-index="${index}" style="padding: 6px 12px; font-size: 11px;">Save Changes</button>
@@ -801,10 +801,10 @@ function renderExtraction() {
     } else {
       html += `
         <div class="extract-card" style="animation-delay: ${index * 0.1}s">
-          <div class="extract-subject" style="color:${sub.color}">${sub.name}</div>
-          <div class="extract-task-name">${item.title}</div>
-          <div class="extract-row"><span class="extract-icon">${item.icon || '📅'}</span> ${formatDate(item.due_at)}</div>
-          <div class="extract-row"><span class="extract-icon">📎</span> ${item.notes || 'No notes attached'}</div>
+          <div class="extract-subject" style="color:${escapeHtml(sub.color)}">${escapeHtml(sub.name)}</div>
+          <div class="extract-task-name">${escapeHtml(item.title)}</div>
+          <div class="extract-row"><span class="extract-icon">${escapeHtml(item.icon || '📅')}</span> ${formatDate(item.due_at)}</div>
+          <div class="extract-row"><span class="extract-icon">📎</span> ${escapeHtml(item.notes || 'No notes attached')}</div>
           <div class="conf-bar"><div class="conf-fill" style="width:0%;background:${item.confidence_score > 75 ? 'var(--color-text-success)' : 'var(--color-text-warning)'}" data-width="${item.confidence_score}"></div></div>
           <div class="conf-label">${item.confidence_score}% confidence <span class="conf-edit" data-index="${index}" tabindex="0">Edit</span></div>
         </div>
