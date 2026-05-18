@@ -17,15 +17,13 @@ function generateSummary(tasks, subjects) {
     if (t.archived || t.status === 'Done' || !t.due_at) return;
 
     const d = new Date(t.due_at);
-
-    // today
-    if (d.toDateString() === now.toDateString()) {
-      todayCount++;
-    }
-
-    // this week
-    if (d >= now && d <= weekEnd) {
-      weekCount++;
+    const diffDays = (d - now) / (1000 * 60 * 60 * 24);
+    if (diffDays < 0) {
+      dueSoon.push(t);
+    } else if (diffDays <= 3) {
+      dueSoon.push(t);
+    } else {
+      thisWeek.push(t);
     }
 
     const sub = subjects.find(s => s.id === t.subject_id);
@@ -407,36 +405,42 @@ function renderTasks() {
   const sorted = [...displayTasks].sort((a,b) => new Date(a.due_at) - new Date(b.due_at));
   
   const now = new Date(); 
-  
-  const dueSoon = [];
-  const thisWeek = [];
-  const completed = [];
-  const pending = [];
-  
-  if (currentView === 'calendar' && selectedDate) {
-    sorted.forEach(t => {
-      const d = new Date(t.due_at);
-      if (d.getDate() === selectedDate.getDate() && d.getMonth() === selectedDate.getMonth() && d.getFullYear() === selectedDate.getFullYear()) {
-        if (t.status === 'Done') completed.push(t);
-        else {
-          dueSoon.push(t);
-          pending.push(t);
-        }
+
+const overdue = [];
+const dueSoon = [];
+const thisWeek = [];
+const completed = [];
+const pending = [];
+
+if (currentView === 'calendar' && selectedDate) {
+  sorted.forEach(t => {
+    const d = new Date(t.due_at);
+    if (d.getDate() === selectedDate.getDate() && d.getMonth() === selectedDate.getMonth() && d.getFullYear() === selectedDate.getFullYear()) {
+      if (t.status === 'Done') completed.push(t);
+      else {
+        dueSoon.push(t);
+        pending.push(t);
       }
-    });
-  } else {
-    sorted.forEach(t => {
-      if (t.status === 'Done') {
-        completed.push(t);
-        return;
-      }
-      pending.push(t);
-      const d = new Date(t.due_at);
-      const diffDays = (d - now) / (1000 * 60 * 60 * 24);
-      if (diffDays <= 3) dueSoon.push(t);
-      else thisWeek.push(t);
-    });
-  }
+    }
+  });
+} else {
+  sorted.forEach(t => {
+    if (t.status === 'Done') {
+      completed.push(t);
+      return;
+    }
+    pending.push(t);
+    const d = new Date(t.due_at);
+    const diffDays = (d - now) / (1000 * 60 * 60 * 24);
+    if (diffDays < 0) {
+      overdue.push(t);
+    } else if (diffDays <= 3) {
+      dueSoon.push(t);
+    } else {
+      thisWeek.push(t);
+    }
+  });
+}
   
   const renderGroup = (title, items, titleColor, showConflict = false) => {
     if (items.length === 0) return '';
@@ -540,9 +544,11 @@ function renderTasks() {
       : '';
 
     tasksSection.innerHTML = actionBar +
-                             renderGroup(`Tasks for ${selStr}`, dueSoon, 'var(--color-text-primary)') +
-                             renderGroup('Completed', completed, 'var(--color-text-tertiary)') +
-                             emptyState;
+                         renderGroup(titlePrefix + '⚠ Overdue', overdue, 'var(--color-text-danger)') +
+                         renderGroup(titlePrefix + '⚠ Due soon', dueSoon, 'var(--color-text-warning)') +
+                         renderGroup(titlePrefix + 'This week', thisWeek, 'var(--color-text-secondary)', true) +
+                         renderGroup(titlePrefix + 'Completed', completed, 'var(--color-text-tertiary)') +
+                         emptyState;
   } else {
     const actionBar = currentView === 'archived' ? '' : `<div class="tasks-actions-bar">
            <button id="mark-all-pending-btn" class="task-action-btn" ${pending.length === 0 ? 'disabled' : ''}>Mark all pending completed (${pending.length})</button>
@@ -556,10 +562,11 @@ function renderTasks() {
       : '';
 
     tasksSection.innerHTML = actionBar +
-                             renderGroup(titlePrefix + '⚠ Due soon', dueSoon, 'var(--color-text-danger)') +
-                             renderGroup(titlePrefix + 'This week', thisWeek, 'var(--color-text-secondary)', true) +
-                             renderGroup(titlePrefix + 'Completed', completed, 'var(--color-text-tertiary)') +
-                             emptyState;
+                         renderGroup(titlePrefix + '⚠ Overdue', overdue, 'var(--color-text-danger)') +
+                         renderGroup(titlePrefix + '⚠ Due soon', dueSoon, 'var(--color-text-warning)') +
+                         renderGroup(titlePrefix + 'This week', thisWeek, 'var(--color-text-secondary)', true) +
+                         renderGroup(titlePrefix + 'Completed', completed, 'var(--color-text-tertiary)') +
+                         emptyState;
   }
                            
   document.querySelectorAll('.task-item').forEach(el => {
