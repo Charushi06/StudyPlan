@@ -72,7 +72,16 @@ function syncNewTaskPriorityButtons() {
   newTaskPriorityGroup.querySelectorAll('.priority-select-btn').forEach(btn => {
     const isActive = btn.dataset.priority === selectedNewTaskPriority;
     btn.setAttribute('aria-checked', isActive ? 'true' : 'false');
+    btn.setAttribute('tabindex', isActive ? '0' : '-1');
   });
+}
+
+function normalizePriority(val) {
+  const normalized = String(val || '').toLowerCase().trim();
+  if (['low', 'medium', 'high'].includes(normalized)) {
+    return normalized;
+  }
+  return 'medium';
 }
 
 
@@ -486,7 +495,7 @@ function renderTasks() {
       else if(sub.short_code === 'English') pillClass = 'pill-purple';
       else pillClass = 'pill-amber';
       
-      const priorityVal = t.priority || 'medium';
+      const priorityVal = normalizePriority(t.priority);
       
       if (t._isEditing) {
         let subjectOptions = subjects.map(s => 
@@ -796,7 +805,7 @@ function renderExtraction() {
       ).join('');
       
       const localDate = item.due_at ? new Date(item.due_at).toISOString().substring(0, 16) : '';
-      const priorityVal = item.priority || 'medium';
+      const priorityVal = normalizePriority(item.priority);
       
       html += `
         <div class="extract-card">
@@ -826,8 +835,7 @@ function renderExtraction() {
           </div>
         </div>
       `;
-    } else {
-      const pVal = item.priority || 'medium';
+      const pVal = normalizePriority(item.priority);
       html += `
         <div class="extract-card" style="animation-delay: ${index * 0.1}s">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
@@ -1039,16 +1047,32 @@ newTaskBtn.addEventListener('click', () => {
 
 // Bind priority picker buttons once in DOMContentLoaded
 if (newTaskPriorityGroup) {
-  newTaskPriorityGroup.querySelectorAll('.priority-select-btn').forEach(btn => {
+  const btns = Array.from(newTaskPriorityGroup.querySelectorAll('.priority-select-btn'));
+  btns.forEach((btn, index) => {
     btn.addEventListener('click', () => {
       selectedNewTaskPriority = btn.dataset.priority;
       syncNewTaskPriorityButtons();
     });
+    
     btn.addEventListener('keydown', (e) => {
+      let targetIndex = -1;
       if (e.key === ' ' || e.key === 'Enter') {
         e.preventDefault();
         selectedNewTaskPriority = btn.dataset.priority;
         syncNewTaskPriorityButtons();
+      } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        targetIndex = (index + 1) % btns.length;
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        targetIndex = (index - 1 + btns.length) % btns.length;
+      }
+      
+      if (targetIndex !== -1) {
+        const targetBtn = btns[targetIndex];
+        selectedNewTaskPriority = targetBtn.dataset.priority;
+        syncNewTaskPriorityButtons();
+        targetBtn.focus();
       }
     });
   });
