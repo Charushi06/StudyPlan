@@ -6,6 +6,7 @@ const { GoogleGenAI } = require('@google/genai');
 const path = require('path');
 const csvDownloadRouter = require('./backend/routers/csvDownload.router.js');
 const { nlpExtractTasksFromText } = require('./backend/utils/nlp.js');
+const authRouter = require('./backend/routers/auth.routers');
 
 const app = express();
 app.use(cors());
@@ -336,89 +337,9 @@ Text: "${text}"
   console.log(tasks)
   return res.json(tasks);
 });
+
 // ================= AUTH =================
-
-// SIGNUP
-app.post('/api/auth/signup', (req, res) => {
-  const { email, password } = req.body;
-
-  if (!email || !password) {
-    return res.status(400).json({
-      error: 'Email and password required'
-    });
-  }
-
-  const id = 'user_' + Date.now();
-
-  db.run(
-    `INSERT INTO users (id, email, password)
-     VALUES (?, ?, ?)`,
-    [id, email, password],
-    function(err) {
-
-      if (err) {
-
-        if (err.message.includes('UNIQUE')) {
-          return res.status(400).json({
-            error: 'User already exists'
-          });
-        }
-
-        return res.status(500).json({
-          error: err.message
-        });
-      }
-
-      res.json({
-        success: true,
-        message: 'Account created successfully'
-      });
-    }
-  );
-});
-
-// LOGIN
-app.post('/api/auth/login', (req, res) => {
-  const { email, password } = req.body;
-
-  if (!email || !password) {
-    return res.status(400).json({
-      error: 'Email and password required'
-    });
-  }
-
-  db.get(
-    `SELECT * FROM users WHERE email = ?`,
-    [email],
-    (err, user) => {
-
-      if (err) {
-        return res.status(500).json({
-          error: err.message
-        });
-      }
-
-      if (!user || user.password !== password) {
-        return res.status(401).json({
-          error: 'Invalid email or password'
-        });
-      }
-
-      res.json({
-        success: true,
-        email: user.email
-      });
-    }
-  );
-});
-
-// LOGOUT
-app.post('/api/auth/logout', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Logged out successfully'
-  });
-});
+app.use('/api/auth', authRouter);
 
 // Intentional test route for verifying server error page behavior.
 app.get('/debug/force-error', (req, res, next) => {
