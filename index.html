@@ -442,8 +442,15 @@
     <label style="display:block; font-size:12px; margin-bottom:4px;">Deadline</label>
     <input id="new-task-date" type="datetime-local" style="width:100%; padding:6px; margin-bottom:10px;" placeholder="Deadline">
 
-    <!-- <label style="display:block; font-size:12px; margin-bottom:4px;">Notes</label> -->
-    <input id="new-task-notes" type="text" style="width:100%; padding:6px; margin-bottom:16px;" placeholder="Notes">
+    <label style="display:block; font-size:12px; margin-bottom:4px;">Notes</label>
+    <input id="new-task-notes" type="text" style="width:100%; padding:6px; margin-bottom:10px;" placeholder="Notes">
+
+    <label style="display:block; font-size:12px; margin-bottom:4px;">Priority</label>
+    <div id="new-task-priority-group" class="priority-selector-group" role="radiogroup" aria-label="Task Priority">
+      <button type="button" class="priority-select-btn" data-priority="low" role="radio" aria-checked="false" tabindex="0">Low</button>
+      <button type="button" class="priority-select-btn" data-priority="medium" role="radio" aria-checked="true" tabindex="0">Medium</button>
+      <button type="button" class="priority-select-btn" data-priority="high" role="radio" aria-checked="false" tabindex="0">High</button>
+    </div>
 
     <div style="display:flex; justify-content:flex-end; gap:8px;">
       <button id="new-task-cancel" class="btn" style="padding:6px 10px;">Cancel</button>

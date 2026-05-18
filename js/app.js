@@ -64,6 +64,25 @@ const clearBtn = document.getElementById('clear-btn');
 const addItemsBtn = document.getElementById('add-btn');
 const downloadBtn = document.getElementById('download-btn');
 const newTaskBtn = document.getElementById('add-task-btn');
+const newTaskPriorityGroup = document.getElementById('new-task-priority-group');
+let selectedNewTaskPriority = 'medium';
+
+function syncNewTaskPriorityButtons() {
+  if (!newTaskPriorityGroup) return;
+  newTaskPriorityGroup.querySelectorAll('.priority-select-btn').forEach(btn => {
+    const isActive = btn.dataset.priority === selectedNewTaskPriority;
+    btn.setAttribute('aria-checked', isActive ? 'true' : 'false');
+    btn.setAttribute('tabindex', isActive ? '0' : '-1');
+  });
+}
+
+function normalizePriority(val) {
+  const normalized = String(val || '').toLowerCase().trim();
+  if (['low', 'medium', 'high'].includes(normalized)) {
+    return normalized;
+  }
+  return 'medium';
+}
 
 
 
@@ -402,10 +421,17 @@ function renderTasks() {
   const archivedBadge = document.querySelector('#archived-tasks-btn .badge');
   if (archivedBadge) {
     archivedBadge.textContent = archivedTasks.length;
-  }
+  }  const displayTasks = currentView === 'archived' ? archivedTasks : activeTasks;
   
-  const displayTasks = currentView === 'archived' ? archivedTasks : activeTasks;
-  const sorted = [...displayTasks].sort((a,b) => new Date(a.due_at) - new Date(b.due_at));
+  const priorityWeight = { 'high': 3, 'medium': 2, 'low': 1 };
+  const sorted = [...displayTasks].sort((a, b) => {
+    const weightA = priorityWeight[a.priority] || 2;
+    const weightB = priorityWeight[b.priority] || 2;
+    if (weightB !== weightA) {
+      return weightB - weightA;
+    }
+    return new Date(a.due_at) - new Date(b.due_at);
+  });
   
   const now = new Date(); 
   
@@ -469,13 +495,14 @@ function renderTasks() {
       else if(sub.short_code === 'English') pillClass = 'pill-purple';
       else pillClass = 'pill-amber';
       
+      const priorityVal = normalizePriority(t.priority);
+      
       if (t._isEditing) {
         let subjectOptions = subjects.map(s => 
           `<option value="${s.id}" ${s.id === t.subject_id ? 'selected' : ''}>${s.name}</option>`
         ).join('');
         
         const localDate = t.due_at ? new Date(t.due_at).toISOString().substring(0, 16) : '';
-        const isHighPriority = t.priority === 'high';
         
         html += `
           <div class="task-item" style="display:block; padding:12px; cursor:default;" data-id="${t.id}">
@@ -483,22 +510,23 @@ function renderTasks() {
             <select class="board-edit-subject edit-field" style="width:100%; margin-bottom: 12px; font-size:12px; padding:4px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
               ${subjectOptions}
             </select>
-
+ 
             <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Task Name</label>
             <input class="board-edit-title edit-field" type="text" value="${t.title}" style="width:100%; margin-bottom: 12px; font-size:13px; font-weight:600; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
-
+ 
             <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Deadline</label>
             <input class="board-edit-date edit-field" type="datetime-local" value="${localDate}" style="width:100%; margin-bottom: 12px; font-size:12px; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
-
+ 
             <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Notes</label>
             <input class="board-edit-notes edit-field" type="text" value="${t.notes || ''}" placeholder="Notes..." style="width:100%; margin-bottom: 12px; font-size:12px; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
-
+ 
             <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Priority</label>
             <select class="board-edit-priority edit-field" style="width:100%; margin-bottom: 12px; font-size:12px; padding:4px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
-              <option value="medium" ${!isHighPriority ? 'selected' : ''}>Medium</option>
-              <option value="high" ${isHighPriority ? 'selected' : ''}>High</option>
+              <option value="low" ${priorityVal === 'low' ? 'selected' : ''}>Low</option>
+              <option value="medium" ${priorityVal === 'medium' ? 'selected' : ''}>Medium</option>
+              <option value="high" ${priorityVal === 'high' ? 'selected' : ''}>High</option>
             </select>
-
+ 
             <div style="display:flex; justify-content: flex-end; gap: 8px; margin-top: 4px;">
               <button class="btn cancel-board-edit-btn" data-id="${t.id}" style="padding: 6px 12px; font-size: 11px; background: var(--color-background-secondary); color: var(--color-text-primary); border: 1px solid var(--color-border-secondary);">Cancel</button>
               <button class="btn btn-primary save-board-edit-btn" data-id="${t.id}" style="padding: 6px 12px; font-size: 11px;">Save</button>
@@ -512,7 +540,7 @@ function renderTasks() {
           : `<button class="task-btn edit-task-btn" data-id="${t.id}" title="Edit">✏️ Edit</button>
              <button class="task-btn task-btn-info restore-task-btn" data-id="${t.id}" title="Restore">Restore</button>
              <button class="task-btn task-btn-danger delete-task-btn" data-id="${t.id}" title="Permanent Delete">Delete</button>`;
-
+ 
         html += `
           <div class="task-item ${isUrgent ? 'urgent' : ''} ${isDone ? 'done' : ''}" data-id="${t.id}">
             <div class="task-check ${isDone ? 'done' : ''}"></div>
@@ -521,6 +549,7 @@ function renderTasks() {
               <div class="task-meta">
                 <span class="task-pill ${isDone ? 'pill-green' : (isUrgent ? 'pill-red' : 'pill-amber')}">${isDone ? 'Done' : 'Due ' + formatDate(t.due_at)}</span>
                 <span class="task-pill ${pillClass}">${sub.short_code}</span>
+                <span class="priority-badge priority-${priorityVal}">${priorityVal}</span>
               </div>
             </div>
             <div class="task-actions">
@@ -776,6 +805,7 @@ function renderExtraction() {
       ).join('');
       
       const localDate = item.due_at ? new Date(item.due_at).toISOString().substring(0, 16) : '';
+      const priorityVal = normalizePriority(item.priority);
       
       html += `
         <div class="extract-card">
@@ -793,15 +823,25 @@ function renderExtraction() {
           <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Notes</label>
           <input class="edit-notes-input edit-field" type="text" value="${item.notes || ''}" data-index="${index}" placeholder="Notes..." style="width:100%; margin-bottom: 12px; font-size:12px; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
 
+          <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Priority</label>
+          <select class="edit-priority-input edit-field" data-index="${index}" style="width:100%; margin-bottom: 12px; font-size:12px; padding:4px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
+            <option value="low" ${priorityVal === 'low' ? 'selected' : ''}>Low</option>
+            <option value="medium" ${priorityVal === 'medium' ? 'selected' : ''}>Medium</option>
+            <option value="high" ${priorityVal === 'high' ? 'selected' : ''}>High</option>
+          </select>
+
           <div style="display:flex; justify-content: flex-end; gap: 8px; margin-top: 4px;">
             <button class="btn btn-primary save-edit-btn" data-index="${index}" style="padding: 6px 12px; font-size: 11px;">Save Changes</button>
           </div>
         </div>
       `;
-    } else {
+      const pVal = normalizePriority(item.priority);
       html += `
         <div class="extract-card" style="animation-delay: ${index * 0.1}s">
-          <div class="extract-subject" style="color:${sub.color}">${sub.name}</div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
+            <div class="extract-subject" style="color:${sub.color}">${sub.name}</div>
+            <span class="priority-badge priority-${pVal}">${pVal}</span>
+          </div>
           <div class="extract-task-name">${item.title}</div>
           <div class="extract-row"><span class="extract-icon">${item.icon || '📅'}</span> ${formatDate(item.due_at)}</div>
           <div class="extract-row"><span class="extract-icon">📎</span> ${item.notes || 'No notes attached'}</div>
@@ -835,6 +875,7 @@ function renderExtraction() {
       const title = card.querySelector('.edit-title-input').value;
       let dateVal = card.querySelector('.edit-date-input').value;
       const notes = card.querySelector('.edit-notes-input').value;
+      const priority = card.querySelector('.edit-priority-input')?.value || 'medium';
       
       const newSubject = store.subjects.find(s => s.id === subjectId);
       
@@ -844,6 +885,7 @@ function renderExtraction() {
         title: title,
         due_at: dateVal ? new Date(dateVal).toISOString() : '',
         notes: notes,
+        priority: priority,
         _isEditing: false
       });
     });
@@ -995,9 +1037,46 @@ newTaskBtn.addEventListener('click', () => {
 
   newTaskTitle.value = '';
   newTaskNotes.value = '';
+  
+  // Set default priority and sync buttons
+  selectedNewTaskPriority = 'medium';
+  syncNewTaskPriorityButtons();
 
   newTaskModal.style.display = 'flex';
 });
+
+// Bind priority picker buttons once in DOMContentLoaded
+if (newTaskPriorityGroup) {
+  const btns = Array.from(newTaskPriorityGroup.querySelectorAll('.priority-select-btn'));
+  btns.forEach((btn, index) => {
+    btn.addEventListener('click', () => {
+      selectedNewTaskPriority = btn.dataset.priority;
+      syncNewTaskPriorityButtons();
+    });
+    
+    btn.addEventListener('keydown', (e) => {
+      let targetIndex = -1;
+      if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        selectedNewTaskPriority = btn.dataset.priority;
+        syncNewTaskPriorityButtons();
+      } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        targetIndex = (index + 1) % btns.length;
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        targetIndex = (index - 1 + btns.length) % btns.length;
+      }
+      
+      if (targetIndex !== -1) {
+        const targetBtn = btns[targetIndex];
+        selectedNewTaskPriority = targetBtn.dataset.priority;
+        syncNewTaskPriorityButtons();
+        targetBtn.focus();
+      }
+    });
+  });
+}
 
 newTaskCancel.addEventListener('click', () => {
   newTaskModal.style.display = 'none';
@@ -1027,7 +1106,7 @@ newTaskSave.addEventListener('click', async () => {
     subject_id,
     due_at,
     notes,
-    priority: 'medium',
+    priority: selectedNewTaskPriority,
     status: 'Not Started',
     archived: 0
   };
