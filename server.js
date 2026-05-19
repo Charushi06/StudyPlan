@@ -240,6 +240,13 @@ app.get('/api/subjects', (req, res) => {
   });
 });
 
+app.get('/api/subjects/:id/details', (req, res) => {
+  db.all('SELECT * FROM subject_details WHERE subject_id = ?', [req.params.id], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
+  });
+});
+
 const ALLOWED_SUBJECT_COLORS = new Set([
   'var(--color-text-info)',
   'var(--color-text-success)',
@@ -252,22 +259,100 @@ const ALLOWED_SUBJECT_COLORS = new Set([
 app.post('/api/subjects', (req, res) => {
   const name = String(req.body?.name || '').trim();
   let color = String(req.body?.color || '').trim() || 'var(--color-text-info)';
-  if (!name) {
-    return res.status(400).json({ error: 'Subject name is required' });
+  
+  if (!name || name.length < 2) {
+    return res.status(400).json({ error: 'Subject name must be at least 2 characters' });
   }
-  if (!ALLOWED_SUBJECT_COLORS.has(color)) {
-    color = 'var(--color-text-info)';
+
+  // Check for duplicates
+  db.get('SELECT id FROM subjects WHERE LOWER(name) = LOWER(?)', [name], (err, row) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (row) return res.status(400).json({ error: 'Subject already exists' });
+
+    if (!ALLOWED_SUBJECT_COLORS.has(color)) {
+      color = 'var(--color-text-info)';
+    }
+    const shortCode = name.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 4) || 'SUB';
+    const id = `sub_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+    db.run(
+      'INSERT INTO subjects (id, name, short_code, color) VALUES (?, ?, ?, ?)',
+      [id, name, shortCode, color],
+      function (err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.status(201).json({ id, name, short_code: shortCode, color });
+      }
+    );
+  });
+});
+
+app.put('/api/subjects/:id', (req, res) => {
+  const { name, color } = req.body;
+  if (!name || name.length < 2) {
+    return res.status(400).json({ error: 'Subject name must be at least 2 characters' });
   }
+
   const shortCode = name.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 4) || 'SUB';
-  const id = `sub_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+  
   db.run(
-    'INSERT INTO subjects (id, name, short_code, color) VALUES (?, ?, ?, ?)',
-    [id, name, shortCode, color],
+    'UPDATE subjects SET name = ?, color = ?, short_code = ? WHERE id = ?',
+    [name, color, shortCode, req.params.id],
     function (err) {
       if (err) return res.status(500).json({ error: err.message });
-      res.status(201).json({ id, name, short_code: shortCode, color });
+      res.json({ success: true, changes: this.changes });
     }
   );
+});
+
+app.delete('/api/subjects/:id', (req, res) => {
+  db.run('DELETE FROM subjects WHERE id = ?', [req.params.id], function (err) {
+    if (err) return res.status(500).json({ error: err.message });
+    // Also delete tasks associated with this subject
+    db.run('DELETE FROM tasks WHERE subject_id = ?', [req.params.id]);
+    // Also delete details
+    db.run('DELETE FROM subject_details WHERE subject_id = ?', [req.params.id]);
+    res.json({ success: true, changes: this.changes });
+  });
+});
+
+app.post('/api/subjects/:id/details', (req, res) => {
+  const { type, content } = req.body;
+  if (!type || !content) return res.status(400).json({ error: 'Type and content are required' });
+
+  const id = `det_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+  db.run(
+    'INSERT INTO subject_details (id, subject_id, type, content) VALUES (?, ?, ?, ?)',
+    [id, req.params.id, type, content],
+    function (err) {
+      if (err) return res.status(500).json({ error: err.message });
+      res.status(201).json({ id, type, content });
+    }
+  );
+});
+
+app.delete('/api/subjects/details/:detailId', (req, res) => {
+  db.run('DELETE FROM subject_details WHERE id = ?', [req.params.detailId], function (err) {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ success: true });
+  });
+});
+
+app.put('/api/subjects/details/:detailId', (req, res) => {
+  const { is_completed, content } = req.body;
+  let query = 'UPDATE subject_details SET ';
+  const params = [];
+  const updates = [];
+  if (is_completed !== undefined) { updates.push('is_completed = ?'); params.push(is_completed); }
+  if (content !== undefined) { updates.push('content = ?'); params.push(content); }
+  
+  if (updates.length === 0) return res.status(400).json({ error: 'No fields to update' });
+  
+  query += updates.join(', ') + ' WHERE id = ?';
+  params.push(req.params.detailId);
+  
+  db.run(query, params, function (err) {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ success: true });
+  });
 });
 
 // ================= TASKS =================

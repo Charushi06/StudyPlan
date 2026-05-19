@@ -36,10 +36,18 @@ export const store = {
 
   async addSubject({ name, color }) {
     const trimmed = String(name || '').trim();
-    if (!trimmed) {
-      alert('Please enter a subject name');
+    if (!trimmed || trimmed.length < 2) {
+      alert('Subject name must be at least 2 characters');
       return false;
     }
+
+    // Check for local duplicates before network request
+    const exists = this.subjects.some(s => s.name.toLowerCase() === trimmed.toLowerCase());
+    if (exists) {
+      alert('Subject already exists');
+      return false;
+    }
+
     try {
       const res = await fetch('/api/subjects', {
         method: 'POST',
@@ -58,6 +66,91 @@ export const store = {
     } catch (e) {
       console.error('Failed to add subject', e);
       alert('Network error. Please try again.');
+      return false;
+    }
+  },
+
+  async updateSubject(id, { name, color }) {
+    try {
+      const res = await fetch(`/api/subjects/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, color })
+      });
+      if (!res.ok) throw new Error('Update failed');
+      const subsRes = await fetch('/api/subjects');
+      this.subjects = await subsRes.json();
+      this.notify();
+      return true;
+    } catch (e) {
+      console.error('Failed to update subject', e);
+      return false;
+    }
+  },
+
+  async deleteSubject(id) {
+    if (!confirm('Are you sure? This will delete all tasks and resources for this subject.')) return;
+    try {
+      const res = await fetch(`/api/subjects/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Delete failed');
+      
+      const [subsRes, tasksRes] = await Promise.all([
+        fetch('/api/subjects'),
+        fetch('/api/tasks')
+      ]);
+      this.subjects = await subsRes.json();
+      this.tasks = await tasksRes.json();
+      this.notify();
+    } catch (e) {
+      console.error('Failed to delete subject', e);
+    }
+  },
+
+  async fetchSubjectDetails(id) {
+    try {
+      const res = await fetch(`/api/subjects/${id}/details`);
+      return await res.json();
+    } catch (e) {
+      console.error('Failed to fetch subject details', e);
+      return [];
+    }
+  },
+
+  async addSubjectDetail(subjectId, { type, content }) {
+    try {
+      const res = await fetch(`/api/subjects/${subjectId}/details`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type, content })
+      });
+      if (!res.ok) throw new Error('Add detail failed');
+      return await res.json();
+    } catch (e) {
+      console.error('Failed to add subject detail', e);
+      return null;
+    }
+  },
+
+  async updateSubjectDetail(detailId, fields) {
+    try {
+      const res = await fetch(`/api/subjects/details/${detailId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(fields)
+      });
+      return res.ok;
+    } catch (e) {
+      console.error('Failed to update detail', e);
+      return false;
+    }
+  },
+
+  async deleteSubjectDetail(detailId) {
+    try {
+      const res = await fetch(`/api/subjects/details/${detailId}`, { method: 'DELETE' });
+      return res.ok;
+    } catch (e) {
+      console.error('Failed to delete detail', e);
       return false;
     }
   },
