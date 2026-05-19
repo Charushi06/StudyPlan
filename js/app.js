@@ -770,6 +770,34 @@ function renderCalendar() {
   });
 }
 
+function findSubjectForExtractedItem(item) {
+  const requested = String(item.subject_name || '').trim().toLowerCase();
+  const defaultSubject = store.subjects[0] || null;
+  if (!requested || requested === 'general') return defaultSubject;
+
+  return store.subjects.find(s => s.name.toLowerCase() === requested)
+    || store.subjects.find(s => s.name.toLowerCase().includes(requested) || requested.includes(s.name.toLowerCase()))
+    || defaultSubject;
+}
+
+function prepareExtractedTasksForSave(items) {
+  return (items || []).map(item => {
+    const sub = store.subjects.find(s => String(s.id) === String(item.subject_id))
+      || findSubjectForExtractedItem(item);
+
+    return {
+      title: String(item.title || '').trim(),
+      subject_id: sub?.id,
+      due_at: item.due_at,
+      notes: item.notes || '',
+      priority: item.priority || 'medium',
+      confidence_score: item.confidence_score || 60,
+      status: item.status || 'Not Started',
+      archived: 0
+    };
+  }).filter(item => item.title && item.subject_id && item.due_at);
+}
+
 function renderExtraction() {
   const pasteItems = store.currentPaste;
   if (!pasteItems || pasteItems.length === 0) {
@@ -785,7 +813,8 @@ function renderExtraction() {
   let html = `<div class="extract-title">Extracted — ${pasteItems.length} items</div>`;
   pasteItems.forEach((item, index) => {
     // try to match subject name
-    const sub = store.subjects.find(s => s.name.toLowerCase().includes((item.subject_name || '').toLowerCase())) || store.subjects[3];
+    const sub = findSubjectForExtractedItem(item);
+    if (!sub) return;
     // Attach subject id to item so Add will work
     item.subject_id = sub.id;
     
@@ -1055,13 +1084,6 @@ newTaskSave.addEventListener('click', async () => {
   newTaskModal.style.display = 'none';
 });
 
-addItemsBtn.addEventListener('click', () => {
-  if (store.currentPaste) {
-    store.addTasks(store.currentPaste);
-    store.clearExtracted();
-    pasteInput.value = '';
-  }
-});
 });
 
 extractBtn.addEventListener('click', async () => {
@@ -1084,11 +1106,13 @@ clearBtn.addEventListener('click', () => {
   store.clearExtracted();
 });
 
-addItemsBtn.addEventListener('click', () => {
+addItemsBtn.addEventListener('click', async () => {
   if (store.currentPaste) {
-    store.addTasks(store.currentPaste);
-    store.clearExtracted();
-    pasteInput.value = '';
+    const added = await store.addTasks(prepareExtractedTasksForSave(store.currentPaste));
+    if (added) {
+      store.clearExtracted();
+      pasteInput.value = '';
+    }
   }
 });
 

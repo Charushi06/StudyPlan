@@ -1,20 +1,21 @@
 export function extractDate(text, now = new Date()) {
-  const lower = text.toLowerCase();
+  const lower = String(text || '').toLowerCase();
+  const time = extractTime(lower);
 
   const relativeDay = matchRelativeDay(lower, now);
-  if (relativeDay) return withTime(relativeDay, extractTime(lower));
+  if (relativeDay) return withTime(relativeDay, time);
 
   const inN = matchInNDaysWeeks(lower, now);
-  if (inN) return withTime(inN, extractTime(lower));
+  if (inN) return withTime(inN, time);
 
   const weekday = matchNamedWeekday(lower, now);
-  if (weekday) return withTime(weekday, extractTime(lower));
+  if (weekday) return withTime(weekday, time);
 
   const absolute = matchAbsoluteDate(lower, now);
-  if (absolute) return withTime(absolute, extractTime(lower));
+  if (absolute) return withTime(absolute, time);
 
   const eop = matchEndOfPeriod(lower, now);
-  if (eop) return withTime(eop, extractTime(lower));
+  if (eop) return withTime(eop, time);
 
   return null;
 }
@@ -25,38 +26,30 @@ function addDays(date, n) {
   return d;
 }
 
-function normalizeData(date) {
+function endOfDay(date) {
   const d = new Date(date);
-  d.setHours(0, 0, 0, 0); 
+  d.setHours(23, 59, 0, 0);
   return d;
 }
 
-function toLocalISOString(date) {
-  const tzOffset=date.getTimeZoneOffset()*60000;
-  return new Date(date - tzOffset).toISOString().slice(0,-1) ;
-}
-
-function withTime(dateStr, timeParts) {
-  const d = new Date(dateStr);
+function withTime(date, timeParts) {
+  const d = new Date(date);
   if (timeParts) {
     d.setHours(timeParts.hours, timeParts.minutes, 0, 0);
-  }else {
-    d.setHours(23, 59, 0, 0);
   }
-  return toLocalISOString(d);
+  return d.toISOString();
 }
 
 export function extractTime(text) {
-  const lower = text.toLowerCase();
+  const lower = String(text || '').toLowerCase();
 
   if (/\bmidnight\b/.test(lower)) return { hours: 23, minutes: 59 };
   if (/\bnoon\b/.test(lower)) return { hours: 12, minutes: 0 };
 
-  // HH:MM am/pm
   let m = lower.match(/\b(\d{1,2}):(\d{2})\s*(am|pm)?\b/);
   if (m) {
-    let h = parseInt(m[1]);
-    const min = parseInt(m[2]);
+    let h = parseInt(m[1], 10);
+    const min = parseInt(m[2], 10);
     const meridiem = m[3];
     if (meridiem === 'pm' && h < 12) h += 12;
     if (meridiem === 'am' && h === 12) h = 0;
@@ -65,7 +58,7 @@ export function extractTime(text) {
 
   m = lower.match(/\b(\d{1,2})\s*(am|pm)\b/);
   if (m) {
-    let h = parseInt(m[1]);
+    let h = parseInt(m[1], 10);
     const meridiem = m[2];
     if (meridiem === 'pm' && h < 12) h += 12;
     if (meridiem === 'am' && h === 12) h = 0;
@@ -76,58 +69,48 @@ export function extractTime(text) {
 }
 
 function matchRelativeDay(lower, now) {
-  if (/\btoday\b/.test(lower)) return toISO(normalizeDate(now));
-  if (/\btomorrow\b/.test(lower)) return toISO(normalizeDate(addDays(now, 1)));
-  if (/\bday after tomorrow\b/.test(lower)) return toISO(normalizeDate(addDays(now, 2)));
-  if (/\byesterday\b/.test(lower)) return toISO(normalizeDate(addDays(now, -1))); // edge case
+  if (/\btoday\b/.test(lower) || /\btonight\b/.test(lower)) return endOfDay(now);
+  if (/\bday after tomorrow\b/.test(lower)) return endOfDay(addDays(now, 2));
+  if (/\btomorrow\b/.test(lower)) return endOfDay(addDays(now, 1));
+  if (/\byesterday\b/.test(lower)) return endOfDay(addDays(now, -1));
   return null;
 }
 
 function matchInNDaysWeeks(lower, now) {
-  let m = lower.match(/\bin\s+(\d+|a|an|one|two|three|four|five|six|seven)\s+(day|days|week|weeks|month|months)\b/);
+  const m = lower.match(/\bin\s+(\d+|a|an|one|two|three|four|five|six|seven)\s+(day|days|week|weeks|month|months)\b/);
   if (!m) return null;
 
-  const rawN = m[1];
-  const unit = m[2];
   const wordMap = { a: 1, an: 1, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7 };
-  const n = isNaN(rawN) ? (wordMap[rawN] || 1) : parseInt(rawN);
+  const n = Number.isNaN(Number(m[1])) ? (wordMap[m[1]] || 1) : parseInt(m[1], 10);
+  const unit = m[2];
 
   let d = new Date(now);
   if (unit.startsWith('day')) d = addDays(d, n);
   else if (unit.startsWith('week')) d = addDays(d, n * 7);
-  else if (unit.startsWith('month')) d.setMonth(d.getMonth() + n);
+  else d.setMonth(d.getMonth() + n);
 
-  return toISO(normalizeDate(d));
+  return endOfDay(d);
 }
-const WEEKDAYS = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+
+const WEEKDAYS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
 
 function matchNamedWeekday(lower, now) {
-  const pattern = new RegExp(
-    `\\b(next|this|on|coming)?\\s*(${WEEKDAYS.join('|')})\\b`
-  );
+  const pattern = new RegExp(`\\b(next|this|on|coming)?\\s*(${WEEKDAYS.join('|')})\\b`);
   const m = lower.match(pattern);
   if (!m) return null;
 
   const qualifier = m[1] || '';
   const targetDay = WEEKDAYS.indexOf(m[2]);
   const currentDay = now.getDay();
-
   let diff = targetDay - currentDay;
 
-  if (qualifier === 'next') {
-    // Always go to NEXT week's instance
-    diff += diff <=0 ? diff + 7: diff +7;
-    diff += (diff === 0 ? 7 : 0); // if same day, also push a week
-  } else if (qualifier === 'this') {
-    // This week — if already passed, stay same
-    if (diff < 0) diff += 7;
-  } else {
-    // No qualifier: if day already passed today, go to next week
-    if (diff <= 0) diff += 7;
-  }
+  if (qualifier === 'next') diff = diff <= 0 ? diff + 7 : diff + 7;
+  else if (diff <= 0 && qualifier !== 'this') diff += 7;
+  else if (diff < 0) diff += 7;
 
-  return toISO(normalizeDate(addDays(now, diff)));
+  return endOfDay(addDays(now, diff));
 }
+
 const MONTHS = {
   jan: 0, january: 0,
   feb: 1, february: 1,
@@ -144,59 +127,26 @@ const MONTHS = {
 };
 
 function matchAbsoluteDate(lower, now) {
-  // "april 25", "25 april", "25th april", "april 25th"
   const monthNames = Object.keys(MONTHS).join('|');
   const ordinal = `(\\d{1,2})(?:st|nd|rd|th)?`;
-
-  let m;
-
-  m = lower.match(new RegExp(`\\b(${monthNames})\\s+${ordinal}\\b`));
-  if (m) {
-    const month = MONTHS[m[1]];
-    const day = parseInt(m[2]);
-    return toISO(normalizeDate(resolveYear(now, month, day)));
-  }
+  let m = lower.match(new RegExp(`\\b(${monthNames})\\s+${ordinal}\\b`));
+  if (m) return endOfDay(resolveYear(now, MONTHS[m[1]], parseInt(m[2], 10)));
 
   m = lower.match(new RegExp(`\\b${ordinal}\\s+(${monthNames})\\b`));
-  if (m) {
-    const day = parseInt(m[1]);
-    const month = MONTHS[m[2]];
-    return toISO(normalizeDate(resolveYear(now, month, day)));
-  }
+  if (m) return endOfDay(resolveYear(now, MONTHS[m[2]], parseInt(m[1], 10)));
 
-  m = lower.match(/\b(\d{1,2})[\/\-\.](\d{1,2})(?:[\/\-\.](\d{2,4}))?\b/);
+  m = lower.match(/\b(\d{1,2})[\/\-.](\d{1,2})(?:[\/\-.](\d{2,4}))?\b/);
+  if (!m) return null;
 
-  if (m) {
-    const first = parseInt(m[1]);
-    const second = parseInt(m[2]);
+  const first = parseInt(m[1], 10);
+  const second = parseInt(m[2], 10);
+  const day = first > 12 ? first : second > 12 ? second : first;
+  const month = first > 12 ? second - 1 : second > 12 ? first - 1 : second - 1;
+  const year = m[3]
+    ? (m[3].length === 2 ? 2000 + parseInt(m[3], 10) : parseInt(m[3], 10))
+    : null;
 
-    let day, month;
-
-    // Detect format automatically
-    if (first > 12) {
-      // DD/MM
-      day = first;
-      month = second - 1;
-    } else if (second > 12) {
-      // MM/DD
-      day = second;
-      month = first - 1;
-    } else {
-      // Default fallback → DD/MM
-      day = first;
-      month = second - 1;
-    }
-
-    const year = m[3]
-      ? (m[3].length === 2
-          ? 2000 + parseInt(m[3])
-          : parseInt(m[3]))
-      : null;
-
-    return toISO(startOf(resolveYear(now, month, day, year)));
-  }
-
-  return null;
+  return endOfDay(resolveYear(now, month, day, year));
 }
 
 function resolveYear(now, month, day, explicitYear = null) {
@@ -208,23 +158,18 @@ function resolveYear(now, month, day, explicitYear = null) {
 
 function matchEndOfPeriod(lower, now) {
   if (/\bend of (the\s+)?week\b/.test(lower) || /\bby (the\s+)?weekend\b/.test(lower)) {
-    // Next Sunday
-    const d = new Date(now);
-    d.setDate(d.getDate() + (7 - d.getDay()));
-    return toISO(normalizeDate(d));
+    return endOfDay(addDays(now, 7 - now.getDay()));
   }
   if (/\bend of (the\s+)?month\b/.test(lower)) {
-    const d = new Date(now.getFullYear(), now.getMonth() + 1, 0); // last day of month
-    return toISO(normalizeDate(d));
+    return endOfDay(new Date(now.getFullYear(), now.getMonth() + 1, 0));
   }
   if (/\bend of (the\s+)?year\b/.test(lower)) {
-    const d = new Date(now.getFullYear(), 11, 31);
-    return toISO(normalizeDate(d));
+    return endOfDay(new Date(now.getFullYear(), 11, 31));
   }
   if (/\bnext month\b/.test(lower)) {
     const d = new Date(now);
     d.setMonth(d.getMonth() + 1);
-    return toISO(normalizeDate(d));
+    return endOfDay(d);
   }
   return null;
 }
