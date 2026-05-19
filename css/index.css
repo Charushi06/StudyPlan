@@ -4318,3 +4318,29 @@ body {
   color: #ffcc66;
   font-weight: 600;
 }
+
+@media (max-width: 1024px) {
+  .smart-workload-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .cal-section {
+    padding: 16px 14px;
+  }
+
+  .cal-grid {
+    gap: 6px;
+  }
+}
+
+@media (max-width: 768px) {
+
+  .smart-workload-card,
+  .cal-section {
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
