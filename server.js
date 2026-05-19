@@ -417,6 +417,7 @@ app.post('/api/extract', async (req, res) => {
 
   if (ai) {
     try {
+      
       const prompt = `
 You are an AI study planner assistant. Extract ALL tasks and deadlines from the text below.
 Return ONLY a raw JSON array (no markdown, no backticks, no explanation).
@@ -424,6 +425,7 @@ Each object must have: title (string), subject_name (string), due_at (ISO 8601 d
 
 Text: "${text}"
 `;
+      
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
         contents: prompt

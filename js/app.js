@@ -1045,19 +1045,64 @@ addItemsBtn.addEventListener('click', () => {
 });
 });
 
+function showToast(message, type = 'success') {
+  const toast = document.getElementById('toast-message');
+
+  toast.textContent = message;
+
+  toast.className = 'toast-message';
+
+  if (type === 'success') {
+    toast.classList.add('toast-success');
+  } else {
+    toast.classList.add('toast-error');
+  }
+
+  toast.style.display = 'block';
+
+  setTimeout(() => {
+    toast.style.display = 'none';
+  }, 1000);
+}
+
 extractBtn.addEventListener('click', async () => {
   const text = pasteInput.value;
-  if (!text.trim()) return;
-  
-  extractBtn.innerHTML = '<span class="loader-spinner"></span>';
+
+  if (!text.trim()) {
+    showToast('Please enter some text first', 'error');
+    return;
+  }
+
+  extractBtn.innerHTML =
+    '<span class="loader-spinner"></span> Extracting...';
+
   extractBtn.disabled = true;
-  
-  const items = await extractTasksFromText(text);
-  
-  extractBtn.innerHTML = 'Extract with AI →';
-  extractBtn.disabled = false;
-  
-  store.setExtracted(items);
+
+  try {
+
+    const items = await extractTasksFromText(text);
+
+    if (!items || items.length === 0) {
+      showToast('Extraction failed', 'error');
+      return;
+    }
+
+    store.setExtracted(items);
+
+    showToast('Tasks extracted successfully!', 'success');
+
+  } catch (err) {
+
+    console.error(err);
+
+    showToast('Something went wrong', 'error');
+
+  } finally {
+
+    extractBtn.innerHTML = 'Extract with AI →';
+
+    extractBtn.disabled = false;
+  }
 });
 
 clearBtn.addEventListener('click', () => {
