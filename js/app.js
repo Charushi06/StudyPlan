@@ -441,6 +441,7 @@ function renderTasks() {
   
   const renderGroup = (title, items, titleColor, showConflict = false) => {
     if (items.length === 0) return '';
+    let groupStatus = title.includes('Completed') ? 'Done' : 'Not Started';
     let html = `<div class="tasks-group">
       <div class="tasks-group-header">
         <span style="color:${titleColor}">${title}</span>
@@ -457,6 +458,7 @@ function renderTasks() {
       });
     }
     
+    html += `<div class="sortable-list" data-status="${groupStatus}">`;
       
     items.forEach(t => {
       const sub = subjects.find(s => s.id === t.subject_id) || subjects[0];
@@ -530,7 +532,7 @@ function renderTasks() {
         `;
       }
     });
-    html += `</div>`;
+    html += `</div></div>`;
     return html;
   };
   
@@ -562,12 +564,36 @@ function renderTasks() {
       : '';
 
     tasksSection.innerHTML = actionBar +
-                             renderGroup(titlePrefix + '⚠ Due soon', dueSoon, 'var(--color-text-danger)', true)
+                             renderGroup(titlePrefix + '⚠ Due soon', dueSoon, 'var(--color-text-danger)', true) +
                              renderGroup(titlePrefix + 'This week', thisWeek, 'var(--color-text-secondary)', true) +
                              renderGroup(titlePrefix + 'Completed', completed, 'var(--color-text-tertiary)') +
                              emptyState;
   }
                            
+  if (typeof Sortable !== 'undefined') {
+    document.querySelectorAll('.sortable-list').forEach(el => {
+      new Sortable(el, {
+        group: 'shared',
+        animation: 150,
+        onEnd: function (evt) {
+          const newOrder = [];
+          let position = 0;
+          document.querySelectorAll('.sortable-list').forEach(list => {
+            const listStatus = list.getAttribute('data-status');
+            list.querySelectorAll('.task-item').forEach(item => {
+              newOrder.push({
+                id: item.dataset.id,
+                position: position++,
+                status: listStatus
+              });
+            });
+          });
+          store.reorderTasks(newOrder);
+        }
+      });
+    });
+  }
+
   document.querySelectorAll('.task-item').forEach(el => {
     el.addEventListener('click', (e) => {
       if (e.target.closest('.task-actions') || e.target.closest('.task-check')) return;

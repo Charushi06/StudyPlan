@@ -26,9 +26,20 @@ function initDb() {
       confidence_score REAL,
       notes TEXT,
       archived INTEGER DEFAULT 0,
+      position INTEGER DEFAULT 0,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (subject_id) REFERENCES subjects(id)
     )`);
+
+    // Migration: Add position column if it doesn't exist
+    db.all("PRAGMA table_info(tasks)", (err, columns) => {
+      if (!err && columns) {
+        const hasPosition = columns.some(col => col.name === 'position');
+        if (!hasPosition) {
+          db.run("ALTER TABLE tasks ADD COLUMN position INTEGER DEFAULT 0");
+        }
+      }
+    });
 
     // Pre-populate some subjects if empty
     db.get('SELECT COUNT(*) as count FROM subjects', (err, row) => {
