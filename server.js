@@ -1,24 +1,122 @@
 require('dotenv').config();
 const express = require('express');
+const path = require('path');
 const cors = require('cors');
+const helmet = require('helmet');
+const cookieParser = require('cookie-parser');
+const session = require('express-session');
+const SQLiteStore = require('connect-sqlite3')(session);
+const { doubleCsrf } = require('csrf-csrf');
+
 const { db, initDb } = require('./database');
 const { GoogleGenAI } = require('@google/genai');
-const path = require('path');
 const csvDownloadRouter = require('./backend/routers/csvDownload.router.js');
+const { configurePassport, passport, registerAuthRoutes } = require('./auth');
 
 const app = express();
-app.use(cors());
-app.use(express.json());
+
+function resolveSessionSecret() {
+  if (process.env.SESSION_SECRET) return process.env.SESSION_SECRET;
+  if (process.env.NODE_ENV !== 'production') {
+    console.warn(
+      '[StudyPlan] SESSION_SECRET is not set; using a weak development default. Set SESSION_SECRET for any shared or production environment.'
+    );
+    return 'studyplan-dev-only-session-secret-change-me';
+  }
+  console.error('[StudyPlan] FATAL: SESSION_SECRET is required in production.');
+  process.exit(1);
+}
+
+const SESSION_SECRET = resolveSessionSecret();
+
+const isProduction = process.env.NODE_ENV === 'production';
+
+if (isProduction) {
+  app.set('trust proxy', 1);
+}
+
+initDb();
 
 const page404Path = path.join(__dirname, '404.html');
 const page500Path = path.join(__dirname, 'error.html');
 
-// Static
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      useDefaults: true,
+      directives: {
+        'default-src': ["'self'"],
+        'script-src': ["'self'", "'unsafe-inline'"],
+        'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+        'font-src': ["'self'", 'https://fonts.gstatic.com'],
+        'img-src': ["'self'", 'data:', 'https:'],
+        'connect-src': ["'self'"],
+      },
+    },
+    crossOriginEmbedderPolicy: false,
+  })
+);
+
+app.use(
+  cors({
+    credentials: true,
+    origin: process.env.CLIENT_ORIGIN || true,
+  })
+);
+app.use(express.json());
+
+app.use(
+  session({
+    store: new SQLiteStore({ db: 'studyplan.db', dir: __dirname }),
+    secret: SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    name: 'studyplan.sid',
+    cookie: {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    },
+  })
+);
+app.use(cookieParser());
+
+const {
+  generateCsrfToken,
+  doubleCsrfProtection,
+} = doubleCsrf({
+  getSecret: () => SESSION_SECRET,
+  getSessionIdentifier: (req) => req.sessionID,
+  cookieName: isProduction ? '__Host-studyplan.csrf' : 'studyplan.csrf',
+  cookieOptions: {
+    secure: isProduction,
+    sameSite: 'lax',
+    httpOnly: true,
+    path: '/',
+  },
+});
+
+configurePassport();
+app.use(passport.initialize());
+app.use(passport.session());
+
+app.get('/api/csrf-token', (req, res, next) => {
+  req.session.initCsrf = true;
+  try {
+    const csrfToken = generateCsrfToken(req, res);
+    return res.json({ csrfToken });
+  } catch (e) {
+    return next(e);
+  }
+});
+
+registerAuthRoutes(app, { doubleCsrfProtection });
+
+// Static (after session so HTML pages receive Set-Cookie when useful)
 app.use('/css', express.static(path.join(__dirname, 'css')));
 app.use('/js', express.static(path.join(__dirname, 'js')));
 app.use(express.static(__dirname));
-
-initDb();
 
 const ai = process.env.GEMINI_API_KEY
   ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
@@ -444,32 +542,6 @@ Text: "${text}"
   const tasks = nlpExtractTasksFromText(text);
   return res.json(tasks);
 });
-// ================= AUTH =================
-const users = {}; // Simple in-memory user store
-
-app.post('/api/auth/signup', (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
-    return res.status(400).json({ error: 'Email and password required' });
-  }
-  if (users[email]) {
-    return res.status(400).json({ error: 'User already exists' });
-  }
-  users[email] = { email, password };
-  res.json({ success: true, message: 'Account created successfully' });
-});
-
-app.post('/api/auth/login', (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
-    return res.status(400).json({ error: 'Email and password required' });
-  }
-  const user = users[email];
-  if (!user || user.password !== password) {
-    return res.status(401).json({ error: 'Invalid email or password' });
-  }
-  res.json({ success: true, email: user.email });
-});
 
 // Intentional test route for verifying server error page behavior.
 app.get('/debug/force-error', (req, res, next) => {
@@ -491,11 +563,17 @@ app.use((req, res, next) => {
 });
 
 app.use((err, req, res, next) => {
-  console.error('Unhandled server error:', err);
-
   if (res.headersSent) {
     return next(err);
   }
+
+  const isCsrfFail = err?.code === 'EBADCSRFTOKEN';
+  if (isCsrfFail && typeof req?.path === 'string' && req.path.startsWith('/api')) {
+    console.warn('CSRF validation failed:', req.method, req.path);
+    return res.status(403).json({ error: 'Invalid CSRF token' });
+  }
+
+  console.error('Unhandled server error:', err);
 
   if (req.path.startsWith('/api')) {
     return res.status(500).json({ error: 'Internal server error' });

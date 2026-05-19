@@ -30,6 +30,16 @@ function initDb() {
       FOREIGN KEY (subject_id) REFERENCES subjects(id)
     )`);
 
+    db.run(`CREATE TABLE IF NOT EXISTS users (
+      id TEXT PRIMARY KEY,
+      email TEXT UNIQUE NOT NULL,
+      password_hash TEXT,
+      google_id TEXT UNIQUE,
+      name TEXT,
+      avatar_url TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`);
+
     // Pre-populate some subjects if empty
     db.get('SELECT COUNT(*) as count FROM subjects', (err, row) => {
       if (row && row.count === 0) {
