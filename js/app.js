@@ -77,6 +77,7 @@ const SUBJECT_COLORS = [
 ];
 
 let selectedNewSubjectColor = SUBJECT_COLORS[0];
+let editingSubjectId = null;
 
 function escapeHtml(s) {
   return String(s)
@@ -87,6 +88,7 @@ function escapeHtml(s) {
 }
 
 const newSubjectModal = document.getElementById('new-subject-modal');
+const subjectModalTitle = document.getElementById('subject-modal-title');
 const newSubjectName = document.getElementById('new-subject-name');
 const newSubjectColorsEl = document.getElementById('new-subject-colors');
 const newSubjectCancel = document.getElementById('new-subject-cancel');
@@ -102,13 +104,86 @@ function syncNewSubjectColorSwatches() {
   });
 }
 
-function openNewSubjectModal() {
+function openNewSubjectModal(subject = null) {
   if (!newSubjectModal || !newSubjectName) return;
-  newSubjectName.value = '';
-  selectedNewSubjectColor = SUBJECT_COLORS[0];
+  
+  if (subject) {
+    editingSubjectId = subject.id;
+    subjectModalTitle.textContent = 'Edit Subject';
+    newSubjectName.value = subject.name;
+    selectedNewSubjectColor = subject.color || SUBJECT_COLORS[0];
+  } else {
+    editingSubjectId = null;
+    subjectModalTitle.textContent = 'New Subject';
+    newSubjectName.value = '';
+    selectedNewSubjectColor = SUBJECT_COLORS[0];
+  }
+  
   syncNewSubjectColorSwatches();
   newSubjectModal.style.display = 'flex';
   newSubjectName.focus();
+}
+
+const subjectDetailsModal = document.getElementById('subject-details-modal');
+const detailModalSubjectName = document.getElementById('detail-modal-subject-name');
+const subjectDetailsList = document.getElementById('subject-details-list');
+const detailTypeSelect = document.getElementById('detail-type-select');
+const detailContentInput = document.getElementById('detail-content-input');
+const addDetailBtn = document.getElementById('add-detail-btn');
+const subjectDetailsClose = document.getElementById('subject-details-close');
+let activeDetailSubjectId = null;
+
+async function openSubjectDetails(subjectId) {
+  const subject = store.subjects.find(s => s.id === subjectId);
+  if (!subject) return;
+  
+  activeDetailSubjectId = subjectId;
+  detailModalSubjectName.textContent = subject.name;
+  subjectDetailsModal.style.display = 'flex';
+  renderSubjectDetails();
+}
+
+async function renderSubjectDetails() {
+  if (!activeDetailSubjectId) return;
+  const details = await store.fetchSubjectDetails(activeDetailSubjectId);
+  
+  if (details.length === 0) {
+    subjectDetailsList.innerHTML = '<div style="text-align:center; color:var(--color-text-tertiary); padding:20px;">No topics or resources yet.</div>';
+  } else {
+    subjectDetailsList.innerHTML = details.map(d => {
+      const icon = d.type === 'topic' ? '📚' : (d.type === 'link' ? '🔗' : '📝');
+      const isCompleted = d.is_completed === 1;
+      return `
+        <div class="detail-item" style="display:flex; align-items:center; gap:12px; padding:10px; border-bottom:1px solid var(--color-border-tertiary);">
+          <span style="font-size:16px;">${icon}</span>
+          <div style="flex:1; ${isCompleted ? 'text-decoration:line-through; opacity:0.6;' : ''}">
+            ${d.type === 'link' ? `<a href="${escapeHtml(d.content)}" target="_blank" style="color:var(--color-text-info);">${escapeHtml(d.content)}</a>` : escapeHtml(d.content)}
+          </div>
+          <div style="display:flex; gap:8px;">
+            ${d.type === 'topic' ? `<input type="checkbox" ${isCompleted ? 'checked' : ''} class="toggle-detail-completion" data-id="${d.id}">` : ''}
+            <button class="delete-detail-btn" data-id="${d.id}" style="background:none; border:none; color:var(--color-text-danger); cursor:pointer;">&times;</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Attach listeners
+    subjectDetailsList.querySelectorAll('.toggle-detail-completion').forEach(cb => {
+      cb.addEventListener('change', async (e) => {
+        await store.updateSubjectDetail(e.target.dataset.id, { is_completed: e.target.checked ? 1 : 0 });
+        renderSubjectDetails();
+      });
+    });
+
+    subjectDetailsList.querySelectorAll('.delete-detail-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        if (confirm('Delete this item?')) {
+          await store.deleteSubjectDetail(e.target.dataset.id);
+          renderSubjectDetails();
+        }
+      });
+    });
+  }
 }
 
 function renderSidebarSubjects() {
@@ -131,9 +206,43 @@ function renderSidebarSubjects() {
     const n = countBySubject[s.id] ?? 0;
     const safeColor = s.color ? escapeHtml(s.color) : 'var(--color-text-info)';
     return `<div class="nav-item subject-sidebar-item" data-subject-id="${escapeHtml(s.id)}">
-      <span class="nav-dot" style="background:${safeColor}"></span>${escapeHtml(s.name)}<span class="badge">${n}</span>
+      <span class="nav-dot" style="background:${safeColor}"></span>
+      <span class="subject-name" style="flex:1;">${escapeHtml(s.name)}</span>
+      <span class="badge">${n}</span>
+      <div class="subject-actions" style="display:none; margin-left:8px; gap:4px;">
+        <button class="edit-subject-btn" title="Edit" style="background:none; border:none; font-size:12px; cursor:pointer;">✏️</button>
+        <button class="delete-subject-btn" title="Delete" style="background:none; border:none; font-size:12px; cursor:pointer;">🗑️</button>
+      </div>
     </div>`;
   }).join('');
+
+  // Attach sidebar listeners
+  listEl.querySelectorAll('.subject-sidebar-item').forEach(el => {
+    const subjectId = el.dataset.subjectId;
+    
+    el.addEventListener('mouseenter', () => {
+      el.querySelector('.subject-actions').style.display = 'flex';
+    });
+    el.addEventListener('mouseleave', () => {
+      el.querySelector('.subject-actions').style.display = 'none';
+    });
+
+    el.addEventListener('click', (e) => {
+      if (e.target.closest('.subject-actions')) return;
+      openSubjectDetails(subjectId);
+    });
+
+    el.querySelector('.edit-subject-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      const subject = store.subjects.find(s => s.id === subjectId);
+      openNewSubjectModal(subject);
+    });
+
+    el.querySelector('.delete-subject-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      store.deleteSubject(subjectId);
+    });
+  });
 }
 
 const newTaskModal = document.getElementById('new-task-modal');
@@ -897,8 +1006,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (newSubjectSave) {
     newSubjectSave.addEventListener('click', async () => {
-      const ok = await store.addSubject({ name: newSubjectName.value, color: selectedNewSubjectColor });
+      const payload = { name: newSubjectName.value, color: selectedNewSubjectColor };
+      let ok = false;
+      if (editingSubjectId) {
+        ok = await store.updateSubject(editingSubjectId, payload);
+      } else {
+        ok = await store.addSubject(payload);
+      }
       if (ok && newSubjectModal) newSubjectModal.style.display = 'none';
+    });
+  }
+
+  if (subjectDetailsClose) {
+    subjectDetailsClose.addEventListener('click', () => {
+      subjectDetailsModal.style.display = 'none';
+      activeDetailSubjectId = null;
+    });
+  }
+
+  if (addDetailBtn) {
+    addDetailBtn.addEventListener('click', async () => {
+      const type = detailTypeSelect.value;
+      const content = detailContentInput.value.trim();
+      if (!content) return;
+      
+      const ok = await store.addSubjectDetail(activeDetailSubjectId, { type, content });
+      if (ok) {
+        detailContentInput.value = '';
+        renderSubjectDetails();
+      }
     });
   }
 

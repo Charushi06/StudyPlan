@@ -417,7 +417,7 @@
 
 <div id="new-subject-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0; z-index:9998; align-items:center; justify-content:center;">
   <div class="modal-card" style="border-radius:12px; padding:20px; width:320px; box-shadow:0 12px 40px rgba(0,0,0,0.25);">
-    <h3 style="margin:0 0 12px; font-size:18px; font-weight:600;">New subject</h3>
+    <h3 id="subject-modal-title" style="margin:0 0 12px; font-size:18px; font-weight:600;">New subject</h3>
     <label style="display:block; font-size:12px; margin-bottom:4px;">Subject name</label>
     <input id="new-subject-name" type="text" style="width:100%; padding:6px; margin-bottom:12px;" placeholder="e.g. History">
     <label style="display:block; font-size:12px; margin-bottom:6px;">Color</label>
@@ -425,6 +425,32 @@
     <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
       <button id="new-subject-cancel" class="btn" style="padding:6px 10px;">Cancel</button>
       <button id="new-subject-save" class="btn btn-primary" style="padding:6px 12px;">Save</button>
+    </div>
+  </div>
+</div>
+
+<div id="subject-details-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0; z-index:9998; align-items:center; justify-content:center;">
+  <div class="modal-card" style="border-radius:12px; padding:24px; width:480px; max-height: 80vh; overflow-y: auto; box-shadow:0 12px 40px rgba(0,0,0,0.25);">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+      <h3 id="detail-modal-subject-name" style="margin:0; font-size:20px; font-weight:700;">Subject Details</h3>
+      <button id="subject-details-close" style="background:none; border:none; font-size:24px; cursor:pointer;">&times;</button>
+    </div>
+    
+    <div style="margin-bottom: 24px;">
+      <h4 style="font-size:12px; font-weight:700; text-transform:uppercase; color:var(--color-text-tertiary); margin-bottom:12px;">Add Topic or Resource</h4>
+      <div style="display:flex; gap:8px;">
+        <select id="detail-type-select" style="padding:6px; border-radius:4px; border:1px solid var(--color-border-secondary);">
+          <option value="topic">Topic</option>
+          <option value="link">Resource Link</option>
+          <option value="note">Note</option>
+        </select>
+        <input id="detail-content-input" type="text" style="flex:1; padding:6px; border-radius:4px; border:1px solid var(--color-border-secondary);" placeholder="Enter topic, link or note...">
+        <button id="add-detail-btn" class="btn btn-primary" style="padding:6px 12px;">Add</button>
+      </div>
+    </div>
+
+    <div id="subject-details-list">
+      <!-- Details will be injected here -->
     </div>
   </div>
 </div>

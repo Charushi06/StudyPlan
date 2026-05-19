@@ -14,6 +14,17 @@ function initDb() {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
 
+    // Subject Details Table (Topics, Resources)
+    db.run(`CREATE TABLE IF NOT EXISTS subject_details (
+      id TEXT PRIMARY KEY,
+      subject_id TEXT,
+      type TEXT NOT NULL, -- 'topic', 'link', 'note'
+      content TEXT NOT NULL,
+      is_completed INTEGER DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE
+    )`);
+
     // Tasks Table
     db.run(`CREATE TABLE IF NOT EXISTS tasks (
       id TEXT PRIMARY KEY,
