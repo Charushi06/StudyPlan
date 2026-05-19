@@ -21,8 +21,8 @@
     <input id="auth-password" type="password" placeholder="Password" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:20px; box-sizing:border-box;">
 
     <button id="auth-submit-btn" style="width:100%; padding:12px; background:#4f46e5; color:white; border:none; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer;">
-      Sign In
-    </button>
+  Sign In
+</button>
 
     <p style="text-align:center; margin:16px 0 0; font-size:13px; color:#666;">
       <span id="auth-toggle-text">Don't have an account?</span>
@@ -282,11 +282,12 @@
     document.getElementById('auth-toggle-btn').textContent = isLogin ? 'Sign Up' : 'Sign In';
     document.getElementById('auth-error').style.display = 'none';
   });
-
+  
   document.getElementById('auth-submit-btn').addEventListener('click', async () => {
     const email = document.getElementById('auth-email').value.trim();
     const password = document.getElementById('auth-password').value.trim();
     const errorEl = document.getElementById('auth-error');
+    
 
     if (!email || !password) {
       errorEl.textContent = 'Please fill in all fields';
@@ -296,7 +297,11 @@
 
     const endpoint = isLogin ? '/api/auth/login' : '/api/auth/signup';
 
+    
+    errorEl.style.display = 'none';
+
     try {
+      
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -306,17 +311,24 @@
 
       if (!res.ok) {
         errorEl.textContent = data.error || 'Something went wrong';
-        errorEl.style.display = 'block';
+errorEl.style.display = 'block';
         return;
       }
 
-      localStorage.setItem('studyplan_user', JSON.stringify({ email: data.email }));
-      document.getElementById('auth-modal').style.display = 'none';
+
+
+localStorage.setItem(
+  'studyplan_user',
+  JSON.stringify({ email: data.email })
+);
+
+document.getElementById('auth-modal').style.display = 'none';
 
     } catch (err) {
       errorEl.textContent = 'Network error. Please try again.';
-      errorEl.style.display = 'block';
+errorEl.style.display = 'block';
     }
+    
   });
 
   // Check if already logged in
@@ -450,6 +462,9 @@
       <button id="new-task-save" class="btn btn-primary" style="padding:6px 12px;">Save</button>
     </div>
   </div>
+</div>
+<div id="toast-message" class="toast-message">
+
 </div>
 </body>
 </html>
