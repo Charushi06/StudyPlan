@@ -2423,11 +2423,12 @@ body {
 .summary-box {
   margin-top: 16px;
   padding: 14px;
-  background: linear-gradient(135deg, #eef2ff, #f8fafc);
+  background: var(--color-background-secondary);
+  color: var(--color-text-primary);
   border-radius: 12px;
   font-size: 14px;
   line-height: 1.6;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-border-tertiary);
 }
 
 .paste-input:focus,
