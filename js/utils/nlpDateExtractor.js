@@ -25,22 +25,25 @@ function addDays(date, n) {
   return d;
 }
 
-function startOf(date) {
+function normalizeData(date) {
   const d = new Date(date);
-  d.setHours(23, 59, 0, 0); 
+  d.setHours(0, 0, 0, 0); 
   return d;
 }
 
-function toISO(date) {
-  return date.toISOString();
+function toLocalISOString(date) {
+  const tzOffset=date.getTimeZoneOffset()*60000;
+  return new Date(date - tzOffset).toISOString().slice(0,-1) ;
 }
 
 function withTime(dateStr, timeParts) {
   const d = new Date(dateStr);
   if (timeParts) {
     d.setHours(timeParts.hours, timeParts.minutes, 0, 0);
+  }else {
+    d.setHours(23, 59, 0, 0);
   }
-  return toISO(d);
+  return toLocalISOString(d);
 }
 
 export function extractTime(text) {
@@ -73,10 +76,10 @@ export function extractTime(text) {
 }
 
 function matchRelativeDay(lower, now) {
-  if (/\btoday\b/.test(lower)) return toISO(startOf(now));
-  if (/\btomorrow\b/.test(lower)) return toISO(startOf(addDays(now, 1)));
-  if (/\bday after tomorrow\b/.test(lower)) return toISO(startOf(addDays(now, 2)));
-  if (/\byesterday\b/.test(lower)) return toISO(startOf(addDays(now, -1))); // edge case
+  if (/\btoday\b/.test(lower)) return toISO(normalizeDate(now));
+  if (/\btomorrow\b/.test(lower)) return toISO(normalizeDate(addDays(now, 1)));
+  if (/\bday after tomorrow\b/.test(lower)) return toISO(normalizeDate(addDays(now, 2)));
+  if (/\byesterday\b/.test(lower)) return toISO(normalizeDate(addDays(now, -1))); // edge case
   return null;
 }
 
@@ -94,7 +97,7 @@ function matchInNDaysWeeks(lower, now) {
   else if (unit.startsWith('week')) d = addDays(d, n * 7);
   else if (unit.startsWith('month')) d.setMonth(d.getMonth() + n);
 
-  return toISO(startOf(d));
+  return toISO(normalizeDate(d));
 }
 const WEEKDAYS = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
 
@@ -113,7 +116,7 @@ function matchNamedWeekday(lower, now) {
 
   if (qualifier === 'next') {
     // Always go to NEXT week's instance
-    if (diff <= 0) diff += 7;
+    diff += diff <=0 ? diff + 7: diff +7;
     diff += (diff === 0 ? 7 : 0); // if same day, also push a week
   } else if (qualifier === 'this') {
     // This week — if already passed, stay same
@@ -123,7 +126,7 @@ function matchNamedWeekday(lower, now) {
     if (diff <= 0) diff += 7;
   }
 
-  return toISO(startOf(addDays(now, diff)));
+  return toISO(normalizeDate(addDays(now, diff)));
 }
 const MONTHS = {
   jan: 0, january: 0,
@@ -151,21 +154,45 @@ function matchAbsoluteDate(lower, now) {
   if (m) {
     const month = MONTHS[m[1]];
     const day = parseInt(m[2]);
-    return toISO(startOf(resolveYear(now, month, day)));
+    return toISO(normalizeDate(resolveYear(now, month, day)));
   }
 
   m = lower.match(new RegExp(`\\b${ordinal}\\s+(${monthNames})\\b`));
   if (m) {
     const day = parseInt(m[1]);
     const month = MONTHS[m[2]];
-    return toISO(startOf(resolveYear(now, month, day)));
+    return toISO(normalizeDate(resolveYear(now, month, day)));
   }
 
   m = lower.match(/\b(\d{1,2})[\/\-\.](\d{1,2})(?:[\/\-\.](\d{2,4}))?\b/);
+
   if (m) {
-    const day = parseInt(m[1]);
-    const month = parseInt(m[2]) - 1;
-    const year = m[3] ? (m[3].length === 2 ? 2000 + parseInt(m[3]) : parseInt(m[3])) : null;
+    const first = parseInt(m[1]);
+    const second = parseInt(m[2]);
+
+    let day, month;
+
+    // Detect format automatically
+    if (first > 12) {
+      // DD/MM
+      day = first;
+      month = second - 1;
+    } else if (second > 12) {
+      // MM/DD
+      day = second;
+      month = first - 1;
+    } else {
+      // Default fallback → DD/MM
+      day = first;
+      month = second - 1;
+    }
+
+    const year = m[3]
+      ? (m[3].length === 2
+          ? 2000 + parseInt(m[3])
+          : parseInt(m[3]))
+      : null;
+
     return toISO(startOf(resolveYear(now, month, day, year)));
   }
 
@@ -184,20 +211,20 @@ function matchEndOfPeriod(lower, now) {
     // Next Sunday
     const d = new Date(now);
     d.setDate(d.getDate() + (7 - d.getDay()));
-    return toISO(startOf(d));
+    return toISO(normalizeDate(d));
   }
   if (/\bend of (the\s+)?month\b/.test(lower)) {
     const d = new Date(now.getFullYear(), now.getMonth() + 1, 0); // last day of month
-    return toISO(startOf(d));
+    return toISO(normalizeDate(d));
   }
   if (/\bend of (the\s+)?year\b/.test(lower)) {
     const d = new Date(now.getFullYear(), 11, 31);
-    return toISO(startOf(d));
+    return toISO(normalizeDate(d));
   }
   if (/\bnext month\b/.test(lower)) {
     const d = new Date(now);
     d.setMonth(d.getMonth() + 1);
-    return toISO(startOf(d));
+    return toISO(normalizeDate(d));
   }
   return null;
 }

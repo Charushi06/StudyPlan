@@ -431,11 +431,30 @@ function renderTasks() {
         completed.push(t);
         return;
       }
+
       pending.push(t);
+
+      if (!t.due_at) {
+        thisWeek.push(t);
+        return;
+      }
+
       const d = new Date(t.due_at);
+
+      // Ignore invalid dates
+      if (isNaN(d.getTime())) {
+        thisWeek.push(t);
+        return;
+      }
+
       const diffDays = (d - now) / (1000 * 60 * 60 * 24);
-      if (diffDays <= 3) dueSoon.push(t);
-      else thisWeek.push(t);
+
+      // Due soon = upcoming within 3 days only
+      if (diffDays >= 0 && diffDays <= 3) {
+        dueSoon.push(t);
+      } else {
+        thisWeek.push(t);
+      }
     });
   }
   
