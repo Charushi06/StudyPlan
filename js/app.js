@@ -138,12 +138,12 @@ function renderSidebarSubjects() {
 
 const newTaskModal = document.getElementById('new-task-modal');
 const newTaskSubject = document.getElementById('new-task-subject');
+const subjectsList = document.getElementById('subjects-list');
 const newTaskTitle = document.getElementById('new-task-title');
 const newTaskDate = document.getElementById('new-task-date');
 const newTaskNotes = document.getElementById('new-task-notes');
 const newTaskCancel = document.getElementById('new-task-cancel');
 const newTaskSave = document.getElementById('new-task-save');
-
 // Timer elements
 const timerText = document.getElementById('timer-text');
 const timerPathRemaining = document.getElementById('timer-path-remaining');
@@ -972,55 +972,93 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
 
-//NEw Task addition event listeners
+
+// NEW TASK ADDITION EVENT LISTENERS
 newTaskBtn.addEventListener('click', () => {
-  
+
+  // Check if subjects loaded
   if (!store.subjects || store.subjects.length === 0) {
     alert('Subjects are still loading. Please try again in a moment.');
     return;
   }
 
-  newTaskSubject.innerHTML = store.subjects
-    .map(s => `<option value="${s.id}">${s.name}</option>`)
+  // Fill datalist with subjects
+  subjectsList.innerHTML = store.subjects
+    .map(s => `<option value="${s.name}"></option>`)
     .join('');
 
-
+  // Default date
   if (selectedDate) {
     const d = new Date(selectedDate);
-    d.setHours(18, 0, 0, 0); 
+    d.setHours(18, 0, 0, 0);
     newTaskDate.value = d.toISOString().substring(0, 16);
   } else {
     newTaskDate.value = '';
   }
 
+  // Clear fields
+  newTaskSubject.value = '';
   newTaskTitle.value = '';
   newTaskNotes.value = '';
 
+  // Open modal
   newTaskModal.style.display = 'flex';
 });
 
+// Cancel button
 newTaskCancel.addEventListener('click', () => {
   newTaskModal.style.display = 'none';
 });
 
+// Close when clicking outside
 newTaskModal.addEventListener('click', (e) => {
   if (e.target === newTaskModal) {
     newTaskModal.style.display = 'none';
   }
 });
 
+// Save task
 newTaskSave.addEventListener('click', async () => {
+
   const title = newTaskTitle.value.trim();
-  const subject_id = newTaskSubject.value;
+  const subjectName = newTaskSubject.value.trim();
   const notes = newTaskNotes.value.trim();
   const dateVal = newTaskDate.value;
 
+  // Validation
   if (!title) {
     alert('Please enter a task name');
     return;
   }
 
-  const due_at = dateVal ? new Date(dateVal).toISOString() : '';
+  if (!subjectName) {
+    alert('Please enter a subject');
+    return;
+  }
+
+  // Find existing subject
+  let selectedSubject = store.subjects.find(
+    s => s.name.toLowerCase() === subjectName.toLowerCase()
+  );
+
+  // Create subject if not found
+  if (!selectedSubject) {
+    await store.addSubject({
+      name: subjectName,
+      color: SUBJECT_COLORS[0]
+    });
+
+    // Reload subject
+    selectedSubject = store.subjects.find(
+      s => s.name.toLowerCase() === subjectName.toLowerCase()
+    );
+  }
+
+  const subject_id = selectedSubject.id;
+
+  const due_at = dateVal
+    ? new Date(dateVal).toISOString()
+    : '';
 
   const newTask = {
     title,
@@ -1033,9 +1071,11 @@ newTaskSave.addEventListener('click', async () => {
   };
 
   await store.addTasks([newTask]);
+
   newTaskModal.style.display = 'none';
 });
 
+// Add extracted items
 addItemsBtn.addEventListener('click', () => {
   if (store.currentPaste) {
     store.addTasks(store.currentPaste);
@@ -1043,8 +1083,6 @@ addItemsBtn.addEventListener('click', () => {
     pasteInput.value = '';
   }
 });
-});
-
 extractBtn.addEventListener('click', async () => {
   const text = pasteInput.value;
   if (!text.trim()) return;
@@ -1075,4 +1113,5 @@ addItemsBtn.addEventListener('click', () => {
 
 downloadBtn.addEventListener('click', () => {
   downloadData();
+});
 });
