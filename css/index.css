@@ -794,8 +794,6 @@ body {
 #new-subject-modal .subject-color-swatch--selected {
   box-shadow: 0 0 0 2px #0f172a, 0 0 0 4px #a5b4fc;
 }
-/* css/index.css */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
   --color-background-primary: #ffffff;

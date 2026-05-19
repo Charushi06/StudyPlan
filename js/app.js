@@ -562,7 +562,7 @@ function renderTasks() {
       : '';
 
     tasksSection.innerHTML = actionBar +
-                             renderGroup(titlePrefix + '⚠ Due soon', dueSoon, 'var(--color-text-danger)', true)
+                             renderGroup(titlePrefix + '⚠ Due soon', dueSoon, 'var(--color-text-danger)', true) +
                              renderGroup(titlePrefix + 'This week', thisWeek, 'var(--color-text-secondary)', true) +
                              renderGroup(titlePrefix + 'Completed', completed, 'var(--color-text-tertiary)') +
                              emptyState;
@@ -971,9 +971,8 @@ document.addEventListener('DOMContentLoaded', () => {
     renderCalendar();
   });
 
-
-//NEw Task addition event listeners
-newTaskBtn.addEventListener('click', () => {
+  // New Task addition event listeners
+  newTaskBtn.addEventListener('click', () => {
   
   if (!store.subjects || store.subjects.length === 0) {
     alert('Subjects are still loading. Please try again in a moment.');
@@ -1036,15 +1035,6 @@ newTaskSave.addEventListener('click', async () => {
   newTaskModal.style.display = 'none';
 });
 
-addItemsBtn.addEventListener('click', () => {
-  if (store.currentPaste) {
-    store.addTasks(store.currentPaste);
-    store.clearExtracted();
-    pasteInput.value = '';
-  }
-});
-});
-
 extractBtn.addEventListener('click', async () => {
   const text = pasteInput.value;
   if (!text.trim()) return;
@@ -1060,19 +1050,20 @@ extractBtn.addEventListener('click', async () => {
   store.setExtracted(items);
 });
 
-clearBtn.addEventListener('click', () => {
-  pasteInput.value = '';
-  store.clearExtracted();
-});
-
-addItemsBtn.addEventListener('click', () => {
-  if (store.currentPaste) {
-    store.addTasks(store.currentPaste);
-    store.clearExtracted();
+  clearBtn.addEventListener('click', () => {
     pasteInput.value = '';
-  }
-});
+    store.clearExtracted();
+  });
+
+  addItemsBtn.addEventListener('click', () => {
+    if (store.currentPaste) {
+      store.addTasks(store.currentPaste);
+      store.clearExtracted();
+      pasteInput.value = '';
+    }
+  });
 
 downloadBtn.addEventListener('click', () => {
   downloadData();
 });
+}); // Close DOMContentLoaded event listener
