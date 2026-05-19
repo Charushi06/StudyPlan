@@ -87,11 +87,20 @@ function escapeHtml(s) {
 }
 
 const newSubjectModal = document.getElementById('new-subject-modal');
+const subjectModalTitle = document.getElementById('subject-modal-title');
 const newSubjectName = document.getElementById('new-subject-name');
 const newSubjectColorsEl = document.getElementById('new-subject-colors');
 const newSubjectCancel = document.getElementById('new-subject-cancel');
 const newSubjectSave = document.getElementById('new-subject-save');
 const addSubjectBtn = document.getElementById('add-subject-btn');
+const deleteSubjectModal = document.getElementById('delete-subject-modal');
+const deleteSubjectTitle = document.getElementById('delete-subject-title');
+const deleteSubjectMessage = document.getElementById('delete-subject-message');
+const deleteSubjectCancel = document.getElementById('delete-subject-cancel');
+const deleteSubjectConfirm = document.getElementById('delete-subject-confirm');
+let editingSubjectId = null;
+let deletingSubjectId = null;
+let deletingSubjectHasPending = false;
 
 function syncNewSubjectColorSwatches() {
   if (!newSubjectColorsEl) return;
@@ -102,13 +111,20 @@ function syncNewSubjectColorSwatches() {
   });
 }
 
-function openNewSubjectModal() {
-  if (!newSubjectModal || !newSubjectName) return;
-  newSubjectName.value = '';
-  selectedNewSubjectColor = SUBJECT_COLORS[0];
+function openSubjectModal(subject = null) {
+  if (!newSubjectModal || !newSubjectName || !subjectModalTitle) return;
+  editingSubjectId = subject ? subject.id : null;
+  newSubjectName.value = subject ? subject.name : '';
+  selectedNewSubjectColor = subject ? subject.color || SUBJECT_COLORS[0] : SUBJECT_COLORS[0];
   syncNewSubjectColorSwatches();
+  subjectModalTitle.textContent = subject ? 'Edit subject' : 'New subject';
+  newSubjectSave.textContent = subject ? 'Save changes' : 'Save';
   newSubjectModal.style.display = 'flex';
   newSubjectName.focus();
+}
+
+function openNewSubjectModal() {
+  openSubjectModal(null);
 }
 
 function renderSidebarSubjects() {
@@ -131,9 +147,51 @@ function renderSidebarSubjects() {
     const n = countBySubject[s.id] ?? 0;
     const safeColor = s.color ? escapeHtml(s.color) : 'var(--color-text-info)';
     return `<div class="nav-item subject-sidebar-item" data-subject-id="${escapeHtml(s.id)}">
-      <span class="nav-dot" style="background:${safeColor}"></span>${escapeHtml(s.name)}<span class="badge">${n}</span>
+      <span class="nav-dot" style="background:${safeColor}"></span>
+      <span class="subject-name">${escapeHtml(s.name)}</span>
+      <span class="badge">${n}</span>
+      <span class="subject-actions" style="margin-left:auto; display:inline-flex; gap:6px;">
+        <button class="subject-edit-btn" data-id="${escapeHtml(s.id)}" title="Edit subject" style="background:transparent;border:none;cursor:pointer;">📝</button>
+        <button class="subject-delete-btn" data-id="${escapeHtml(s.id)}" title="Delete subject" style="background:transparent;border:none;cursor:pointer;">❌</button>
+      </span>
     </div>`;
   }).join('');
+
+  // Attach handlers for edit/delete
+  document.querySelectorAll('.subject-edit-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.id;
+      const subj = store.subjects.find(s => s.id === id);
+      if (!subj) return;
+      openSubjectModal(subj);
+    });
+  });
+
+  document.querySelectorAll('.subject-delete-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.id;
+      const subj = store.subjects.find(s => s.id === id);
+      if (!subj) return;
+      const pendingTasks = store.tasks.filter(t => t.subject_id === id && !t.archived && t.status !== 'Done');
+      deletingSubjectId = id;
+      deletingSubjectHasPending = pendingTasks.length > 0;
+      deleteSubjectTitle.textContent = `Delete subject "${subj.name}"`;
+      if (deletingSubjectHasPending) {
+        deleteSubjectMessage.textContent = `Cannot delete this subject because it has ${pendingTasks.length} pending task${pendingTasks.length === 1 ? '' : 's'}. Complete or archive them first.`;
+        deleteSubjectConfirm.disabled = true;
+        deleteSubjectConfirm.style.opacity = '0.6';
+        deleteSubjectConfirm.textContent = 'Delete disabled';
+      } else {
+        deleteSubjectMessage.textContent = 'This will dissociate any completed or archived tasks from this subject. This action cannot be undone.';
+        deleteSubjectConfirm.disabled = false;
+        deleteSubjectConfirm.style.opacity = '';
+        deleteSubjectConfirm.textContent = 'Delete';
+      }
+      if (deleteSubjectModal) deleteSubjectModal.style.display = 'flex';
+    });
+  });
 }
 
 const newTaskModal = document.getElementById('new-task-modal');
@@ -886,19 +944,65 @@ document.addEventListener('DOMContentLoaded', () => {
   if (newSubjectCancel) {
     newSubjectCancel.addEventListener('click', () => {
       if (newSubjectModal) newSubjectModal.style.display = 'none';
+      editingSubjectId = null;
     });
   }
 
   if (newSubjectModal) {
     newSubjectModal.addEventListener('click', (e) => {
-      if (e.target === newSubjectModal) newSubjectModal.style.display = 'none';
+      if (e.target === newSubjectModal) {
+        newSubjectModal.style.display = 'none';
+        editingSubjectId = null;
+      }
+    });
+  }
+
+  if (deleteSubjectCancel) {
+    deleteSubjectCancel.addEventListener('click', () => {
+      if (deleteSubjectModal) deleteSubjectModal.style.display = 'none';
+      deletingSubjectId = null;
+    });
+  }
+
+  if (deleteSubjectModal) {
+    deleteSubjectModal.addEventListener('click', (e) => {
+      if (e.target === deleteSubjectModal) {
+        deleteSubjectModal.style.display = 'none';
+        deletingSubjectId = null;
+      }
+    });
+  }
+
+  if (deleteSubjectConfirm) {
+    deleteSubjectConfirm.addEventListener('click', async () => {
+      if (!deletingSubjectId || deletingSubjectHasPending) return;
+      const ok = await store.deleteSubject(deletingSubjectId);
+      if (ok) {
+        if (deleteSubjectModal) deleteSubjectModal.style.display = 'none';
+        deletingSubjectId = null;
+      }
     });
   }
 
   if (newSubjectSave) {
     newSubjectSave.addEventListener('click', async () => {
-      const ok = await store.addSubject({ name: newSubjectName.value, color: selectedNewSubjectColor });
-      if (ok && newSubjectModal) newSubjectModal.style.display = 'none';
+      if (!newSubjectName.value.trim()) {
+        alert('Please enter a subject name');
+        return;
+      }
+      if (editingSubjectId) {
+        const ok = await store.updateSubject(editingSubjectId, {
+          name: newSubjectName.value.trim(),
+          color: selectedNewSubjectColor
+        });
+        if (ok && newSubjectModal) {
+          newSubjectModal.style.display = 'none';
+          editingSubjectId = null;
+        }
+      } else {
+        const ok = await store.addSubject({ name: newSubjectName.value, color: selectedNewSubjectColor });
+        if (ok && newSubjectModal) newSubjectModal.style.display = 'none';
+      }
     });
   }
 
