@@ -61,7 +61,6 @@ const extractPreview = document.getElementById('extract-preview');
 const pasteInput = document.getElementById('paste-input');
 const extractBtn = document.getElementById('extract-btn');
 const clearBtn = document.getElementById('clear-btn');
-const addItemsBtn = document.getElementById('add-btn');
 const downloadBtn = document.getElementById('download-btn');
 const newTaskBtn = document.getElementById('add-task-btn');
 
@@ -752,17 +751,7 @@ function renderCalendar() {
 }
 
 function renderExtraction() {
-  const pasteItems = store.currentPaste;
-  if (!pasteItems || pasteItems.length === 0) {
-    extractPreview.innerHTML = '';
-    addItemsBtn.disabled = true;
-    addItemsBtn.textContent = 'Add items to planner';
-    return;
-  }
-  
-  addItemsBtn.disabled = false;
-  addItemsBtn.textContent = `Add ${pasteItems.length} items to planner`;
-  
+
   let html = `<div class="extract-title">Extracted — ${pasteItems.length} items</div>`;
   pasteItems.forEach((item, index) => {
     // try to match subject name
@@ -1035,14 +1024,6 @@ newTaskSave.addEventListener('click', async () => {
   await store.addTasks([newTask]);
   newTaskModal.style.display = 'none';
 });
-
-addItemsBtn.addEventListener('click', () => {
-  if (store.currentPaste) {
-    store.addTasks(store.currentPaste);
-    store.clearExtracted();
-    pasteInput.value = '';
-  }
-});
 });
 
 extractBtn.addEventListener('click', async () => {
@@ -1063,14 +1044,6 @@ extractBtn.addEventListener('click', async () => {
 clearBtn.addEventListener('click', () => {
   pasteInput.value = '';
   store.clearExtracted();
-});
-
-addItemsBtn.addEventListener('click', () => {
-  if (store.currentPaste) {
-    store.addTasks(store.currentPaste);
-    store.clearExtracted();
-    pasteInput.value = '';
-  }
 });
 
 downloadBtn.addEventListener('click', () => {
