@@ -425,7 +425,7 @@ Each object must have: title (string), subject_name (string), due_at (ISO 8601 d
 Text: "${text}"
 `;
       const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-1.5-flash',
         contents: prompt
       });
 

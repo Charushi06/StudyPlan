@@ -34,8 +34,8 @@ async function downloadData(req, res) {
                 task.status,
                 task.priority,
                 task.confidence_score,
-                `"${(task.notes || '').replace(/"/g, '""')}"`
-            ])
+                task.notes || ''
+            ].map(val => `"${String(val).replace(/"/g, '""')}"`))
         ];
 
         const csvString = rows.map(row => row.join(',')).join('\n');

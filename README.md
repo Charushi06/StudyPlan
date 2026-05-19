@@ -79,6 +79,11 @@ Planner + Calendar Update
 - SQLite-based local database
 - Structured task + subject mapping
 
+### 📥 Data Export
+- Export your study plan to CSV
+- Includes task details, subjects, and deadlines
+- Compatible with Excel, Google Sheets, and other tools
+
 ---
 
 ## 🧠 System Architecture
