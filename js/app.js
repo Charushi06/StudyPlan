@@ -5,6 +5,43 @@ import { analyzeWorkload } from './utils/scheduler.js';
 
 initGlobalErrorBoundary();
 
+window.validatePassword = function () {
+
+   if (isLogin) {
+        document.getElementById("message").innerHTML = "";
+        return;
+    }
+    let password =
+        document.getElementById("auth-password").value;
+
+    let message =
+        document.getElementById("message");
+
+    const hasLength = password.length >= 8;
+    const hasUpper = /[A-Z]/.test(password);
+    const hasLower = /[a-z]/.test(password);
+    const hasNumber = /\d/.test(password);
+
+    function rule(condition, text) {
+        return `
+            <div style="
+                color:${condition ? 'green' : 'red'};
+                margin:4px 0;
+                font-size:13px;
+            ">
+                ${condition ? '✔' : '✖'} ${text}
+            </div>
+        `;
+    }
+
+    message.innerHTML =
+        rule(hasLength, "Minimum 8 characters") +
+        rule(hasUpper, "1 uppercase letter") +
+        rule(hasLower, "1 lowercase letter") +
+        rule(hasNumber, "1 number");
+
+};
+
 function generateSummary(tasks, subjects) {
   const now = new Date();
   const weekEnd = new Date();
