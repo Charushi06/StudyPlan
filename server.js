@@ -272,9 +272,32 @@ app.post('/api/subjects', (req, res) => {
 
 // ================= TASKS =================
 app.get('/api/tasks', (req, res) => {
-  db.all('SELECT * FROM tasks ORDER BY due_at ASC', (err, rows) => {
+  db.all('SELECT * FROM tasks ORDER BY position ASC, due_at ASC', (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(rows);
+  });
+});
+
+// ================= REORDER TASKS =================
+app.put('/api/tasks/reorder', (req, res) => {
+  const { tasks } = req.body;
+  if (!Array.isArray(tasks)) {
+    return res.status(400).json({ error: 'Expected an array of tasks with id, position, and status' });
+  }
+
+  db.serialize(() => {
+    db.run("BEGIN TRANSACTION");
+    const stmt = db.prepare("UPDATE tasks SET position = ?, status = ? WHERE id = ?");
+    
+    tasks.forEach(t => {
+      stmt.run(t.position, t.status, t.id);
+    });
+    
+    stmt.finalize();
+    db.run("COMMIT", (err) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ success: true });
+    });
   });
 });
 

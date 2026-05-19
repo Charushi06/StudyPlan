@@ -293,6 +293,34 @@ export const store = {
     }
   },
 
+  async reorderTasks(reorderedList) {
+    // Optimistic update
+    reorderedList.forEach(t => {
+      const task = this.tasks.find(task => String(task.id) === String(t.id));
+      if (task) {
+        task.position = t.position;
+        task.status = t.status;
+      }
+    });
+    
+    // Sort tasks by new position
+    this.tasks.sort((a, b) => (a.position || 0) - (b.position || 0));
+    this.notify();
+
+    try {
+      const res = await fetch('/api/tasks/reorder', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tasks: reorderedList })
+      });
+      if (!res.ok) throw new Error('Reorder failed');
+    } catch (e) {
+      console.error('Failed to reorder tasks', e);
+      // Ideally we'd rollback here, but for simplicity we can just refetch
+      this.fetchInitialData();
+    }
+  },
+
   setExtracted(items) {
     this.currentPaste = items.map(item => ({ ...item, _isEditing: false }));
     this.notify();
