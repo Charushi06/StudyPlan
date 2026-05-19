@@ -10,15 +10,30 @@ const { db } = require("../../database.js");
  */
 
 
+// Add an escaping function to combat CSV injection and comma parsing issues
+function escapeCSV(str) {
+    if (str === null || str === undefined) return '""';
+    let stringified = String(str);
+    
+    // Prevent CSV Formula Injection by escaping =, +, -, @
+    if (/^[=+\-@]/.test(stringified)) {
+        stringified = "'" + stringified;
+    }
+    
+    // Escape existing double quotes and wrap the whole string in quotes
+    return `"${stringified.replace(/"/g, '""')}"`;
+}
+
 async function downloadData(req, res) {
     try {
         const query = `
             SELECT tasks.*, subjects.name AS subject_name 
             FROM tasks 
             LEFT JOIN subjects ON tasks.subject_id = subjects.id
+            WHERE tasks.user_id = ?
         `;
         const data = await new Promise((resolve, reject) => {
-            db.all(query, [], (err, rows) => {
+            db.all(query, [req.user.email], (err, rows) => {
                 if (err) reject(err);
                 else resolve(rows);
             });
@@ -27,14 +42,14 @@ async function downloadData(req, res) {
         const rows = [
             ["Task ID", "Subject", "Title", "Due At", "Status", "Priority", "Confidence Score", "Notes"],
             ...data.map(task => [
-                task.id,
-                task.subject_name,
-                task.title,
-                task.due_at,
-                task.status,
-                task.priority,
-                task.confidence_score,
-                `"${(task.notes || '').replace(/"/g, '""')}"`
+                escapeCSV(task.id),
+                escapeCSV(task.subject_name),
+                escapeCSV(task.title),
+                escapeCSV(task.due_at),
+                escapeCSV(task.status),
+                escapeCSV(task.priority),
+                escapeCSV(task.confidence_score),
+                escapeCSV(task.notes)
             ])
         ];
 

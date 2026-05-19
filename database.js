@@ -8,6 +8,7 @@ function initDb() {
     // Subjects Table
     db.run(`CREATE TABLE IF NOT EXISTS subjects (
       id TEXT PRIMARY KEY,
+      user_id TEXT,
       name TEXT NOT NULL,
       short_code TEXT,
       color TEXT,
@@ -17,6 +18,7 @@ function initDb() {
     // Tasks Table
     db.run(`CREATE TABLE IF NOT EXISTS tasks (
       id TEXT PRIMARY KEY,
+      user_id TEXT,
       subject_id TEXT,
       title TEXT NOT NULL,
       description TEXT,
