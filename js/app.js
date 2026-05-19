@@ -65,6 +65,18 @@ const addItemsBtn = document.getElementById('add-btn');
 const downloadBtn = document.getElementById('download-btn');
 const newTaskBtn = document.getElementById('add-task-btn');
 
+// Event listener for extract-btn
+pasteInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+
+    if (!pasteInput.value.trim()) return;
+    if (extractBtn.disabled) return;
+
+    extractBtn.click();
+  }
+});
+
 
 
 const SUBJECT_COLORS = [
