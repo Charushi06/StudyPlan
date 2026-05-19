@@ -425,7 +425,7 @@ Each object must have: title (string), subject_name (string), due_at (ISO 8601 d
 Text: "${text}"
 `;
       const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-1.5-flash',
         contents: prompt
       });
 
@@ -456,7 +456,7 @@ app.post('/api/auth/signup', (req, res) => {
     return res.status(400).json({ error: 'User already exists' });
   }
   users[email] = { email, password };
-  res.json({ success: true, message: 'Account created successfully' });
+  res.json({ success: true, email: email, message: 'Account created successfully' });
 });
 
 app.post('/api/auth/login', (req, res) => {

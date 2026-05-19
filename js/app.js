@@ -14,8 +14,14 @@ function generateSummary(tasks, subjects) {
   let weekCount = 0;
   let subjectCount = {};
 
-  tasks.forEach(t => {
-    if (t.archived || t.status === 'Done' || !t.due_at) return;
+  // Progress calculation
+  const activeTasks = tasks.filter(t => !t.archived);
+  const totalActive = activeTasks.length;
+  const completedTasks = activeTasks.filter(t => t.status === 'Done').length;
+  const completionPercentage = totalActive > 0 ? Math.round((completedTasks / totalActive) * 100) : 0;
+
+  activeTasks.forEach(t => {
+    if (t.status === 'Done' || !t.due_at) return;
 
     const d = new Date(t.due_at);
 
@@ -41,6 +47,14 @@ function generateSummary(tasks, subjects) {
     : 'no specific subject';
 
   return `
+    <strong>📊 Overall Progress</strong><br>
+    <div class="progress-container" style="background: var(--color-border-tertiary); height: 8px; border-radius: 4px; margin: 8px 0; overflow: hidden;">
+      <div class="progress-bar" style="width: ${completionPercentage}%; height: 100%; background: var(--color-text-success); transition: width 0.3s ease;"></div>
+    </div>
+    <div style="font-size: 12px; color: var(--color-text-secondary); margin-bottom: 16px;">
+      ${completionPercentage}% completed (${completedTasks}/${totalActive} tasks)
+    </div>
+
     <strong>📅 Daily</strong><br>
     Today you have <b>${todayCount}</b> task(s).<br>
     Focus on <b>${topSubject}</b>.<br><br>
@@ -123,7 +137,7 @@ function renderSidebarSubjects() {
     countBySubject[s.id] = 0;
   });
   tasks.forEach(t => {
-    if (t.archived || !t.subject_id || countBySubject[t.subject_id] === undefined) return;
+    if (t.archived || t.status === 'Done' || !t.subject_id || countBySubject[t.subject_id] === undefined) return;
     countBySubject[t.subject_id]++;
   });
 
@@ -397,7 +411,9 @@ function renderTasks() {
   // Update badges
   const allTasksBadge = document.querySelector('#all-tasks-btn .badge');
   if (allTasksBadge) {
-    allTasksBadge.textContent = activeTasks.length;
+    const pendingCount = activeTasks.filter(t => t.status !== 'Done').length;
+    allTasksBadge.textContent = pendingCount;
+    allTasksBadge.setAttribute('aria-label', `${pendingCount} pending tasks`);
   }
   const archivedBadge = document.querySelector('#archived-tasks-btn .badge');
   if (archivedBadge) {
@@ -562,7 +578,7 @@ function renderTasks() {
       : '';
 
     tasksSection.innerHTML = actionBar +
-                             renderGroup(titlePrefix + '⚠ Due soon', dueSoon, 'var(--color-text-danger)', true)
+                             renderGroup(titlePrefix + '⚠ Due soon', dueSoon, 'var(--color-text-danger)', true) +
                              renderGroup(titlePrefix + 'This week', thisWeek, 'var(--color-text-secondary)', true) +
                              renderGroup(titlePrefix + 'Completed', completed, 'var(--color-text-tertiary)') +
                              emptyState;
@@ -663,9 +679,11 @@ function renderTasks() {
 }
 
 
-const summaryBox = document.getElementById('summary-box');
-if (summaryBox) {
-  summaryBox.innerHTML = generateSummary(store.tasks, store.subjects);
+function renderSummary() {
+  const summaryBox = document.getElementById('summary-box');
+  if (summaryBox) {
+    summaryBox.innerHTML = generateSummary(store.tasks, store.subjects);
+  }
 }
 
 function renderCalendar() {
@@ -855,6 +873,7 @@ store.subscribe(renderExtraction);
 store.subscribe(renderCalendar);
 store.subscribe(renderFocusTasks);
 store.subscribe(renderSidebarSubjects);
+store.subscribe(renderSummary);
 
 document.addEventListener('DOMContentLoaded', () => {
   if (newSubjectColorsEl) {
@@ -971,9 +990,8 @@ document.addEventListener('DOMContentLoaded', () => {
     renderCalendar();
   });
 
-
-//NEw Task addition event listeners
-newTaskBtn.addEventListener('click', () => {
+  // New Task addition event listeners
+  newTaskBtn.addEventListener('click', () => {
   
   if (!store.subjects || store.subjects.length === 0) {
     alert('Subjects are still loading. Please try again in a moment.');
@@ -1036,15 +1054,6 @@ newTaskSave.addEventListener('click', async () => {
   newTaskModal.style.display = 'none';
 });
 
-addItemsBtn.addEventListener('click', () => {
-  if (store.currentPaste) {
-    store.addTasks(store.currentPaste);
-    store.clearExtracted();
-    pasteInput.value = '';
-  }
-});
-});
-
 extractBtn.addEventListener('click', async () => {
   const text = pasteInput.value;
   if (!text.trim()) return;
@@ -1060,19 +1069,20 @@ extractBtn.addEventListener('click', async () => {
   store.setExtracted(items);
 });
 
-clearBtn.addEventListener('click', () => {
-  pasteInput.value = '';
-  store.clearExtracted();
-});
-
-addItemsBtn.addEventListener('click', () => {
-  if (store.currentPaste) {
-    store.addTasks(store.currentPaste);
-    store.clearExtracted();
+  clearBtn.addEventListener('click', () => {
     pasteInput.value = '';
-  }
-});
+    store.clearExtracted();
+  });
+
+  addItemsBtn.addEventListener('click', () => {
+    if (store.currentPaste) {
+      store.addTasks(store.currentPaste);
+      store.clearExtracted();
+      pasteInput.value = '';
+    }
+  });
 
 downloadBtn.addEventListener('click', () => {
   downloadData();
 });
+}); // Close DOMContentLoaded event listener
