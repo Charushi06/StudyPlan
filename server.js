@@ -1,6 +1,8 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const { db, initDb } = require('./database');
 const { GoogleGenAI } = require('@google/genai');
 const path = require('path');
@@ -233,7 +235,7 @@ function nlpExtractTasksFromText(text) {
 // ============================================================
 
 // ================= SUBJECTS =================
-app.get('/api/subjects', (req, res) => {
+app.get('/api/subjects', authenticateToken, (req, res) => {
   db.all('SELECT * FROM subjects', (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(rows);
@@ -249,7 +251,7 @@ const ALLOWED_SUBJECT_COLORS = new Set([
   'var(--color-text-secondary)',
 ]);
 
-app.post('/api/subjects', (req, res) => {
+app.post('/api/subjects', authenticateToken, (req, res) => {
   const name = String(req.body?.name || '').trim();
   let color = String(req.body?.color || '').trim() || 'var(--color-text-info)';
   if (!name) {
@@ -271,7 +273,7 @@ app.post('/api/subjects', (req, res) => {
 });
 
 // ================= TASKS =================
-app.get('/api/tasks', (req, res) => {
+app.get('/api/tasks', authenticateToken, (req, res) => {
   db.all('SELECT * FROM tasks ORDER BY due_at ASC', (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(rows);
@@ -279,7 +281,7 @@ app.get('/api/tasks', (req, res) => {
 });
 
 // ================= ADD TASKS =================
-app.post('/api/tasks', (req, res) => {
+app.post('/api/tasks', authenticateToken, (req, res) => {
   try {
     const tasks = Array.isArray(req.body) ? req.body : [req.body];
 
@@ -370,7 +372,7 @@ app.post('/api/tasks', (req, res) => {
 });
 
 // ================= UPDATE =================
-app.put('/api/tasks/:id', (req, res) => {
+app.put('/api/tasks/:id', authenticateToken, (req, res) => {
   const { status, archived, title, subject_id, due_at, notes, priority } = req.body;
 
   let query = 'UPDATE tasks SET ';
@@ -399,7 +401,7 @@ app.put('/api/tasks/:id', (req, res) => {
 });
 
 // ================= DELETE =================
-app.delete('/api/tasks/:id', (req, res) => {
+app.delete('/api/tasks/:id', authenticateToken, (req, res) => {
   db.run(
     'DELETE FROM tasks WHERE id = ?',
     [req.params.id],
@@ -445,18 +447,40 @@ Text: "${text}"
   return res.json(tasks);
 });
 // ================= AUTH =================
-const users = {}; // Simple in-memory user store
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  if (!token) return res.status(401).json({ error: 'Unauthorized' });
 
-app.post('/api/auth/signup', (req, res) => {
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) return res.status(401).json({ error: 'Unauthorized' });
+    req.user = user;
+    next();
+  });
+}
+
+app.post('/api/auth/signup', async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password required' });
   }
-  if (users[email]) {
-    return res.status(400).json({ error: 'User already exists' });
+  
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const id = 'user_' + Date.now() + Math.random().toString(36).substr(2, 5);
+    
+    db.run('INSERT INTO users (id, email, password) VALUES (?, ?, ?)', [id, email, hashedPassword], function(err) {
+      if (err) {
+        if (err.message.includes('UNIQUE constraint failed')) {
+          return res.status(400).json({ error: 'User already exists' });
+        }
+        return res.status(500).json({ error: err.message });
+      }
+      res.json({ success: true, message: 'Account created successfully' });
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
   }
-  users[email] = { email, password };
-  res.json({ success: true, message: 'Account created successfully' });
 });
 
 app.post('/api/auth/login', (req, res) => {
@@ -464,11 +488,22 @@ app.post('/api/auth/login', (req, res) => {
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password required' });
   }
-  const user = users[email];
-  if (!user || user.password !== password) {
-    return res.status(401).json({ error: 'Invalid email or password' });
-  }
-  res.json({ success: true, email: user.email });
+  
+  db.get('SELECT * FROM users WHERE email = ?', [email], async (err, user) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!user) return res.status(401).json({ error: 'Invalid email or password' });
+    
+    try {
+      if (await bcrypt.compare(password, user.password)) {
+        const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET);
+        res.json({ success: true, email: user.email, token });
+      } else {
+        res.status(401).json({ error: 'Invalid email or password' });
+      }
+    } catch (error) {
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
 });
 
 // Intentional test route for verifying server error page behavior.
