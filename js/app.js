@@ -663,9 +663,11 @@ function renderTasks() {
 }
 
 
-const summaryBox = document.getElementById('summary-box');
-if (summaryBox) {
-  summaryBox.innerHTML = generateSummary(store.tasks, store.subjects);
+function renderSummary() {
+  const summaryBox = document.getElementById('summary-box');
+  if (summaryBox) {
+    summaryBox.innerHTML = generateSummary(store.tasks, store.subjects);
+  }
 }
 
 function renderCalendar() {
@@ -855,6 +857,7 @@ store.subscribe(renderExtraction);
 store.subscribe(renderCalendar);
 store.subscribe(renderFocusTasks);
 store.subscribe(renderSidebarSubjects);
+store.subscribe(renderSummary);
 
 document.addEventListener('DOMContentLoaded', () => {
   if (newSubjectColorsEl) {
