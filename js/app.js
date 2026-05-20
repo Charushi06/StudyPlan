@@ -1076,3 +1076,23 @@ addItemsBtn.addEventListener('click', () => {
 downloadBtn.addEventListener('click', () => {
   downloadData();
 });
+// Reference our elements
+const taskDateInput = document.getElementById('new-task-date');
+const confirmDeadlineBtn = document.getElementById('confirm-deadline-btn');
+
+// Show the "Confirm Date" button when a user changes/picks a date
+taskDateInput.addEventListener('input', () => {
+    if (taskDateInput.value) {
+        confirmDeadlineBtn.style.display = 'inline-block';
+    } else {
+        confirmDeadlineBtn.style.display = 'none';
+    }
+});
+
+// Logic when the confirmation button is clicked
+confirmDeadlineBtn.addEventListener('click', () => {
+    alert(`Deadline confirmed: ${taskDateInput.value}`);
+    // Hide the button again after confirmation
+    confirmDeadlineBtn.style.display = 'none';
+});
+
