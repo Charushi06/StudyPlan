@@ -10,6 +10,16 @@ const { db } = require("../../database.js");
  */
 
 
+function escapeCSVField(val) {
+    if (val === null || val === undefined) return '';
+    const str = String(val);
+    // If the field contains quotes, commas, or newlines, escape quotes and wrap in quotes
+    if (/[",\r\n]/.test(str)) {
+        return `"${str.replace(/"/g, '""')}"`;
+    }
+    return str;
+}
+
 async function downloadData(req, res) {
     try {
         const query = `
@@ -24,21 +34,21 @@ async function downloadData(req, res) {
             });
         });
 
-        const rows = [
-            ["Task ID", "Subject", "Title", "Due At", "Status", "Priority", "Confidence Score", "Notes"],
-            ...data.map(task => [
-                task.id,
-                task.subject_name,
-                task.title,
-                task.due_at,
-                task.status,
-                task.priority,
-                task.confidence_score,
-                `"${(task.notes || '').replace(/"/g, '""')}"`
-            ])
-        ];
+        const headers = ["Task ID", "Subject", "Title", "Due At", "Status", "Priority", "Confidence Score", "Notes"];
+        const rows = data.map(task => [
+            task.id,
+            task.subject_name,
+            task.title,
+            task.due_at,
+            task.status,
+            task.priority,
+            task.confidence_score,
+            task.notes
+        ]);
 
-        const csvString = rows.map(row => row.join(',')).join('\n');
+        const csvString = [headers, ...rows]
+            .map(row => row.map(escapeCSVField).join(','))
+            .join('\n');
 
         res.setHeader('Content-Type', 'text/csv');
         res.setHeader('Content-Disposition', 'attachment; filename="study_data.csv"');
