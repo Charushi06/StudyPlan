@@ -513,6 +513,16 @@ function renderTasks() {
              <button class="task-btn task-btn-info restore-task-btn" data-id="${t.id}" title="Restore">Restore</button>
              <button class="task-btn task-btn-danger delete-task-btn" data-id="${t.id}" title="Permanent Delete">Delete</button>`;
 
+        let priorityClass = 'pill-blue';
+        let priorityLabel = '🔵 Low';
+        if (t.priority === 'high') {
+          priorityClass = 'pill-red';
+          priorityLabel = '🔴 High';
+        } else if (t.priority === 'medium') {
+          priorityClass = 'pill-amber';
+          priorityLabel = '🟡 Medium';
+        }
+
         html += `
           <div class="task-item ${isUrgent ? 'urgent' : ''} ${isDone ? 'done' : ''}" data-id="${t.id}">
             <div class="task-check ${isDone ? 'done' : ''}"></div>
@@ -521,6 +531,7 @@ function renderTasks() {
               <div class="task-meta">
                 <span class="task-pill ${isDone ? 'pill-green' : (isUrgent ? 'pill-red' : 'pill-amber')}">${isDone ? 'Done' : 'Due ' + formatDate(t.due_at)}</span>
                 <span class="task-pill ${pillClass}">${sub.short_code}</span>
+                <span class="task-pill ${priorityClass}">${priorityLabel}</span>
               </div>
             </div>
             <div class="task-actions">
