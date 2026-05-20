@@ -136,6 +136,13 @@ body {
   padding-left: 18px;
 }
 
+.active-card {
+  border: 2px solid var(--color-text-primary);
+  box-shadow: var(--shadow-md);
+  transform: scale(1.02);
+  transition: all 0.3s ease;
+}
+
 /* FOOTER */
 .site-footer {
   display: flex;
