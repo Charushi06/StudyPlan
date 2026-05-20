@@ -319,10 +319,48 @@ body {
 .conf-edit { color: var(--color-text-info); cursor: pointer; transition: color 0.2s; }
 .conf-edit:hover { color: var(--color-text-primary); }
 
-.add-btn { margin: 0 20px 20px; padding: 12px; border: none; border-radius: var(--border-radius-md); background: var(--color-text-primary); color: var(--color-background-primary); font-size: 14px; font-weight: 600; cursor: pointer; text-align: center; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
-.add-btn:hover:not(:disabled) { background: var(--color-text-secondary); transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.2); }
-.add-btn:active:not(:disabled) { transform: translateY(0); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-.add-btn:disabled { background: var(--color-border-secondary); cursor: not-allowed; transform: none; box-shadow: none; color: var(--color-text-tertiary); }
+
+/* Improved Add items to planner button */
+.add-btn {
+  margin: 18px 20px 20px;
+  width: calc(100% - 40px);
+
+  padding: 14px 18px;
+
+  border: none;
+  border-radius: 14px;
+
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  color: #ffffff;
+
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+
+  cursor: pointer;
+  text-align: center;
+
+  box-shadow: 0 6px 18px rgba(79, 70, 229, 0.25);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.add-btn:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.01);
+
+  background: linear-gradient(135deg, #4338ca, #5b5ff0);
+
+  box-shadow: 0 10px 24px rgba(79, 70, 229, 0.35);
+}
+
+.add-btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
 
 /* Loader */
 .loader-spinner {
@@ -1178,7 +1216,7 @@ body {
 .add-btn { margin: 0 20px 20px; padding: 12px; border: none; border-radius: var(--border-radius-md); background: var(--color-text-primary); color: var(--color-background-primary); font-size: 14px; font-weight: 600; cursor: pointer; text-align: center; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
 .add-btn:hover:not(:disabled) { background: var(--color-text-secondary); transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.2); }
 .add-btn:active:not(:disabled) { transform: translateY(0); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-.add-btn:disabled { background: var(--color-border-secondary); cursor: not-allowed; transform: none; box-shadow: none; color: var(--color-text-tertiary); }
+
 
 /* Loader */
 .loader-spinner {
@@ -1676,7 +1714,6 @@ body {
 .add-btn { margin: 0 20px 20px; padding: 12px; border: none; border-radius: var(--border-radius-md); background: var(--color-text-primary); color: var(--color-background-primary); font-size: 14px; font-weight: 600; cursor: pointer; text-align: center; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
 .add-btn:hover:not(:disabled) { background: var(--color-text-secondary); transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.2); }
 .add-btn:active:not(:disabled) { transform: translateY(0); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-.add-btn:disabled { background: var(--color-border-secondary); cursor: not-allowed; transform: none; box-shadow: none; color: var(--color-text-tertiary); }
 
 /* Loader */
 .loader-spinner {
@@ -2159,4 +2196,57 @@ body {
 .smart-highlight {
   color: #ffcc66;
   font-weight: 600;
+}
+
+/* Improved Add items to planner button */
+.add-btn {
+  width: 90%;
+  margin: 18px auto 20px;
+
+  padding: 14px 18px;
+
+  border: 1px solid #d1d5db;
+  border-radius: 14px;
+
+  background: #111111;
+  color: #ffffff;
+
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+
+  text-align: center;
+  cursor: pointer;
+
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+
+  flex-shrink: 0;
+}
+
+.add-btn:hover:not(:disabled) {
+  background: #222222;
+
+  transform: translateY(-2px);
+
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+}
+
+.add-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.add-btn:disabled {
+  background: #2d2d2d;
+  color: #f5f5f5;
+
+  opacity: 0.92;
+
+  cursor: not-allowed;
+
+  box-shadow: none;
 }
