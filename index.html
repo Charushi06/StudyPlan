@@ -7,6 +7,8 @@
   <link rel="stylesheet" href="/css/index.css">
   <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>StudyPlan</title>
+  <link rel="icon" type="image/png" href="logo.png">
 </head>
 <body>
   <!-- Auth Modal -->
@@ -35,7 +37,7 @@
 
   <header class="site-header">
   <div class="header-left">
-    <img src="/logo.png" alt="Logo" class="logo">
+    <img src="logo.png" alt="Logo" class="logo">
     <h1 class="site-title">StudyPlan</h1>
   </div>
 
@@ -269,8 +271,8 @@
 </div>
 
   <script type="module" src="/js/app.js"></script>
-  <script>
-  let isLogin = true;
+  <script> 
+    let isLogin = true;
 
   document.getElementById('auth-toggle-btn').addEventListener('click', (e) => {
     e.preventDefault();
@@ -413,7 +415,9 @@
       document.body.classList.remove('compact-view');
     }
   });
-</script>
+
+  </script>
+   
 
 <div id="new-subject-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0; z-index:9998; align-items:center; justify-content:center;">
   <div class="modal-card" style="border-radius:12px; padding:20px; width:320px; box-shadow:0 12px 40px rgba(0,0,0,0.25);">
@@ -451,5 +455,6 @@
     </div>
   </div>
 </div>
+ 
 </body>
 </html>
