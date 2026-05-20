@@ -2,6 +2,25 @@ import { store } from './store.js';
 import { extractTasksFromText } from './utils/api.js';
 import { initGlobalErrorBoundary } from './utils/errorBoundary.js';
 import { analyzeWorkload } from './utils/scheduler.js';
+import {
+  escapeHtml,
+  formatDate,
+  getPillClass,
+  openModal,
+  closeModal,
+  setupModalDismiss,
+  showToast,
+} from './utils/dom.js';
+import {
+  groupTitle,
+  boardEditForm,
+  taskListItem,
+  extractEditCard,
+  extractPreviewCard,
+  activeFocusTaskPanel,
+} from './ui/templates.js';
+import { initAuth } from './auth.js';
+import { initSettings } from './settings.js';
 
 initGlobalErrorBoundary();
 
@@ -52,8 +71,9 @@ function generateSummary(tasks, subjects) {
 }
 
 let currentMonthDate = new Date();
-let selectedDate = null;
-let currentView = 'calendar'; // 'calendar', 'all-tasks', 'archived'
+let selectedDate = new Date();
+selectedDate.setHours(0, 0, 0, 0);
+let currentView = 'calendar';
 
 const tasksSection = document.getElementById('tasks-section');
 const focusSection = document.getElementById('focus-section');
@@ -78,14 +98,6 @@ const SUBJECT_COLORS = [
 
 let selectedNewSubjectColor = SUBJECT_COLORS[0];
 
-function escapeHtml(s) {
-  return String(s)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
-
 const newSubjectModal = document.getElementById('new-subject-modal');
 const newSubjectName = document.getElementById('new-subject-name');
 const newSubjectColorsEl = document.getElementById('new-subject-colors');
@@ -107,7 +119,7 @@ function openNewSubjectModal() {
   newSubjectName.value = '';
   selectedNewSubjectColor = SUBJECT_COLORS[0];
   syncNewSubjectColorSwatches();
-  newSubjectModal.style.display = 'flex';
+  openModal(newSubjectModal);
   newSubjectName.focus();
 }
 
@@ -254,7 +266,8 @@ if (panelToggleBtn) {
   panelToggleBtn.addEventListener('click', () => {
     panelCollapsed = !panelCollapsed;
     panel.classList.toggle('panel-collapsed', panelCollapsed);
-    appEl.style.transition = 'grid-template-columns 0.3s cubic-bezier(0.4,0,0.2,1)';
+    panelToggleBtn.setAttribute('aria-expanded', String(!panelCollapsed));
+    appEl.style.transition = 'grid-template-columns 0.3s var(--ease-standard, cubic-bezier(0.4,0,0.2,1))';
     appEl.style.setProperty('--panel-width', panelCollapsed ? '48px' : '340px');
     panelToggleIcon.style.transform = panelCollapsed ? 'rotate(180deg)' : '';
   });
@@ -285,22 +298,16 @@ function renderFocusTasks() {
   if (dueSoon.length === 0) {
     focusTaskList.innerHTML = '<div class="tasks-empty-state">No tasks due soon to focus on.</div>';
   } else {
-    focusTaskList.innerHTML = dueSoon.map(t => {
-      const sub = subjects.find(s => s.id === t.subject_id) || subjects[0] || { short_code: 'Gen' };
-      let pillClass = '';
-      if(sub.short_code === 'CS') pillClass = 'pill-blue';
-      else if(sub.short_code === 'Maths') pillClass = 'pill-green';
-      else if(sub.short_code === 'English') pillClass = 'pill-purple';
-      else pillClass = 'pill-amber';
-      
+    focusTaskList.innerHTML = dueSoon.map((t) => {
+      const sub = subjects.find((s) => s.id === t.subject_id) || subjects[0] || { short_code: 'Gen' };
+      const pillClass = getPillClass(sub);
       return `
-        <div class="focus-task-item" data-id="${t.id}">
-          <div class="task-name">${t.title}</div>
+        <div class="focus-task-item" data-id="${escapeHtml(t.id)}">
+          <div class="task-name">${escapeHtml(t.title)}</div>
           <div class="task-meta">
-            <span class="task-pill ${pillClass}">${sub.short_code}</span>
+            <span class="task-pill ${pillClass}">${escapeHtml(sub.short_code)}</span>
           </div>
-        </div>
-      `;
+        </div>`;
     }).join('');
     
     document.querySelectorAll('.focus-task-item').forEach(el => {
@@ -315,19 +322,7 @@ function renderFocusTasks() {
     const activeT = store.tasks.find(t => t.id === activeFocusTaskId);
     if (activeT) {
       const sub = subjects.find(s => s.id === activeT.subject_id) || subjects[0] || { name: 'General' };
-      activeFocusTask.innerHTML = `
-        <div class="task-info" style="width: 100%">
-          <div class="task-name" style="font-size: 16px;">${activeT.title}</div>
-          <div class="task-meta">
-            <span class="task-pill pill-amber">Due ${formatDate(activeT.due_at)}</span>
-            <span class="task-pill">${sub.name}</span>
-          </div>
-          <div style="margin-top: 12px; display: flex; gap: 8px;">
-            <button class="btn btn-primary complete-focus-task-btn" data-id="${activeT.id}">Mark Done</button>
-            <button class="btn clear-focus-task-btn">Clear</button>
-          </div>
-        </div>
-      `;
+      activeFocusTask.innerHTML = activeFocusTaskPanel(activeT, sub);
       
       const completeBtn = activeFocusTask.querySelector('.complete-focus-task-btn');
       if (completeBtn) {
@@ -354,12 +349,6 @@ function renderFocusTasks() {
   }
 }
 
-function formatDate(dateStr) {
-  if (!dateStr) return 'No Date';
-  const d = new Date(dateStr);
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' });
-}
-
 async function downloadData() {
     try {
         const response = await fetch('/api/download');
@@ -380,7 +369,7 @@ async function downloadData() {
 
     } catch (error) {
         console.error(error);
-        alert('Failed to download data');
+        showToast('Failed to download data', { error: true });
     }
 }
 
@@ -395,14 +384,10 @@ function renderTasks() {
   const archivedTasks = tasks.filter(t => t.archived);
   
   // Update badges
-  const allTasksBadge = document.querySelector('#all-tasks-btn .badge');
-  if (allTasksBadge) {
-    allTasksBadge.textContent = activeTasks.length;
-  }
-  const archivedBadge = document.querySelector('#archived-tasks-btn .badge');
-  if (archivedBadge) {
-    archivedBadge.textContent = archivedTasks.length;
-  }
+  const allTasksBadge = document.getElementById('all-tasks-badge');
+  if (allTasksBadge) allTasksBadge.textContent = activeTasks.length;
+  const archivedBadge = document.getElementById('archived-tasks-badge');
+  if (archivedBadge) archivedBadge.textContent = archivedTasks.length;
   
   const displayTasks = currentView === 'archived' ? archivedTasks : activeTasks;
   const sorted = [...displayTasks].sort((a,b) => new Date(a.due_at) - new Date(b.due_at));
@@ -439,11 +424,17 @@ function renderTasks() {
     });
   }
   
-  const renderGroup = (title, items, titleColor, showConflict = false) => {
+  const toneFromTitle = (title) => {
+    if (title.includes('Due soon') || title.includes('⚠')) return 'danger';
+    if (title.includes('Completed') || title.includes('Archived')) return 'muted';
+    return 'default';
+  };
+
+  const renderGroup = (title, items, showConflict = false) => {
     if (items.length === 0) return '';
-    let html = `<div class="tasks-group">
+    let html = `<div class="tasks-group stagger-children">
       <div class="tasks-group-header">
-        <span style="color:${titleColor}">${title}</span>
+        ${groupTitle(title, toneFromTitle(title))}
       </div>`;
     
     if (showConflict) {
@@ -460,74 +451,13 @@ function renderTasks() {
       
     items.forEach(t => {
       const sub = subjects.find(s => s.id === t.subject_id) || subjects[0];
-      const isUrgent = t.priority === 'high' && title === '⚠ Due soon';
+      const isUrgent = t.priority === 'high' && title.includes('Due soon');
       const isDone = t.status === 'Done';
-      
-      let pillClass = '';
-      if(sub.short_code === 'CS') pillClass = 'pill-blue';
-      else if(sub.short_code === 'Maths') pillClass = 'pill-green';
-      else if(sub.short_code === 'English') pillClass = 'pill-purple';
-      else pillClass = 'pill-amber';
-      
+
       if (t._isEditing) {
-        let subjectOptions = subjects.map(s => 
-          `<option value="${s.id}" ${s.id === t.subject_id ? 'selected' : ''}>${s.name}</option>`
-        ).join('');
-        
-        const localDate = t.due_at ? new Date(t.due_at).toISOString().substring(0, 16) : '';
-        const isHighPriority = t.priority === 'high';
-        
-        html += `
-          <div class="task-item" style="display:block; padding:12px; cursor:default;" data-id="${t.id}">
-            <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Subject</label>
-            <select class="board-edit-subject edit-field" style="width:100%; margin-bottom: 12px; font-size:12px; padding:4px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
-              ${subjectOptions}
-            </select>
-
-            <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Task Name</label>
-            <input class="board-edit-title edit-field" type="text" value="${t.title}" style="width:100%; margin-bottom: 12px; font-size:13px; font-weight:600; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
-
-            <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Deadline</label>
-            <input class="board-edit-date edit-field" type="datetime-local" value="${localDate}" style="width:100%; margin-bottom: 12px; font-size:12px; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
-
-            <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Notes</label>
-            <input class="board-edit-notes edit-field" type="text" value="${t.notes || ''}" placeholder="Notes..." style="width:100%; margin-bottom: 12px; font-size:12px; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
-
-            <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Priority</label>
-            <select class="board-edit-priority edit-field" style="width:100%; margin-bottom: 12px; font-size:12px; padding:4px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
-              <option value="medium" ${!isHighPriority ? 'selected' : ''}>Medium</option>
-              <option value="high" ${isHighPriority ? 'selected' : ''}>High</option>
-            </select>
-
-            <div style="display:flex; justify-content: flex-end; gap: 8px; margin-top: 4px;">
-              <button class="btn cancel-board-edit-btn" data-id="${t.id}" style="padding: 6px 12px; font-size: 11px; background: var(--color-background-secondary); color: var(--color-text-primary); border: 1px solid var(--color-border-secondary);">Cancel</button>
-              <button class="btn btn-primary save-board-edit-btn" data-id="${t.id}" style="padding: 6px 12px; font-size: 11px;">Save</button>
-            </div>
-          </div>
-        `;
+        html += boardEditForm(t, subjects);
       } else {
-        const archiveBtn = !t.archived 
-          ? `<button class="task-btn edit-task-btn" data-id="${t.id}" title="Edit">✏️ Edit</button>
-             <button class="task-btn archive-task-btn" data-id="${t.id}" title="Archive">Archive</button>`
-          : `<button class="task-btn edit-task-btn" data-id="${t.id}" title="Edit">✏️ Edit</button>
-             <button class="task-btn task-btn-info restore-task-btn" data-id="${t.id}" title="Restore">Restore</button>
-             <button class="task-btn task-btn-danger delete-task-btn" data-id="${t.id}" title="Permanent Delete">Delete</button>`;
-
-        html += `
-          <div class="task-item ${isUrgent ? 'urgent' : ''} ${isDone ? 'done' : ''}" data-id="${t.id}">
-            <div class="task-check ${isDone ? 'done' : ''}"></div>
-            <div class="task-info">
-              <div class="task-name">${t.title}</div>
-              <div class="task-meta">
-                <span class="task-pill ${isDone ? 'pill-green' : (isUrgent ? 'pill-red' : 'pill-amber')}">${isDone ? 'Done' : 'Due ' + formatDate(t.due_at)}</span>
-                <span class="task-pill ${pillClass}">${sub.short_code}</span>
-              </div>
-            </div>
-            <div class="task-actions">
-              ${archiveBtn}
-            </div>
-          </div>
-        `;
+        html += taskListItem(t, sub, { isUrgent, showArchiveActions: !t.archived });
       }
     });
     html += `</div>`;
@@ -546,8 +476,8 @@ function renderTasks() {
       : '';
 
     tasksSection.innerHTML = actionBar +
-                             renderGroup(`Tasks for ${selStr}`, dueSoon, 'var(--color-text-primary)') +
-                             renderGroup('Completed', completed, 'var(--color-text-tertiary)') +
+                             renderGroup(`Tasks for ${selStr}`, dueSoon) +
+                             renderGroup('Completed', completed) +
                              emptyState;
   } else {
     const actionBar = currentView === 'archived' ? '' : `<div class="tasks-actions-bar">
@@ -562,9 +492,9 @@ function renderTasks() {
       : '';
 
     tasksSection.innerHTML = actionBar +
-                             renderGroup(titlePrefix + '⚠ Due soon', dueSoon, 'var(--color-text-danger)', true)
-                             renderGroup(titlePrefix + 'This week', thisWeek, 'var(--color-text-secondary)', true) +
-                             renderGroup(titlePrefix + 'Completed', completed, 'var(--color-text-tertiary)') +
+                             renderGroup(titlePrefix + '⚠ Due soon', dueSoon, true) +
+                             renderGroup(titlePrefix + 'This week', thisWeek, true) +
+                             renderGroup(titlePrefix + 'Completed', completed) +
                              emptyState;
   }
                            
@@ -664,8 +594,11 @@ function renderTasks() {
 
 
 const summaryBox = document.getElementById('summary-box');
-if (summaryBox) {
-  summaryBox.innerHTML = generateSummary(store.tasks, store.subjects);
+
+function renderSummary() {
+  if (summaryBox) {
+    summaryBox.innerHTML = generateSummary(store.tasks, store.subjects);
+  }
 }
 
 function renderCalendar() {
@@ -718,9 +651,7 @@ function renderCalendar() {
       indicatorHtml += `</div>`;
     }
 
-    const extraStyle = isSelected ? `border: 1.5px solid var(--color-text-primary);` : '';
-
-    html += `<div class="cal-day interactive-day ${isToday ? 'today' : ''}" data-day="${i}" style="${extraStyle}">
+    html += `<div class="cal-day interactive-day ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''}" data-day="${i}">
       ${i}
       ${indicatorHtml}
     </div>`;
@@ -759,59 +690,25 @@ function renderExtraction() {
     addItemsBtn.textContent = 'Add items to planner';
     return;
   }
-  
+
   addItemsBtn.disabled = false;
   addItemsBtn.textContent = `Add ${pasteItems.length} items to planner`;
-  
-  let html = `<div class="extract-title">Extracted — ${pasteItems.length} items</div>`;
+
+  let html = `<div class="extract-title">Extracted — ${pasteItems.length} items</div><div class="stagger-children">`;
   pasteItems.forEach((item, index) => {
-    // try to match subject name
-    const sub = store.subjects.find(s => s.name.toLowerCase().includes((item.subject_name || '').toLowerCase())) || store.subjects[3];
-    // Attach subject id to item so Add will work
-    item.subject_id = sub.id;
-    
+    const sub = store.subjects.find((s) =>
+      s.name.toLowerCase().includes((item.subject_name || '').toLowerCase())
+    ) || store.subjects[0];
+    item.subject_id = sub?.id ?? item.subject_id;
+
     if (item._isEditing) {
-      let subjectOptions = store.subjects.map(s => 
-        `<option value="${s.id}" ${s.id === sub.id ? 'selected' : ''}>${s.name}</option>`
-      ).join('');
-      
-      const localDate = item.due_at ? new Date(item.due_at).toISOString().substring(0, 16) : '';
-      
-      html += `
-        <div class="extract-card">
-          <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Subject</label>
-          <select class="edit-subject-input edit-field" data-index="${index}" style="width:100%; margin-bottom: 12px; font-size:12px; padding:4px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
-            ${subjectOptions}
-          </select>
-
-          <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Task Name</label>
-          <input class="edit-title-input edit-field" type="text" value="${item.title}" data-index="${index}" style="width:100%; margin-bottom: 12px; font-size:13px; font-weight:600; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
-
-          <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Deadline</label>
-          <input class="edit-date-input edit-field" type="datetime-local" value="${localDate}" data-index="${index}" style="width:100%; margin-bottom: 12px; font-size:12px; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
-
-          <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Notes</label>
-          <input class="edit-notes-input edit-field" type="text" value="${item.notes || ''}" data-index="${index}" placeholder="Notes..." style="width:100%; margin-bottom: 12px; font-size:12px; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
-
-          <div style="display:flex; justify-content: flex-end; gap: 8px; margin-top: 4px;">
-            <button class="btn btn-primary save-edit-btn" data-index="${index}" style="padding: 6px 12px; font-size: 11px;">Save Changes</button>
-          </div>
-        </div>
-      `;
-    } else {
-      html += `
-        <div class="extract-card" style="animation-delay: ${index * 0.1}s">
-          <div class="extract-subject" style="color:${sub.color}">${sub.name}</div>
-          <div class="extract-task-name">${item.title}</div>
-          <div class="extract-row"><span class="extract-icon">${item.icon || '📅'}</span> ${formatDate(item.due_at)}</div>
-          <div class="extract-row"><span class="extract-icon">📎</span> ${item.notes || 'No notes attached'}</div>
-          <div class="conf-bar"><div class="conf-fill" style="width:0%;background:${item.confidence_score > 75 ? 'var(--color-text-success)' : 'var(--color-text-warning)'}" data-width="${item.confidence_score}"></div></div>
-          <div class="conf-label">${item.confidence_score}% confidence <span class="conf-edit" data-index="${index}" tabindex="0">Edit</span></div>
-        </div>
-      `;
+      html += extractEditCard(item, index, store.subjects);
+    } else if (sub) {
+      html += extractPreviewCard(item, index, sub);
     }
   });
-  
+
+  html += '</div>';
   extractPreview.innerHTML = html;
   
   setTimeout(() => {
@@ -850,13 +747,53 @@ function renderExtraction() {
   });
 }
 
+function navigateToView(view) {
+  const calendarBtn = document.getElementById('calendar-btn');
+  const allTasksBtn = document.getElementById('all-tasks-btn');
+  const archivedTasksBtn = document.getElementById('archived-tasks-btn');
+  const focusModeBtn = document.getElementById('focus-mode-btn');
+  const calSection = document.querySelector('.cal-section');
+  const tasksEl = document.getElementById('tasks-section');
+  const focusEl = document.getElementById('focus-section');
+
+  const map = {
+    calendar: calendarBtn,
+    'all-tasks': allTasksBtn,
+    archived: archivedTasksBtn,
+    focus: focusModeBtn,
+  };
+
+  document.querySelectorAll('.sidebar .nav-item').forEach((el) => el.classList.remove('active'));
+  map[view]?.classList.add('active');
+
+  if (view === 'focus') {
+    calSection?.classList.add('hidden');
+    tasksEl?.classList.add('hidden');
+    focusEl?.classList.remove('hidden');
+    renderFocusTasks();
+  } else {
+    focusEl?.classList.add('hidden');
+    tasksEl?.classList.remove('hidden');
+    if (view === 'calendar') {
+      calSection?.classList.remove('hidden');
+    } else {
+      calSection?.classList.add('hidden');
+    }
+    renderTasks();
+  }
+  currentView = view;
+}
+
 store.subscribe(renderTasks);
 store.subscribe(renderExtraction);
 store.subscribe(renderCalendar);
 store.subscribe(renderFocusTasks);
 store.subscribe(renderSidebarSubjects);
+store.subscribe(renderSummary);
 
 document.addEventListener('DOMContentLoaded', () => {
+  initAuth();
+  initSettings();
   if (newSubjectColorsEl) {
     SUBJECT_COLORS.forEach(c => {
       const btn = document.createElement('button');
@@ -884,21 +821,17 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (newSubjectCancel) {
-    newSubjectCancel.addEventListener('click', () => {
-      if (newSubjectModal) newSubjectModal.style.display = 'none';
-    });
+    newSubjectCancel.addEventListener('click', () => closeModal(newSubjectModal));
   }
-
-  if (newSubjectModal) {
-    newSubjectModal.addEventListener('click', (e) => {
-      if (e.target === newSubjectModal) newSubjectModal.style.display = 'none';
-    });
-  }
+  setupModalDismiss(newSubjectModal, () => closeModal(newSubjectModal));
 
   if (newSubjectSave) {
     newSubjectSave.addEventListener('click', async () => {
       const ok = await store.addSubject({ name: newSubjectName.value, color: selectedNewSubjectColor });
-      if (ok && newSubjectModal) newSubjectModal.style.display = 'none';
+      if (ok) {
+        closeModal(newSubjectModal);
+        showToast('Subject added');
+      }
     });
   }
 
@@ -913,53 +846,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
   store.fetchInitialData();
   
-  const calendarBtn = document.getElementById('calendar-btn');
-  const allTasksBtn = document.getElementById('all-tasks-btn');
-  const archivedTasksBtn = document.getElementById('archived-tasks-btn');
-  const focusModeBtn = document.getElementById('focus-mode-btn');
+  document.getElementById('calendar-btn')?.addEventListener('click', () => navigateToView('calendar'));
+  document.getElementById('all-tasks-btn')?.addEventListener('click', () => navigateToView('all-tasks'));
+  document.getElementById('archived-tasks-btn')?.addEventListener('click', () => navigateToView('archived'));
+  document.getElementById('focus-mode-btn')?.addEventListener('click', () => navigateToView('focus'));
 
-  function updateSidebarActive(id) {
-    document.querySelectorAll('.sidebar .nav-item').forEach(el => el.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-  }
-
-  calendarBtn.addEventListener('click', () => {
-    currentView = 'calendar';
-    document.querySelector('.cal-section').classList.remove('hidden');
-    document.getElementById('tasks-section').classList.remove('hidden');
-    document.getElementById('focus-section').classList.add('hidden');
-    updateSidebarActive('calendar-btn');
-    renderTasks();
+  document.getElementById('nav-dashboard')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    navigateToView('calendar');
   });
-
-  allTasksBtn.addEventListener('click', () => {
-    currentView = 'all-tasks';
-    document.querySelector('.cal-section').classList.add('hidden');
-    document.getElementById('tasks-section').classList.remove('hidden');
-    document.getElementById('focus-section').classList.add('hidden');
-    updateSidebarActive('all-tasks-btn');
-    renderTasks();
+  document.getElementById('nav-tasks')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    navigateToView('all-tasks');
   });
-
-  archivedTasksBtn.addEventListener('click', () => {
-    currentView = 'archived';
-    document.querySelector('.cal-section').classList.add('hidden');
-    document.getElementById('tasks-section').classList.remove('hidden');
-    document.getElementById('focus-section').classList.add('hidden');
-    updateSidebarActive('archived-tasks-btn');
-    renderTasks();
+  document.getElementById('nav-calendar')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    navigateToView('calendar');
   });
-
-  if(focusModeBtn) {
-    focusModeBtn.addEventListener('click', () => {
-      currentView = 'focus';
-      document.querySelector('.cal-section').classList.add('hidden');
-      document.getElementById('tasks-section').classList.add('hidden');
-      document.getElementById('focus-section').classList.remove('hidden');
-      updateSidebarActive('focus-mode-btn');
-      renderFocusTasks();
-    });
-  }
 
   document.getElementById('cal-prev').addEventListener('click', () => {
     currentMonthDate.setMonth(currentMonthDate.getMonth() - 1);
@@ -974,9 +877,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 //NEw Task addition event listeners
 newTaskBtn.addEventListener('click', () => {
-  
   if (!store.subjects || store.subjects.length === 0) {
-    alert('Subjects are still loading. Please try again in a moment.');
+    showToast('Subjects are still loading. Try again shortly.', { error: true });
     return;
   }
 
@@ -996,18 +898,11 @@ newTaskBtn.addEventListener('click', () => {
   newTaskTitle.value = '';
   newTaskNotes.value = '';
 
-  newTaskModal.style.display = 'flex';
+  openModal(newTaskModal);
 });
 
-newTaskCancel.addEventListener('click', () => {
-  newTaskModal.style.display = 'none';
-});
-
-newTaskModal.addEventListener('click', (e) => {
-  if (e.target === newTaskModal) {
-    newTaskModal.style.display = 'none';
-  }
-});
+newTaskCancel.addEventListener('click', () => closeModal(newTaskModal));
+setupModalDismiss(newTaskModal, () => closeModal(newTaskModal));
 
 newTaskSave.addEventListener('click', async () => {
   const title = newTaskTitle.value.trim();
@@ -1016,7 +911,7 @@ newTaskSave.addEventListener('click', async () => {
   const dateVal = newTaskDate.value;
 
   if (!title) {
-    alert('Please enter a task name');
+    showToast('Please enter a task name', { error: true });
     return;
   }
 
@@ -1033,15 +928,8 @@ newTaskSave.addEventListener('click', async () => {
   };
 
   await store.addTasks([newTask]);
-  newTaskModal.style.display = 'none';
-});
-
-addItemsBtn.addEventListener('click', () => {
-  if (store.currentPaste) {
-    store.addTasks(store.currentPaste);
-    store.clearExtracted();
-    pasteInput.value = '';
-  }
+  closeModal(newTaskModal);
+  showToast('Task added');
 });
 });
 
@@ -1065,11 +953,12 @@ clearBtn.addEventListener('click', () => {
   store.clearExtracted();
 });
 
-addItemsBtn.addEventListener('click', () => {
-  if (store.currentPaste) {
-    store.addTasks(store.currentPaste);
+addItemsBtn.addEventListener('click', async () => {
+  if (store.currentPaste?.length) {
+    await store.addTasks(store.currentPaste);
     store.clearExtracted();
     pasteInput.value = '';
+    showToast('Tasks added to planner');
   }
 });
 

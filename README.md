@@ -154,13 +154,25 @@ Open → http://localhost:3000
 ```
  StudyPlan
 ├──  css
-│   └──  index.css           # Contains all styling rules, variables, and animations
+│   ├──  index.css           # Entry point — imports layered stylesheets
+│   ├──  tokens.css          # Design tokens (color, spacing, type, motion)
+│   ├──  base.css            # Reset, typography, a11y utilities
+│   ├──  layout.css          # Header, footer, app grid, breakpoints
+│   ├──  animations.css      # Keyframes, stagger utilities
+│   ├──  components.css      # Buttons, forms, modals, toggles (BEM)
+│   ├──  features.css        # App-specific UI (calendar, tasks, panel, focus)
+│   └──  effects.css         # Glass surfaces, gradients, micro-interactions
 ├──  js
+│   ├──  ui
+│   │   └──  templates.js    # Reusable HTML templates for tasks, forms, extract cards
 │   ├──  utils
 │   │   ├──  aiMock.js       # The original mock UI extraction hook (deprecated)
-│   │   └──  api.js          # The live fetch logic communicating with our Express API
-│   ├──  app.js              # The main controller (handles DOM UI, event bindings, and Calendar)
-│   └──  store.js            # The Custom State Manager handling our frontend Pub/Sub state
+│   │   ├──  api.js          # The live fetch logic communicating with our Express API
+│   │   └──  dom.js          # DOM helpers (escape, modals, toast, date format)
+│   ├──  app.js              # Main controller (views, calendar, tasks, panel)
+│   ├──  auth.js             # Login / signup modal logic
+│   ├──  settings.js         # Theme and compact-view preferences
+│   └──  store.js            # Custom state manager (pub/sub)
 ├──  .env.example            # Template file for setting the GEMINI_API_KEY
 ├──  .gitignore              # Tells git to ignore databases, environments, and node packages
 ├──  database.js             # Initializes the SQLite database and executes DB table schemas
