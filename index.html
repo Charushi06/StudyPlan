@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>StudyPlan</title>
   <link rel="stylesheet" href="/css/index.css">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -47,6 +48,7 @@
 
   <div class="header-right">
     <button class="profile-btn">Profile</button>
+    <button class="profile-btn" id="logout-btn">Logout</button>
   </div>
 </header>
 
@@ -321,6 +323,19 @@
   if (localStorage.getItem('studyplan_user')) {
     document.getElementById('auth-modal').style.display = 'none';
   }
+
+  // Logout Button Functionality
+  const logoutBtn = document.getElementById('logout-btn');
+  logoutBtn.addEventListener('click', () => {
+    localStorage.removeItem('studyplan_user');
+
+    // Show login modal again
+    document.getElementById('auth-modal').style.display = 'flex';
+
+    // Refresh page state
+    window.location.reload();
+});
+
   // Settings Modal Logic
   const settingsModal = document.getElementById('settings-modal');
   const navSettings = document.getElementById('nav-settings');
