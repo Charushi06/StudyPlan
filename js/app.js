@@ -961,6 +961,44 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Header Nav Links Logic
+  const navDashboard = document.getElementById('nav-dashboard');
+  const navTasks = document.getElementById('nav-tasks');
+  const navCalendar = document.getElementById('nav-calendar');
+  const navProfile = document.getElementById('nav-profile');
+
+  if (navDashboard) {
+    navDashboard.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (focusModeBtn) focusModeBtn.click();
+    });
+  }
+
+  if (navTasks) {
+    navTasks.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (allTasksBtn) allTasksBtn.click();
+    });
+  }
+
+  if (navCalendar) {
+    navCalendar.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (calendarBtn) calendarBtn.click();
+    });
+  }
+
+  // Profile Button Logic
+  if (navProfile) {
+    navProfile.addEventListener('click', (e) => {
+      e.preventDefault();
+      const authModal = document.getElementById('auth-modal');
+      if (authModal) {
+        authModal.style.display = 'flex';
+      }
+    });
+  }
+
   document.getElementById('cal-prev').addEventListener('click', () => {
     currentMonthDate.setMonth(currentMonthDate.getMonth() - 1);
     renderCalendar();
@@ -1075,4 +1113,25 @@ addItemsBtn.addEventListener('click', () => {
 
 downloadBtn.addEventListener('click', () => {
   downloadData();
+});
+
+// ============================
+// Theme Toggle
+// ============================
+const themeToggleBtn = document.getElementById('theme-toggle-btn');
+const themeToggleIcon = document.getElementById('theme-toggle-icon');
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  themeToggleIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
+  localStorage.setItem('studyplan-theme', theme);
+}
+
+// Init: load saved theme or default to light
+const savedTheme = localStorage.getItem('studyplan-theme') || 'light';
+applyTheme(savedTheme);
+
+themeToggleBtn.addEventListener('click', () => {
+  const current = document.documentElement.getAttribute('data-theme') || 'light';
+  applyTheme(current === 'dark' ? 'light' : 'dark');
 });
