@@ -2160,3 +2160,86 @@ body {
   color: #ffcc66;
   font-weight: 600;
 }
+@media (max-width: 768px) {
+
+  .sidebar {
+    padding: 12px 8px;
+  }
+
+  .sidebar-header {
+    font-size: 9px;
+    padding: 6px;
+  }
+
+  .nav-item {
+    font-size: 12px;
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .badge {
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+
+  .add-subject {
+    font-size: 12px;
+    padding: 6px;
+  }
+
+}
+@media (max-width: 768px) {
+
+  .topbar {
+    flex-wrap: wrap;
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .topbar-title {
+    font-size: 16px;
+    width: 100%;
+  }
+
+  .btn {
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+
+  .main {
+    overflow-x: hidden;
+  }
+
+}
+.cal-section {
+  padding: 12px;
+}
+
+.cal-grid {
+  gap: 2px;
+}
+
+.cal-day {
+  font-size: 11px;
+  height: 26px;
+}
+
+.cal-day-label {
+  font-size: 9px;
+}
+
+.cal-legend {
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  font-size: 10px;
+}
+
+.cal-day-indicators {
+  bottom: 1px;
+}
+
+.cal-day-indicator {
+  width: 4px;
+  height: 4px;
+}
