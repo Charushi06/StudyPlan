@@ -321,7 +321,7 @@
           return;
         }
 
-        localStorage.setItem('studyplan_user', JSON.stringify({ email: data.email }));
+        localStorage.setItem('studyplan_user', JSON.stringify({ email: data.email || email }));
         hideAuthModal();
 
       } catch {
