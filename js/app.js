@@ -47,7 +47,11 @@ function generateSummary(tasks, subjects) {
 
     <strong>📊 Weekly</strong><br>
     This week you have <b>${weekCount}</b> task(s).<br>
-    Most work is in <b>${topSubject}</b>.
+    Most work is in <b>${topSubject}</b>.<br><br>
+
+    <strong>📈 Study Distribution</strong><br>
+    <canvas id="studyChart" width="250"
+    height="250"></canvas></b>.
   `;
 }
 
@@ -1076,3 +1080,62 @@ addItemsBtn.addEventListener('click', () => {
 downloadBtn.addEventListener('click', () => {
   downloadData();
 });
+
+const chartCanvas = 
+document.getElementById('studyChart');
+
+if (chartCanvas) {
+
+    const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+
+    const subjectCounts = {};
+
+    tasks.forEach(task => {
+
+        const subject = task.subject || "Other";
+
+        if (subjectCounts[subject]) {
+            subjectCounts[subject]++;
+        } else {
+            subjectCounts[subject] = 1;
+        }
+    });
+
+    const labels = Object.keys(subjectCounts);
+    const data = Object.values(subjectCounts);
+
+    new Chart(chartCanvas, {
+
+        type: 'doughnut',
+
+        data: {
+            labels: labels,
+
+            datasets: [{
+                label: 'Study Distribution',
+                data: data,
+
+                backgroundColor: [
+                    '#4F46E5',
+                    '#10B981',
+                    '#F59E0B',
+                    '#EF4444',
+                    '#EC4899',
+                    '#06B6D4'
+                ],
+
+                borderWidth: 1
+            }]
+        },
+
+        options: {
+            responsive: true,
+
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+}
