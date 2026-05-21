@@ -984,6 +984,10 @@ newTaskBtn.addEventListener('click', () => {
     .map(s => `<option value="${s.id}">${s.name}</option>`)
     .join('');
 
+  // FIX #474: Prevent selecting past dates — set min to current date/time
+  const nowMin = new Date();
+  nowMin.setSeconds(0, 0);
+  newTaskDate.min = nowMin.toISOString().substring(0, 16);
 
   if (selectedDate) {
     const d = new Date(selectedDate);
