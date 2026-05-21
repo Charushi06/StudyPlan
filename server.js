@@ -29,10 +29,30 @@ const ai = process.env.GEMINI_API_KEY
 // ============================================================
 
 function nlpAddDays(date, n) {
-  const d = new Date(date); d.setDate(d.getDate() + n); return d;
+  const d = new Date(date);
+
+  return new Date(
+    Date.UTC(
+      d.getUTCFullYear(),
+      d.getUTCMonth(),
+      d.getUTCDate() + n
+    )
+  );
 }
 function nlpStartOf(date) {
-  const d = new Date(date); d.setHours(23, 59, 0, 0); return d;
+  const d = new Date(date);
+
+  return new Date(
+    Date.UTC(
+      d.getUTCFullYear(),
+      d.getUTCMonth(),
+      d.getUTCDate(),
+      23,
+      59,
+      0,
+      0
+    )
+  );
 }
 function nlpWithTime(dateStr, t) {
   const d = new Date(dateStr);
