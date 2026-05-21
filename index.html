@@ -54,7 +54,6 @@
 
 
 <div class="wrapper">
-  <!-- <p class="label">StudyPlan</p> -->
 
   <div class="app">
     <!-- Sidebar -->
@@ -72,7 +71,6 @@
       <div class="nav-item" id="focus-mode-btn">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         Focus Mode
-        
       </div>
       <div class="nav-item" id="archived-tasks-btn">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 3h12v2H2V3zm1 3h10v7H3V6zm2 2v3h2V8H5zm4 0v3h2V8H9z" fill="currentColor"/></svg>
@@ -121,7 +119,6 @@
       <!-- Tasks -->
       <div id="tasks-section" class="tasks-section">
         <!-- Javascript will inject tasks here -->
-        
       </div>
 
       <!-- Focus Mode -->
@@ -198,13 +195,9 @@
       </div>
       <div id="summary-box" class="summary-box"></div>
 
-  <button id="add-btn" class="add-btn" disabled>
-    Add items to planner
-  </button>
-</div>
-
-
-      <button id="add-btn" class="add-btn" disabled>Add items to planner</button>
+      <button id="add-btn" class="add-btn" disabled>
+        Add items to planner
+      </button>
     </div>
   </div>
 </div>
@@ -365,7 +358,6 @@
   const darkModeToggle = document.getElementById('dark-mode-toggle');
   const compactViewToggle = document.getElementById('compact-view-toggle');
 
-  // Load preferences
   const loadPreferences = () => {
     const isDarkMode = localStorage.getItem('studyplan_dark_mode') === 'true';
     const isCompactView = localStorage.getItem('studyplan_compact_view') === 'true';
@@ -386,10 +378,8 @@
     }
   };
 
-  // Run on load
   loadPreferences();
 
-  // Save changes when user clicks "Save Changes"
   settingsSave.addEventListener('click', () => {
     localStorage.setItem('studyplan_dark_mode', darkModeToggle.checked);
     localStorage.setItem('studyplan_compact_view', compactViewToggle.checked);
@@ -397,7 +387,6 @@
     settingsModal.style.display = 'none';
   });
 
-  // Also apply immediately on toggle for better UX
   darkModeToggle.addEventListener('change', (e) => {
     if (e.target.checked) {
       document.documentElement.setAttribute('data-theme', 'dark');
@@ -412,6 +401,12 @@
     } else {
       document.body.classList.remove('compact-view');
     }
+  });
+  const logoutBtn = document.getElementById('logout-btn');
+  logoutBtn.addEventListener('click', () => {
+    localStorage.removeItem('studyplan_user');
+    document.getElementById('auth-modal').style.display = 'flex';
+    window.location.reload();
   });
 </script>
 
@@ -429,21 +424,33 @@
   </div>
 </div>
 
-<div id="new-task-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0;  z-index:9998; align-items:center; justify-content:center;">
-  <div class="modal-card" style=" border-radius:12px; padding:20px; width:320px; box-shadow:0 12px 40px rgba(0,0,0,0.25);">
+<!-- ===================== NEW TASK MODAL ===================== -->
+<!-- Priority selector (Low / Medium / High) added below Notes -->
+<div id="new-task-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0; z-index:9998; align-items:center; justify-content:center;">
+  <div class="modal-card" style="border-radius:12px; padding:20px; width:320px; box-shadow:0 12px 40px rgba(0,0,0,0.25);">
     <h3 style="margin:0 0 12px; font-size:18px; font-weight:600;">New task</h3>
 
     <label style="display:block; font-size:12px; margin-bottom:4px;">Subject</label>
-    <select id="new-task-subject" paceholder="Subject" style="width:100%; padding:6px; margin-bottom:10px;"></select>
+    <select id="new-task-subject" style="width:100%; padding:6px; margin-bottom:10px;"></select>
 
     <label style="display:block; font-size:12px; margin-bottom:4px;">Task name</label>
-    <input id="new-task-title" type="text" style="width:100%; padding:6px; margin-bottom:10px;"placeholder="TaskName">
+    <input id="new-task-title" type="text" style="width:100%; padding:6px; margin-bottom:10px;" placeholder="Task name">
 
     <label style="display:block; font-size:12px; margin-bottom:4px;">Deadline</label>
-    <input id="new-task-date" type="datetime-local" style="width:100%; padding:6px; margin-bottom:10px;" placeholder="Deadline">
+    <input id="new-task-date" type="datetime-local" style="width:100%; padding:6px; margin-bottom:10px;">
 
-    <!-- <label style="display:block; font-size:12px; margin-bottom:4px;">Notes</label> -->
-    <input id="new-task-notes" type="text" style="width:100%; padding:6px; margin-bottom:16px;" placeholder="Notes">
+    <label style="display:block; font-size:12px; margin-bottom:4px;">Notes</label>
+    <input id="new-task-notes" type="text" style="width:100%; padding:6px; margin-bottom:10px;" placeholder="Notes">
+
+    <!-- ── PRIORITY FIELD (new) ── -->
+    <label style="display:block; font-size:12px; margin-bottom:6px;">Priority</label>
+    <div id="new-task-priority-group" class="priority-btn-group" style="margin-bottom:16px;">
+      <button type="button" class="priority-btn priority-btn-low   priority-btn-active" data-value="low">🟢 Low</button>
+      <button type="button" class="priority-btn priority-btn-medium"                    data-value="medium">🟡 Medium</button>
+      <button type="button" class="priority-btn priority-btn-high"                      data-value="high">🔴 High</button>
+    </div>
+    <!-- hidden input carries the selected value -->
+    <input type="hidden" id="new-task-priority" value="low">
 
     <div style="display:flex; justify-content:flex-end; gap:8px;">
       <button id="new-task-cancel" class="btn" style="padding:6px 10px;">Cancel</button>
