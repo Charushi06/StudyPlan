@@ -11,6 +11,7 @@
   "description": "",
   "dependencies": {
     "@google/genai": "^1.49.0",
+    "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
