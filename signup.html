@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up &mdash; StudyPlan</title>
+  <link rel="stylesheet" href="/css/auth.css">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="auth-body">
+
+  <div class="auth-wrapper">
+    <div class="auth-card">
+
+      <div class="auth-brand">
+        <img src="/logo.png" alt="StudyPlan logo" class="auth-logo">
+        <span class="auth-brand-name">StudyPlan</span>
+      </div>
+
+      <div class="auth-heading">
+        <h1>Create account</h1>
+        <p>Start planning your studies today</p>
+      </div>
+
+      <form id="signup-form" class="auth-form" novalidate>
+        <div class="form-group">
+          <label for="auth-email">Email address</label>
+          <input
+            id="auth-email"
+            type="email"
+            placeholder="you@example.com"
+            autocomplete="email"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="auth-password">Password</label>
+          <input
+            id="auth-password"
+            type="password"
+            placeholder="Create a password"
+            autocomplete="new-password"
+            required
+          >
+        </div>
+
+        <p id="auth-error" class="auth-error" role="alert" aria-live="polite"></p>
+
+        <button type="submit" id="auth-submit-btn" class="auth-btn">
+          Create Account
+        </button>
+      </form>
+
+      <p class="auth-toggle">
+        Already have an account?
+        <a href="/signin.html">Sign In</a>
+      </p>
+
+    </div>
+  </div>
+
+  <script src="/js/auth.js"></script>
+  <script>
+    // Redirect if already signed in
+    if (localStorage.getItem('studyplan_user')) {
+      window.location.href = '/';
+    }
+
+    const form = document.getElementById('signup-form');
+    const errorEl = document.getElementById('auth-error');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorEl.textContent = '';
+
+      const email = document.getElementById('auth-email').value.trim();
+      const password = document.getElementById('auth-password').value.trim();
+
+      if (!email || !password) {
+        errorEl.textContent = 'Please fill in all fields.';
+        return;
+      }
+
+      if (password.length < 6) {
+        errorEl.textContent = 'Password must be at least 6 characters.';
+        return;
+      }
+
+      const btn = document.getElementById('auth-submit-btn');
+      btn.disabled = true;
+      btn.textContent = 'Creating account...';
+
+      try {
+        const res = await fetch('/api/auth/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          errorEl.textContent = data.error || 'Could not create account. Please try again.';
+          btn.disabled = false;
+          btn.textContent = 'Create Account';
+          return;
+        }
+
+        // Redirect to sign in after successful registration
+        window.location.href = '/signin.html';
+
+      } catch (err) {
+        errorEl.textContent = 'Network error. Please try again.';
+        btn.disabled = false;
+        btn.textContent = 'Create Account';
+      }
+    });
+  </script>
+</body>
+</html>
