@@ -150,6 +150,8 @@ const timerPathRemaining = document.getElementById('timer-path-remaining');
 const timerStartBtn = document.getElementById('timer-start-btn');
 const timerPauseBtn = document.getElementById('timer-pause-btn');
 const timerResetBtn = document.getElementById('timer-reset-btn');
+const timerContinueBtn =
+  document.getElementById('timer-continue-btn');
 
 // Task elements
 const focusTaskList = document.getElementById('focus-task-list');
@@ -193,12 +195,16 @@ function setCircleDasharray() {
 
 function startTimer() {
   if (timerInterval) return;
-  TIME_LIMIT = getTimerDuration();
-  if (timePassed === 0) timeLeft = TIME_LIMIT;
-  timerDurationInput.disabled = true;
+
+  timerContinueBtn.classList.add('hidden');
   timerStartBtn.classList.add('hidden');
   timerPauseBtn.classList.remove('hidden');
-  
+
+  TIME_LIMIT = getTimerDuration();
+  if (timePassed === 0) timeLeft = TIME_LIMIT;
+
+  timerDurationInput.disabled = true;
+
   timerInterval = setInterval(() => {
     timePassed += 1;
     timeLeft = TIME_LIMIT - timePassed;
@@ -217,8 +223,10 @@ function startTimer() {
 function pauseTimer() {
   clearInterval(timerInterval);
   timerInterval = null;
+
   timerPauseBtn.classList.add('hidden');
-  timerStartBtn.classList.remove('hidden');
+  timerStartBtn.classList.add('hidden');
+  timerContinueBtn.classList.remove('hidden');
 }
 
 function resetTimer() {
@@ -231,7 +239,8 @@ function resetTimer() {
   timerText.innerHTML = formatTimeLeft(timeLeft);
   timerPathRemaining.setAttribute("stroke-dasharray", "283 283");
   timerPauseBtn.classList.add('hidden');
-  timerStartBtn.classList.remove('hidden');
+timerContinueBtn.classList.add('hidden');
+timerStartBtn.classList.remove('hidden');
 }
 
 timerDurationInput.addEventListener('change', () => {
@@ -263,6 +272,8 @@ if (panelToggleBtn) {
 if(timerStartBtn) timerStartBtn.addEventListener('click', startTimer);
 if(timerPauseBtn) timerPauseBtn.addEventListener('click', pauseTimer);
 if(timerResetBtn) timerResetBtn.addEventListener('click', resetTimer);
+if (timerContinueBtn)
+  timerContinueBtn.addEventListener('click', startTimer);
 
 function renderFocusTasks() {
   if(!focusTaskList || !activeFocusTask) return;
