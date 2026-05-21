@@ -4,6 +4,7 @@ const cors = require('cors');
 const { db, initDb } = require('./database');
 const { GoogleGenAI } = require('@google/genai');
 const path = require('path');
+const bcrypt = require('bcryptjs');
 const csvDownloadRouter = require('./backend/routers/csvDownload.router.js');
 
 const app = express();
@@ -445,30 +446,78 @@ Text: "${text}"
   return res.json(tasks);
 });
 // ================= AUTH =================
-const users = {}; // Simple in-memory user store
+function normalizeEmail(email) {
+  return String(email || '').trim().toLowerCase();
+}
 
-app.post('/api/auth/signup', (req, res) => {
+function generateUserId() {
+  return `user_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+}
+
+app.post('/api/auth/signup', async (req, res) => {
   const { email, password } = req.body;
-  if (!email || !password) {
+  const normalizedEmail = normalizeEmail(email);
+  const plainPassword = String(password || '');
+
+  if (!normalizedEmail || !plainPassword) {
     return res.status(400).json({ error: 'Email and password required' });
   }
-  if (users[email]) {
-    return res.status(400).json({ error: 'User already exists' });
+
+  try {
+    const passwordHash = await bcrypt.hash(plainPassword, 12);
+    const id = generateUserId();
+
+    db.run(
+      'INSERT INTO users (id, email, password_hash) VALUES (?, ?, ?)',
+      [id, normalizedEmail, passwordHash],
+      function (err) {
+        if (err) {
+          if (err.code === 'SQLITE_CONSTRAINT') {
+            return res.status(400).json({ error: 'User already exists' });
+          }
+          return res.status(500).json({ error: err.message });
+        }
+
+        return res.status(201).json({
+          success: true,
+          message: 'Account created successfully',
+          email: normalizedEmail
+        });
+      }
+    );
+  } catch (err) {
+    return res.status(500).json({ error: 'Failed to create account' });
   }
-  users[email] = { email, password };
-  res.json({ success: true, message: 'Account created successfully' });
 });
 
 app.post('/api/auth/login', (req, res) => {
   const { email, password } = req.body;
-  if (!email || !password) {
+  const normalizedEmail = normalizeEmail(email);
+  const plainPassword = String(password || '');
+
+  if (!normalizedEmail || !plainPassword) {
     return res.status(400).json({ error: 'Email and password required' });
   }
-  const user = users[email];
-  if (!user || user.password !== password) {
-    return res.status(401).json({ error: 'Invalid email or password' });
-  }
-  res.json({ success: true, email: user.email });
+
+  db.get(
+    'SELECT email, password_hash FROM users WHERE email = ?',
+    [normalizedEmail],
+    async (err, user) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (!user) return res.status(401).json({ error: 'Invalid email or password' });
+
+      try {
+        const isValidPassword = await bcrypt.compare(plainPassword, user.password_hash);
+        if (!isValidPassword) {
+          return res.status(401).json({ error: 'Invalid email or password' });
+        }
+
+        return res.json({ success: true, email: user.email });
+      } catch (compareErr) {
+        return res.status(500).json({ error: 'Failed to verify credentials' });
+      }
+    }
+  );
 });
 
 // Intentional test route for verifying server error page behavior.
