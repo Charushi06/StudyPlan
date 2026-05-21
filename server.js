@@ -456,7 +456,7 @@ app.post('/api/auth/signup', (req, res) => {
     return res.status(400).json({ error: 'User already exists' });
   }
   users[email] = { email, password };
-  res.json({ success: true, message: 'Account created successfully' });
+  res.json({ success: true, message: 'Account created successfully', email });
 });
 
 app.post('/api/auth/login', (req, res) => {
