@@ -397,7 +397,9 @@ function renderTasks() {
   // Update badges
   const allTasksBadge = document.querySelector('#all-tasks-btn .badge');
   if (allTasksBadge) {
-    allTasksBadge.textContent = activeTasks.length;
+    const pendingTasksCount = activeTasks.filter(t => t.status !== 'Done').length;
+    allTasksBadge.textContent = pendingTasksCount;
+    allTasksBadge.setAttribute('aria-label', `${pendingTasksCount} pending task${pendingTasksCount !== 1 ? 's' : ''}`);
   }
   const archivedBadge = document.querySelector('#archived-tasks-btn .badge');
   if (archivedBadge) {
@@ -562,7 +564,7 @@ function renderTasks() {
       : '';
 
     tasksSection.innerHTML = actionBar +
-                             renderGroup(titlePrefix + '⚠ Due soon', dueSoon, 'var(--color-text-danger)', true)
+                             renderGroup(titlePrefix + '⚠ Due soon', dueSoon, 'var(--color-text-danger)', true) +
                              renderGroup(titlePrefix + 'This week', thisWeek, 'var(--color-text-secondary)', true) +
                              renderGroup(titlePrefix + 'Completed', completed, 'var(--color-text-tertiary)') +
                              emptyState;
@@ -663,9 +665,11 @@ function renderTasks() {
 }
 
 
-const summaryBox = document.getElementById('summary-box');
-if (summaryBox) {
-  summaryBox.innerHTML = generateSummary(store.tasks, store.subjects);
+function renderSummary() {
+  const summaryBox = document.getElementById('summary-box');
+  if (summaryBox) {
+    summaryBox.innerHTML = generateSummary(store.tasks, store.subjects);
+  }
 }
 
 function renderCalendar() {
@@ -855,6 +859,7 @@ store.subscribe(renderExtraction);
 store.subscribe(renderCalendar);
 store.subscribe(renderFocusTasks);
 store.subscribe(renderSidebarSubjects);
+store.subscribe(renderSummary);
 
 document.addEventListener('DOMContentLoaded', () => {
   if (newSubjectColorsEl) {

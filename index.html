@@ -48,8 +48,8 @@
 
   <div class="header-right" style="display: flex; align-items: center; gap: 12px;">
     <button id="header-dark-mode-toggle" class="theme-toggle-btn" aria-label="Toggle dark mode" title="Toggle Theme">
-      <svg class="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
-      <svg class="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+      <svg class="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+      <svg class="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
     </button>
     <button class="profile-btn">Profile</button>
     <button class="profile-btn" id="logout-btn">Logout</button>
@@ -348,9 +348,7 @@
     settingsModal.style.display = 'none';
   });
 
-  settingsSave.addEventListener('click', () => {
-    settingsModal.style.display = 'none';
-  });
+
 
   window.addEventListener('click', (e) => {
     if (e.target === settingsModal) {
@@ -415,11 +413,8 @@
 
   if (compactViewToggle) {
     compactViewToggle.addEventListener('change', (e) => {
-      if (e.target.checked) {
-        document.body.classList.add('compact-view');
-      } else {
-        document.body.classList.remove('compact-view');
-      }
+      localStorage.setItem('studyplan_compact_view', e.target.checked ? 'true' : 'false');
+      loadPreferences();
     });
   }
 </script>

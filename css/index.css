@@ -2190,6 +2190,13 @@ body {
   transform: scale(0.95);
 }
 
+.theme-toggle-btn .sun-icon {
+  display: none;
+}
+.theme-toggle-btn .moon-icon {
+  display: block;
+}
+
 /* Show/hide Sun and Moon icons based on data-theme */
 :root[data-theme="dark"] .theme-toggle-btn .sun-icon {
   display: block;
