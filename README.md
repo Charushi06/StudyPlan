@@ -49,6 +49,7 @@ User Review + Edit
 Planner + Calendar Update
 ```
 
+> **Note:** If `GEMINI_API_KEY` is not set (or the API call fails), the server falls back to built-in NLP heuristics in `server.js` so extraction still works locally.
 
 ---
 
@@ -57,7 +58,8 @@ Planner + Calendar Update
 ### 🤖 AI Intelligence
 - Smart extraction from unstructured text
 - Detects **deadlines, subjects, tasks, notes**
-- Handles ambiguous dates with user confirmation
+- Review and edit extracted tasks before saving
+- Gemini-powered extraction with NLP fallback when the API is unavailable
 
 ### 📊 Smart Planning System
 - Auto-categorized boards:
@@ -79,6 +81,13 @@ Planner + Calendar Update
 - SQLite-based local database
 - Structured task + subject mapping
 
+### 📥 More in the app
+- **Focus mode** — Pomodoro-style timer with a selected task
+- **Archived tasks** — Archive and restore without deleting
+- **CSV export** — Download tasks via `GET /api/download`
+- **Support page** — `/support-page/` for help and contact info
+- **Auth UI** — Sign up / sign in (in-memory demo store; resets on server restart)
+
 ---
 
 ## 🧠 System Architecture
@@ -88,11 +97,11 @@ Frontend (Vanilla JS UI)
 ↓
 Node.js Express API
 ↓
-AI Layer (Gemini API)
+AI Layer (Gemini API → NLP fallback)
 ↓
 SQLite Database
 ↓
-State Management + UI Sync
+State Management + UI Sync (store.js)
 ```
 
 
@@ -132,10 +141,11 @@ npm install
 
 ## 🔑 Environment Setup
 
-Create `.env`:
+Copy `.env.example` to `.env` (optional — the app runs without it using NLP fallback):
 
 ```env
-GEMINI_API_KEY=your_gen_ai_key_here
+GEMINI_API_KEY=your_gen_ai_key_here   # optional; enables Gemini extraction
+PORT=3000                             # optional; defaults to 3000
 ```
 
 ---
@@ -143,32 +153,70 @@ GEMINI_API_KEY=your_gen_ai_key_here
 ## ▶️ Run Locally
 
 ```bash
-node server.js
+npm start
+# or: node server.js
 ```
+
 Open → http://localhost:3000
+
+**Deploy (Render):** Set `GEMINI_API_KEY` and `PORT` in the dashboard; build uses `.render-build.sh`.
+
+---
+
+## 📡 API Overview
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/subjects` | List subjects |
+| `POST` | `/api/subjects` | Create a subject |
+| `GET` | `/api/tasks` | List tasks |
+| `POST` | `/api/tasks` | Add task(s) (duplicate detection) |
+| `PUT` | `/api/tasks/:id` | Update task fields |
+| `DELETE` | `/api/tasks/:id` | Delete a task |
+| `POST` | `/api/extract` | Extract tasks from pasted text |
+| `GET` | `/api/download` | Export tasks as CSV |
+| `POST` | `/api/auth/signup` | Sign up (in-memory) |
+| `POST` | `/api/auth/login` | Sign in (in-memory) |
 
 ---
  
 ## Project Structure
  
 ```
- StudyPlan
-├──  css
-│   └──  index.css           # Contains all styling rules, variables, and animations
-├──  js
-│   ├──  utils
-│   │   ├──  aiMock.js       # The original mock UI extraction hook (deprecated)
-│   │   └──  api.js          # The live fetch logic communicating with our Express API
-│   ├──  app.js              # The main controller (handles DOM UI, event bindings, and Calendar)
-│   └──  store.js            # The Custom State Manager handling our frontend Pub/Sub state
-├──  .env.example            # Template file for setting the GEMINI_API_KEY
-├──  .gitignore              # Tells git to ignore databases, environments, and node packages
-├──  database.js             # Initializes the SQLite database and executes DB table schemas
-├──  index.html              # The frontend structural entry point
-├──  package.json            # Node project configuration and backend dependencies
-├──  README.md               # The comprehensive project documentation
-├──  server.js               # The primary Node.js & Express REST Backend logic
-└──  studyplan.db
+StudyPlan/
+├── css/
+│   └── index.css              # Styling, variables, animations
+├── js/
+│   ├── utils/
+│   │   ├── api.js             # Live fetch logic for the Express API
+│   │   ├── scheduler.js       # Workload / deadline clustering analysis
+│   │   ├── errorBoundary.js   # Frontend crash screen
+│   │   ├── nlpDateExtractor.js    # Client-side date parsing (aiMock)
+│   │   ├── nlpSubjectExtractor.js # Client-side subject detection (aiMock)
+│   │   └── aiMock.js          # Original mock extraction hook (deprecated)
+│   ├── app.js                 # Main UI controller (DOM, calendar, boards)
+│   └── store.js               # Pub/Sub state manager + API calls
+├── backend/
+│   ├── controllers/
+│   │   └── csvDownload.controller.js
+│   └── routers/
+│       └── csvDownload.router.js
+├── support-page/              # Support / contact page
+│   ├── index.html
+│   ├── support.css
+│   └── support.js
+├── .github/                   # Issue and PR templates
+├── .env.example               # Template for GEMINI_API_KEY
+├── .gitignore
+├── .render-build.sh           # Render deploy script (sqlite3 rebuild)
+├── CONTRIBUTING.md            # Contributor guide (GSSoC / NSoC)
+├── database.js                # SQLite init and schema
+├── index.html                 # Main app entry point
+├── 404.html / error.html      # Custom error pages
+├── package.json
+├── README.md
+├── server.js                  # Express API, AI extraction, NLP fallback
+└── studyplan.db               # Created at runtime (not committed)
 ```
 
 ---
@@ -179,11 +227,12 @@ Open → http://localhost:3000
 - 🔔 Smart reminders & notifications
 - 📱 Mobile version
 - 🧠 AI study assistant
-- 🤝 Contributing
 
 ---
 
 ## Want to improve StudyPlan? 🚀
+
+See **[CONTRIBUTING.md](CONTRIBUTING.md)** for the full GSSoC/NSoC workflow, branch naming, and PR guidelines.
 
 ### 🔥 High-impact contributions:
 - Improve AI parsing accuracy
