@@ -2160,3 +2160,70 @@ body {
   color: #ffcc66;
   font-weight: 600;
 }
+
+/* Antigravity Custom UI/UX Premium Overrides */
+
+/* 1. Header Dark Mode Switch & Icons */
+.theme-toggle-btn {
+  background: none;
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-md);
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 0;
+}
+
+.theme-toggle-btn:hover {
+  background: var(--color-background-secondary);
+  color: var(--color-text-primary);
+  border-color: var(--color-text-primary);
+  transform: scale(1.05);
+}
+
+.theme-toggle-btn:active {
+  transform: scale(0.95);
+}
+
+.theme-toggle-btn .sun-icon {
+  display: none;
+}
+.theme-toggle-btn .moon-icon {
+  display: block;
+}
+
+/* Show/hide Sun and Moon icons based on data-theme */
+:root[data-theme="dark"] .theme-toggle-btn .sun-icon {
+  display: block;
+}
+:root[data-theme="dark"] .theme-toggle-btn .moon-icon {
+  display: none;
+}
+:root[data-theme="light"] .theme-toggle-btn .sun-icon {
+  display: none;
+}
+:root[data-theme="light"] .theme-toggle-btn .moon-icon {
+  display: block;
+}
+
+/* 2. Dark Mode Contrast Regression for Summary Box */
+:root[data-theme="dark"] .summary-box {
+  background: linear-gradient(135deg, var(--color-background-tertiary), var(--color-background-secondary)) !important;
+  border-color: var(--color-border-tertiary) !important;
+  color: var(--color-text-secondary) !important;
+}
+
+:root[data-theme="dark"] .summary-box strong,
+:root[data-theme="dark"] .summary-box b {
+  color: var(--color-text-primary) !important;
+}
+
+/* 3. Minimized/Collapsed Right Panel Layout Fix */
+.panel.panel-collapsed .summary-box {
+  display: none !important;
+}
