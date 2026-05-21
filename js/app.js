@@ -1,3 +1,4 @@
+import { showToast } from "./utils/toast.js";
 import { store } from './store.js';
 import { extractTasksFromText } from './utils/api.js';
 import { initGlobalErrorBoundary } from './utils/errorBoundary.js';
@@ -568,17 +569,36 @@ function renderTasks() {
                              emptyState;
   }
                            
-  document.querySelectorAll('.task-item').forEach(el => {
-    el.addEventListener('click', (e) => {
-      if (e.target.closest('.task-actions') || e.target.closest('.task-check')) return;
-      
-      const taskId = el.dataset.id;
-      const task = store.tasks.find(t => String(t.id) === String(taskId));
-      if (task && task._isEditing) return;
-      
+  document.querySelectorAll('.task-check').forEach(el => {
+  el.addEventListener('click', (e) => {
+
+    e.stopPropagation();
+
+    const taskId =
+      el.closest('.task-item').dataset.id;
+
+    try{
+
       store.toggleTaskStatus(taskId);
-    });
+
+      showToast(
+        "Task completed successfully"
+      );
+
+    }
+    catch(error){
+
+      console.error(error);
+
+      showToast(
+        "Failed to update task",
+        "error"
+      );
+
+    }
+
   });
+});
 
   document.querySelectorAll('.edit-task-btn').forEach(el => {
     el.addEventListener('click', (e) => {
@@ -1035,29 +1055,101 @@ newTaskSave.addEventListener('click', async () => {
   await store.addTasks([newTask]);
   newTaskModal.style.display = 'none';
 });
+addItemsBtn.addEventListener('click', async () => {
 
-addItemsBtn.addEventListener('click', () => {
-  if (store.currentPaste) {
-    store.addTasks(store.currentPaste);
-    store.clearExtracted();
-    pasteInput.value = '';
+  try{
+
+    if(store.currentPaste){
+
+      await store.addTasks(
+        store.currentPaste
+      );
+
+      store.clearExtracted();
+
+      pasteInput.value='';
+
+      showToast(
+        "Tasks added successfully"
+      );
+
+    }
+
   }
-});
-});
 
+  catch(error){
+
+    console.error(error);
+
+    showToast(
+      "Failed to add tasks",
+      "error"
+    );
+
+  }
+
+});
+});
 extractBtn.addEventListener('click', async () => {
+  
   const text = pasteInput.value;
-  if (!text.trim()) return;
-  
-  extractBtn.innerHTML = '<span class="loader-spinner"></span>';
-  extractBtn.disabled = true;
-  
-  const items = await extractTasksFromText(text);
-  
-  extractBtn.innerHTML = 'Extract with AI →';
-  extractBtn.disabled = false;
-  
-  store.setExtracted(items);
+
+  if (!text.trim()) {
+    
+    showToast(
+      "Please enter some text",
+      "error"
+    );
+
+    return;
+  }
+
+  try {
+
+    extractBtn.innerHTML =
+      '<span class="loader-spinner"></span>';
+
+    extractBtn.disabled = true;
+
+    const items =
+      await extractTasksFromText(text);
+
+
+    if (items.length > 0) {
+
+      store.setExtracted(items);
+
+      showToast(
+        "Tasks extracted successfully"
+      );
+
+    } else {
+
+      showToast(
+        "No tasks found",
+        "error"
+      );
+
+    }
+
+  } catch(error){
+
+    console.error(error);
+
+    showToast(
+      "Extraction failed",
+      "error"
+    );
+
+  } finally {
+
+    extractBtn.innerHTML =
+      'Extract with AI →';
+
+    extractBtn.disabled = false;
+
+  }
+
 });
 
 clearBtn.addEventListener('click', () => {
@@ -1065,13 +1157,7 @@ clearBtn.addEventListener('click', () => {
   store.clearExtracted();
 });
 
-addItemsBtn.addEventListener('click', () => {
-  if (store.currentPaste) {
-    store.addTasks(store.currentPaste);
-    store.clearExtracted();
-    pasteInput.value = '';
-  }
-});
+
 
 downloadBtn.addEventListener('click', () => {
   downloadData();
