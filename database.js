@@ -14,6 +14,16 @@ function initDb() {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
 
+    // Users Table
+    db.run(`CREATE TABLE IF NOT EXISTS users (
+      email TEXT PRIMARY KEY,
+      password TEXT NOT NULL,
+      display_name TEXT,
+      avatar_color TEXT DEFAULT '#4f46e5',
+      avatar_image TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`);
+
     // Tasks Table
     db.run(`CREATE TABLE IF NOT EXISTS tasks (
       id TEXT PRIMARY KEY,
@@ -26,9 +36,21 @@ function initDb() {
       confidence_score REAL,
       notes TEXT,
       archived INTEGER DEFAULT 0,
+      assignee_email TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (subject_id) REFERENCES subjects(id)
+      FOREIGN KEY (subject_id) REFERENCES subjects(id),
+      FOREIGN KEY (assignee_email) REFERENCES users(email)
     )`);
+
+    // Alter tasks table if assignee_email doesn't exist for upgrade paths
+    db.all(`PRAGMA table_info(tasks)`, (err, columns) => {
+      if (!err && columns) {
+        const hasAssignee = columns.some(col => col.name === 'assignee_email');
+        if (!hasAssignee) {
+          db.run(`ALTER TABLE tasks ADD COLUMN assignee_email TEXT`);
+        }
+      }
+    });
 
     // Pre-populate some subjects if empty
     db.get('SELECT COUNT(*) as count FROM subjects', (err, row) => {

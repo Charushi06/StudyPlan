@@ -292,8 +292,8 @@ app.post('/api/tasks', (req, res) => {
     let errors = [];
 
     const stmt = db.prepare(`INSERT INTO tasks 
-      (id, subject_id, title, due_at, status, priority, confidence_score, notes) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`);
+      (id, subject_id, title, due_at, status, priority, confidence_score, notes, assignee_email) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`);
 
     let pending = tasks.length;
 
@@ -330,6 +330,7 @@ app.post('/api/tasks', (req, res) => {
               t.priority || 'medium',
               t.confidence_score || 100,
               t.notes || '',
+              t.assignee_email || null,
               function (insertErr) {
                 if (insertErr) {
                   errors.push({ task: t, error: insertErr.message });
@@ -371,7 +372,7 @@ app.post('/api/tasks', (req, res) => {
 
 // ================= UPDATE =================
 app.put('/api/tasks/:id', (req, res) => {
-  const { status, archived, title, subject_id, due_at, notes, priority } = req.body;
+  const { status, archived, title, subject_id, due_at, notes, priority, assignee_email } = req.body;
 
   let query = 'UPDATE tasks SET ';
   const params = [];
@@ -384,6 +385,7 @@ app.put('/api/tasks/:id', (req, res) => {
   if (due_at !== undefined) { updates.push('due_at = ?'); params.push(due_at); }
   if (notes !== undefined) { updates.push('notes = ?'); params.push(notes); }
   if (priority !== undefined) { updates.push('priority = ?'); params.push(priority); }
+  if (assignee_email !== undefined) { updates.push('assignee_email = ?'); params.push(assignee_email); }
 
   if (updates.length === 0) {
     return res.status(400).json({ error: 'No fields to update' });
@@ -444,19 +446,45 @@ Text: "${text}"
   const tasks = nlpExtractTasksFromText(text);
   return res.json(tasks);
 });
-// ================= AUTH =================
-const users = {}; // Simple in-memory user store
+// ================= AUTH & USERS =================
+const DEFAULT_COLORS = ['#4f46e5', '#0ea5e9', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
 app.post('/api/auth/signup', (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password required' });
   }
-  if (users[email]) {
-    return res.status(400).json({ error: 'User already exists' });
-  }
-  users[email] = { email, password };
-  res.json({ success: true, message: 'Account created successfully' });
+
+  // Check if user already exists
+  db.get('SELECT email FROM users WHERE email = ?', [email], (err, row) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (row) return res.status(400).json({ error: 'User already exists' });
+
+    // Pick a deterministic default color based on email length
+    const avatar_color = DEFAULT_COLORS[email.length % DEFAULT_COLORS.length];
+    
+    // Split email prefix for display_name
+    let display_name = email.split('@')[0];
+    if (display_name.length > 15) {
+      display_name = display_name.substring(0, 15);
+    }
+
+    db.run(
+      'INSERT INTO users (email, password, display_name, avatar_color) VALUES (?, ?, ?, ?)',
+      [email, password, display_name, avatar_color],
+      (insertErr) => {
+        if (insertErr) return res.status(500).json({ error: insertErr.message });
+        res.json({
+          success: true,
+          message: 'Account created successfully',
+          email,
+          display_name,
+          avatar_color,
+          avatar_image: null
+        });
+      }
+    );
+  });
 });
 
 app.post('/api/auth/login', (req, res) => {
@@ -464,11 +492,63 @@ app.post('/api/auth/login', (req, res) => {
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password required' });
   }
-  const user = users[email];
-  if (!user || user.password !== password) {
-    return res.status(401).json({ error: 'Invalid email or password' });
+
+  db.get('SELECT * FROM users WHERE email = ?', [email], (err, user) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!user || user.password !== password) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+    res.json({
+      success: true,
+      email: user.email,
+      display_name: user.display_name,
+      avatar_color: user.avatar_color,
+      avatar_image: user.avatar_image
+    });
+  });
+});
+
+// GET list of all users (for assignee lists)
+app.get('/api/users', (req, res) => {
+  db.all('SELECT email, display_name, avatar_color, avatar_image FROM users', (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
+  });
+});
+
+// GET single user profile
+app.get('/api/users/:email', (req, res) => {
+  db.get(
+    'SELECT email, display_name, avatar_color, avatar_image FROM users WHERE email = ?',
+    [req.params.email],
+    (err, user) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (!user) return res.status(404).json({ error: 'User not found' });
+      res.json(user);
+    }
+  );
+});
+
+// UPDATE user profile details
+app.put('/api/users/:email', (req, res) => {
+  const { display_name, avatar_color, avatar_image } = req.body;
+  if (display_name && display_name.length > 15) {
+    return res.status(400).json({ error: 'Display name cannot exceed 15 characters' });
   }
-  res.json({ success: true, email: user.email });
+  db.run(
+    'UPDATE users SET display_name = ?, avatar_color = ?, avatar_image = ? WHERE email = ?',
+    [display_name, avatar_color, avatar_image, req.params.email],
+    function (err) {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({
+        success: true,
+        email: req.params.email,
+        display_name,
+        avatar_color,
+        avatar_image
+      });
+    }
+  );
 });
 
 // Intentional test route for verifying server error page behavior.

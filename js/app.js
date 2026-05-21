@@ -5,6 +5,55 @@ import { analyzeWorkload } from './utils/scheduler.js';
 
 initGlobalErrorBoundary();
 
+// ================= USER AVATARS & PROFILE MANAGEMENT =================
+const PROFILE_COLORS = ['#4f46e5', '#0ea5e9', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6'];
+let selectedProfileColor = PROFILE_COLORS[0];
+let currentAvatarBase64 = null;
+
+function getInitials(name) {
+  if (!name) return 'U';
+  const parts = name.split('@')[0].split(/[_\.\s\-]+/);
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+  return name.slice(0, 2).toUpperCase();
+}
+
+function getAvatarHtml(user, size = 32) {
+  if (!user) {
+    return `<div class="task-assignee-avatar" style="width:${size}px; height:${size}px; font-size:${size * 0.4}px; background:#6b7280; color:#fff;" title="Unassigned">+</div>`;
+  }
+  if (user.avatar_image) {
+    return `<img src="${user.avatar_image}" class="task-assignee-avatar" style="width:${size}px; height:${size}px;" alt="${escapeHtml(user.display_name || user.email)}" title="${escapeHtml(user.display_name || user.email)}" />`;
+  }
+  const initials = getInitials(user.display_name || user.email);
+  const color = user.avatar_color || '#4f46e5';
+  return `<div class="task-assignee-avatar" style="width:${size}px; height:${size}px; background:${color}; color:#fff; font-size:${size * 0.4}px;" title="${escapeHtml(user.display_name || user.email)}">${escapeHtml(initials)}</div>`;
+}
+
+function updateHeaderProfile() {
+  const userJson = localStorage.getItem('studyplan_user');
+  if (!userJson) return;
+  const user = JSON.parse(userJson);
+  
+  const headerAvatar = document.getElementById('header-avatar');
+  const headerDisplayName = document.getElementById('header-display-name');
+  
+  if (headerDisplayName) {
+    headerDisplayName.textContent = user.display_name || user.email;
+  }
+  
+  if (headerAvatar) {
+    if (user.avatar_image) {
+      headerAvatar.innerHTML = `<img src="${user.avatar_image}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;" />`;
+    } else {
+      const initials = getInitials(user.display_name || user.email);
+      headerAvatar.textContent = initials;
+      headerAvatar.style.background = user.avatar_color || '#4f46e5';
+    }
+  }
+}
+
 function generateSummary(tasks, subjects) {
   const now = new Date();
   const weekEnd = new Date();
@@ -474,6 +523,11 @@ function renderTasks() {
           `<option value="${s.id}" ${s.id === t.subject_id ? 'selected' : ''}>${s.name}</option>`
         ).join('');
         
+        let assigneeOptions = `<option value="">Unassigned</option>` + store.users.map(u => {
+          const label = u.display_name ? `${u.display_name} (${u.email})` : u.email;
+          return `<option value="${u.email}" ${u.email === t.assignee_email ? 'selected' : ''}>${label}</option>`;
+        }).join('');
+        
         const localDate = t.due_at ? new Date(t.due_at).toISOString().substring(0, 16) : '';
         const isHighPriority = t.priority === 'high';
         
@@ -482,6 +536,11 @@ function renderTasks() {
             <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Subject</label>
             <select class="board-edit-subject edit-field" style="width:100%; margin-bottom: 12px; font-size:12px; padding:4px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
               ${subjectOptions}
+            </select>
+
+            <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Assignee</label>
+            <select class="board-edit-assignee edit-field" style="width:100%; margin-bottom: 12px; font-size:12px; padding:4px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
+              ${assigneeOptions}
             </select>
 
             <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Task Name</label>
@@ -513,6 +572,9 @@ function renderTasks() {
              <button class="task-btn task-btn-info restore-task-btn" data-id="${t.id}" title="Restore">Restore</button>
              <button class="task-btn task-btn-danger delete-task-btn" data-id="${t.id}" title="Permanent Delete">Delete</button>`;
 
+        const assignee = store.users.find(u => u.email === t.assignee_email);
+        const avatarHtml = getAvatarHtml(assignee, 24);
+
         html += `
           <div class="task-item ${isUrgent ? 'urgent' : ''} ${isDone ? 'done' : ''}" data-id="${t.id}">
             <div class="task-check ${isDone ? 'done' : ''}"></div>
@@ -522,6 +584,9 @@ function renderTasks() {
                 <span class="task-pill ${isDone ? 'pill-green' : (isUrgent ? 'pill-red' : 'pill-amber')}">${isDone ? 'Done' : 'Due ' + formatDate(t.due_at)}</span>
                 <span class="task-pill ${pillClass}">${sub.short_code}</span>
               </div>
+            </div>
+            <div class="task-assignee-avatar-container">
+              ${avatarHtml}
             </div>
             <div class="task-actions">
               ${archiveBtn}
@@ -605,13 +670,15 @@ function renderTasks() {
       let dateVal = itemEl.querySelector('.board-edit-date').value;
       const notes = itemEl.querySelector('.board-edit-notes').value;
       const priority = itemEl.querySelector('.board-edit-priority').value;
+      const assignee_email = itemEl.querySelector('.board-edit-assignee').value;
       
       store.updateTask(taskId, {
         title,
         subject_id,
         due_at: dateVal ? new Date(dateVal).toISOString() : '',
         notes,
-        priority
+        priority,
+        assignee_email: assignee_email || null
       });
     });
   });
@@ -984,6 +1051,20 @@ newTaskBtn.addEventListener('click', () => {
     .map(s => `<option value="${s.id}">${s.name}</option>`)
     .join('');
 
+  // Populate Assignees in task creation modal
+  const newTaskAssignee = document.getElementById('new-task-assignee');
+  if (newTaskAssignee) {
+    const userJson = localStorage.getItem('studyplan_user');
+    const defaultUserEmail = userJson ? JSON.parse(userJson).email : '';
+    
+    let optionsHtml = `<option value="">Unassigned</option>`;
+    store.users.forEach(u => {
+      const label = u.display_name ? `${u.display_name} (${u.email})` : u.email;
+      const isSelected = u.email === defaultUserEmail ? 'selected' : '';
+      optionsHtml += `<option value="${u.email}" ${isSelected}>${label}</option>`;
+    });
+    newTaskAssignee.innerHTML = optionsHtml;
+  }
 
   if (selectedDate) {
     const d = new Date(selectedDate);
@@ -1014,6 +1095,7 @@ newTaskSave.addEventListener('click', async () => {
   const subject_id = newTaskSubject.value;
   const notes = newTaskNotes.value.trim();
   const dateVal = newTaskDate.value;
+  const assignee_email = document.getElementById('new-task-assignee')?.value || null;
 
   if (!title) {
     alert('Please enter a task name');
@@ -1025,6 +1107,7 @@ newTaskSave.addEventListener('click', async () => {
   const newTask = {
     title,
     subject_id,
+    assignee_email,
     due_at,
     notes,
     priority: 'medium',
@@ -1035,6 +1118,214 @@ newTaskSave.addEventListener('click', async () => {
   await store.addTasks([newTask]);
   newTaskModal.style.display = 'none';
 });
+
+// Profile Settings Modal Interactions
+const profileModal = document.getElementById('profile-modal');
+const profileTrigger = document.getElementById('profile-trigger');
+const profileClose = document.getElementById('profile-close');
+const profileCancel = document.getElementById('profile-cancel');
+const profileSave = document.getElementById('profile-save');
+const profileDisplayName = document.getElementById('profile-display-name');
+const profileColorsContainer = document.getElementById('profile-colors');
+const profileImageFile = document.getElementById('profile-image-file');
+const profileUploadTrigger = document.getElementById('profile-upload-trigger');
+const profileClearImageBtn = document.getElementById('profile-clear-image-btn');
+
+function renderProfileColorSwatches() {
+  if (!profileColorsContainer) return;
+  profileColorsContainer.innerHTML = PROFILE_COLORS.map(color => {
+    const isSelected = color === selectedProfileColor;
+    return `<button type="button" class="profile-color-swatch ${isSelected ? 'profile-color-swatch--selected' : ''}" data-color="${color}" style="background:${color}"></button>`;
+  }).join('');
+  
+  profileColorsContainer.querySelectorAll('.profile-color-swatch').forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedProfileColor = btn.dataset.color;
+      renderProfileColorSwatches();
+      updateProfilePreview();
+    });
+  });
+}
+
+function updateProfilePreview() {
+  const previewEl = document.getElementById('profile-avatar-preview');
+  if (!previewEl) return;
+  
+  const userJson = localStorage.getItem('studyplan_user');
+  const email = userJson ? JSON.parse(userJson).email : '';
+  const name = profileDisplayName ? profileDisplayName.value.trim() : '';
+  
+  if (currentAvatarBase64) {
+    previewEl.innerHTML = `<img src="${currentAvatarBase64}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;" />`;
+  } else {
+    const initials = getInitials(name || email || 'User');
+    previewEl.textContent = initials;
+    previewEl.style.background = selectedProfileColor;
+    previewEl.innerHTML = initials;
+  }
+}
+
+if (profileTrigger) {
+  profileTrigger.addEventListener('click', () => {
+    const userJson = localStorage.getItem('studyplan_user');
+    if (!userJson) return;
+    const user = JSON.parse(userJson);
+    
+    if (profileDisplayName) profileDisplayName.value = user.display_name || '';
+    selectedProfileColor = user.avatar_color || PROFILE_COLORS[0];
+    currentAvatarBase64 = user.avatar_image || null;
+    
+    if (profileClearImageBtn) {
+      profileClearImageBtn.style.display = currentAvatarBase64 ? 'block' : 'none';
+    }
+    
+    renderProfileColorSwatches();
+    updateProfilePreview();
+    
+    if (profileModal) profileModal.style.display = 'flex';
+  });
+}
+
+if (profileDisplayName) {
+  profileDisplayName.addEventListener('input', updateProfilePreview);
+}
+
+if (profileUploadTrigger && profileImageFile) {
+  profileUploadTrigger.addEventListener('click', () => {
+    profileImageFile.click();
+  });
+}
+
+if (profileImageFile) {
+  profileImageFile.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      const img = new Image();
+      img.onload = function() {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 128;
+        const MAX_HEIGHT = 128;
+        let width = img.width;
+        let height = img.height;
+        
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        currentAvatarBase64 = canvas.toDataURL('image/jpeg', 0.8);
+        if (profileClearImageBtn) profileClearImageBtn.style.display = 'block';
+        updateProfilePreview();
+      };
+      img.src = evt.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+if (profileClearImageBtn) {
+  profileClearImageBtn.addEventListener('click', () => {
+    currentAvatarBase64 = null;
+    profileClearImageBtn.style.display = 'none';
+    if (profileImageFile) profileImageFile.value = '';
+    updateProfilePreview();
+  });
+}
+
+const closeProfileModal = () => {
+  if (profileModal) profileModal.style.display = 'none';
+};
+
+if (profileClose) profileClose.addEventListener('click', closeProfileModal);
+if (profileCancel) profileCancel.addEventListener('click', closeProfileModal);
+if (profileModal) {
+  profileModal.addEventListener('click', (e) => {
+    if (e.target === profileModal) closeProfileModal();
+  });
+}
+
+// Custom color picker integration
+const profileCustomColor = document.getElementById('profile-custom-color');
+if (profileCustomColor) {
+  profileCustomColor.addEventListener('input', (e) => {
+    selectedProfileColor = e.target.value;
+    renderProfileColorSwatches();
+    const swatches = profileColorsContainer?.querySelectorAll('.profile-color-swatch');
+    if (swatches) {
+      swatches.forEach(sw => sw.classList.remove('profile-color-swatch--selected'));
+    }
+    updateProfilePreview();
+  });
+}
+
+if (profileSave) {
+  profileSave.addEventListener('click', async () => {
+    const userJson = localStorage.getItem('studyplan_user');
+    if (!userJson) return;
+    const user = JSON.parse(userJson);
+    
+    const displayName = profileDisplayName ? profileDisplayName.value.trim() : '';
+    if (displayName.length > 15) {
+      alert('Display name cannot exceed 15 characters.');
+      return;
+    }
+    
+    try {
+      profileSave.disabled = true;
+      profileSave.textContent = 'Saving...';
+      
+      const res = await fetch(`/api/users/${user.email}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          display_name: displayName,
+          avatar_color: selectedProfileColor,
+          avatar_image: currentAvatarBase64
+        })
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        localStorage.setItem('studyplan_user', JSON.stringify({
+          email: user.email,
+          display_name: data.display_name,
+          avatar_color: data.avatar_color,
+          avatar_image: data.avatar_image
+        }));
+        
+        updateHeaderProfile();
+        await store.fetchUsers();
+        closeProfileModal();
+      } else {
+        alert('Failed to save profile changes.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error connecting to server.');
+    } finally {
+      profileSave.disabled = false;
+      profileSave.textContent = 'Save Changes';
+    }
+  });
+}
+
+// Render header profile on startup
+updateHeaderProfile();
 
 addItemsBtn.addEventListener('click', () => {
   if (store.currentPaste) {

@@ -1,6 +1,7 @@
 export const store = {
   subjects: [],
   tasks: [],
+  users: [],
   currentPaste: null,
   listeners: [],
 
@@ -22,15 +23,29 @@ export const store = {
   
   async fetchInitialData() {
     try {
-      const [subsRes, tasksRes] = await Promise.all([
+      const [subsRes, tasksRes, usersRes] = await Promise.all([
         fetch('/api/subjects'),
-        fetch('/api/tasks')
+        fetch('/api/tasks'),
+        fetch('/api/users').catch(() => null)
       ]);
       this.subjects = await subsRes.json();
       this.tasks = await tasksRes.json();
+      this.users = usersRes ? await usersRes.json() : [];
       this.notify();
     } catch (e) {
       console.error('Failed to load initial data', e);
+    }
+  },
+
+  async fetchUsers() {
+    try {
+      const res = await fetch('/api/users');
+      if (res.ok) {
+        this.users = await res.json();
+        this.notify();
+      }
+    } catch (e) {
+      console.error('Failed to fetch users', e);
     }
   },
 
