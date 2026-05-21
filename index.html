@@ -6,6 +6,7 @@
   <title>StudyPlan</title>
   <link rel="stylesheet" href="/css/index.css">
   <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -47,8 +48,11 @@
   </nav>
 
   <div class="header-right">
-    <button class="profile-btn">Profile</button>
-    <button class="profile-btn" id="logout-btn">Logout</button>
+    <div class="user-profile-badge" id="profile-trigger" style="cursor:pointer; display:flex; align-items:center; gap:8px;">
+      <div id="header-avatar" class="user-avatar-small" style="width:32px; height:32px; border-radius:50%; background:#4f46e5; color:white; display:flex; align-items:center; justify-content:center; font-weight:600; font-size:14px; overflow:hidden;">U</div>
+      <span id="header-display-name" class="user-name-text" style="font-weight:600; font-size:14px; color:var(--color-text-primary);">User</span>
+    </div>
+    <button class="profile-btn" id="logout-btn" style="margin-left: 12px;">Logout</button>
   </div>
 </header>
 
@@ -310,8 +314,14 @@
         return;
       }
 
-      localStorage.setItem('studyplan_user', JSON.stringify({ email: data.email }));
+      localStorage.setItem('studyplan_user', JSON.stringify({
+        email: data.email,
+        display_name: data.display_name,
+        avatar_color: data.avatar_color,
+        avatar_image: data.avatar_image
+      }));
       document.getElementById('auth-modal').style.display = 'none';
+      window.location.reload();
 
     } catch (err) {
       errorEl.textContent = 'Network error. Please try again.';
@@ -436,6 +446,9 @@
     <label style="display:block; font-size:12px; margin-bottom:4px;">Subject</label>
     <select id="new-task-subject" paceholder="Subject" style="width:100%; padding:6px; margin-bottom:10px;"></select>
 
+    <label style="display:block; font-size:12px; margin-bottom:4px;">Assignee</label>
+    <select id="new-task-assignee" style="width:100%; padding:6px; margin-bottom:10px;"></select>
+
     <label style="display:block; font-size:12px; margin-bottom:4px;">Task name</label>
     <input id="new-task-title" type="text" style="width:100%; padding:6px; margin-bottom:10px;"placeholder="TaskName">
 
@@ -448,6 +461,53 @@
     <div style="display:flex; justify-content:flex-end; gap:8px;">
       <button id="new-task-cancel" class="btn" style="padding:6px 10px;">Cancel</button>
       <button id="new-task-save" class="btn btn-primary" style="padding:6px 12px;">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Profile Settings Modal -->
+<div id="profile-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0; z-index:9999; align-items:center; justify-content:center; background-color: rgba(0, 0, 0, 0.55) !important;">
+  <div class="modal-card" style="border-radius:14px; padding:24px; width:360px; box-shadow:0 20px 60px rgba(0,0,0,0.6) !important; color:#e5e7eb; box-sizing:border-box; border:1px solid rgba(148, 163, 184, 0.35) !important; background-color:#0f172a;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+      <h3 style="margin:0; font-size:18px; font-weight:600; color:#f9fafb;">Profile Settings</h3>
+      <button id="profile-close" style="background:none; border:none; font-size:24px; cursor:pointer; color:#9ca3af; padding:0; line-height:1;">&times;</button>
+    </div>
+
+    <!-- Live Avatar Preview -->
+    <div style="display:flex; flex-direction:column; align-items:center; margin-bottom:20px; gap:8px;">
+      <div id="profile-avatar-preview" class="avatar-preview-large" style="width:72px; height:72px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:600; font-size:28px; color:white; background:#4f46e5; overflow:hidden; border:2px solid rgba(255,255,255,0.2);">
+        U
+      </div>
+      <span style="font-size:12px; color:#9ca3af; font-weight:500;">Avatar Preview</span>
+    </div>
+
+    <!-- Input display name -->
+    <label style="display:block; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; color:#9ca3af; margin-bottom:6px;">Display Name</label>
+    <input id="profile-display-name" type="text" placeholder="Your Display Name" maxlength="15" style="width:100%; box-sizing:border-box; font-size:13px; padding:7px 8px; margin-bottom:14px; border-radius:6px; border:1px solid #4b5563; background-color:#111827 !important; color:#e5e7eb;">
+
+    <!-- Background color chooser (for initials) -->
+    <label style="display:block; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; color:#9ca3af; margin-bottom:6px;">Initials Background Color</label>
+    <div id="profile-colors" style="display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap;">
+      <!-- JavaScript will inject color options -->
+    </div>
+    
+    <!-- Custom Color Picker -->
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
+      <input type="color" id="profile-custom-color" style="width:36px; height:28px; padding:0; border:1px solid #4b5563; border-radius:4px; cursor:pointer; background:none;">
+      <span style="font-size:12px; color:#9ca3af; font-weight:500;">Custom color</span>
+    </div>
+
+    <!-- Custom profile image upload -->
+    <label style="display:block; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; color:#9ca3af; margin-bottom:6px;">Upload Profile Picture</label>
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
+      <input type="file" id="profile-image-file" accept="image/*" style="display:none;">
+      <button id="profile-upload-trigger" class="btn" style="font-size:11px; padding:6px 12px; border-radius:6px; background:#111827; border:1px solid #4b5563; color:#e5e7eb; cursor:pointer; line-height: 1;">Choose Image...</button>
+      <button id="profile-clear-image-btn" class="btn" style="font-size:11px; padding:6px 12px; border-radius:6px; background:rgba(239, 68, 68, 0.1); border:1px solid rgba(239, 68, 68, 0.4); color:#fc9c9c; cursor:pointer; display:none; line-height: 1;">Remove Image</button>
+    </div>
+
+    <div style="display:flex; justify-content:flex-end; gap:8px;">
+      <button id="profile-cancel" class="btn" style="padding:6px 12px; font-size:12px; border-radius:999px; background:rgba(15,23,42,0.9); color:#e5e7eb; border:1px solid #4b5563;">Cancel</button>
+      <button id="profile-save" class="btn btn-primary" style="padding:6px 14px; font-size:12px; border-radius:999px; background:#4f46e5; color:white; border:none; cursor:pointer;">Save Changes</button>
     </div>
   </div>
 </div>
