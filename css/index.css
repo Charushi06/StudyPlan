@@ -2160,3 +2160,190 @@ body {
   color: #ffcc66;
   font-weight: 600;
 }
+
+
+@media (max-width: 768px) {
+
+  /* Reset */
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    overflow-x: hidden;
+    margin: 0;
+    padding: 0;
+  }
+
+
+
+  .dashboard-layout,
+  .main-layout,
+  .app-layout,
+  .content,
+  .main-content,
+  .dashboard-content,
+  .planner-container,
+  .planner-layout {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    gap: 16px;
+    padding: 10px;
+  }
+
+
+
+  .navbar,
+  .topbar,
+  nav,
+  header {
+    display: flex !important;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 14px;
+  }
+
+  .navbar a,
+  nav a {
+    font-size: 14px;
+  }
+
+
+
+  .sidebar,
+  .left-panel {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: unset !important;
+    padding: 14px;
+  }
+
+
+
+
+  .calendar-container,
+  .calendar-section,
+  .planner-section,
+  .middle-panel {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto;
+  }
+
+  .calendar-grid {
+    overflow-x: auto;
+  }
+
+
+
+  .smart-paste,
+  .smart-paste-panel,
+  .right-panel {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 100% !important;
+    margin-top: 12px;
+    overflow: hidden;
+    padding: 14px;
+    border-radius: 12px;
+  }
+
+  /* Textareas / inputs */
+
+  .smart-paste textarea,
+  .smart-paste-panel textarea,
+  textarea,
+  input {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Buttons */
+
+  button,
+  .btn,
+  .smart-paste button,
+  .smart-paste-panel button {
+    width: 100%;
+    max-width: 100%;
+    font-size: 14px;
+    padding: 10px 14px;
+    margin-top: 8px;
+  }
+
+  /* =========================
+     CARDS / PANELS
+  ========================= */
+
+  .card,
+  .panel {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* =========================
+     TYPOGRAPHY
+  ========================= */
+
+  h1,
+  h2,
+  h3 {
+    font-size: 90%;
+  }
+
+  /* Images */
+
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+   .main {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 16px;
+  }
+
+  .sidebar {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .panel {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  .main {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.cal-section {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.panel {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.sidebar {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+.main > * {
+  width: 100% !important;
+}
+.app {
+  display: flex !important;
+  flex-direction: column !important;
+  grid-template-columns: 1fr !important;
+  height: auto !important;
+}
+}
