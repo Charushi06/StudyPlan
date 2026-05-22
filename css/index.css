@@ -1363,13 +1363,13 @@ body {
 }
 
 .summary-box {
-  margin-top: 16px;
   padding: 14px;
+  margin: 20px;
   background: var(--color-background-secondary);
   color: var(--color-text-primary);
   border-radius: 12px;
-  font-size: 14px;
-  line-height: 1.6;
+  font-size: 15px;
+  line-height: 1.5;
   border: 1px solid var(--color-border-tertiary);
 }
 
