@@ -1,59 +1,81 @@
-/**
- * js/auth.js
- * Shared authentication utilities for StudyPlan.
- * Handles auth state checks, logout, and session helpers.
- * Used by signin.html, signup.html, and index.html.
- */
+/* ============================================================
+   Auth Guard + Utilities (used by signin.html / signup.html)
+   ============================================================ */
 
-(function () {
-  'use strict';
+const USER_KEY = 'studyplan_user';
 
-  const AUTH_KEY = 'studyplan_user';
+export function getUser() {
+  try {
+    const raw = localStorage.getItem(USER_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
 
-  /**
-   * Returns the current user object from storage, or null.
-   */
-  function getUser() {
-    try {
-      const raw = localStorage.getItem(AUTH_KEY);
-      return raw ? JSON.parse(raw) : null;
-    } catch (e) {
-      return null;
-    }
-  }
+export function setUser(data) {
+  localStorage.setItem(USER_KEY, JSON.stringify(data));
+}
 
-  /**
-   * Clears the auth session and redirects to sign in.
-   */
-  function logout() {
-    localStorage.removeItem(AUTH_KEY);
+export function clearUser() {
+  localStorage.removeItem(USER_KEY);
+}
+
+export function isAuthenticated() {
+  return !!getUser();
+}
+
+/* Redirect if not logged in — call on dashboard pages */
+export function requireAuth() {
+  if (!isAuthenticated()) {
     window.location.href = '/signin.html';
+    return false;
   }
+  return true;
+}
 
-  /**
-   * Auth guard — call on protected pages (e.g. index.html).
-   * Redirects unauthenticated users to /signin.html immediately.
-   */
-  function requireAuth() {
-    if (!getUser()) {
-      window.location.href = '/signin.html';
-    }
+/* Redirect if already logged in — call on auth pages */
+export function redirectIfAuth() {
+  if (isAuthenticated()) {
+    window.location.href = '/';
+    return true;
   }
+  return false;
+}
 
-  // Auto-wire logout button if present on this page
-  document.addEventListener('DOMContentLoaded', function () {
-    const logoutBtn = document.getElementById('logout-btn');
-    if (logoutBtn) {
-      logoutBtn.addEventListener('click', function () {
-        logout();
-      });
-    }
+/* Used by auth forms */
+export async function doSignIn(email, password) {
+  const res = await fetch('/api/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
   });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Sign in failed');
+  setUser({ email: data.email, id: data.id });
+  return data;
+}
 
-  // Expose to global scope for inline scripts
-  window.StudyPlanAuth = {
-    getUser,
-    logout,
-    requireAuth
-  };
-})();
+export async function doSignUp(email, password) {
+  const res = await fetch('/api/auth/signup', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Sign up failed');
+  setUser({ email: data.email, id: data.id });
+  return data;
+}
+
+export function doLogout() {
+  clearUser();
+  window.location.href = '/signin.html';
+}
+
+/* Apply saved theme before paint (no flash) */
+export function applyTheme() {
+  const saved = localStorage.getItem('studyplan_theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const theme = saved || (prefersDark ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+  return theme;
+}
