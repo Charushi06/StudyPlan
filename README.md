@@ -1,126 +1,230 @@
 # 📚 StudyPlan — Turn Chaos into Clarity
 
-> ⚡ Paste anything. Get a structured study plan instantly.  
+> ⚡ Paste anything. Get a structured study plan instantly.
 > No manual entry. No missed deadlines.
 
-🌍 **Live App:** https://studyplan-jvgd.onrender.com/
+🌍 **Live App:**
+[StudyPlan Live Demo](https://studyplan-jvgd.onrender.com/?utm_source=chatgpt.com)
+
+🌱 **NSoC 2026 Project**
+Built with AI, code, and a mission to simplify student life.
 
 ---
 
-## 🧠 The Idea
+# 🧠 The Idea
 
-Students don’t lack information.  
+Students don’t lack information.
 They lack **organization**.
 
-Assignments live in:
-- 📧 Emails  
-- 💬 WhatsApp groups  
-- 📄 PDFs & portals  
+Assignments are scattered across:
+
+* 📧 Emails
+* 💬 WhatsApp groups
+* 📄 PDFs & portals
+* 📝 Classroom announcements
+* 📅 College dashboards
 
 And the biggest problem?
-> ❌ You have to manually re-enter everything into a planner  
+
+> ❌ You still have to manually re-enter everything into a planner.
 
 ---
 
-## 💡 Solution
+# 💡 Solution
 
 **StudyPlan removes manual planning completely.**
 
 Just:
-1. Paste messy text  
-2. AI extracts tasks  
-3. Everything becomes structured  
 
-> 🎯 From chaos → clean plan in seconds
+1. Paste messy text
+2. AI extracts tasks
+3. Review & edit instantly
+4. Everything becomes structured automatically
+
+> 🎯 From chaos → clean study plan in seconds.
 
 ---
 
-## ⚙️ How It Works
+# ⚙️ How It Works
 
 ```text
 User Paste
 ↓
-AI Extraction (Gemini)
+AI Extraction (Gemini API)
 ↓
-Structured Tasks (Dates, Subjects)
+Heuristic NLP Fallback (Offline Support)
 ↓
-User Review + Edit
+Structured Tasks + Subjects
 ↓
-Planner + Calendar Update
+User Review & Inline Editing
+↓
+Planner + Calendar + Focus Mode
+↓
+Persistent SQLite Storage
 ```
 
+---
+
+# ✨ Features
+
+## 🤖 AI-Powered Task Extraction
+
+* Extracts tasks from unstructured text
+* Detects:
+
+  * deadlines
+  * subjects
+  * priorities
+  * notes
+* Supports natural language dates:
+
+  * “tomorrow”
+  * “next Friday”
+  * “end of month”
+* Confidence scoring for extracted tasks
+* Intelligent fallback NLP parser when AI is unavailable
 
 ---
 
-## ✨ Features
+## 📊 Smart Planning System
 
-### 🤖 AI Intelligence
-- Smart extraction from unstructured text
-- Detects **deadlines, subjects, tasks, notes**
-- Handles ambiguous dates with user confirmation
+Automatically organizes tasks into:
 
-### 📊 Smart Planning System
-- Auto-categorized boards:
-  - Due Soon
-  - This Week
-  - Completed
-- Conflict detection (deadline clustering alerts)
+* 📌 Due Soon
+* 📅 This Week
+* ✅ Completed
+* 🗃 Archived
 
-### 📅 Interactive Calendar
-- Global calendar view
-- Click a date → filter tasks instantly
-- Color-coded deadlines
+Includes:
 
-### 🧩 Seamless Editing
-- Inline editing (no popups)
-- Modify extracted data before saving
-
-### 💾 Persistent Storage
-- SQLite-based local database
-- Structured task + subject mapping
+* Deadline clustering alerts
+* Priority management
+* Subject-based grouping
+* Task deduplication detection
 
 ---
 
-## 🧠 System Architecture
+## 📅 Interactive Calendar
+
+* Global monthly calendar view
+* Click a date → instantly filter tasks
+* Color-coded deadlines
+* Dynamic task indicators
+* Quick navigation between months
+
+---
+
+## 🧩 Seamless Editing Experience
+
+* Inline task editing
+* Modify extracted data before saving
+* Create custom subjects dynamically
+* No disruptive popups for workflow changes
+
+---
+
+## ⏳ Focus Mode (Pomodoro System)
+
+Built-in productivity dashboard with:
+
+* Custom focus timer
+* Task-based focus sessions
+* Pause/reset controls
+* Visual progress ring
+* Active task tracking
+
+---
+
+## 🌗 Personalization & Settings
+
+* Dark mode support
+* Compact view toggle
+* Persistent user preferences using localStorage
+
+---
+
+## 🔐 Authentication System
+
+* Login & signup UI
+* Persistent session handling
+* Local authentication flow
+
+---
+
+## 💾 Persistent Storage
+
+SQLite-powered database system with:
+
+* Subject management
+* Task relationships
+* Archived task storage
+* Confidence & priority persistence
+
+---
+
+## 📤 CSV Export System
+
+Export all study data directly as CSV.
+
+Useful for:
+
+* backups
+* analytics
+* spreadsheet workflows
+* reporting
+
+---
+
+# 🧠 System Architecture
 
 ```text
-Frontend (Vanilla JS UI)
+Frontend (Vanilla JS + Glassmorphism UI)
 ↓
-Node.js Express API
+Custom State Management Layer
+↓
+Node.js + Express API
 ↓
 AI Layer (Gemini API)
 ↓
+Fallback NLP Extraction Engine
+↓
 SQLite Database
 ↓
-State Management + UI Sync
+CSV Export + UI Synchronization
 ```
 
+---
+
+# 🛠 Tech Stack
+
+| Layer            | Technology            |
+| ---------------- | --------------------- |
+| Frontend         | HTML, CSS, Vanilla JS |
+| UI Style         | Glassmorphism         |
+| Backend          | Node.js + Express     |
+| Database         | SQLite                |
+| AI               | Google Gemini API     |
+| State Management | Custom Pub/Sub Store  |
+| Export System    | CSV Download API      |
 
 ---
 
-## 🛠 Tech Stack
+# 🚀 Key Differentiators
 
-| Layer | Technology |
-|------|-----------|
-| Frontend | HTML, CSS (Glassmorphism), Vanilla JS |
-| Backend | Node.js + Express |
-| Database | SQLite |
-| AI | Google Gemini (GenAI SDK) |
-
----
-
-## 🚀 Key Differentiators
-
-| Feature | StudyPlan | Typical Planners |
-|--------|----------|-----------------|
-| AI Extraction | ✅ | ❌ |
-| Zero Manual Entry | ✅ | ❌ |
-| Conflict Detection | ✅ | ❌ |
-| Inline Editing | ✅ | ❌ |
+| Feature                | StudyPlan | Typical Planners |
+| ---------------------- | --------- | ---------------- |
+| AI Extraction          | ✅         | ❌                |
+| Zero Manual Entry      | ✅         | ❌                |
+| NLP Fallback Parser    | ✅         | ❌                |
+| Conflict Detection     | ✅         | ❌                |
+| Inline Editing         | ✅         | ❌                |
+| Built-in Focus Mode    | ✅         | ❌                |
+| CSV Export             | ✅         | ❌                |
+| Subject Auto-Detection | ✅         | ❌                |
 
 ---
 
-## 📦 Installation
+# 📦 Installation
 
 ```bash
 git clone https://github.com/Charushi06/StudyPlan.git
@@ -130,68 +234,107 @@ npm install
 
 ---
 
-## 🔑 Environment Setup
+# 🔑 Environment Setup
 
-Create `.env`:
+Create a `.env` file:
 
 ```env
-GEMINI_API_KEY=your_gen_ai_key_here
+GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
 ---
 
-## ▶️ Run Locally
+# ▶️ Run Locally
 
 ```bash
 node server.js
 ```
-Open → http://localhost:3000
 
----
- 
-## Project Structure
- 
-```
- StudyPlan
-├──  css
-│   └──  index.css           # Contains all styling rules, variables, and animations
-├──  js
-│   ├──  utils
-│   │   ├──  aiMock.js       # The original mock UI extraction hook (deprecated)
-│   │   └──  api.js          # The live fetch logic communicating with our Express API
-│   ├──  app.js              # The main controller (handles DOM UI, event bindings, and Calendar)
-│   └──  store.js            # The Custom State Manager handling our frontend Pub/Sub state
-├──  .env.example            # Template file for setting the GEMINI_API_KEY
-├──  .gitignore              # Tells git to ignore databases, environments, and node packages
-├──  database.js             # Initializes the SQLite database and executes DB table schemas
-├──  index.html              # The frontend structural entry point
-├──  package.json            # Node project configuration and backend dependencies
-├──  README.md               # The comprehensive project documentation
-├──  server.js               # The primary Node.js & Express REST Backend logic
-└──  studyplan.db
+Open:
+
+```text
+http://localhost:3000
 ```
 
 ---
 
-## 🔮 Future Roadmap
-- 🤖 Smarter AI parsing (multi-language)
-- 📊 Study analytics dashboard
-- 🔔 Smart reminders & notifications
-- 📱 Mobile version
-- 🧠 AI study assistant
-- 🤝 Contributing
+# 📁 Project Structure
+
+```text
+StudyPlan
+├── backend
+│   ├── controllers
+│   │   └── csvDownload.controller.js
+│   └── routers
+│       └── csvDownload.router.js
+│
+├── css
+│   └── index.css
+│
+├── js
+│   ├── utils
+│   │   ├── aiMock.js
+│   │   ├── api.js
+│   │   ├── errorBoundary.js
+│   │   └── scheduler.js
+│   │
+│   ├── app.js
+│   └── store.js
+│
+├── database.js
+├── server.js
+├── index.html
+├── 404.html
+├── error.html
+├── package.json
+├── .env.example
+├── README.md
+└── CONTRIBUTING.md
+```
 
 ---
 
-## Want to improve StudyPlan? 🚀
+# 🔥 Advanced Engineering Highlights
 
-### 🔥 High-impact contributions:
-- Improve AI parsing accuracy
-- Add calendar enhancements
-- UI/UX upgrades
-- Notification system
+* Intelligent heuristic NLP fallback parser
+* Dynamic date parsing engine
+* Subject keyword classification
+* Custom frontend state manager
+* Global UI synchronization
+* Express REST API architecture
+* Modular router/controller separation
+* Graceful error boundaries
+* Dynamic theming system
 
-#### Steps:
+---
+
+# 🔮 Future Roadmap
+
+* 🤖 Multi-language AI parsing
+* 📊 Study analytics dashboard
+* 🔔 Smart notifications & reminders
+* 📱 Mobile-first responsive app
+* ☁️ Cloud sync
+* 🧠 AI study assistant
+* 👥 Collaborative study groups
+* 📈 Productivity insights
+
+---
+
+# 🤝 Contributing
+
+Contributions are welcome 🚀
+
+### High-impact areas
+
+* AI parsing improvements
+* Calendar enhancements
+* UI/UX upgrades
+* Notification system
+* Accessibility improvements
+* Mobile responsiveness
+
+### Contribution Flow
 
 ```bash
 git checkout -b feature/your-feature
@@ -199,58 +342,60 @@ git commit -m "feat: add feature"
 git push origin feature/your-feature
 ```
 
-Open a PR with:
+Then open a Pull Request with:
 
-- Clear description
-- Screenshots (if UI changes)
-
----
-
-## 🐛 Issues
-
-Found a bug? Open an issue!
+* Clear description
+* Screenshots (if UI changes)
 
 ---
 
-## 💡 Why This Project?
+# 🐛 Issues
+
+Found a bug?
+
+Open an issue on GitHub with:
+
+* Steps to reproduce
+* Expected behavior
+* Screenshots/logs if possible
+
+---
+
+# 💡 Why This Project?
 
 Because planning should not feel like work.
 
-It should feel like:
+It should feel:
 
-- ⚡ Instant
-- 🧠 Intelligent
-- 🎯 Effortless
+* ⚡ Instant
+* 🧠 Intelligent
+* 🎯 Effortless
 
 ---
 
-## ⭐ Support
+# ⭐ Support
 
 If you like this project:
-👉 Star ⭐ the repo
-👉 Share it
+
+* ⭐ Star the repository
+* 🍴 Fork it
+* 📢 Share it
 
 ---
 
-## 📄 License
+# 📄 License
 
 MIT License
 
 ---
 
-## ⚡ Author
+# ⚡ Author
 
-Charushi
-GitHub: https://github.com/Charushi06
-
----
-
-## 🌱 Nexus Spring of Code 2026
-
-This project is part of NSoC 2026
+GitHub:
+[Charushi06 GitHub Profile](https://github.com/Charushi06)
 
 ---
 
-Built with AI, code, and a mission to simplify student life.
+# 🌱 Nexus Spring of Code 2026
 
----
+This project is part of **NSoC 2026**.
