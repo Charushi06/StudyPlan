@@ -442,14 +442,14 @@ function renderTasks() {
     });
   }
     
-<<<<<<< week-view-feature
+
     const renderGroup = (title, items, titleColor, showConflict = false) => {
       if (items.length === 0) return '';
       let html = `<div class="tasks-group">
         <div class="tasks-group-header">
           <span style="color:${titleColor}">${title}</span>
         </div>`;
-=======
+      
     if (showConflict) {
       const workloadSuggestions = analyzeWorkload(items);
       workloadSuggestions.forEach(workload => {
@@ -472,7 +472,7 @@ function renderTasks() {
       else if(sub.short_code === 'Maths') pillClass = 'pill-green';
       else if(sub.short_code === 'English') pillClass = 'pill-purple';
       else pillClass = 'pill-amber';
->>>>>>> main
+
       
       if (showConflict && items.length >= 3) {
         html += `<div class="conflict-card" style="margin-bottom: 12px;">
@@ -550,7 +550,7 @@ function renderTasks() {
                 ${archiveBtn}
               </div>
             </div>
-<<<<<<< week-view-feature
+
           `;
         }
       });
@@ -568,7 +568,7 @@ function renderTasks() {
       const emptyState = dueSoon.length === 0 && completed.length === 0
         ? `<div class="tasks-empty-state">No tasks for this day yet.</div>`
         : '';
-=======
+
           </div>
         `;
       }
@@ -618,7 +618,7 @@ function renderTasks() {
       const taskId = el.dataset.id;
       const task = store.tasks.find(t => String(t.id) === String(taskId));
       if (task && task._isEditing) return;
->>>>>>> main
+
       
       tasksSection.innerHTML = actionBar +
         renderGroup('⚠ Overdue', overdue, 'var(--color-text-danger)') +
