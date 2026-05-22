@@ -1003,11 +1003,11 @@ newTaskCancel.addEventListener('click', () => {
   newTaskModal.style.display = 'none';
 });
 
-newTaskModal.addEventListener('click', (e) => {
-  if (e.target === newTaskModal) {
-    newTaskModal.style.display = 'none';
-  }
-});
+//newTaskModal.addEventListener('click', (e) => {
+//  if (e.target === newTaskModal) {
+ //   newTaskModal.style.display = 'none';
+ // }
+//});
 
 newTaskSave.addEventListener('click', async () => {
   const title = newTaskTitle.value.trim();
