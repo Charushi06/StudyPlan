@@ -16,13 +16,16 @@
     <h2 id="auth-title" style="margin:0 0 8px; font-size:22px; font-weight:700;">Welcome back</h2>
     <p id="auth-subtitle" style="margin:0 0 24px; color:#666; font-size:14px;">Sign in to your StudyPlan account</p>
 
-    <input id="auth-email" type="email" placeholder="Email address" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:12px; box-sizing:border-box;">
-    
-    <input id="auth-password" type="password" placeholder="Password" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:20px; box-sizing:border-box;">
+    <!-- Wrapped inputs in a form tag to enable Enter key submission -->
+    <form id="auth-form">
+      <input id="auth-email" type="email" placeholder="Email address" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:12px; box-sizing:border-box;">
+      
+      <input id="auth-password" type="password" placeholder="Password" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:20px; box-sizing:border-box;">
 
-    <button id="auth-submit-btn" style="width:100%; padding:12px; background:#4f46e5; color:white; border:none; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer;">
-      Sign In
-    </button>
+      <button id="auth-submit-btn" type="submit" style="width:100%; padding:12px; background:#4f46e5; color:white; border:none; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer;">
+        Sign In
+      </button>
+    </form>
 
     <p style="text-align:center; margin:16px 0 0; font-size:13px; color:#666;">
       <span id="auth-toggle-text">Don't have an account?</span>
@@ -198,12 +201,6 @@
       </div>
       <div id="summary-box" class="summary-box"></div>
 
-  <button id="add-btn" class="add-btn" disabled>
-    Add items to planner
-  </button>
-</div>
-
-
       <button id="add-btn" class="add-btn" disabled>Add items to planner</button>
     </div>
   </div>
@@ -283,7 +280,9 @@
     document.getElementById('auth-error').style.display = 'none';
   });
 
-  document.getElementById('auth-submit-btn').addEventListener('click', async () => {
+  // Replaced click event with form submit event to handle Enter key presses
+  document.getElementById('auth-form').addEventListener('submit', async (e) => {
+    e.preventDefault(); // Prevents page reload
     const email = document.getElementById('auth-email').value.trim();
     const password = document.getElementById('auth-password').value.trim();
     const errorEl = document.getElementById('auth-error');
@@ -413,6 +412,20 @@
       document.body.classList.remove('compact-view');
     }
   });
+
+  // Enable Enter key submission for secondary modals (Subject and Task)
+  ['new-subject-name'].forEach(id => {
+    document.getElementById(id)?.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') document.getElementById('new-subject-save').click();
+    });
+  });
+
+  ['new-task-title', 'new-task-date', 'new-task-notes'].forEach(id => {
+    document.getElementById(id)?.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') document.getElementById('new-task-save').click();
+    });
+  });
+
 </script>
 
 <div id="new-subject-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0; z-index:9998; align-items:center; justify-content:center;">
