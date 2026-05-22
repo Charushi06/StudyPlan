@@ -218,28 +218,7 @@
     </div>
   </div>
 
-  <!-- Enhanced Subject Modal  -->
-  <div id="new-subject-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0; z-index:9998; align-items:center; justify-content:center;">
-    <div class="modal-card" style="border-radius:12px; padding:20px; width:340px; box-shadow:0 12px 40px rgba(0,0,0,0.25);">
-      <h3 style="margin:0 0 14px; font-size:18px; font-weight:600;">New Subject</h3>
-
-      <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--color-text-tertiary); margin-bottom:4px;">Subject name</label>
-      <input id="new-subject-name" type="text" style="width:100%; padding:8px; margin-bottom:12px; border:1px solid var(--color-border-secondary); border-radius:6px; font-family:inherit; font-size:13px; background:var(--color-background-secondary); color:var(--color-text-primary);" placeholder="e.g. History">
-
-      <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--color-text-tertiary); margin-bottom:4px;">Short code</label>
-      <input id="new-subject-code" type="text" maxlength="6" placeholder="e.g. HIST (auto-filled)">
-
-      <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--color-text-tertiary); margin-bottom:6px;">Color</label>
-      <div id="new-subject-colors" class="sdp-color-swatches"></div>
-
-      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
-        <button id="new-subject-cancel" class="btn" style="padding:6px 12px;">Cancel</button>
-        <button id="new-subject-save" class="btn btn-primary" style="padding:6px 14px;">Save</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Task Modal -->
+   <!-- Task Modal -->
   <div id="new-task-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0; z-index:9998; align-items:center; justify-content:center;">
     <div class="modal-card" style="border-radius:12px; padding:20px; width:320px; box-shadow:0 12px 40px rgba(0,0,0,0.25);">
       <h3 style="margin:0 0 12px; font-size:18px; font-weight:600;">New task</h3>
@@ -257,6 +236,27 @@
     </div>
   </div>
 
+  <!-- Start of Subject Tab Feature -->
+  <!-- Enhanced Subject Modal  -->
+  <div id="new-subject-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0; z-index:9998; align-items:center; justify-content:center;">
+    <div class="modal-card" style="border-radius:12px; padding:20px; width:340px; box-shadow:0 12px 40px rgba(0,0,0,0.25);">
+      <h3 style="margin:0 0 14px; font-size:18px; font-weight:600; color: var(--color-text-primary);">New Subject</h3>
+
+      <label style="display:block;  font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--color-text-primary); margin-bottom:4px;">Subject name</label>
+      <input id="new-subject-name" type="text" style="width:100%; padding:8px; margin-bottom:12px; border:1px solid var(--color-border-secondary); border-radius:6px; font-family:inherit; font-size:13px; background:var(--color-background-secondary); color:var(--color-text-tertiary);" placeholder="e.g. History">
+
+      <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--color-text-primary); margin-bottom:4px;">Short code</label>
+      <input id="new-subject-code" type="text" style="width:100%; padding:8px; margin-bottom:12px; border:1px solid var(--color-border-secondary); border-radius:6px; font-family:inherit; font-size:13px; background:var(--color-background-secondary); color:var(--color-text-tertiary);" maxlength="6" placeholder="e.g. HIST">
+
+      <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--color-text-primary); margin-bottom:6px;">Color</label>
+      <div id="new-subject-colors" class="sdp-color-swatches"></div>
+
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
+        <button id="new-subject-cancel" class="btn" style="padding:6px 12px;">Cancel</button>
+        <button id="new-subject-save" class="btn btn-primary" style="padding:6px 14px;">Save</button>
+      </div>
+    </div>
+  </div>
 
   <!-- SUBJECT DETAIL PANEL -->
   <div class="sdp-overlay" id="sdp-overlay">
@@ -350,10 +350,11 @@
           <div class="sdp-card" id="sdp-activity"></div>
         </div>
 
-      </div><!-- /sdp-body -->
-    </div><!-- /sdp-panel -->
-  </div><!-- /sdp-overlay -->
+      </div>
+    </div>
+  </div>
 
+ <!-- End of Subject Tab Feature -->
 
   <!-- Your existing module app.js (keep this exactly as-is) -->
   <script type="module" src="/js/app.js"></script>
