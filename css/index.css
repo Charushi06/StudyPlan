@@ -2159,4 +2159,314 @@ body {
 .smart-highlight {
   color: #ffcc66;
   font-weight: 600;
+<<<<<<< HEAD
 }
+=======
+}
+
+/* Academic Weather Forecast */
+.forecast-section {
+  flex-shrink: 0;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--color-border-tertiary);
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+.forecast-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+  margin-bottom: 12px;
+}
+.forecast-heading {
+  font-size: clamp(13px, 2.5vw, 15px);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  letter-spacing: 0.02em;
+}
+.forecast-subheading {
+  font-size: clamp(11px, 2vw, 12px);
+  font-weight: 500;
+  color: var(--color-text-tertiary);
+  flex: 1 1 100%;
+}
+.forecast-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+  gap: 12px;
+  min-width: 0;
+  max-width: 100%;
+}
+.forecast-card {
+  display: flex;
+  gap: 12px;
+  padding: 14px;
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--color-border-tertiary);
+  background: var(--color-background-primary);
+  box-shadow: var(--shadow-sm);
+  min-width: 0;
+  animation: fadeIn 0.35s ease forwards;
+}
+.forecast-card--calm {
+  background: linear-gradient(135deg, var(--color-background-success) 0%, var(--color-background-primary) 70%);
+  border-color: var(--color-border-success);
+}
+.forecast-card--balanced {
+  background: linear-gradient(135deg, var(--color-background-info) 0%, var(--color-background-primary) 70%);
+  border-color: var(--color-border-info);
+}
+.forecast-card--busy {
+  background: linear-gradient(135deg, var(--color-background-warning) 0%, var(--color-background-primary) 70%);
+  border-color: rgba(133, 79, 11, 0.25);
+}
+.forecast-card--intense {
+  background: linear-gradient(135deg, var(--color-background-warning) 0%, var(--color-background-primary) 55%);
+  border-color: rgba(133, 79, 11, 0.35);
+}
+.forecast-card--critical {
+  background: linear-gradient(135deg, var(--color-background-danger) 0%, var(--color-background-primary) 60%);
+  border-color: var(--color-border-danger);
+}
+.forecast-card--empty {
+  grid-column: 1 / -1;
+}
+.forecast-card-icon {
+  font-size: clamp(22px, 5vw, 28px);
+  line-height: 1;
+  flex-shrink: 0;
+}
+.forecast-card-body {
+  flex: 1;
+  min-width: 0;
+}
+.forecast-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.forecast-card-title {
+  font-size: clamp(13px, 2.8vw, 14px);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  line-height: 1.35;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.forecast-trend {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 6px;
+  border-radius: 999px;
+  flex-shrink: 0;
+  border: 1px solid var(--color-border-tertiary);
+  color: var(--color-text-secondary);
+  background: var(--color-background-secondary);
+}
+.forecast-trend--up {
+  color: var(--color-text-danger);
+  border-color: var(--color-border-danger);
+  background: var(--color-background-danger);
+}
+.forecast-trend--mid {
+  color: var(--color-text-warning);
+  border-color: rgba(133, 79, 11, 0.25);
+  background: var(--color-background-warning);
+}
+.forecast-card-message {
+  font-size: clamp(12px, 2.5vw, 13px);
+  color: var(--color-text-secondary);
+  line-height: 1.45;
+  margin-bottom: 8px;
+  overflow-wrap: anywhere;
+}
+.forecast-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-tertiary);
+  margin-bottom: 6px;
+}
+.forecast-card-score {
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: var(--color-background-secondary);
+  border: 1px solid var(--color-border-tertiary);
+}
+.forecast-card-suggestions {
+  margin: 0;
+  padding-left: 16px;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  line-height: 1.45;
+}
+.forecast-card-suggestions li {
+  margin-bottom: 4px;
+  overflow-wrap: anywhere;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  body { padding: 24px 12px; }
+  .site-header,
+  .site-footer { padding: 14px 20px; }
+  .app {
+    grid-template-columns: minmax(0, 200px) minmax(0, 1fr) minmax(0, min(var(--panel-width, 340px), 280px));
+    max-width: 100%;
+  }
+  .topbar,
+  .cal-section { padding-left: 16px; padding-right: 16px; }
+  .tasks-section { padding: 0 16px 20px; }
+  .forecast-section { padding: 12px 16px; }
+  .cal-legend { flex-wrap: wrap; gap: 10px; }
+}
+
+@media (max-width: 768px) {
+  body {
+    padding: 16px 12px;
+    justify-content: flex-start;
+  }
+  .wrapper,
+  .site-header,
+  .site-footer { max-width: 100%; }
+  .site-header,
+  .site-footer {
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 12px 16px;
+  }
+  .header-nav,
+  .footer-links { flex-wrap: wrap; gap: 12px; }
+  .header-left { min-width: 0; }
+  .site-title { font-size: 18px; }
+  .app {
+    grid-template-columns: 1fr;
+    height: auto;
+    min-height: 0;
+    max-height: none;
+  }
+  .sidebar {
+    border-right: none;
+    border-bottom: 1px solid var(--color-border-tertiary);
+    max-height: none;
+  }
+  .panel {
+    border-left: none;
+    border-top: 1px solid var(--color-border-tertiary);
+  }
+  .main { min-width: 0; }
+  .topbar {
+    flex-wrap: wrap;
+    padding: 12px 16px;
+    gap: 8px;
+  }
+  .topbar-title {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+  .cal-section { padding: 12px 16px; }
+  .forecast-section { padding: 12px 16px; }
+  .forecast-cards {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+    scrollbar-width: thin;
+  }
+  .forecast-cards::-webkit-scrollbar { height: 6px; }
+  .forecast-cards::-webkit-scrollbar-thumb {
+    background: var(--color-border-secondary);
+    border-radius: 10px;
+  }
+  .forecast-card {
+    flex: 0 0 min(85vw, 280px);
+    scroll-snap-align: start;
+  }
+  .forecast-card--empty { flex: 1 1 100%; min-width: 0; }
+  .cal-grid {
+    gap: 2px;
+    min-width: 0;
+  }
+  .cal-day {
+    height: 28px;
+    font-size: 12px;
+    min-width: 0;
+  }
+  .cal-day:hover { transform: none; }
+  .cal-legend {
+    justify-content: flex-start;
+    font-size: 10px;
+  }
+  .tasks-section { padding: 0 16px 16px; }
+  .task-item {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .task-name,
+  .extract-task-name {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+  .task-actions {
+    opacity: 1;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  .tasks-actions-bar,
+  .paste-actions,
+  .timer-controls { flex-wrap: wrap; }
+  .paste-zone { margin: 16px; }
+  .paste-actions { padding: 0 16px 12px; }
+  .extract-preview,
+  .add-btn { margin-left: 16px; margin-right: 16px; }
+  .focus-section { padding: 16px; gap: 24px; }
+  .timer-container { width: 200px; height: 200px; }
+  .timer-text { font-size: 40px; }
+  .smart-workload-card { gap: 12px; }
+  body.compact-view .app { height: auto; }
+}
+
+@media (max-width: 480px) {
+  body { padding: 12px 8px; }
+  .site-header,
+  .site-footer { padding: 12px; }
+  .header-nav { gap: 8px; font-size: 14px; }
+  .profile-btn { padding: 8px 12px; font-size: 13px; }
+  .cal-day-label { font-size: 10px; }
+  .cal-day { height: 26px; font-size: 11px; }
+  .btn { padding: 8px 12px; }
+  .panel-header { padding: 16px; }
+  .timer-container { width: 180px; height: 180px; }
+  .timer-text { font-size: 36px; }
+  #new-task-modal,
+  #new-subject-modal {
+    padding: 12px;
+    overflow-y: auto;
+    align-items: flex-start;
+  }
+  #new-task-modal .modal-card,
+  #new-subject-modal .modal-card {
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    margin: auto;
+    padding: 16px 14px 12px;
+  }
+  #new-task-modal .modal-card > div:last-child,
+  #new-subject-modal .modal-card > div:last-child {
+    flex-wrap: wrap;
+  }
+}
+>>>>>>> e7a7556 (feat: add academic weather forecast system)

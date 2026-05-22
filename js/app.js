@@ -2,6 +2,7 @@ import { store } from './store.js';
 import { extractTasksFromText } from './utils/api.js';
 import { initGlobalErrorBoundary } from './utils/errorBoundary.js';
 import { analyzeWorkload } from './utils/scheduler.js';
+import { initForecastUI, renderAcademicForecast } from './forecastUI.js';
 
 initGlobalErrorBoundary();
 
@@ -56,6 +57,7 @@ let selectedDate = null;
 let currentView = 'calendar'; // 'calendar', 'all-tasks', 'archived'
 
 const tasksSection = document.getElementById('tasks-section');
+const forecastSection = document.getElementById('academic-forecast-section');
 const focusSection = document.getElementById('focus-section');
 const extractPreview = document.getElementById('extract-preview');
 const pasteInput = document.getElementById('paste-input');
@@ -664,9 +666,6 @@ function renderTasks() {
 
 
 const summaryBox = document.getElementById('summary-box');
-if (summaryBox) {
-  summaryBox.innerHTML = generateSummary(store.tasks, store.subjects);
-}
 
 function renderCalendar() {
   const calTitle = document.getElementById('cal-month-title');
@@ -850,7 +849,20 @@ function renderExtraction() {
   });
 }
 
+function renderForecastPanel() {
+  const showForecast = currentView !== 'archived' && currentView !== 'focus';
+  renderAcademicForecast(store.tasks, { visible: showForecast });
+}
+
+function refreshSummaryBox() {
+  if (summaryBox) {
+    summaryBox.innerHTML = generateSummary(store.tasks, store.subjects);
+  }
+}
+
 store.subscribe(renderTasks);
+store.subscribe(renderForecastPanel);
+store.subscribe(refreshSummaryBox);
 store.subscribe(renderExtraction);
 store.subscribe(renderCalendar);
 store.subscribe(renderFocusTasks);
@@ -923,22 +935,28 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById(id).classList.add('active');
   }
 
+  initForecastUI();
+
   calendarBtn.addEventListener('click', () => {
     currentView = 'calendar';
     document.querySelector('.cal-section').classList.remove('hidden');
+    if (forecastSection) forecastSection.classList.remove('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
     updateSidebarActive('calendar-btn');
     renderTasks();
+    renderForecastPanel();
   });
 
   allTasksBtn.addEventListener('click', () => {
     currentView = 'all-tasks';
     document.querySelector('.cal-section').classList.add('hidden');
+    if (forecastSection) forecastSection.classList.remove('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
     updateSidebarActive('all-tasks-btn');
     renderTasks();
+    renderForecastPanel();
   });
 
   archivedTasksBtn.addEventListener('click', () => {
@@ -948,6 +966,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('focus-section').classList.add('hidden');
     updateSidebarActive('archived-tasks-btn');
     renderTasks();
+    renderForecastPanel();
   });
 
   if(focusModeBtn) {
@@ -958,6 +977,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('focus-section').classList.remove('hidden');
       updateSidebarActive('focus-mode-btn');
       renderFocusTasks();
+      renderForecastPanel();
     });
   }
 
@@ -1036,13 +1056,6 @@ newTaskSave.addEventListener('click', async () => {
   newTaskModal.style.display = 'none';
 });
 
-addItemsBtn.addEventListener('click', () => {
-  if (store.currentPaste) {
-    store.addTasks(store.currentPaste);
-    store.clearExtracted();
-    pasteInput.value = '';
-  }
-});
 });
 
 extractBtn.addEventListener('click', async () => {
