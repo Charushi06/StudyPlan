@@ -444,7 +444,17 @@
 
     <!-- <label style="display:block; font-size:12px; margin-bottom:4px;">Notes</label> -->
     <input id="new-task-notes" type="text" style="width:100%; padding:6px; margin-bottom:16px;" placeholder="Notes">
+    <label style="display:block; font-size:12px; margin-bottom:4px;">Attach File</label>
 
+  <input 
+  id="new-task-file" 
+  type="file" 
+  accept=".pdf,.docx,.txt" 
+  style="width:100%; padding:6px; margin-bottom:16px;"
+>
+<p style="font-size:12px; color:#666; margin:0 0 16px;">
+  Upload PDF/DOCX so AI can extract tasks automatically
+</p>
     <div style="display:flex; justify-content:flex-end; gap:8px;">
       <button id="new-task-cancel" class="btn" style="padding:6px 10px;">Cancel</button>
       <button id="new-task-save" class="btn btn-primary" style="padding:6px 12px;">Save</button>
