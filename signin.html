@@ -3,113 +3,191 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sign In &mdash; StudyPlan</title>
+  <title>Sign In — StudyPlan</title>
+  <link rel="stylesheet" href="/css/design-system.css">
   <link rel="stylesheet" href="/css/auth.css">
-  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <script>
+    // Apply theme before paint to avoid flash
+    (function(){
+      var s = localStorage.getItem('studyplan_theme');
+      var d = window.matchMedia('(prefers-color-scheme:dark)').matches;
+      document.documentElement.setAttribute('data-theme', s || (d ? 'dark' : 'light'));
+    })();
+  </script>
 </head>
-<body class="auth-body">
+<body>
 
-  <div class="auth-wrapper">
-    <div class="auth-card">
+<!-- Theme toggle -->
+<button class="theme-toggle-auth" data-theme-toggle aria-label="Toggle theme" style="position:fixed;top:16px;right:16px;z-index:10;">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+</button>
 
-      <div class="auth-brand">
-        <img src="/logo.png" alt="StudyPlan logo" class="auth-logo">
-        <span class="auth-brand-name">StudyPlan</span>
+<div class="auth-page">
+
+  <!-- Left visual (desktop) -->
+  <div class="auth-visual">
+    <div class="auth-visual-pattern"></div>
+    <div class="auth-visual-logo">
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+        <rect width="32" height="32" rx="8" fill="rgba(255,255,255,0.2)"/>
+        <path d="M8 10h16M8 16h10M8 22h12" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="24" cy="22" r="4" fill="white" opacity="0.9"/>
+        <path d="M22.5 22l1 1 2-2" stroke="#4f46e5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span>StudyPlan</span>
+    </div>
+    <div class="auth-visual-headline">Your AI-powered<br>study workspace</div>
+    <div class="auth-visual-sub">Plan smarter, study better, and never miss a deadline.</div>
+    <div class="auth-visual-features">
+      <div class="auth-visual-feature"><div class="auth-visual-feature-dot"></div> Smart AI task extraction</div>
+      <div class="auth-visual-feature"><div class="auth-visual-feature-dot"></div> Calendar & deadline tracking</div>
+      <div class="auth-visual-feature"><div class="auth-visual-feature-dot"></div> Pomodoro focus sessions</div>
+      <div class="auth-visual-feature"><div class="auth-visual-feature-dot"></div> Subject-based organisation</div>
+    </div>
+  </div>
+
+  <!-- Right form -->
+  <div class="auth-form-panel">
+    <div class="auth-box">
+
+      <!-- Mobile logo -->
+      <div class="auth-logo-mobile">
+        <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+          <rect width="32" height="32" rx="8" fill="var(--color-accent)"/>
+          <path d="M8 10h16M8 16h10M8 22h12" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+        <span>StudyPlan</span>
       </div>
 
-      <div class="auth-heading">
-        <h1>Welcome back</h1>
-        <p>Sign in to your StudyPlan account</p>
-      </div>
+      <h1 class="auth-heading">Welcome back</h1>
+      <p class="auth-subheading">Sign in to your account to continue</p>
 
-      <form id="signin-form" class="auth-form" novalidate>
-        <div class="form-group">
-          <label for="auth-email">Email address</label>
-          <input
-            id="auth-email"
-            type="email"
-            placeholder="you@example.com"
-            autocomplete="email"
-            required
-          >
+      <div id="auth-error" class="auth-error-banner" role="alert"></div>
+
+      <form class="auth-form" id="signin-form" novalidate>
+        <div class="input-group">
+          <label class="input-label" for="email">Email address</label>
+          <input class="input" type="email" id="email" name="email" autocomplete="email" placeholder="you@university.edu" required>
+          <span class="input-hint error" id="email-error" style="display:none"></span>
         </div>
 
-        <div class="form-group">
-          <label for="auth-password">Password</label>
-          <input
-            id="auth-password"
-            type="password"
-            placeholder="Enter your password"
-            autocomplete="current-password"
-            required
-          >
+        <div class="input-group">
+          <label class="input-label" for="password">Password</label>
+          <div class="password-wrapper">
+            <input class="input" type="password" id="password" name="password" autocomplete="current-password" placeholder="Enter your password" required>
+            <button type="button" class="password-toggle" id="pw-toggle" aria-label="Show password">
+              <svg id="pw-eye" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <span class="input-hint error" id="pw-error" style="display:none"></span>
         </div>
 
-        <p id="auth-error" class="auth-error" role="alert" aria-live="polite"></p>
-
-        <button type="submit" id="auth-submit-btn" class="auth-btn">
+        <button type="submit" class="btn btn-primary btn-lg w-full" id="submit-btn" style="margin-top:4px;justify-content:center;">
           Sign In
         </button>
       </form>
 
-      <p class="auth-toggle">
-        Don&apos;t have an account?
-        <a href="/signup.html">Sign Up</a>
+      <p class="auth-footer-text">
+        Don't have an account? <a href="/signup.html">Create one free</a>
       </p>
-
     </div>
   </div>
+</div>
 
-  <script>
-    // Redirect if already signed in
-    if (localStorage.getItem('studyplan_user')) {
-      window.location.href = '/';
+<!-- Toast container -->
+<div id="toast-container"></div>
+
+<script type="module">
+  import { doSignIn, redirectIfAuth, applyTheme } from '/js/auth.js';
+  import { notify } from '/js/notifications.js';
+
+  // Redirect if already logged in
+  redirectIfAuth();
+
+  // Theme toggle
+  let theme = document.documentElement.getAttribute('data-theme') || 'light';
+  document.querySelector('[data-theme-toggle]').addEventListener('click', () => {
+    theme = theme === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('studyplan_theme', theme);
+  });
+
+  const form = document.getElementById('signin-form');
+  const submitBtn = document.getElementById('submit-btn');
+  const errorBanner = document.getElementById('auth-error');
+
+  // Password toggle
+  document.getElementById('pw-toggle').addEventListener('click', () => {
+    const pw = document.getElementById('password');
+    pw.type = pw.type === 'password' ? 'text' : 'password';
+  });
+
+  // Enter key support
+  form.addEventListener('keydown', e => {
+    if (e.key === 'Enter') form.dispatchEvent(new Event('submit'));
+  });
+
+  function showError(msg) {
+    errorBanner.textContent = msg;
+    errorBanner.classList.add('show');
+  }
+
+  function hideError() {
+    errorBanner.classList.remove('show');
+  }
+
+  function validate() {
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value.trim();
+    let valid = true;
+
+    const emailErr = document.getElementById('email-error');
+    if (!email || !/^[^@]+@[^@]+\.[^@]+$/.test(email)) {
+      emailErr.textContent = 'Please enter a valid email';
+      emailErr.style.display = 'block';
+      document.getElementById('email').classList.add('input-error');
+      valid = false;
+    } else {
+      emailErr.style.display = 'none';
+      document.getElementById('email').classList.remove('input-error');
     }
 
-    const form = document.getElementById('signin-form');
-    const errorEl = document.getElementById('auth-error');
+    const pwErr = document.getElementById('pw-error');
+    if (!password || password.length < 6) {
+      pwErr.textContent = 'Password must be at least 6 characters';
+      pwErr.style.display = 'block';
+      document.getElementById('password').classList.add('input-error');
+      valid = false;
+    } else {
+      pwErr.style.display = 'none';
+      document.getElementById('password').classList.remove('input-error');
+    }
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      errorEl.textContent = '';
+    return valid;
+  }
 
-      const email = document.getElementById('auth-email').value.trim();
-      const password = document.getElementById('auth-password').value.trim();
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    hideError();
+    if (!validate()) return;
 
-      if (!email || !password) {
-        errorEl.textContent = 'Please fill in all fields.';
-        return;
-      }
+    submitBtn.classList.add('btn-loading');
+    submitBtn.disabled = true;
 
-      const btn = document.getElementById('auth-submit-btn');
-      btn.disabled = true;
-      btn.textContent = 'Signing in...';
-
-      try {
-        const res = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
-        });
-        const data = await res.json();
-
-        if (!res.ok) {
-          errorEl.textContent = data.error || 'Invalid email or password.';
-          btn.disabled = false;
-          btn.textContent = 'Sign In';
-          return;
-        }
-
-        localStorage.setItem('studyplan_user', JSON.stringify({ email: data.email }));
-        window.location.href = '/';
-
-      } catch (err) {
-        errorEl.textContent = 'Network error. Please try again.';
-        btn.disabled = false;
-        btn.textContent = 'Sign In';
-      }
-    });
-  </script>
+    try {
+      await doSignIn(
+        document.getElementById('email').value.trim(),
+        document.getElementById('password').value
+      );
+      notify.success('Welcome back!', 'Redirecting to your dashboard...');
+      setTimeout(() => { window.location.href = '/'; }, 800);
+    } catch (err) {
+      showError(err.message);
+      submitBtn.classList.remove('btn-loading');
+      submitBtn.disabled = false;
+    }
+  });
+</script>
 </body>
 </html>
