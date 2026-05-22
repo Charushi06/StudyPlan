@@ -1218,3 +1218,125 @@ if (quoteEl) {
 calendarDownloadBtn.addEventListener('click', () => {
   downloadCalendar();
 });
+
+// ================= AUTH FRONTEND =================
+
+const authModal = document.getElementById('auth-modal');
+const authTitle = document.getElementById('auth-title');
+const authSubtitle = document.getElementById('auth-subtitle');
+const authSubmitBtn = document.getElementById('auth-submit-btn');
+const authToggleBtn = document.getElementById('auth-toggle-btn');
+const authToggleText = document.getElementById('auth-toggle-text');
+const authError = document.getElementById('auth-error');
+
+const emailInput = document.getElementById('auth-email');
+const passwordInput = document.getElementById('auth-password');
+
+const logoutBtn = document.getElementById('logout-btn');
+
+let isLoginMode = true;
+
+// ================= CHECK LOGIN =================
+
+const savedUser = localStorage.getItem('studyplan_user');
+
+if (savedUser) {
+  authModal.style.display = 'none';
+} else {
+  authModal.style.display = 'flex';
+}
+
+// ================= TOGGLE LOGIN/SIGNUP =================
+
+authToggleBtn.addEventListener('click', (e) => {
+  e.preventDefault();
+
+  isLoginMode = !isLoginMode;
+
+  authError.style.display = 'none';
+
+  if (isLoginMode) {
+    authTitle.textContent = 'Welcome back';
+    authSubtitle.textContent = 'Sign in to your StudyPlan account';
+    authSubmitBtn.textContent = 'Sign In';
+    authToggleText.textContent = "Don't have an account?";
+    authToggleBtn.textContent = 'Sign Up';
+  } else {
+    authTitle.textContent = 'Create account';
+    authSubtitle.textContent = 'Sign up for StudyPlan';
+    authSubmitBtn.textContent = 'Sign Up';
+    authToggleText.textContent = 'Already have an account?';
+    authToggleBtn.textContent = 'Sign In';
+  }
+});
+
+// ================= LOGIN / SIGNUP =================
+
+authSubmitBtn.addEventListener('click', async () => {
+
+  const email = emailInput.value.trim();
+  const password = passwordInput.value.trim();
+
+  if (!email || !password) {
+    authError.textContent = 'Please fill all fields';
+    authError.style.display = 'block';
+    return;
+  }
+
+  const endpoint = isLoginMode
+    ? '/api/auth/login'
+    : '/api/auth/signup';
+
+  try {
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        email,
+        password
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      authError.textContent = data.error || 'Authentication failed';
+      authError.style.display = 'block';
+      return;
+    }
+
+    // Save logged-in user
+    localStorage.setItem('studyplan_user', email);
+
+    authModal.style.display = 'none';
+
+    location.reload();
+
+  } catch (err) {
+
+    authError.textContent = 'Server error';
+    authError.style.display = 'block';
+  }
+});
+
+// ================= LOGOUT =================
+
+logoutBtn.addEventListener('click', async () => {
+
+  try {
+
+    await fetch('/api/auth/logout', {
+      method: 'POST'
+    });
+
+    localStorage.removeItem('studyplan_user');
+
+    location.reload();
+
+  } catch (err) {
+    console.error(err);
+  }
+});
