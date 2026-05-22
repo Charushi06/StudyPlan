@@ -307,6 +307,25 @@ app.post('/api/tasks', (req, res) => {
         return;
       }
 
+      const parsedDate = new Date(t.due_at);
+      if (isNaN(parsedDate.getTime())) {
+        errors.push({ task: t, error: "Invalid due date format" });
+        pending--;
+        if (pending === 0) {
+          stmt.finalize(() => res.status(400).json({ success: false, inserted, duplicates, errors, message: "All tasks invalid" }));
+        }
+        return;
+      }
+
+      if (parsedDate < new Date()) {
+        errors.push({ task: t, error: "Due date cannot be in the past" });
+        pending--;
+        if (pending === 0) {
+          stmt.finalize(() => res.status(400).json({ success: false, inserted, duplicates, errors, message: "All tasks invalid" }));
+        }
+        return;
+      }
+
       db.get(
         `SELECT * FROM tasks WHERE LOWER(title) = LOWER(?) AND subject_id = ? AND DATE(due_at) = DATE(?)`,
         [t.title, t.subject_id, t.due_at],
@@ -381,7 +400,13 @@ app.put('/api/tasks/:id', (req, res) => {
   if (archived !== undefined) { updates.push('archived = ?'); params.push(archived); }
   if (title !== undefined) { updates.push('title = ?'); params.push(title); }
   if (subject_id !== undefined) { updates.push('subject_id = ?'); params.push(subject_id); }
-  if (due_at !== undefined) { updates.push('due_at = ?'); params.push(due_at); }
+  if (due_at !== undefined) { 
+    const parsedDate = new Date(due_at);
+    if (isNaN(parsedDate.getTime())) {
+      return res.status(400).json({ error: 'Invalid due date format' });
+    }
+    updates.push('due_at = ?'); params.push(due_at); 
+  }
   if (notes !== undefined) { updates.push('notes = ?'); params.push(notes); }
   if (priority !== undefined) { updates.push('priority = ?'); params.push(priority); }
 
@@ -445,12 +470,25 @@ Text: "${text}"
   return res.json(tasks);
 });
 // ================= AUTH =================
+function isValidEmail(email) {
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return re.test(email);
+}
+
 const users = {}; // Simple in-memory user store
 
 app.post('/api/auth/signup', (req, res) => {
-  const { email, password } = req.body;
+  let { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password required' });
+  }
+  email = String(email).trim();
+  password = String(password).trim();
+  if (!isValidEmail(email)) {
+    return res.status(400).json({ error: 'Invalid email format' });
+  }
+  if (password.length < 6) {
+    return res.status(400).json({ error: 'Password must be at least 6 characters long' });
   }
   if (users[email]) {
     return res.status(400).json({ error: 'User already exists' });
@@ -460,9 +498,14 @@ app.post('/api/auth/signup', (req, res) => {
 });
 
 app.post('/api/auth/login', (req, res) => {
-  const { email, password } = req.body;
+  let { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password required' });
+  }
+  email = String(email).trim();
+  password = String(password).trim();
+  if (!isValidEmail(email)) {
+    return res.status(400).json({ error: 'Invalid email format' });
   }
   const user = users[email];
   if (!user || user.password !== password) {

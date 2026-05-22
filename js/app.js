@@ -606,6 +606,14 @@ function renderTasks() {
       const notes = itemEl.querySelector('.board-edit-notes').value;
       const priority = itemEl.querySelector('.board-edit-priority').value;
       
+      if (dateVal) {
+        const parsedDate = new Date(dateVal);
+        if (parsedDate < new Date()) {
+          alert('Deadline cannot be in the past');
+          return;
+        }
+      }
+
       store.updateTask(taskId, {
         title,
         subject_id,
@@ -1009,7 +1017,7 @@ newTaskModal.addEventListener('click', (e) => {
   }
 });
 
-newTaskSave.addEventListener('click', async () => {
+  newTaskSave.addEventListener('click', async () => {
   const title = newTaskTitle.value.trim();
   const subject_id = newTaskSubject.value;
   const notes = newTaskNotes.value.trim();
@@ -1020,7 +1028,18 @@ newTaskSave.addEventListener('click', async () => {
     return;
   }
 
-  const due_at = dateVal ? new Date(dateVal).toISOString() : '';
+  if (!dateVal) {
+    alert('Please select a deadline');
+    return;
+  }
+
+  const parsedDate = new Date(dateVal);
+  if (parsedDate < new Date()) {
+    alert('Deadline cannot be in the past');
+    return;
+  }
+
+  const due_at = parsedDate.toISOString();
 
   const newTask = {
     title,
