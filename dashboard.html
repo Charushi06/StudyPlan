@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>StudyPlan - Dashboard</title>
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="dashboard-container">
+    <div class="dashboard-header">
+      <div class="logo-section">
+        <img src="/logo.png" alt="Logo" class="dashboard-logo">
+        <h1 class="dashboard-title">StudyPlan</h1>
+      </div>
+    </div>
+
+    <div class="dashboard-content">
+      <div class="greeting-section">
+        <div class="greeting-text" id="greeting-text">Good evening</div>
+        <div class="user-name" id="user-name">Chinmayee</div>
+        <div class="date-text" id="date-text"></div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-item">
+          <div class="stat-number" id="total-tasks">0</div>
+          <div class="stat-label">total tasks</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" id="completed-tasks">0</div>
+          <div class="stat-label">completed</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" id="pending-tasks">0</div>
+          <div class="stat-label">pending</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" id="due-tasks">0</div>
+          <div class="stat-label">due soon</div>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <div class="dashboard-card">
+          <div class="card-header">
+            <span class="card-title">Upcoming Deadlines</span>
+          </div>
+          <div class="deadline-list" id="deadline-list">
+            <div class="empty-state">No upcoming deadlines</div>
+          </div>
+        </div>
+
+        <div class="dashboard-card">
+          <div class="card-header">
+            <span class="card-title">Today's Priority</span>
+          </div>
+          <div class="priority-list" id="priority-list">
+            <div class="empty-state">No tasks for today</div>
+          </div>
+        </div>
+
+        <div class="dashboard-card">
+          <div class="card-header">
+            <span class="card-title">Focus Streak</span>
+          </div>
+          <div class="streak-content">
+            <div class="streak-number" id="streak-days">0</div>
+            <div class="streak-label">current streak</div>
+            <div class="streak-progress-bar">
+              <div class="streak-progress-fill" id="streak-bar" style="width: 0%"></div>
+            </div>
+            <div class="streak-best-text" id="streak-best">Best: 0 days</div>
+          </div>
+        </div>
+      </div>
+
+      <button class="start-planning-btn" id="start-planning-btn">
+        Start Planning
+        <span class="arrow">→</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="custom-cursor"></div>
+
+  <script type="module" src="/js/dashboard.js"></script>
+  <script>
+    const cursor = document.querySelector('.custom-cursor');
+    const interactive = document.querySelectorAll('button, .stat-item, .dashboard-card, .start-planning-btn');
+    
+    if (window.innerWidth > 768) {
+      document.addEventListener('mousemove', function(e) {
+        cursor.style.left = e.clientX + 'px';
+        cursor.style.top = e.clientY + 'px';
+      });
+      
+      interactive.forEach(function(el) {
+        el.addEventListener('mouseenter', function() {
+          cursor.classList.add('active');
+        });
+        el.addEventListener('mouseleave', function() {
+          cursor.classList.remove('active');
+        });
+      });
+    }
+  </script>
+</body>
+</html>

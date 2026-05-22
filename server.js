@@ -504,6 +504,18 @@ app.use((err, req, res, next) => {
   return res.status(500).sendFile(page500Path);
 });
 
+
+// Serve dashboard as default landing page
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dashboard.html'));
+});
+
+// Keep existing index route
+app.get('/index.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+
 // ================= SERVER =================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
