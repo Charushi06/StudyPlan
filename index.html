@@ -9,29 +9,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <!-- Auth Modal -->
-<div id="auth-modal" style="display:flex; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
-  <div style="background:white; border-radius:16px; padding:32px; width:360px; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
-    
-    <h2 id="auth-title" style="margin:0 0 8px; font-size:22px; font-weight:700;">Welcome back</h2>
-    <p id="auth-subtitle" style="margin:0 0 24px; color:#666; font-size:14px;">Sign in to your StudyPlan account</p>
 
-    <input id="auth-email" type="email" placeholder="Email address" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:12px; box-sizing:border-box;">
-    
-    <input id="auth-password" type="password" placeholder="Password" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:20px; box-sizing:border-box;">
-
-    <button id="auth-submit-btn" style="width:100%; padding:12px; background:#4f46e5; color:white; border:none; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer;">
-      Sign In
-    </button>
-
-    <p style="text-align:center; margin:16px 0 0; font-size:13px; color:#666;">
-      <span id="auth-toggle-text">Don't have an account?</span>
-      <a id="auth-toggle-btn" href="#" style="color:#4f46e5; font-weight:600; margin-left:4px;">Sign Up</a>
-    </p>
-
-    <p id="auth-error" style="color:red; font-size:13px; text-align:center; margin:8px 0 0; display:none;"></p>
-  </div>
-</div>
+  <!-- Auth guard: unauthenticated users are redirected to /signin.html -->
+  <script src="/js/auth.js"></script>
+  <script>StudyPlanAuth.requireAuth();</script>
 
   <header class="site-header">
   <div class="header-left">
@@ -54,8 +35,6 @@
 
 
 <div class="wrapper">
-  <!-- <p class="label">StudyPlan</p> -->
-
   <div class="app">
     <!-- Sidebar -->
     <div class="sidebar">
@@ -72,7 +51,6 @@
       <div class="nav-item" id="focus-mode-btn">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         Focus Mode
-        
       </div>
       <div class="nav-item" id="archived-tasks-btn">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 3h12v2H2V3zm1 3h10v7H3V6zm2 2v3h2V8H5zm4 0v3h2V8H9z" fill="currentColor"/></svg>
@@ -97,7 +75,7 @@
       <div class="topbar">
         <div class="topbar-title">April 2026</div>
         <button class="btn">Week</button>
-        <button class="btn btn-primary"  id="add-task-btn">
+        <button class="btn btn-primary" id="add-task-btn">
           <svg width="12" height="12" fill="none" style="margin-right:2px"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> New task
         </button>
       </div>
@@ -106,8 +84,8 @@
       <div class="cal-section">
         <div class="cal-header">
           <div id="cal-month-title" class="cal-title">April 2026</div>
-          <span id="cal-prev" class="cal-nav" role="button" aria-label="Previous Month">‹</span>
-          <span id="cal-next" class="cal-nav" role="button" aria-label="Next Month">›</span>
+          <span id="cal-prev" class="cal-nav" role="button" aria-label="Previous Month">&#8249;</span>
+          <span id="cal-next" class="cal-nav" role="button" aria-label="Next Month">&#8250;</span>
         </div>
         <div id="cal-grid" class="cal-grid">
           <div class="cal-day-label">Su</div><div class="cal-day-label">Mo</div><div class="cal-day-label">Tu</div><div class="cal-day-label">We</div><div class="cal-day-label">Th</div><div class="cal-day-label">Fr</div><div class="cal-day-label">Sa</div>
@@ -121,7 +99,6 @@
       <!-- Tasks -->
       <div id="tasks-section" class="tasks-section">
         <!-- Javascript will inject tasks here -->
-        
       </div>
 
       <!-- Focus Mode -->
@@ -148,7 +125,7 @@
             <button id="timer-pause-btn" class="btn hidden">Pause</button>
             <button id="timer-reset-btn" class="btn">Reset</button>
           </div>
-          
+
           <div class="focus-task-container">
             <div class="focus-task-header">Current Focus Task</div>
             <div id="active-focus-task" class="active-focus-task">
@@ -177,20 +154,20 @@
             <svg width="18" height="18" fill="none"><path d="M9 13V5M9 5L5 9M9 5l4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             Smart Paste
           </div>
-          <div class="panel-subtitle">Drop any text — email, brief, message</div>
+          <div class="panel-subtitle">Drop any text &#8212; email, brief, message</div>
         </div>
       </div>
 
       <div class="paste-zone">
-        <div class="paste-icon">⌘ V</div>
+        <div class="paste-icon">&#8984; V</div>
         <div class="paste-label">Paste text here</div>
-        <div class="paste-hint">e.g. "Your OS assignment is due this Friday by 11pm…"</div>
+        <div class="paste-hint">e.g. &ldquo;Your OS assignment is due this Friday by 11pm&hellip;&rdquo;</div>
         <textarea id="paste-input" class="paste-input" placeholder="Paste your syllabus or notes..."></textarea>
       </div>
 
       <div class="paste-actions">
         <button id="clear-btn" class="btn" style="flex:1;" aria-label="Clear paste area">Clear</button>
-        <button id="extract-btn" class="btn btn-primary" style="flex:2;" aria-label="Extract tasks with AI">Extract with AI →</button>
+        <button id="extract-btn" class="btn btn-primary" style="flex:2;" aria-label="Extract tasks with AI">Extract with AI &#8594;</button>
       </div>
 
       <div id="extract-preview" class="extract-preview">
@@ -198,19 +175,15 @@
       </div>
       <div id="summary-box" class="summary-box"></div>
 
-  <button id="add-btn" class="add-btn" disabled>
-    Add items to planner
-  </button>
-</div>
-
-
-      <button id="add-btn" class="add-btn" disabled>Add items to planner</button>
+      <button id="add-btn" class="add-btn" disabled>
+        Add items to planner
+      </button>
     </div>
   </div>
 </div>
 
 <footer class="site-footer">
-  <p>© 2026 StudyPlan. All rights reserved.</p>
+  <p>&copy; 2026 StudyPlan. All rights reserved.</p>
   <div class="footer-links">
     <a href="/support-page/index.html#privacy">Privacy</a>
     <a href="/support-page/index.html#terms">Terms</a>
@@ -225,7 +198,7 @@
       <h2 style="margin:0; font-size:20px; font-weight:700;">Settings</h2>
       <button id="settings-close" style="background:none; border:none; font-size:24px; cursor:pointer; color:var(--color-text-secondary);">&times;</button>
     </div>
-    
+
     <div style="margin-bottom: 24px;">
       <h3 style="font-size:12px; font-weight:700; text-transform:uppercase; color:var(--color-text-tertiary); margin-bottom:16px; letter-spacing:0.05em;">Appearance</h3>
       <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 16px;">
@@ -268,74 +241,44 @@
   </div>
 </div>
 
+<div id="new-subject-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0; z-index:9998; align-items:center; justify-content:center;">
+  <div class="modal-card" style="border-radius:12px; padding:20px; width:320px; box-shadow:0 12px 40px rgba(0,0,0,0.25);">
+    <h3 style="margin:0 0 12px; font-size:18px; font-weight:600;">New subject</h3>
+    <label style="display:block; font-size:12px; margin-bottom:4px;">Subject name</label>
+    <input id="new-subject-name" type="text" style="width:100%; padding:6px; margin-bottom:12px;" placeholder="e.g. History">
+    <label style="display:block; font-size:12px; margin-bottom:6px;">Color</label>
+    <div id="new-subject-colors" class="subject-color-swatches"></div>
+    <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
+      <button id="new-subject-cancel" class="btn" style="padding:6px 10px;">Cancel</button>
+      <button id="new-subject-save" class="btn btn-primary" style="padding:6px 12px;">Save</button>
+    </div>
+  </div>
+</div>
+
+<div id="new-task-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0; z-index:9998; align-items:center; justify-content:center;">
+  <div class="modal-card" style="border-radius:12px; padding:20px; width:320px; box-shadow:0 12px 40px rgba(0,0,0,0.25);">
+    <h3 style="margin:0 0 12px; font-size:18px; font-weight:600;">New task</h3>
+
+    <label style="display:block; font-size:12px; margin-bottom:4px;">Subject</label>
+    <select id="new-task-subject" style="width:100%; padding:6px; margin-bottom:10px;"></select>
+
+    <label style="display:block; font-size:12px; margin-bottom:4px;">Task name</label>
+    <input id="new-task-title" type="text" style="width:100%; padding:6px; margin-bottom:10px;" placeholder="Task name">
+
+    <label style="display:block; font-size:12px; margin-bottom:4px;">Deadline</label>
+    <input id="new-task-date" type="datetime-local" style="width:100%; padding:6px; margin-bottom:10px;">
+
+    <input id="new-task-notes" type="text" style="width:100%; padding:6px; margin-bottom:16px;" placeholder="Notes">
+
+    <div style="display:flex; justify-content:flex-end; gap:8px;">
+      <button id="new-task-cancel" class="btn" style="padding:6px 10px;">Cancel</button>
+      <button id="new-task-save" class="btn btn-primary" style="padding:6px 12px;">Save</button>
+    </div>
+  </div>
+</div>
+
   <script type="module" src="/js/app.js"></script>
   <script>
-  let isLogin = true;
-
-  document.getElementById('auth-toggle-btn').addEventListener('click', (e) => {
-    e.preventDefault();
-    isLogin = !isLogin;
-    document.getElementById('auth-title').textContent = isLogin ? 'Welcome back' : 'Create account';
-    document.getElementById('auth-subtitle').textContent = isLogin ? 'Sign in to your StudyPlan account' : 'Start planning your studies';
-    document.getElementById('auth-submit-btn').textContent = isLogin ? 'Sign In' : 'Sign Up';
-    document.getElementById('auth-toggle-text').textContent = isLogin ? "Don't have an account?" : 'Already have an account?';
-    document.getElementById('auth-toggle-btn').textContent = isLogin ? 'Sign Up' : 'Sign In';
-    document.getElementById('auth-error').style.display = 'none';
-  });
-
-  document.getElementById('auth-submit-btn').addEventListener('click', async () => {
-    const email = document.getElementById('auth-email').value.trim();
-    const password = document.getElementById('auth-password').value.trim();
-    const errorEl = document.getElementById('auth-error');
-
-    if (!email || !password) {
-      errorEl.textContent = 'Please fill in all fields';
-      errorEl.style.display = 'block';
-      return;
-    }
-
-    const endpoint = isLogin ? '/api/auth/login' : '/api/auth/signup';
-
-    try {
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-      const data = await res.json();
-
-      if (!res.ok) {
-        errorEl.textContent = data.error || 'Something went wrong';
-        errorEl.style.display = 'block';
-        return;
-      }
-
-      localStorage.setItem('studyplan_user', JSON.stringify({ email: data.email }));
-      document.getElementById('auth-modal').style.display = 'none';
-
-    } catch (err) {
-      errorEl.textContent = 'Network error. Please try again.';
-      errorEl.style.display = 'block';
-    }
-  });
-
-  // Check if already logged in
-  if (localStorage.getItem('studyplan_user')) {
-    document.getElementById('auth-modal').style.display = 'none';
-  }
-
-  // Logout Button Functionality
-  const logoutBtn = document.getElementById('logout-btn');
-  logoutBtn.addEventListener('click', () => {
-    localStorage.removeItem('studyplan_user');
-
-    // Show login modal again
-    document.getElementById('auth-modal').style.display = 'flex';
-
-    // Refresh page state
-    window.location.reload();
-});
-
   // Settings Modal Logic
   const settingsModal = document.getElementById('settings-modal');
   const navSettings = document.getElementById('nav-settings');
@@ -361,11 +304,9 @@
     }
   });
 
-  // Settings Toggles State Management
   const darkModeToggle = document.getElementById('dark-mode-toggle');
   const compactViewToggle = document.getElementById('compact-view-toggle');
 
-  // Load preferences
   const loadPreferences = () => {
     const isDarkMode = localStorage.getItem('studyplan_dark_mode') === 'true';
     const isCompactView = localStorage.getItem('studyplan_compact_view') === 'true';
@@ -386,10 +327,8 @@
     }
   };
 
-  // Run on load
   loadPreferences();
 
-  // Save changes when user clicks "Save Changes"
   settingsSave.addEventListener('click', () => {
     localStorage.setItem('studyplan_dark_mode', darkModeToggle.checked);
     localStorage.setItem('studyplan_compact_view', compactViewToggle.checked);
@@ -397,7 +336,6 @@
     settingsModal.style.display = 'none';
   });
 
-  // Also apply immediately on toggle for better UX
   darkModeToggle.addEventListener('change', (e) => {
     if (e.target.checked) {
       document.documentElement.setAttribute('data-theme', 'dark');
@@ -414,42 +352,5 @@
     }
   });
 </script>
-
-<div id="new-subject-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0; z-index:9998; align-items:center; justify-content:center;">
-  <div class="modal-card" style="border-radius:12px; padding:20px; width:320px; box-shadow:0 12px 40px rgba(0,0,0,0.25);">
-    <h3 style="margin:0 0 12px; font-size:18px; font-weight:600;">New subject</h3>
-    <label style="display:block; font-size:12px; margin-bottom:4px;">Subject name</label>
-    <input id="new-subject-name" type="text" style="width:100%; padding:6px; margin-bottom:12px;" placeholder="e.g. History">
-    <label style="display:block; font-size:12px; margin-bottom:6px;">Color</label>
-    <div id="new-subject-colors" class="subject-color-swatches"></div>
-    <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
-      <button id="new-subject-cancel" class="btn" style="padding:6px 10px;">Cancel</button>
-      <button id="new-subject-save" class="btn btn-primary" style="padding:6px 12px;">Save</button>
-    </div>
-  </div>
-</div>
-
-<div id="new-task-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0;  z-index:9998; align-items:center; justify-content:center;">
-  <div class="modal-card" style=" border-radius:12px; padding:20px; width:320px; box-shadow:0 12px 40px rgba(0,0,0,0.25);">
-    <h3 style="margin:0 0 12px; font-size:18px; font-weight:600;">New task</h3>
-
-    <label style="display:block; font-size:12px; margin-bottom:4px;">Subject</label>
-    <select id="new-task-subject" paceholder="Subject" style="width:100%; padding:6px; margin-bottom:10px;"></select>
-
-    <label style="display:block; font-size:12px; margin-bottom:4px;">Task name</label>
-    <input id="new-task-title" type="text" style="width:100%; padding:6px; margin-bottom:10px;"placeholder="TaskName">
-
-    <label style="display:block; font-size:12px; margin-bottom:4px;">Deadline</label>
-    <input id="new-task-date" type="datetime-local" style="width:100%; padding:6px; margin-bottom:10px;" placeholder="Deadline">
-
-    <!-- <label style="display:block; font-size:12px; margin-bottom:4px;">Notes</label> -->
-    <input id="new-task-notes" type="text" style="width:100%; padding:6px; margin-bottom:16px;" placeholder="Notes">
-
-    <div style="display:flex; justify-content:flex-end; gap:8px;">
-      <button id="new-task-cancel" class="btn" style="padding:6px 10px;">Cancel</button>
-      <button id="new-task-save" class="btn btn-primary" style="padding:6px 12px;">Save</button>
-    </div>
-  </div>
-</div>
 </body>
 </html>

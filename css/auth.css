@@ -1,0 +1,207 @@
+/* css/auth.css
+   Dedicated stylesheet for signin.html and signup.html.
+   Scoped to .auth-body — zero overlap with dashboard styles.
+*/
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --auth-bg:            #f7f7f5;
+  --auth-card-bg:       #ffffff;
+  --auth-border:        rgba(0, 0, 0, 0.10);
+  --auth-border-focus:  rgba(0, 0, 0, 0.36);
+  --auth-text:          #1a1a18;
+  --auth-text-muted:    #6b6b66;
+  --auth-text-error:    #a32d2d;
+  --auth-bg-error:      #fcebeb;
+  --auth-border-error:  rgba(163, 45, 45, 0.35);
+  --auth-accent:        #4f46e5;
+  --auth-accent-hover:  #4338ca;
+  --auth-accent-active: #3730a3;
+  --auth-radius:        10px;
+  --auth-shadow:        0 4px 24px rgba(0, 0, 0, 0.08);
+  --auth-font:          'Inter', system-ui, -apple-system, sans-serif;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body.auth-body {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--auth-bg);
+  font-family: var(--auth-font);
+  font-size: 14px;
+  color: var(--auth-text);
+  line-height: 1.5;
+  padding: 24px 16px;
+}
+
+.auth-wrapper {
+  width: 100%;
+  max-width: 400px;
+}
+
+.auth-card {
+  background: var(--auth-card-bg);
+  border: 1px solid var(--auth-border);
+  border-radius: var(--auth-radius);
+  box-shadow: var(--auth-shadow);
+  padding: 36px 32px 32px;
+}
+
+.auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+.auth-logo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  border-radius: 6px;
+}
+
+.auth-brand-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--auth-text);
+  letter-spacing: -0.01em;
+}
+
+.auth-heading {
+  margin-bottom: 24px;
+}
+
+.auth-heading h1 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--auth-text);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin-bottom: 4px;
+}
+
+.auth-heading p {
+  font-size: 13px;
+  color: var(--auth-text-muted);
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--auth-text);
+  letter-spacing: 0.01em;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 9px 12px;
+  font-family: var(--auth-font);
+  font-size: 13px;
+  color: var(--auth-text);
+  background: #ffffff;
+  border: 1px solid var(--auth-border);
+  border-radius: 6px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.form-group input::placeholder {
+  color: #b0afa8;
+}
+
+.form-group input:focus {
+  border-color: var(--auth-border-focus);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+}
+
+.auth-error {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--auth-text-error);
+  background: var(--auth-bg-error);
+  border: 1px solid var(--auth-border-error);
+  border-radius: 6px;
+  padding: 8px 12px;
+  min-height: 0;
+  display: none;
+}
+
+.auth-error:not(:empty) {
+  display: block;
+}
+
+.auth-btn {
+  width: 100%;
+  padding: 10px 16px;
+  font-family: var(--auth-font);
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+  background: var(--auth-accent);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s ease, opacity 0.15s ease;
+  margin-top: 4px;
+}
+
+.auth-btn:hover {
+  background: var(--auth-accent-hover);
+}
+
+.auth-btn:active {
+  background: var(--auth-accent-active);
+}
+
+.auth-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.auth-toggle {
+  margin-top: 20px;
+  font-size: 12px;
+  color: var(--auth-text-muted);
+  text-align: center;
+}
+
+.auth-toggle a {
+  color: var(--auth-accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.auth-toggle a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 440px) {
+  .auth-card {
+    padding: 28px 20px 24px;
+  }
+}
