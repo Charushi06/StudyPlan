@@ -324,7 +324,7 @@
 <script type="module" src="/js/app.js"></script>
 
 <script type="module">
-  import { requireAuth, getUser, doSignOut } from '/js/auth.js';
+  import { requireAuth, getUser, doLogout } from '/js/auth.js';
   import { notify } from '/js/notifications.js';
 
   // 1. Auth guard — redirects to /signin.html if not logged in
@@ -393,7 +393,6 @@
       const el = document.getElementById(id);
       if (el) el.classList.remove('hidden');
     });
-    // Update nav link active states
     document.querySelectorAll('.header-nav .nav-link').forEach(a => a.classList.remove('active'));
     document.querySelectorAll('.sidebar .nav-item').forEach(el => el.classList.remove('active'));
     const activeNavLink = document.querySelector(`.header-nav [data-view="${view}"]`);
@@ -437,7 +436,6 @@
     else document.body.classList.remove('compact-view');
   });
 
-  // Load compact view preference
   if (localStorage.getItem('studyplan_compact_view') === 'true') {
     document.body.classList.add('compact-view');
     compactViewToggle.checked = true;
@@ -449,15 +447,10 @@
   document.getElementById('profile-close').addEventListener('click', () => { profileModal.style.display = 'none'; });
   profileModal.addEventListener('click', e => { if (e.target === profileModal) profileModal.style.display = 'none'; });
 
-  // 8. Logout (header + profile modal)
-  async function handleLogout() {
-    try {
-      await doSignOut();
-    } catch(_) {}
-    localStorage.removeItem('studyplan_user');
-    localStorage.removeItem('studyplan_token');
+  // 8. Logout — uses doLogout (correct export name from auth.js)
+  function handleLogout() {
     notify('Signed out successfully', 'success');
-    setTimeout(() => { window.location.href = '/signin.html'; }, 600);
+    setTimeout(() => { doLogout(); }, 600);
   }
 
   document.getElementById('logout-btn').addEventListener('click', handleLogout);
