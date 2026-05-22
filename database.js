@@ -29,6 +29,8 @@ function initDb() {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (subject_id) REFERENCES subjects(id)
     )`);
+    db.run(`CREATE UNIQUE INDEX IF NOT EXISTS idx_tasks_unique_date_title_subject
+      ON tasks (LOWER(title), subject_id, DATE(due_at))`);
 
     // Pre-populate some subjects if empty
     db.get('SELECT COUNT(*) as count FROM subjects', (err, row) => {
