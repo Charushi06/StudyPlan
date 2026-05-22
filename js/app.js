@@ -394,7 +394,7 @@ function renderTasks() {
   const activeTasks = tasks.filter(t => !t.archived);
   const archivedTasks = tasks.filter(t => t.archived);
   
-  // Update badges
+  // Fix #523: Update badge counts dynamically from real task data
   const allTasksBadge = document.querySelector('#all-tasks-btn .badge');
   if (allTasksBadge) {
     allTasksBadge.textContent = activeTasks.length;
@@ -561,8 +561,9 @@ function renderTasks() {
       ? `<div class="tasks-empty-state">${emptyStateText}</div>`
       : '';
 
+    // Fix #536: added missing + operator between renderGroup calls
     tasksSection.innerHTML = actionBar +
-                             renderGroup(titlePrefix + '⚠ Due soon', dueSoon, 'var(--color-text-danger)', true)
+                             renderGroup(titlePrefix + '⚠ Due soon', dueSoon, 'var(--color-text-danger)', true) +
                              renderGroup(titlePrefix + 'This week', thisWeek, 'var(--color-text-secondary)', true) +
                              renderGroup(titlePrefix + 'Completed', completed, 'var(--color-text-tertiary)') +
                              emptyState;
@@ -972,7 +973,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
 
-//NEw Task addition event listeners
+//New Task addition event listeners
 newTaskBtn.addEventListener('click', () => {
   
   if (!store.subjects || store.subjects.length === 0) {
@@ -1036,6 +1037,7 @@ newTaskSave.addEventListener('click', async () => {
   newTaskModal.style.display = 'none';
 });
 
+// Fix #521: removed duplicate addItemsBtn event listener (was registered twice)
 addItemsBtn.addEventListener('click', () => {
   if (store.currentPaste) {
     store.addTasks(store.currentPaste);
@@ -1063,14 +1065,6 @@ extractBtn.addEventListener('click', async () => {
 clearBtn.addEventListener('click', () => {
   pasteInput.value = '';
   store.clearExtracted();
-});
-
-addItemsBtn.addEventListener('click', () => {
-  if (store.currentPaste) {
-    store.addTasks(store.currentPaste);
-    store.clearExtracted();
-    pasteInput.value = '';
-  }
 });
 
 downloadBtn.addEventListener('click', () => {
