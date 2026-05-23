@@ -3,6 +3,7 @@ import { extractTasksFromText } from './utils/api.js';
 import { initGlobalErrorBoundary } from './utils/errorBoundary.js';
 import { analyzeWorkload } from './utils/scheduler.js';
 
+
 initGlobalErrorBoundary();
 
 function generateSummary(tasks, subjects) {
@@ -811,8 +812,11 @@ function renderExtraction() {
       `;
     }
   });
+
   
   extractPreview.innerHTML = html;
+
+  
   
   setTimeout(() => {
     document.querySelectorAll('.conf-fill').forEach(el => {
@@ -848,6 +852,7 @@ function renderExtraction() {
       });
     });
   });
+
 }
 
 store.subscribe(renderTasks);
