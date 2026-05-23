@@ -389,6 +389,13 @@
   // Run on load
   loadPreferences();
 
+
+  const params = new URLSearchParams(window.location.search);
+
+  if (params.get('openSettings') === 'true') {
+  settingsModal.style.display = 'flex';
+  }
+
   // Save changes when user clicks "Save Changes"
   settingsSave.addEventListener('click', () => {
     localStorage.setItem('studyplan_dark_mode', darkModeToggle.checked);
