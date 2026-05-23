@@ -1,256 +1,251 @@
-# 📚 StudyPlan — Turn Chaos into Clarity
+📚 StudyPlan — Turn Chaos into Clarity
+<div align="center">
+⚡ Paste anything. Get an AI-powered study plan instantly.
 
-> ⚡ Paste anything. Get a structured study plan instantly.  
-> No manual entry. No missed deadlines.
+No manual task entry. No missed deadlines. No messy planning.
 
-🌍 **Live App:** https://studyplan-jvgd.onrender.com/
+🌍 Live Demo: StudyPlan Live App
 
----
+</div>
+🚀 Overview
 
-## 🧠 The Idea
+Students don’t struggle because of a lack of information.
+They struggle because information is scattered everywhere.
 
-Students don’t lack information.  
-They lack **organization**.
+Assignments are buried inside:
 
-Assignments live in:
-- 📧 Emails  
-- 💬 WhatsApp groups  
-- 📄 PDFs & portals  
+📧 Emails
+💬 WhatsApp groups
+📄 PDFs
+🎓 College portals
+📝 Random notes
 
-And the biggest problem?
-> ❌ You have to manually re-enter everything into a planner  
+And every productivity app expects one thing:
 
----
+❌ Manual task entry
 
-## 💡 Solution
+That’s where StudyPlan changes everything.
 
-**StudyPlan removes manual planning completely.**
+✨ What is StudyPlan?
 
-Just:
-1. Paste messy text  
-2. AI extracts tasks  
-3. Everything becomes structured  
+StudyPlan is an AI-powered academic planner that transforms unstructured text into a clean, organized study workflow.
 
-> 🎯 From chaos → clean plan in seconds
+Simply paste:
 
----
+assignment instructions
+screenshots text
+classroom messages
+copied emails
+syllabus updates
 
-## ⚙️ How It Works
+…and StudyPlan automatically:
 
-```text
+extracts tasks
+identifies deadlines
+detects subjects
+organizes schedules
+updates your planner
+
+🎯 From chaos → structured productivity in seconds.
+
+🧠 Core Idea
+
+Instead of forcing students to manually organize information,
+StudyPlan uses AI to do the heavy lifting automatically.
+
+Messy Text
+     ↓
+AI Extraction Engine
+     ↓
+Structured Tasks & Deadlines
+     ↓
+Editable Planner + Calendar
+     ↓
+Smarter Academic Workflow
+⚙️ How It Works
 User Paste
-↓
-AI Extraction (Gemini)
-↓
-Structured Tasks (Dates, Subjects)
-↓
-User Review + Edit
-↓
-Planner + Calendar Update
-```
+   ↓
+Gemini AI Processing
+   ↓
+Task + Deadline Extraction
+   ↓
+User Review & Inline Editing
+   ↓
+Planner + Calendar Sync
+✨ Features
+🤖 AI-Powered Extraction
+Extracts tasks from unstructured text
+Detects:
+📅 Deadlines
+📚 Subjects
+📝 Assignments
+📌 Notes
+Handles ambiguous dates intelligently
+User confirmation for unclear information
+📊 Smart Planning System
 
+Automatically organizes tasks into:
 
----
+🔥 Due Soon
+📅 This Week
+✅ Completed
 
-## ✨ Features
+Includes:
 
-### 🤖 AI Intelligence
-- Smart extraction from unstructured text
-- Detects **deadlines, subjects, tasks, notes**
-- Handles ambiguous dates with user confirmation
-
-### 📊 Smart Planning System
-- Auto-categorized boards:
-  - Due Soon
-  - This Week
-  - Completed
-- Conflict detection (deadline clustering alerts)
-
-### 📅 Interactive Calendar
-- Global calendar view
-- Click a date → filter tasks instantly
-- Color-coded deadlines
-
-### 🧩 Seamless Editing
-- Inline editing (no popups)
-- Modify extracted data before saving
-
-### 💾 Persistent Storage
-- SQLite-based local database
-- Structured task + subject mapping
-
----
-
-## 🧠 System Architecture
-
-```text
-Frontend (Vanilla JS UI)
-↓
-Node.js Express API
-↓
-AI Layer (Gemini API)
-↓
+Deadline clustering alerts
+Smart task prioritization
+Organized workflow visualization
+📅 Interactive Calendar
+Full calendar-based planning system
+Click a date to instantly filter tasks
+Color-coded deadlines
+Real-time planner synchronization
+🧩 Seamless Editing Experience
+Inline editing support
+Modify extracted AI data before saving
+Fast, distraction-free workflow
+💾 Persistent Storage
+SQLite-powered local database
+Structured task management
+Subject-task mapping support
+🏗 System Architecture
+Frontend (Vanilla JS)
+        ↓
+Node.js + Express API
+        ↓
+Gemini AI Layer
+        ↓
 SQLite Database
-↓
+        ↓
 State Management + UI Sync
-```
-
-
----
-
-## 🛠 Tech Stack
-
-| Layer | Technology |
-|------|-----------|
-| Frontend | HTML, CSS (Glassmorphism), Vanilla JS |
-| Backend | Node.js + Express |
-| Database | SQLite |
-| AI | Google Gemini (GenAI SDK) |
-
----
-
-## 🚀 Key Differentiators
-
-| Feature | StudyPlan | Typical Planners |
-|--------|----------|-----------------|
-| AI Extraction | ✅ | ❌ |
-| Zero Manual Entry | ✅ | ❌ |
-| Conflict Detection | ✅ | ❌ |
-| Inline Editing | ✅ | ❌ |
-
----
-
-## 📦 Installation
-
-```bash
+🛠 Tech Stack
+Layer	Technology
+Frontend	HTML5, CSS3, Vanilla JavaScript
+UI Design	Glassmorphism UI
+Backend	Node.js + Express
+Database	SQLite
+AI Integration	Google Gemini API
+State Management	Custom Pub/Sub Store
+🌟 Key Differentiators
+Capability	StudyPlan	Traditional Planners
+AI Task Extraction	✅	❌
+Zero Manual Entry	✅	❌
+Deadline Conflict Detection	✅	❌
+Inline Editing	✅	❌
+Smart Categorization	✅	❌
+📂 Project Structure
+StudyPlan
+│
+├── css
+│   └── index.css              # Styling, animations, UI variables
+│
+├── js
+│   ├── utils
+│   │   ├── aiMock.js          # Deprecated mock AI logic
+│   │   └── api.js             # Express API communication layer
+│   │
+│   ├── app.js                 # Main frontend controller
+│   └── store.js               # Custom Pub/Sub state manager
+│
+├── .env.example               # Environment variables template
+├── .gitignore                 # Ignored files & folders
+├── database.js                # SQLite initialization & schema
+├── index.html                 # Frontend entry point
+├── package.json               # Dependencies & scripts
+├── README.md                  # Project documentation
+├── server.js                  # Express backend server
+└── studyplan.db               # SQLite database
+📦 Installation
+1️⃣ Clone Repository
 git clone https://github.com/Charushi06/StudyPlan.git
 cd StudyPlan
+2️⃣ Install Dependencies
 npm install
-```
+3️⃣ Environment Setup
 
----
+Create a .env file:
 
-## 🔑 Environment Setup
-
-Create `.env`:
-
-```env
-GEMINI_API_KEY=your_gen_ai_key_here
-```
-
----
-
-## ▶️ Run Locally
-
-```bash
+GEMINI_API_KEY=your_gemini_api_key
+▶️ Run Locally
 node server.js
-```
-Open → http://localhost:3000
 
----
- 
-## Project Structure
- 
-```
- StudyPlan
-├──  css
-│   └──  index.css           # Contains all styling rules, variables, and animations
-├──  js
-│   ├──  utils
-│   │   ├──  aiMock.js       # The original mock UI extraction hook (deprecated)
-│   │   └──  api.js          # The live fetch logic communicating with our Express API
-│   ├──  app.js              # The main controller (handles DOM UI, event bindings, and Calendar)
-│   └──  store.js            # The Custom State Manager handling our frontend Pub/Sub state
-├──  .env.example            # Template file for setting the GEMINI_API_KEY
-├──  .gitignore              # Tells git to ignore databases, environments, and node packages
-├──  database.js             # Initializes the SQLite database and executes DB table schemas
-├──  index.html              # The frontend structural entry point
-├──  package.json            # Node project configuration and backend dependencies
-├──  README.md               # The comprehensive project documentation
-├──  server.js               # The primary Node.js & Express REST Backend logic
-└──  studyplan.db
-```
+Open in browser:
 
----
+http://localhost:3000
+🔮 Future Roadmap
+🌍 Multi-language AI parsing
+📱 Mobile-responsive application
+🔔 Smart reminders & notifications
+📊 Study analytics dashboard
+🧠 AI study assistant
+☁️ Cloud sync support
+🎯 Productivity insights
+🤝 Contributing
 
-## 🔮 Future Roadmap
-- 🤖 Smarter AI parsing (multi-language)
-- 📊 Study analytics dashboard
-- 🔔 Smart reminders & notifications
-- 📱 Mobile version
-- 🧠 AI study assistant
-- 🤝 Contributing
+Want to improve StudyPlan? Contributions are welcome 🚀
 
----
+🔥 High-Impact Contribution Areas
+Improve AI extraction accuracy
+Calendar enhancements
+UI/UX improvements
+Reminder system
+Accessibility improvements
+Performance optimization
+🛠 Contribution Workflow
+git checkout -b feature/your-feature-name
 
-## Want to improve StudyPlan? 🚀
+git commit -m "feat: add your feature"
 
-### 🔥 High-impact contributions:
-- Improve AI parsing accuracy
-- Add calendar enhancements
-- UI/UX upgrades
-- Notification system
+git push origin feature/your-feature-name
 
-#### Steps:
+Then open a Pull Request with:
 
-```bash
-git checkout -b feature/your-feature
-git commit -m "feat: add feature"
-git push origin feature/your-feature
-```
+Clear explanation
+Screenshots (if applicable)
+Proper documentation
+🐛 Bug Reports
 
-Open a PR with:
+Found a bug or issue?
 
-- Clear description
-- Screenshots (if UI changes)
+Please open an issue on GitHub with:
 
----
+Steps to reproduce
+Expected behavior
+Screenshots/logs
+💡 Why StudyPlan?
 
-## 🐛 Issues
+Because planning should not feel like another assignment.
 
-Found a bug? Open an issue!
+It should feel:
 
----
+⚡ Instant
+🧠 Intelligent
+🎯 Effortless
 
-## 💡 Why This Project?
+StudyPlan helps students focus less on organizing work
+and more on actually learning.
 
-Because planning should not feel like work.
+⭐ Support the Project
 
-It should feel like:
+If you found this project helpful:
 
-- ⚡ Instant
-- 🧠 Intelligent
-- 🎯 Effortless
+⭐ Star the repository
+🍴 Fork the project
+📢 Share it with others
+📄 License
 
----
+This project is licensed under the MIT License.
 
-## ⭐ Support
-
-If you like this project:
-👉 Star ⭐ the repo
-👉 Share it
-
----
-
-## 📄 License
-
-MIT License
-
----
-
-## ⚡ Author
+👩‍💻 Author
 
 Charushi
-GitHub: https://github.com/Charushi06
 
----
+GitHub: @Charushi06
 
-## 🌱 Nexus Spring of Code 2026
+🌱 Open Source Program
 
-This project is part of NSoC 2026
+This project is a part of NSoC 2026.
 
----
-
-Built with AI, code, and a mission to simplify student life.
-
----
+<div align="center">
+Built with ❤️, AI, and a mission to simplify student life.
+</div
