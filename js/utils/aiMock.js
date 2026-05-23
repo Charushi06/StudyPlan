@@ -82,6 +82,8 @@ function buildNotes(segment, due_at) {
   return 'Extracted by heuristic NLP parser.';
 }
 
+console.log('HEURISTIC NLP RUNNING');
+
 export function extractTasksFromText(text) {
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -105,7 +107,7 @@ export function extractTasksFromText(text) {
 
         const confidence = Math.min(
           95,
-          taskLikelihood(segment) + (extractDate(segment, now) ? 10 : 0) + (subjectName ? 10 : 0)
+          taskLikelihood(segment) + (extractDate(segment, now) ? 10 : 0) + (subjectName? 10 : 0)
         );
 
         results.push({

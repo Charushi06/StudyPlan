@@ -10,8 +10,8 @@ export async function extractTasksFromText(text) {
       console.error('Extraction failed', await res.text());
       return [];
     }
-    
-    return await res.json();
+    const data = await res.json();
+    return data;
   } catch (e) {
     console.error('Error hitting extract endpoint', e);
     return [];

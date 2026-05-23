@@ -315,9 +315,24 @@ body {
 .extract-icon { font-size: 14px; }
 .conf-bar { height: 4px; border-radius: 2px; margin-top: 12px; background: var(--color-border-tertiary); overflow: hidden; }
 .conf-fill { height: 100%; border-radius: 2px; transition: width 1s cubic-bezier(0.16, 1, 0.3, 1); }
-.conf-label { font-size: 11px; font-weight: 600; color: var(--color-text-tertiary); margin-top: 6px; display: flex; justify-content: space-between; }
-.conf-edit { color: var(--color-text-info); cursor: pointer; transition: color 0.2s; }
-.conf-edit:hover { color: var(--color-text-primary); }
+.conf-label { font-size: 11px; font-weight: 600; color: var(--color-text-tertiary); margin-top: 10px; display: flex; justify-content: space-between; align-items: center; }
+.conf-edit { 
+  padding:6px 12px;
+  border-radius:8px;
+
+  background:#dbeafe;
+  color:#2563eb;
+
+  font-size:12px;
+  font-weight:700;
+
+  cursor:pointer;
+
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+
 
 .add-btn { margin: 0 20px 20px; padding: 12px; border: none; border-radius: var(--border-radius-md); background: var(--color-text-primary); color: var(--color-background-primary); font-size: 14px; font-weight: 600; cursor: pointer; text-align: center; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
 .add-btn:hover:not(:disabled) { background: var(--color-text-secondary); transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.2); }
