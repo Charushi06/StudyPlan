@@ -42,17 +42,19 @@
     <h1 class="site-title">StudyPlan</h1>
   </div>
 
-  <nav class="header-nav">
-    <a href="#">Dashboard</a>
-    <a href="#">Tasks</a>
-    <a href="#">Calendar</a>
-    <a href="#" id="nav-settings">Settings</a>
-  </nav>
+<nav class="header-nav">
+  <a href="/" class="nav-btn">Dashboard</a>
+  <a href="/tasks.html" class="nav-btn">Tasks</a>
+  <a href="/calendar.html" class="nav-btn">Calendar</a>
+  <a href="#" class="nav-btn" id="settings-btn">Settings</a>
+  <a href="/profile.html" class="nav-btn">Profile</a>
+</nav>
 
-  <div class="header-right">
-    <button class="profile-btn">Profile</button>
-    <button class="profile-btn" id="logout-btn">Logout</button>
-  </div>
+
+<div class="header-right">
+  <button class="profile-btn" onclick="window.location.href='/profile.html'">Profile</button>
+  <button class="profile-btn" id="logout-btn">Logout</button>
+</div>
 </header>
 
 
@@ -360,11 +362,11 @@
 
   // Settings Modal Logic
   const settingsModal = document.getElementById('settings-modal');
-  const navSettings = document.getElementById('nav-settings');
+  const settingsBtn = document.getElementById('settings-btn');
   const settingsClose = document.getElementById('settings-close');
   const settingsSave = document.getElementById('settings-save');
 
-  navSettings.addEventListener('click', (e) => {
+  settingsBtn.addEventListener('click', (e) => {
     e.preventDefault();
     settingsModal.style.display = 'flex';
   });

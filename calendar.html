@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Calendar | StudyPlan</title>
+
+  <link rel="stylesheet" href="/css/style.css">
+
+  <style>
+    body {
+      font-family: Arial;
+      background: #0f172a;
+      color: white;
+    }
+
+    .calendar {
+      max-width: 600px;
+      margin: 40px auto;
+      background: #1e293b;
+      padding: 20px;
+      border-radius: 10px;
+    }
+
+    .month {
+      text-align: center;
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    .days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+      text-align: center;
+    }
+
+    .day-name {
+      font-weight: bold;
+      color: #38bdf8;
+    }
+
+    .date {
+      padding: 10px;
+      background: #334155;
+      border-radius: 5px;
+    }
+
+    .date:hover {
+      background: #38bdf8;
+      color: black;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+<header class="site-header">
+  <h1>StudyPlan</h1>
+</header>
+
+<main>
+  <div class="calendar">
+    <div class="month" id="monthName"></div>
+    <div class="days" id="calendar"></div>
+  </div>
+</main>
+
+<script>
+  const calendar = document.getElementById("calendar");
+  const monthName = document.getElementById("monthName");
+
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+
+  const months = [
+    "January","February","March","April","May","June",
+    "July","August","September","October","November","December"
+  ];
+
+  monthName.innerText = months[month] + " " + year;
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const totalDays = new Date(year, month + 1, 0).getDate();
+
+  const days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+
+  // show week names
+  days.forEach(d => {
+    let div = document.createElement("div");
+    div.classList.add("day-name");
+    div.innerText = d;
+    calendar.appendChild(div);
+  });
+
+  // empty spaces before first day
+  for (let i = 0; i < firstDay; i++) {
+    let empty = document.createElement("div");
+    calendar.appendChild(empty);
+  }
+
+  // dates
+  for (let d = 1; d <= totalDays; d++) {
+    let date = document.createElement("div");
+    date.classList.add("date");
+    date.innerText = d;
+    calendar.appendChild(date);
+  }
+</script>
+
+</body>
+</html>

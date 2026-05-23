@@ -78,6 +78,11 @@ let selectedDate = null;
 let currentView = 'calendar'; // 'calendar', 'all-tasks', 'archived'
 
 const tasksSection = document.getElementById('tasks-section');
+const settingsBtn = document.getElementById('settings-btn');
+// Use the same button for opening settings modal
+const navSettings = settingsBtn; // Updated to correct ID
+const settingsClose = document.getElementById('settings-close');
+const settingsSave = document.getElementById('settings-save');
 const focusSection = document.getElementById('focus-section');
 const extractPreview = document.getElementById('extract-preview');
 const pasteInput = document.getElementById('paste-input');
@@ -999,8 +1004,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (newSubjectCancel) {
-    newSubjectCancel.addEventListener('click', () => {
-      if (newSubjectModal) newSubjectModal.style.display = 'none';
+    settingsBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      settingsModal.style.display = 'flex';
     });
   }
 

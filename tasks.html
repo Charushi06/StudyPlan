@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tasks | StudyPlan</title>
+
+  <style>
+
+    body{
+      margin:0;
+      font-family:Arial, sans-serif;
+      background:#f5f5f5;
+    }
+
+    .site-header{
+      background:white;
+      padding:20px 40px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      box-shadow:0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .site-header h1{
+      margin:0;
+      color:black;
+    }
+
+    .back-btn{
+      background:black;
+      color:white;
+      padding:10px 18px;
+      border:none;
+      border-radius:8px;
+      cursor:pointer;
+      text-decoration:none;
+    }
+
+    .container{
+      max-width:700px;
+      margin:40px auto;
+      background:white;
+      padding:30px;
+      border-radius:12px;
+      box-shadow:0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .container h2{
+      margin-bottom:20px;
+      color:black;
+    }
+
+    .task-input{
+      display:flex;
+      gap:10px;
+    }
+
+    .task-input input{
+      flex:1;
+      padding:12px;
+      border:1px solid #ccc;
+      border-radius:8px;
+      font-size:16px;
+    }
+
+    .task-input button{
+      padding:12px 20px;
+      background:black;
+      color:white;
+      border:none;
+      border-radius:8px;
+      cursor:pointer;
+    }
+
+    ul{
+      list-style:none;
+      padding:0;
+      margin-top:30px;
+    }
+
+    li{
+      background:#f0f0f0;
+      margin-bottom:12px;
+      padding:14px;
+      border-radius:8px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-size:16px;
+    }
+
+    .completed{
+      text-decoration:line-through;
+      color:green;
+      font-weight:bold;
+    }
+
+  </style>
+</head>
+
+<body>
+
+<header class="site-header">
+
+  <h1>StudyPlan</h1>
+
+  <a href="/" class="back-btn">
+    Dashboard
+  </a>
+
+</header>
+
+<div class="container">
+
+  <h2>Write Your Tasks For Today</h2>
+
+  <div class="task-input">
+
+    <input 
+      type="text" 
+      id="taskInput" 
+      placeholder="Enter your task"
+    >
+
+    <button onclick="addTask()">
+      Add Task
+    </button>
+
+  </div>
+
+  <ul id="taskList"></ul>
+
+</div>
+
+<script>
+
+function addTask(){
+
+  const input = document.getElementById("taskInput");
+
+  const taskText = input.value;
+
+  if(taskText.trim() === ""){
+    alert("Please enter a task");
+    return;
+  }
+
+  const li = document.createElement("li");
+
+  li.innerHTML = `
+    <input type="checkbox" onchange="completeTask(this)">
+    <span>${taskText}</span>
+  `;
+
+  document.getElementById("taskList").appendChild(li);
+
+  input.value = "";
+}
+
+function completeTask(checkbox){
+
+  const text = checkbox.nextElementSibling;
+
+  if(checkbox.checked){
+
+    text.classList.add("completed");
+
+    alert("Task Completed ✅");
+
+  }else{
+
+    text.classList.remove("completed");
+  }
+}
+
+</script>
+
+</body>
+</html>
