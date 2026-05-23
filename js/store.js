@@ -1,3 +1,5 @@
+import { triggerConfetti } from './utils/confetti.js';
+
 export const store = {
   subjects: [],
   tasks: [],
@@ -163,6 +165,10 @@ export const store = {
       task.status = newStatus;
       this.notify();
 
+      if (newStatus === 'Done') {
+        triggerConfetti();
+      }
+
       try {
         await fetch(`/api/tasks/${taskId}`, {
           method: 'PUT',
@@ -244,6 +250,7 @@ export const store = {
       t.status = 'Done';
     });
     this.notify();
+    triggerConfetti();
 
     try {
       await Promise.all(
@@ -281,6 +288,7 @@ export const store = {
       t.status = 'Done';
     });
     this.notify();
+    triggerConfetti();
 
     try {
       await Promise.all(
