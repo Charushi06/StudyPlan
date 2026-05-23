@@ -51,6 +51,12 @@ function generateSummary(tasks, subjects) {
   `;
 }
 
+function renderSummary() {
+  const summaryBox = document.getElementById('summary-box');
+  if (!summaryBox) return;
+  summaryBox.innerHTML = generateSummary(store.tasks, store.subjects);
+}
+
 let currentMonthDate = new Date();
 let selectedDate = null;
 let currentView = 'calendar'; // 'calendar', 'all-tasks', 'archived'
@@ -855,6 +861,7 @@ store.subscribe(renderExtraction);
 store.subscribe(renderCalendar);
 store.subscribe(renderFocusTasks);
 store.subscribe(renderSidebarSubjects);
+store.subscribe(renderSummary);
 
 document.addEventListener('DOMContentLoaded', () => {
   if (newSubjectColorsEl) {
