@@ -13,15 +13,15 @@ export const store = {
       dateA.getDate() === dateB.getDate()
     );
   },
-  
+
   subscribe(listener) {
     this.listeners.push(listener);
   },
-  
+
   notify() {
     this.listeners.forEach(l => l());
   },
-  
+
   async fetchInitialData() {
     try {
       const [subsRes, tasksRes] = await Promise.all([
@@ -40,6 +40,15 @@ export const store = {
     const trimmed = String(name || '').trim();
     if (!trimmed) {
       alert('Please enter a subject name');
+      return false;
+    }
+
+    const duplicateExists = this.subjects.some(
+      sub => sub && sub.name && sub.name.trim().toLowerCase() === trimmed.toLowerCase()
+    );
+
+    if (duplicateExists) {
+      alert('This subject already exists!');
       return false;
     }
     try {
@@ -122,10 +131,10 @@ export const store = {
   async updateTask(taskId, updatedFields) {
     const taskIndex = this.tasks.findIndex(t => String(t.id) === String(taskId));
     if (taskIndex === -1) return;
-    
+
     // Store original in case of failure
     const originalTask = { ...this.tasks[taskIndex] };
-    
+
     // Optimistic update
     this.tasks[taskIndex] = { ...this.tasks[taskIndex], ...updatedFields, _isEditing: false };
     this.notify();
@@ -136,7 +145,7 @@ export const store = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedFields)
       });
-      
+
       if (!res.ok) {
         throw new Error('Update failed');
       }

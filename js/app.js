@@ -58,8 +58,8 @@ function generateSummary(tasks, subjects) {
 
   const topSubject = Object.keys(subjectCount).length
     ? Object.keys(subjectCount).reduce((a, b) =>
-        subjectCount[a] > subjectCount[b] ? a : b
-      )
+      subjectCount[a] > subjectCount[b] ? a : b
+    )
     : 'no specific subject';
 
   return `
@@ -227,7 +227,7 @@ function startTimer() {
   timerDurationInput.disabled = true;
   timerStartBtn.classList.add('hidden');
   timerPauseBtn.classList.remove('hidden');
-  
+
   timerInterval = setInterval(() => {
     timePassed += 1;
     timeLeft = TIME_LIMIT - timePassed;
@@ -289,39 +289,39 @@ if (panelToggleBtn) {
   });
 }
 
-if(timerStartBtn) timerStartBtn.addEventListener('click', startTimer);
-if(timerPauseBtn) timerPauseBtn.addEventListener('click', pauseTimer);
-if(timerResetBtn) timerResetBtn.addEventListener('click', resetTimer);
+if (timerStartBtn) timerStartBtn.addEventListener('click', startTimer);
+if (timerPauseBtn) timerPauseBtn.addEventListener('click', pauseTimer);
+if (timerResetBtn) timerResetBtn.addEventListener('click', resetTimer);
 
 function renderFocusTasks() {
-  if(!focusTaskList || !activeFocusTask) return;
+  if (!focusTaskList || !activeFocusTask) return;
   const tasks = store.tasks;
   const subjects = store.subjects;
-  
+
   const activeTasks = tasks.filter(t => !t.archived && t.status !== 'Done');
   const now = new Date();
-  
+
   const dueSoon = [];
   activeTasks.forEach(t => {
-    if(!t.due_at) return;
+    if (!t.due_at) return;
     const d = new Date(t.due_at);
     const diffDays = (d - now) / (1000 * 60 * 60 * 24);
     if (diffDays <= 3) dueSoon.push(t);
   });
-  
-  dueSoon.sort((a,b) => new Date(a.due_at) - new Date(b.due_at));
-  
+
+  dueSoon.sort((a, b) => new Date(a.due_at) - new Date(b.due_at));
+
   if (dueSoon.length === 0) {
     focusTaskList.innerHTML = '<div class="tasks-empty-state">No tasks due soon to focus on.</div>';
   } else {
     focusTaskList.innerHTML = dueSoon.map(t => {
       const sub = subjects.find(s => s.id === t.subject_id) || subjects[0] || { short_code: 'Gen' };
       let pillClass = '';
-      if(sub.short_code === 'CS') pillClass = 'pill-blue';
-      else if(sub.short_code === 'Maths') pillClass = 'pill-green';
-      else if(sub.short_code === 'English') pillClass = 'pill-purple';
+      if (sub.short_code === 'CS') pillClass = 'pill-blue';
+      else if (sub.short_code === 'Maths') pillClass = 'pill-green';
+      else if (sub.short_code === 'English') pillClass = 'pill-purple';
       else pillClass = 'pill-amber';
-      
+
       return `
         <div class="focus-task-item" data-id="${t.id}">
           <div class="task-name">${t.title}</div>
@@ -331,7 +331,7 @@ function renderFocusTasks() {
         </div>
       `;
     }).join('');
-    
+
     document.querySelectorAll('.focus-task-item').forEach(el => {
       el.addEventListener('click', () => {
         activeFocusTaskId = el.dataset.id;
@@ -339,7 +339,7 @@ function renderFocusTasks() {
       });
     });
   }
-  
+
   if (activeFocusTaskId) {
     const activeT = store.tasks.find(t => t.id === activeFocusTaskId);
     if (activeT) {
@@ -357,7 +357,7 @@ function renderFocusTasks() {
           </div>
         </div>
       `;
-      
+
       const completeBtn = activeFocusTask.querySelector('.complete-focus-task-btn');
       if (completeBtn) {
         completeBtn.addEventListener('click', () => {
@@ -366,7 +366,7 @@ function renderFocusTasks() {
           renderFocusTasks();
         });
       }
-      
+
       const clearBtn = activeFocusTask.querySelector('.clear-focus-task-btn');
       if (clearBtn) {
         clearBtn.addEventListener('click', () => {
@@ -386,31 +386,31 @@ function renderFocusTasks() {
 function formatDate(dateStr) {
   if (!dateStr) return 'No Date';
   const d = new Date(dateStr);
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' });
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
 async function downloadData() {
-    try {
-        const response = await fetch('/api/download');
-        
-        if (!response.ok) {
-            throw new Error('Failed to download data');
-        }
+  try {
+    const response = await fetch('/api/download');
 
-        const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'study_data.csv';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(url), 100);
-
-    } catch (error) {
-        console.error(error);
-        alert('Failed to download data');
+    if (!response.ok) {
+      throw new Error('Failed to download data');
     }
+
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'study_data.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 100);
+
+  } catch (error) {
+    console.error(error);
+    alert('Failed to download data');
+  }
 }
 
 async function downloadCalendar() {
@@ -440,13 +440,13 @@ async function downloadCalendar() {
 function renderTasks() {
   const tasks = store.tasks;
   const subjects = store.subjects;
-  
+
   if (subjects.length === 0) return; // Wait for subjects to load
-  
+
   // Filter based on archived status
   const activeTasks = tasks.filter(t => !t.archived);
   const archivedTasks = tasks.filter(t => t.archived);
-  
+
   // Update badges
   const allTasksBadge = document.querySelector('#all-tasks-btn .badge');
   if (allTasksBadge) {
@@ -456,6 +456,12 @@ function renderTasks() {
   if (archivedBadge) {
     archivedBadge.textContent = archivedTasks.length;
   }
+
+  const displayTasks = currentView === 'archived' ? archivedTasks : activeTasks;
+  const sorted = [...displayTasks].sort((a, b) => new Date(a.due_at) - new Date(b.due_at));
+
+  const now = new Date();
+
   
   const displayTasksRaw = currentView === 'archived' ? archivedTasks : activeTasks;
   const displayTasks = activeLabelFilter
@@ -488,7 +494,7 @@ function renderTasks() {
   const thisWeek = [];
   const completed = [];
   const pending = [];
-  
+
   if (currentView === 'calendar' && selectedDate) {
     sorted.forEach(t => {
       const d = new Date(t.due_at);
@@ -513,14 +519,14 @@ function renderTasks() {
       else thisWeek.push(t);
     });
   }
-  
+
   const renderGroup = (title, items, titleColor, showConflict = false) => {
     if (items.length === 0) return '';
     let html = `<div class="tasks-group">
       <div class="tasks-group-header">
         <span style="color:${titleColor}">${title}</span>
       </div>`;
-    
+
     if (showConflict) {
       const workloadSuggestions = analyzeWorkload(items);
       workloadSuggestions.forEach(workload => {
@@ -531,27 +537,30 @@ function renderTasks() {
         </div>`;
       });
     }
-    
-      
+
+
     items.forEach(t => {
       const sub = subjects.find(s => s.id === t.subject_id) || subjects[0];
       const isDone = t.status === 'Done';
+
       const isHighPriority = t.priority === 'high';
       const isOverdue = !isDone && t.due_at && new Date(t.due_at) < now;
       const isUrgent = isHighPriority && title === '⚠ Due soon';
       
       let pillClass = '';
-      if(sub.short_code === 'CS') pillClass = 'pill-blue';
-      else if(sub.short_code === 'Maths') pillClass = 'pill-green';
-      else if(sub.short_code === 'English') pillClass = 'pill-purple';
+      if (sub.short_code === 'CS') pillClass = 'pill-blue';
+      else if (sub.short_code === 'Maths') pillClass = 'pill-green';
+      else if (sub.short_code === 'English') pillClass = 'pill-purple';
       else pillClass = 'pill-amber';
-      
+
       if (t._isEditing) {
-        let subjectOptions = subjects.map(s => 
+        let subjectOptions = subjects.map(s =>
           `<option value="${s.id}" ${s.id === t.subject_id ? 'selected' : ''}>${s.name}</option>`
         ).join('');
-        
+
         const localDate = t.due_at ? new Date(t.due_at).toISOString().substring(0, 16) : '';
+        const isHighPriority = t.priority === 'high';
+
         
         html += `
           <div class="task-item editing" style="display:block; padding:12px; cursor:default;" data-id="${t.id}">
@@ -582,6 +591,10 @@ function renderTasks() {
           </div>
         `;
       } else {
+        const archiveBtn = !t.archived
+          ? `<button class="task-btn edit-task-btn" data-id="${t.id}" title="Edit">✏️ Edit</button>
+             <button class="task-btn archive-task-btn" data-id="${t.id}" title="Archive">Archive</button>`
+          : `<button class="task-btn edit-task-btn" data-id="${t.id}" title="Edit">✏️ Edit</button>
         const actionButtons = !t.archived 
           ? `<button class="task-btn edit-task-btn" data-id="${t.id}" title="Edit">Edit</button>
              <button class="task-btn archive-task-btn" data-id="${t.id}" title="Archive">Archive</button>
@@ -616,9 +629,9 @@ function renderTasks() {
     html += `</div>`;
     return html;
   };
-  
+
   if (currentView === 'calendar' && selectedDate) {
-    const selStr = selectedDate.toLocaleDateString('en-US', {month:'short', day:'numeric'});
+    const selStr = selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     const actionBar = `<div class="tasks-actions-bar">
            <button id="mark-all-pending-btn" class="task-action-btn" ${pending.length === 0 ? 'disabled' : ''}>Mark all pending completed (${pending.length})</button>
            <button id="mark-day-complete-btn" class="task-action-btn task-action-btn-secondary" ${pending.length === 0 ? 'disabled' : ''}>Mark selected day completed</button>
@@ -637,9 +650,9 @@ function renderTasks() {
       : '';
 
     tasksSection.innerHTML = actionBar +
-                             renderGroup(`Tasks for ${selStr}`, dueSoon, 'var(--color-text-primary)') +
-                             renderGroup('Completed', completed, 'var(--color-text-tertiary)') +
-                             emptyState;
+      renderGroup(`Tasks for ${selStr}`, dueSoon, 'var(--color-text-primary)') +
+      renderGroup('Completed', completed, 'var(--color-text-tertiary)') +
+      emptyState;
   } else {
     const actionBar = currentView === 'archived' ? '' : `<div class="tasks-actions-bar">
            <button id="mark-all-pending-btn" class="task-action-btn" ${pending.length === 0 ? 'disabled' : ''}>Mark all pending completed (${pending.length})</button>
@@ -666,6 +679,12 @@ function renderTasks() {
       : '';
 
     tasksSection.innerHTML = actionBar +
+      renderGroup(titlePrefix + '⚠ Due soon', dueSoon, 'var(--color-text-danger)', true)
+    renderGroup(titlePrefix + 'This week', thisWeek, 'var(--color-text-secondary)', true) +
+      renderGroup(titlePrefix + 'Completed', completed, 'var(--color-text-tertiary)') +
+      emptyState;
+  }
+
                              renderGroup(titlePrefix + '⚠ Due soon', dueSoon, 'var(--color-text-danger)', true)
                              + renderGroup(titlePrefix + 'This week', thisWeek, 'var(--color-text-secondary)', true) +
                              renderGroup(titlePrefix + 'Completed', completed, 'var(--color-text-tertiary)') +
@@ -683,11 +702,11 @@ function renderTasks() {
   document.querySelectorAll('.task-item').forEach(el => {
     el.addEventListener('click', (e) => {
       if (e.target.closest('.task-actions') || e.target.closest('.task-check')) return;
-      
+
       const taskId = el.dataset.id;
       const task = store.tasks.find(t => String(t.id) === String(taskId));
       if (task && task._isEditing) return;
-      
+
       store.toggleTaskStatus(taskId);
     });
   });
@@ -711,12 +730,15 @@ function renderTasks() {
       e.stopPropagation();
       const taskId = el.dataset.id;
       const itemEl = el.closest('.task-item');
+
+      const title = itemEl.querySelector('.board-edit-title').value;
       
       const rawTitle = itemEl.querySelector('.board-edit-title').value;
       const subject_id = itemEl.querySelector('.board-edit-subject').value;
       let dateVal = itemEl.querySelector('.board-edit-date').value;
       const notes = itemEl.querySelector('.board-edit-notes').value;
       const priority = itemEl.querySelector('.board-edit-priority').value;
+
       
       const { cleanTitle, labels } = extractLabels(rawTitle);
       
@@ -787,32 +809,32 @@ function renderCalendar() {
   const calTitle = document.getElementById('cal-month-title');
   const calGrid = document.getElementById('cal-grid');
   if (!calGrid) return;
-  
+
   const year = currentMonthDate.getFullYear();
   const month = currentMonthDate.getMonth();
-  
+
   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   calTitle.textContent = `${monthNames[month]} ${year}`;
-  
+
   const topbarTitle = document.querySelector('.topbar-title');
-  if(topbarTitle) topbarTitle.textContent = `${monthNames[month]} ${year}`;
+  if (topbarTitle) topbarTitle.textContent = `${monthNames[month]} ${year}`;
 
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const prevMonthDays = new Date(year, month, 0).getDate();
-  
+
   const today = new Date();
-  
+
   let html = `<div class="cal-day-label">Su</div><div class="cal-day-label">Mo</div><div class="cal-day-label">Tu</div><div class="cal-day-label">We</div><div class="cal-day-label">Th</div><div class="cal-day-label">Fr</div><div class="cal-day-label">Sa</div>`;
-  
+
   for (let i = 0; i < firstDay; i++) {
     html += `<div class="cal-day muted">${prevMonthDays - firstDay + i + 1}</div>`;
   }
-  
+
   for (let i = 1; i <= daysInMonth; i++) {
     const isToday = i === today.getDate() && month === today.getMonth() && year === today.getFullYear();
     const isSelected = selectedDate && i === selectedDate.getDate() && month === selectedDate.getMonth() && year === selectedDate.getFullYear();
-    
+
     // Find tasks for this day
     const dayTasks = store.tasks.filter(t => {
       if (t.archived) return false;
@@ -826,9 +848,9 @@ function renderCalendar() {
     if (dayTasks.length > 0) {
       indicatorHtml = `<div class="cal-day-indicators">`;
       dayTasks.forEach((t, idx) => {
-         if (idx > 2) return;
-         const sub = store.subjects.find(s => s.id === t.subject_id) || store.subjects[0];
-         indicatorHtml += `<div class="cal-day-indicator" style="background:${sub ? sub.color : 'var(--color-text-danger)'}"></div>`;
+        if (idx > 2) return;
+        const sub = store.subjects.find(s => s.id === t.subject_id) || store.subjects[0];
+        indicatorHtml += `<div class="cal-day-indicator" style="background:${sub ? sub.color : 'var(--color-text-danger)'}"></div>`;
       });
       indicatorHtml += `</div>`;
     }
@@ -840,13 +862,13 @@ function renderCalendar() {
       ${indicatorHtml}
     </div>`;
   }
-  
+
   const totalCells = firstDay + daysInMonth;
   const nextDays = (7 - (totalCells % 7)) % 7;
   for (let i = 1; i <= nextDays; i++) {
     html += `<div class="cal-day muted">${i}</div>`;
   }
-  
+
   calGrid.innerHTML = html;
 
   // Bind day clicks
@@ -854,7 +876,7 @@ function renderCalendar() {
     el.addEventListener('click', (e) => {
       const d = parseInt(e.currentTarget.getAttribute('data-day'));
       const clickedDate = new Date(year, month, d);
-      
+
       if (selectedDate && clickedDate.getTime() === selectedDate.getTime()) {
         selectedDate = null;
       } else {
@@ -874,24 +896,24 @@ function renderExtraction() {
     addItemsBtn.textContent = 'Add items to planner';
     return;
   }
-  
+
   addItemsBtn.disabled = false;
   addItemsBtn.textContent = `Add ${pasteItems.length} items to planner`;
-  
+
   let html = `<div class="extract-title">Extracted — ${pasteItems.length} items</div>`;
   pasteItems.forEach((item, index) => {
     // try to match subject name
     const sub = store.subjects.find(s => s.name.toLowerCase().includes((item.subject_name || '').toLowerCase())) || store.subjects[3];
     // Attach subject id to item so Add will work
     item.subject_id = sub.id;
-    
+
     if (item._isEditing) {
-      let subjectOptions = store.subjects.map(s => 
+      let subjectOptions = store.subjects.map(s =>
         `<option value="${s.id}" ${s.id === sub.id ? 'selected' : ''}>${s.name}</option>`
       ).join('');
-      
+
       const localDate = item.due_at ? new Date(item.due_at).toISOString().substring(0, 16) : '';
-      
+
       html += `
         <div class="extract-card">
           <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Subject</label>
@@ -926,15 +948,15 @@ function renderExtraction() {
       `;
     }
   });
-  
+
   extractPreview.innerHTML = html;
-  
+
   setTimeout(() => {
     document.querySelectorAll('.conf-fill').forEach(el => {
       el.style.width = el.getAttribute('data-width') + '%';
     });
   }, 100);
-  
+
   document.querySelectorAll('.conf-edit').forEach(btn => {
     btn.addEventListener('click', (e) => {
       const idx = e.target.getAttribute('data-index');
@@ -950,9 +972,9 @@ function renderExtraction() {
       const title = card.querySelector('.edit-title-input').value;
       let dateVal = card.querySelector('.edit-date-input').value;
       const notes = card.querySelector('.edit-notes-input').value;
-      
+
       const newSubject = store.subjects.find(s => s.id === subjectId);
-      
+
       store.updateExtractedItem(idx, {
         subject_id: subjectId,
         subject_name: newSubject ? newSubject.name : 'General',
@@ -1012,7 +1034,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (newSubjectSave) {
     newSubjectSave.addEventListener('click', async () => {
-      const ok = await store.addSubject({ name: newSubjectName.value, color: selectedNewSubjectColor });
+      const subjectNameValue = newSubjectName.value.trim();
+
+      if (!subjectNameValue) {
+        alert("Subject name cannot be empty!");
+        return;
+      }
+      const sidebarItems = document.querySelectorAll('#subjects-sidebar-list *');
+
+      const currentSidebarSubjects = Array.from(sidebarItems)
+        .map(item => item.textContent.replace(/[0-9]/g, '').trim().toLowerCase())
+        .filter(text => text.length > 0);
+      console.log("DEBUG - Current subjects found on screen:", currentSidebarSubjects);
+
+      if (currentSidebarSubjects.includes(subjectNameValue.toLowerCase())) {
+        alert("This subject already exists!");
+        return;
+      }
+
+      const ok = await store.addSubject({
+        name: subjectNameValue,
+        color: selectedNewSubjectColor
+      });
+
       if (ok && newSubjectModal) newSubjectModal.style.display = 'none';
     });
   }
@@ -1027,7 +1071,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   store.fetchInitialData();
-  
+
   const calendarBtn = document.getElementById('calendar-btn');
   const allTasksBtn = document.getElementById('all-tasks-btn');
   const archivedTasksBtn = document.getElementById('archived-tasks-btn');
@@ -1065,7 +1109,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderTasks();
   });
 
-  if(focusModeBtn) {
+  if (focusModeBtn) {
     focusModeBtn.addEventListener('click', () => {
       currentView = 'focus';
       document.querySelector('.cal-section').classList.add('hidden');
@@ -1087,43 +1131,55 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
 
-//NEw Task addition event listeners
-newTaskBtn.addEventListener('click', () => {
-  
-  if (!store.subjects || store.subjects.length === 0) {
-    alert('Subjects are still loading. Please try again in a moment.');
-    return;
-  }
+  //NEw Task addition event listeners
+  newTaskBtn.addEventListener('click', () => {
 
-  newTaskSubject.innerHTML = store.subjects
-    .map(s => `<option value="${s.id}">${s.name}</option>`)
-    .join('');
+    if (!store.subjects || store.subjects.length === 0) {
+      alert('Subjects are still loading. Please try again in a moment.');
+      return;
+    }
+
+    newTaskSubject.innerHTML = store.subjects
+      .map(s => `<option value="${s.id}">${s.name}</option>`)
+      .join('');
 
 
-  if (selectedDate) {
-    const d = new Date(selectedDate);
-    d.setHours(18, 0, 0, 0); 
-    newTaskDate.value = d.toISOString().substring(0, 16);
-  } else {
-    newTaskDate.value = '';
-  }
+    if (selectedDate) {
+      const d = new Date(selectedDate);
+      d.setHours(18, 0, 0, 0);
+      newTaskDate.value = d.toISOString().substring(0, 16);
+    } else {
+      newTaskDate.value = '';
+    }
 
-  newTaskTitle.value = '';
-  newTaskNotes.value = '';
+    newTaskTitle.value = '';
+    newTaskNotes.value = '';
 
-  newTaskModal.style.display = 'flex';
-});
+    newTaskModal.style.display = 'flex';
+  });
 
-newTaskCancel.addEventListener('click', () => {
-  newTaskModal.style.display = 'none';
-});
-
-newTaskModal.addEventListener('click', (e) => {
-  if (e.target === newTaskModal) {
+  newTaskCancel.addEventListener('click', () => {
     newTaskModal.style.display = 'none';
-  }
-});
+  });
 
+  newTaskModal.addEventListener('click', (e) => {
+    if (e.target === newTaskModal) {
+      newTaskModal.style.display = 'none';
+    }
+  });
+
+  newTaskSave.addEventListener('click', async () => {
+    const title = newTaskTitle.value.trim();
+    const subject_id = newTaskSubject.value;
+    const notes = newTaskNotes.value.trim();
+    const dateVal = newTaskDate.value;
+
+    if (!title) {
+      alert('Please enter a task name');
+      return;
+    }
+
+    const due_at = dateVal ? new Date(dateVal).toISOString() : '';
 newTaskSave.addEventListener('click', async () => {
   const rawTitle = newTaskTitle.value.trim();
   const subject_id = newTaskSubject.value;
@@ -1158,10 +1214,27 @@ if (!subject_id) {
     labels
   };
 
-  await store.addTasks([newTask]);
-  newTaskModal.style.display = 'none';
-});
+    const newTask = {
+      title,
+      subject_id,
+      due_at,
+      notes,
+      priority: 'medium',
+      status: 'Not Started',
+      archived: 0
+    };
 
+    await store.addTasks([newTask]);
+    newTaskModal.style.display = 'none';
+  });
+
+  addItemsBtn.addEventListener('click', () => {
+    if (store.currentPaste) {
+      store.addTasks(store.currentPaste);
+      store.clearExtracted();
+      pasteInput.value = '';
+    }
+  });
 addItemsBtn.addEventListener('click', () => {
   if (store.currentPaste) {
     const pasteWithLabels = store.currentPaste.map(t => {
@@ -1178,15 +1251,15 @@ addItemsBtn.addEventListener('click', () => {
 extractBtn.addEventListener('click', async () => {
   const text = pasteInput.value;
   if (!text.trim()) return;
-  
-  extractBtn.innerHTML = '<span class="loader-spinner"></span>';
+
+  extractBtn.innerHTML = '<span class="loader-spinner"></span> Extracting...';
   extractBtn.disabled = true;
-  
+
   const items = await extractTasksFromText(text);
-  
+
   extractBtn.innerHTML = 'Extract with AI →';
   extractBtn.disabled = false;
-  
+
   store.setExtracted(items);
 });
 
