@@ -70,8 +70,14 @@ const NLP_MONTHS = {
 function nlpResolveYear(now, month, day, explicitYear = null) {
   if (explicitYear) return new Date(explicitYear, month, day);
   const c = new Date(now.getFullYear(), month, day);
-  if (c < now) c.setFullYear(c.getFullYear() + 1);
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  if (c < today) c.setFullYear(c.getFullYear() + 1);
   return c;
+}
+
+function nlpParseYear(rawYear) {
+  if (!rawYear) return null;
+  return rawYear.length === 2 ? 2000 + parseInt(rawYear) : parseInt(rawYear);
 }
 
 function nlpExtractDate(text, now = new Date()) {
@@ -105,15 +111,16 @@ function nlpExtractDate(text, now = new Date()) {
 
   const monthNames = Object.keys(NLP_MONTHS).join('|');
   const ord = `(\\d{1,2})(?:st|nd|rd|th)?`;
-  m = lower.match(new RegExp(`\\b(${monthNames})\\s+${ord}\\b`));
-  if (m) return nlpWithTime(nlpStartOf(nlpResolveYear(now, NLP_MONTHS[m[1]], parseInt(m[2]))).toISOString(), time);
-  m = lower.match(new RegExp(`\\b${ord}\\s+(${monthNames})\\b`));
-  if (m) return nlpWithTime(nlpStartOf(nlpResolveYear(now, NLP_MONTHS[m[2]], parseInt(m[1]))).toISOString(), time);
+  const optionalYear = `(?:,?\\s+(\\d{4}|\\d{2}))?`;
+  m = lower.match(new RegExp(`\\b(${monthNames})\\s+${ord}${optionalYear}\\b`));
+  if (m) return nlpWithTime(nlpStartOf(nlpResolveYear(now, NLP_MONTHS[m[1]], parseInt(m[2]), nlpParseYear(m[3]))).toISOString(), time);
+  m = lower.match(new RegExp(`\\b${ord}\\s+(${monthNames})${optionalYear}\\b`));
+  if (m) return nlpWithTime(nlpStartOf(nlpResolveYear(now, NLP_MONTHS[m[2]], parseInt(m[1]), nlpParseYear(m[3]))).toISOString(), time);
 
   m = lower.match(/\b(\d{1,2})[\/\-\.](\d{1,2})(?:[\/\-\.](\d{2,4}))?\b/);
   if (m) {
     const day = parseInt(m[1]), month = parseInt(m[2]) - 1;
-    const yr = m[3] ? (m[3].length === 2 ? 2000 + parseInt(m[3]) : parseInt(m[3])) : null;
+    const yr = nlpParseYear(m[3]);
     return nlpWithTime(nlpStartOf(nlpResolveYear(now, month, day, yr)).toISOString(), time);
   }
 

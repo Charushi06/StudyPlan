@@ -2519,3 +2519,30 @@ body {
   color: #ffcc66;
   font-weight: 600;
 }
+
+/* Keep busy calendar days readable without allowing markers to resize cells. */
+.cal-day {
+  overflow: hidden;
+}
+
+.cal-day-indicators {
+  align-items: center;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.cal-day-indicator {
+  flex: 0 0 5px;
+}
+
+.cal-day-overflow {
+  color: var(--color-text-tertiary);
+  flex: 0 0 auto;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.cal-day.today .cal-day-overflow {
+  color: var(--color-background-primary);
+}

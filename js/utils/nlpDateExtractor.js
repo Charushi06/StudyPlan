@@ -141,31 +141,32 @@ const MONTHS = {
 };
 
 function matchAbsoluteDate(lower, now) {
-  // "april 25", "25 april", "25th april", "april 25th"
+  // "april 25", "25 april", "25th april 2026", "april 25th, 2026"
   const monthNames = Object.keys(MONTHS).join('|');
   const ordinal = `(\\d{1,2})(?:st|nd|rd|th)?`;
+  const optionalYear = `(?:,?\\s+(\\d{4}|\\d{2}))?`;
 
   let m;
 
-  m = lower.match(new RegExp(`\\b(${monthNames})\\s+${ordinal}\\b`));
+  m = lower.match(new RegExp(`\\b(${monthNames})\\s+${ordinal}${optionalYear}\\b`));
   if (m) {
     const month = MONTHS[m[1]];
     const day = parseInt(m[2]);
-    return toISO(startOf(resolveYear(now, month, day)));
+    return toISO(startOf(resolveYear(now, month, day, parseYear(m[3]))));
   }
 
-  m = lower.match(new RegExp(`\\b${ordinal}\\s+(${monthNames})\\b`));
+  m = lower.match(new RegExp(`\\b${ordinal}\\s+(${monthNames})${optionalYear}\\b`));
   if (m) {
     const day = parseInt(m[1]);
     const month = MONTHS[m[2]];
-    return toISO(startOf(resolveYear(now, month, day)));
+    return toISO(startOf(resolveYear(now, month, day, parseYear(m[3]))));
   }
 
   m = lower.match(/\b(\d{1,2})[\/\-\.](\d{1,2})(?:[\/\-\.](\d{2,4}))?\b/);
   if (m) {
     const day = parseInt(m[1]);
     const month = parseInt(m[2]) - 1;
-    const year = m[3] ? (m[3].length === 2 ? 2000 + parseInt(m[3]) : parseInt(m[3])) : null;
+    const year = parseYear(m[3]);
     return toISO(startOf(resolveYear(now, month, day, year)));
   }
 
@@ -175,8 +176,14 @@ function matchAbsoluteDate(lower, now) {
 function resolveYear(now, month, day, explicitYear = null) {
   if (explicitYear) return new Date(explicitYear, month, day);
   const candidate = new Date(now.getFullYear(), month, day);
-  if (candidate < now) candidate.setFullYear(candidate.getFullYear() + 1);
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  if (candidate < today) candidate.setFullYear(candidate.getFullYear() + 1);
   return candidate;
+}
+
+function parseYear(rawYear) {
+  if (!rawYear) return null;
+  return rawYear.length === 2 ? 2000 + parseInt(rawYear) : parseInt(rawYear);
 }
 
 function matchEndOfPeriod(lower, now) {

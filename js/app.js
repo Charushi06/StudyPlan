@@ -824,12 +824,16 @@ function renderCalendar() {
 
     let indicatorHtml = '';
     if (dayTasks.length > 0) {
-      indicatorHtml = `<div class="cal-day-indicators">`;
-      dayTasks.forEach((t, idx) => {
-         if (idx > 2) return;
+      const visibleCount = dayTasks.length > 3 ? 2 : dayTasks.length;
+      const hiddenCount = dayTasks.length - visibleCount;
+      indicatorHtml = `<div class="cal-day-indicators" aria-label="${dayTasks.length} pending task${dayTasks.length === 1 ? '' : 's'}">`;
+      dayTasks.slice(0, visibleCount).forEach((t) => {
          const sub = store.subjects.find(s => s.id === t.subject_id) || store.subjects[0];
          indicatorHtml += `<div class="cal-day-indicator" style="background:${sub ? sub.color : 'var(--color-text-danger)'}"></div>`;
       });
+      if (hiddenCount > 0) {
+        indicatorHtml += `<span class="cal-day-overflow">+${hiddenCount}</span>`;
+      }
       indicatorHtml += `</div>`;
     }
 
