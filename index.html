@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>StudyPlan</title>
   <link rel="stylesheet" href="/css/index.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
   <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -84,6 +87,10 @@
         Download Data
         <span class="badge">7</span>
       </div>
+      <div class="nav-item" id="calendar-download-btn">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M1 6h14" stroke="currentColor" stroke-width="1.5"/><path d="M5 1v2M11 1v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Export to Calendar
+      </div>
       <div class="sidebar-divider"></div>
       <div class="sidebar-header">Subjects</div>
       <div id="subjects-sidebar-list"></div>
@@ -96,11 +103,26 @@
     <div class="main">
       <div class="topbar">
         <div class="topbar-title">April 2026</div>
+        <select id="label-filter" style="margin-left:auto; margin-right: 12px; padding: 6px; border-radius: 6px; border: 1px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); outline: none; cursor: pointer;">
+          <option value="">All Labels</option>
+        </select>
         <button class="btn">Week</button>
         <button class="btn btn-primary"  id="add-task-btn">
           <svg width="12" height="12" fill="none" style="margin-right:2px"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> New task
         </button>
       </div>
+
+      <!-- Dashboard Greeting -->
+        <div class="dashboard-greeting" style="padding: 16px 24px 0; display: flex; justify-content: center;">
+          <div class="quote-widget">
+            <svg class="quote-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <p id="motivational-quotes">
+              Small Progress is still Progress
+            </p>
+          </div>
+        </div>
 
       <!-- Calendar -->
       <div class="cal-section">
@@ -436,8 +458,8 @@
     <label style="display:block; font-size:12px; margin-bottom:4px;">Subject</label>
     <select id="new-task-subject" paceholder="Subject" style="width:100%; padding:6px; margin-bottom:10px;"></select>
 
-    <label style="display:block; font-size:12px; margin-bottom:4px;">Task name</label>
-    <input id="new-task-title" type="text" style="width:100%; padding:6px; margin-bottom:10px;"placeholder="TaskName">
+    <label style="display:block; font-size:12px; margin-bottom:4px;">Task name (Use #tag for labels)</label>
+    <input id="new-task-title" type="text" style="width:100%; padding:6px; margin-bottom:10px;"placeholder="e.g. Study for exam #urgent #school">
 
     <label style="display:block; font-size:12px; margin-bottom:4px;">Deadline</label>
     <input id="new-task-date" type="datetime-local" style="width:100%; padding:6px; margin-bottom:10px;" placeholder="Deadline">
