@@ -5,6 +5,13 @@ import { analyzeWorkload } from './utils/scheduler.js';
 
 initGlobalErrorBoundary();
 
+// Global Filter Configuration Layer State Object
+const activeFilters = {
+  searchQuery: '',
+  subjectId: 'All',
+  priority: 'All',
+  status: 'All'
+};
 function getLabelColor(labelStr) {
   const colors = ['#ef4444', '#f59e0b', '#3b82f6', '#8b5cf6', '#10b981', '#ec4899', '#14b8a6', '#f97316'];
   let hash = 0;
@@ -413,6 +420,43 @@ async function downloadData() {
     }
 }
 
+// Category Dropdown Population Helper
+function updateCategoryFilterDropdown(subjects) {
+  const categorySelect = document.getElementById('categoryFilter');
+  if (!categorySelect) return;
+  const currentSelection = activeFilters.subjectId;
+  categorySelect.innerHTML = '<option value="All">All Subjects</option>';
+  subjects.forEach(s => {
+    const option = document.createElement('option');
+    option.value = s.id;
+    option.textContent = s.name;
+    categorySelect.appendChild(option);
+  });
+  categorySelect.value = currentSelection;
+}
+
+// Combined View-Layer Filter Processing Engine
+function getFilteredDataset(tasks) {
+  return tasks.filter(t => {
+    // 1. Keyword Title Matching
+    const matchesSearch = t.title
+      ? t.title.toLowerCase().includes(activeFilters.searchQuery.toLowerCase())
+      : false;
+
+    // 2. Subject ID Matching
+    const matchesCategory = activeFilters.subjectId === 'All' || String(t.subject_id) === String(activeFilters.subjectId);
+
+    // 3. Priority Configuration String Matching
+    const matchesPriority = activeFilters.priority === 'All' || String(t.priority).toLowerCase() === activeFilters.priority.toLowerCase();
+
+    // 4. Status Check Evaluators
+    const isDone = t.status === 'Done';
+    const matchesStatus = activeFilters.status === 'All' ||
+      (activeFilters.status === 'Completed' && isDone) ||
+      (activeFilters.status === 'Pending' && !isDone);
+
+    return matchesSearch && matchesCategory && matchesPriority && matchesStatus;
+  });
 async function downloadCalendar() {
     try {
         const response = await fetch('/api/download/calendar');
@@ -443,6 +487,9 @@ function renderTasks() {
   
   if (subjects.length === 0) return; // Wait for subjects to load
   
+  // Update available categories dynamically
+  updateCategoryFilterDropdown(subjects);
+
   // Filter based on archived status
   const activeTasks = tasks.filter(t => !t.archived);
   const archivedTasks = tasks.filter(t => t.archived);
@@ -457,6 +504,11 @@ function renderTasks() {
     archivedBadge.textContent = archivedTasks.length;
   }
   
+  
+  // Pipeline target dataset through multi-query evaluation layer
+  const fullyFilteredTasks = getFilteredDataset(displayTasks);
+  
+  const sorted = [...fullyFilteredTasks].sort((a,b) => new Date(a.due_at) - new Date(b.due_at));
   const displayTasksRaw = currentView === 'archived' ? archivedTasks : activeTasks;
   const displayTasks = activeLabelFilter
     ? displayTasksRaw.filter(t => t.labels && t.labels.includes(activeLabelFilter))
@@ -532,7 +584,6 @@ function renderTasks() {
       });
     }
     
-      
     items.forEach(t => {
       const sub = subjects.find(s => s.id === t.subject_id) || subjects[0];
       const isDone = t.status === 'Done';
@@ -777,7 +828,6 @@ function renderTasks() {
   }
 }
 
-
 const summaryBox = document.getElementById('summary-box');
 if (summaryBox) {
   summaryBox.innerHTML = generateSummary(store.tasks, store.subjects);
@@ -965,6 +1015,34 @@ function renderExtraction() {
   });
 }
 
+// Attach Action Listeners to DOM nodes
+function bindFilterControlEventListeners() {
+  const searchInput = document.getElementById('taskSearchInput');
+  const categorySelect = document.getElementById('categoryFilter');
+  const prioritySelect = document.getElementById('priorityFilter');
+  const statusSelect = document.getElementById('statusFilter');
+
+  searchInput?.addEventListener('input', (e) => {
+    activeFilters.searchQuery = e.target.value;
+    renderTasks();
+  });
+
+  categorySelect?.addEventListener('change', (e) => {
+    activeFilters.subjectId = e.target.value;
+    renderTasks();
+  });
+
+  prioritySelect?.addEventListener('change', (e) => {
+    activeFilters.priority = e.target.value;
+    renderTasks();
+  });
+
+  statusSelect?.addEventListener('change', (e) => {
+    activeFilters.status = e.target.value;
+    renderTasks();
+  });
+}
+
 store.subscribe(renderTasks);
 store.subscribe(renderExtraction);
 store.subscribe(renderCalendar);
@@ -972,6 +1050,9 @@ store.subscribe(renderFocusTasks);
 store.subscribe(renderSidebarSubjects);
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Bind dynamic view fields to event trackers
+  bindFilterControlEventListeners();
+
   if (newSubjectColorsEl) {
     SUBJECT_COLORS.forEach(c => {
       const btn = document.createElement('button');
@@ -1086,44 +1167,53 @@ document.addEventListener('DOMContentLoaded', () => {
     renderCalendar();
   });
 
+  // New Task addition event listeners
+  newTaskBtn.addEventListener('click', () => {
+    if (!store.subjects || store.subjects.length === 0) {
+      alert('Subjects are still loading. Please try again in a moment.');
+      return;
+    }
 
-//NEw Task addition event listeners
-newTaskBtn.addEventListener('click', () => {
-  
-  if (!store.subjects || store.subjects.length === 0) {
-    alert('Subjects are still loading. Please try again in a moment.');
-    return;
-  }
+    newTaskSubject.innerHTML = store.subjects
+      .map(s => `<option value="${s.id}">${s.name}</option>`)
+      .join('');
 
-  newTaskSubject.innerHTML = store.subjects
-    .map(s => `<option value="${s.id}">${s.name}</option>`)
-    .join('');
+    if (selectedDate) {
+      const d = new Date(selectedDate);
+      d.setHours(18, 0, 0, 0); 
+      newTaskDate.value = d.toISOString().substring(0, 16);
+    } else {
+      newTaskDate.value = '';
+    }
 
+    newTaskTitle.value = '';
+    newTaskNotes.value = '';
 
-  if (selectedDate) {
-    const d = new Date(selectedDate);
-    d.setHours(18, 0, 0, 0); 
-    newTaskDate.value = d.toISOString().substring(0, 16);
-  } else {
-    newTaskDate.value = '';
-  }
+    newTaskModal.style.display = 'flex';
+  });
 
-  newTaskTitle.value = '';
-  newTaskNotes.value = '';
-
-  newTaskModal.style.display = 'flex';
-});
-
-newTaskCancel.addEventListener('click', () => {
-  newTaskModal.style.display = 'none';
-});
-
-newTaskModal.addEventListener('click', (e) => {
-  if (e.target === newTaskModal) {
+  newTaskCancel.addEventListener('click', () => {
     newTaskModal.style.display = 'none';
-  }
-});
+  });
 
+  newTaskModal.addEventListener('click', (e) => {
+    if (e.target === newTaskModal) {
+      newTaskModal.style.display = 'none';
+    }
+  });
+
+  newTaskSave.addEventListener('click', async () => {
+    const title = newTaskTitle.value.trim();
+    const subject_id = newTaskSubject.value;
+    const notes = newTaskNotes.value.trim();
+    const dateVal = newTaskDate.value;
+
+    if (!title) {
+      alert('Please enter a task name');
+      return;
+    }
+
+    const due_at = dateVal ? new Date(dateVal).toISOString() : '';
 newTaskSave.addEventListener('click', async () => {
   const rawTitle = newTaskTitle.value.trim();
   const subject_id = newTaskSubject.value;
@@ -1158,10 +1248,21 @@ if (!subject_id) {
     labels
   };
 
-  await store.addTasks([newTask]);
-  newTaskModal.style.display = 'none';
-});
+    const newTask = {
+      title,
+      subject_id,
+      due_at,
+      notes,
+      priority: 'medium',
+      status: 'Not Started',
+      archived: 0
+    };
 
+    await store.addTasks([newTask]);
+    newTaskModal.style.display = 'none';
+  });
+
+  
 addItemsBtn.addEventListener('click', () => {
   if (store.currentPaste) {
     const pasteWithLabels = store.currentPaste.map(t => {

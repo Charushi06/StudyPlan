@@ -140,6 +140,29 @@
         </div>
       </div>
 
+      <!-- Search and Filter Layer Control Elements -->
+      <div class="filter-layer-container" style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; background: var(--color-background-secondary, #f9fafb); padding: 12px; border-radius: 8px; border: 1px solid var(--color-border-tertiary, #e5e7eb);">
+        <input 
+          type="text" 
+          id="taskSearchInput" 
+          placeholder="Search tasks by title..." 
+          style="padding: 8px 12px; flex: 2; min-width: 180px; border-radius: 6px; border: 1px solid var(--color-border-secondary, #d1d5db); background: var(--color-background-primary, #fff); color: var(--color-text-primary, #000); font-family: inherit; font-size: 14px;"
+        />
+        <select id="categoryFilter" style="padding: 8px 12px; flex: 1; min-width: 130px; border-radius: 6px; border: 1px solid var(--color-border-secondary, #d1d5db); background: var(--color-background-primary, #fff); color: var(--color-text-primary, #000); font-family: inherit; font-size: 14px;">
+          <option value="All">All Subjects</option>
+        </select>
+        <select id="priorityFilter" style="padding: 8px 12px; flex: 1; min-width: 130px; border-radius: 6px; border: 1px solid var(--color-border-secondary, #d1d5db); background: var(--color-background-primary, #fff); color: var(--color-text-primary, #000); font-family: inherit; font-size: 14px;">
+          <option value="All">All Priorities</option>
+          <option value="medium">Medium Priority</option>
+          <option value="high">High Priority</option>
+        </select>
+        <select id="statusFilter" style="padding: 8px 12px; flex: 1; min-width: 130px; border-radius: 6px; border: 1px solid var(--color-border-secondary, #d1d5db); background: var(--color-background-primary, #fff); color: var(--color-text-primary, #000); font-family: inherit; font-size: 14px;">
+          <option value="All">All Statuses</option>
+          <option value="Pending">Pending</option>
+          <option value="Completed">Completed</option>
+        </select>
+      </div>
+
       <!-- Tasks -->
       <div id="tasks-section" class="tasks-section">
         <!-- Javascript will inject tasks here -->
