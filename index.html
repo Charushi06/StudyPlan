@@ -19,13 +19,15 @@
     <h2 id="auth-title" style="margin:0 0 8px; font-size:22px; font-weight:700;">Welcome back</h2>
     <p id="auth-subtitle" style="margin:0 0 24px; color:#666; font-size:14px;">Sign in to your StudyPlan account</p>
 
-    <input id="auth-email" type="email" placeholder="Email address" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:12px; box-sizing:border-box;">
-    
-    <input id="auth-password" type="password" placeholder="Password" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:20px; box-sizing:border-box;">
+    <form id="auth-form">
+      <input id="auth-email" type="email" placeholder="Email address" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:12px; box-sizing:border-box;">
 
-    <button id="auth-submit-btn" style="width:100%; padding:12px; background:#4f46e5; color:white; border:none; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer;">
-      Sign In
-    </button>
+      <input id="auth-password" type="password" placeholder="Password" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:20px; box-sizing:border-box;">
+
+      <button id="auth-submit-btn" type="submit" style="width:100%; padding:12px; background:#4f46e5; color:white; border:none; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer;">
+        Sign In
+      </button>
+    </form>
 
     <p style="text-align:center; margin:16px 0 0; font-size:13px; color:#666;">
       <span id="auth-toggle-text">Don't have an account?</span>
@@ -305,7 +307,9 @@
     document.getElementById('auth-error').style.display = 'none';
   });
 
-  document.getElementById('auth-submit-btn').addEventListener('click', async () => {
+  document.getElementById('auth-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
     const email = document.getElementById('auth-email').value.trim();
     const password = document.getElementById('auth-password').value.trim();
     const errorEl = document.getElementById('auth-error');
