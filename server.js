@@ -513,16 +513,38 @@ const users = {}; // Simple in-memory user store
 
 app.post('/api/auth/signup', (req, res) => {
   const { email, password } = req.body;
-  if (!email || !password) {
-    return res.status(400).json({ error: 'Email and password required' });
-  }
-  if (users[email]) {
-    return res.status(400).json({ error: 'User already exists' });
-  }
-  users[email] = { email, password };
-  res.json({ success: true, message: 'Account created successfully' });
-});
 
+  if (!email || !password) {
+    return res.status(400).json({
+      error: 'Email and password required'
+    });
+  }
+
+  // Email validation
+  const emailRegex =
+    /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}$/;
+
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({
+      error: 'Invalid email format'
+    });
+  }
+
+  // Check existing user
+  if (users[email]) {
+    return res.status(400).json({
+      error: 'User already exists'
+    });
+  }
+
+  // Save user
+  users[email] = { email, password };
+
+  res.json({
+    success: true,
+    message: 'Account created successfully'
+  });
+});
 app.post('/api/auth/login', (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
