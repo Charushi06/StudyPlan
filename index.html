@@ -4,6 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>StudyPlan</title>
+  <script>
+    (function () {
+      try {
+        const savedTheme = localStorage.getItem('studyplan_dark_mode');
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const isDarkMode = savedTheme ? savedTheme === 'true' : prefersDark;
+        document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+      } catch (error) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
   <link rel="stylesheet" href="/css/index.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
@@ -53,7 +65,8 @@
   </nav>
 
   <div class="header-right">
-    <button id="nav-profile" class="profile-btn" onclick="(function(){ const m=document.getElementById('profile-modal'); if(m) m.style.display='flex'; })()">Profile</button>
+    <button id="theme-toggle" class="profile-btn" type="button" aria-label="Toggle dark mode">Dark Mode</button>
+    <button id="nav-profile" class="profile-btn">Profile</button>
   </div>
 </header>
 
@@ -293,6 +306,19 @@
   <script>
   let isLogin = true;
   const authModal = document.getElementById('auth-modal');
+  const themeToggle = document.getElementById('theme-toggle');
+
+  function applyTheme(isDarkMode) {
+    document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+    if (themeToggle) {
+      themeToggle.textContent = isDarkMode ? 'Light Mode' : 'Dark Mode';
+      themeToggle.setAttribute('aria-pressed', isDarkMode ? 'true' : 'false');
+    }
+  }
+
+  const savedTheme = localStorage.getItem('studyplan_dark_mode');
+  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  applyTheme(savedTheme ? savedTheme === 'true' : prefersDark);
 
   function setAuthMode(loginMode) {
     isLogin = loginMode;
@@ -384,6 +410,15 @@
     settingsModal.style.display = 'none';
   });
 
+  if (themeToggle) {
+    themeToggle.addEventListener('click', () => {
+      const nextIsDark = document.documentElement.getAttribute('data-theme') !== 'dark';
+      localStorage.setItem('studyplan_dark_mode', String(nextIsDark));
+      applyTheme(nextIsDark);
+      if (darkModeToggle) darkModeToggle.checked = nextIsDark;
+    });
+  }
+
   window.addEventListener('click', (e) => {
     if (e.target === settingsModal) {
       settingsModal.style.display = 'none';
@@ -402,11 +437,7 @@
     darkModeToggle.checked = isDarkMode;
     compactViewToggle.checked = isCompactView;
 
-    if (isDarkMode) {
-      document.documentElement.setAttribute('data-theme', 'dark');
-    } else {
-      document.documentElement.setAttribute('data-theme', 'light');
-    }
+    applyTheme(isDarkMode);
 
     if (isCompactView) {
       document.body.classList.add('compact-view');
@@ -428,11 +459,14 @@
 
   // Also apply immediately on toggle for better UX
   darkModeToggle.addEventListener('change', (e) => {
+    localStorage.setItem('studyplan_dark_mode', String(e.target.checked));
     if (e.target.checked) {
-      document.documentElement.setAttribute('data-theme', 'dark');
+      applyTheme(true);
     } else {
-      document.documentElement.setAttribute('data-theme', 'light');
+      applyTheme(false);
     }
+    if (themeToggle) themeToggle.textContent = e.target.checked ? 'Light Mode' : 'Dark Mode';
+    if (themeToggle) themeToggle.setAttribute('aria-pressed', e.target.checked ? 'true' : 'false');
   });
 
   compactViewToggle.addEventListener('change', (e) => {
