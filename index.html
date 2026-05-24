@@ -54,14 +54,14 @@
   </div>
 
   <nav class="header-nav">
-    <a href="#">Dashboard</a>
-    <a href="#">Tasks</a>
-    <a href="#">Calendar</a>
-    <a href="#" id="nav-settings">Settings</a>
-  </nav>
+  <a href="#" id="dashboard-link">Dashboard</a>
+  <a href="#" id="tasks-link">Tasks</a>
+  <a href="#" id="calendar-link">Calendar</a>
+  <a href="#" id="nav-settings">Settings</a>
+</nav>
 
   <div class="header-right">
-    <button class="profile-btn">Profile</button>
+    <button class="profile-btn" id="profile-btn">Profile</button>
     <button class="profile-btn" id="logout-btn">Logout</button>
   </div>
 </header>
@@ -397,6 +397,45 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
 });
 
   // Settings Modal Logic
+  // Header Navigation Controls
+const dashboardLink = document.getElementById('dashboard-link');
+const tasksLink = document.getElementById('tasks-link');
+const calendarLink = document.getElementById('calendar-link');
+const profileBtn = document.getElementById('profile-btn');
+
+const calendarBtn = document.getElementById('calendar-btn');
+const allTasksBtn = document.getElementById('all-tasks-btn');
+
+// Dashboard Navigation
+if (dashboardLink && calendarBtn) {
+  dashboardLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    calendarBtn.click();
+  });
+}
+
+// Tasks Navigation
+if (tasksLink && allTasksBtn) {
+  tasksLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    allTasksBtn.click();
+  });
+}
+
+// Calendar Navigation
+if (calendarLink && calendarBtn) {
+  calendarLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    calendarBtn.click();
+  });
+}
+
+// Profile Button
+if (profileBtn) {
+  profileBtn.addEventListener('click', () => {
+    alert('Profile feature coming soon!');
+  });
+}
   const settingsModal = document.getElementById('settings-modal');
   const navSettings = document.getElementById('nav-settings');
   const settingsClose = document.getElementById('settings-close');
