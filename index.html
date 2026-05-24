@@ -440,8 +440,11 @@
 </div>
 
 <div id="new-task-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0;  z-index:9998; align-items:center; justify-content:center;">
-  <div class="modal-card" style=" border-radius:12px; padding:20px; width:320px; box-shadow:0 12px 40px rgba(0,0,0,0.25);">
-    <h3 style="margin:0 0 12px; font-size:18px; font-weight:600;">New task</h3>
+  <div class="modal-card modal-card-task" style=" border-radius:12px; padding:20px; box-shadow:0 12px 40px rgba(0,0,0,0.25);">
+    <div class="new-task-modal-header">
+      <h3 style="margin:0; font-size:18px; font-weight:600;">New task</h3>
+      <button id="new-task-close" type="button" class="btn" aria-label="Close new task form">&times;</button>
+    </div>
 
     <label style="display:block; font-size:12px; margin-bottom:4px;">Subject</label>
     <select id="new-task-subject" paceholder="Subject" style="width:100%; padding:6px; margin-bottom:10px;"></select>

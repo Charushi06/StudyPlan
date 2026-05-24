@@ -79,7 +79,7 @@ export const store = {
         //  Backend error
         alert(`❌ ${data.message || "Failed to add tasks"}`);
         console.error('Add task error:', data);
-        return;
+        return false;
       }
 
       // ================= USER MESSAGES =================
@@ -104,10 +104,12 @@ export const store = {
       const tasksRes = await fetch('/api/tasks');
       this.tasks = await tasksRes.json();
       this.notify();
+      return true;
 
     } catch (e) {
       console.error('Failed to add tasks', e);
-      alert("❌ Network error. Please try again.");
+      alert("âŒ Network error. Please try again.");
+      return false;
     }
   },
 

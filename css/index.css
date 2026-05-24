@@ -753,6 +753,11 @@ body {
   background-color: rgba(0, 0, 0, 0.55) !important; 
 }
 
+#new-task-modal {
+  justify-content: flex-start;
+  padding: 24px 24px 24px max(24px, calc((100vw - 980px) / 2));
+}
+
 
 #new-task-modal .modal-card,
 #new-subject-modal .modal-card {
@@ -767,10 +772,27 @@ body {
   border: 1px solid rgba(148, 163, 184, 0.35)  !important;
 }
 
+#new-task-modal .modal-card {
+  max-width: 560px;
+  width: min(560px, calc(100vw - 96px));
+}
+
+#new-task-modal .modal-card-task {
+  position: relative;
+}
+
+#new-task-modal .new-task-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
 
 #new-task-modal .modal-card h3,
 #new-subject-modal .modal-card h3 {
-  margin: 0 0 12px;
+  margin: 0;
   font-size: 18px;
   font-weight: 600;
   letter-spacing: 0.01em;
@@ -841,6 +863,13 @@ body {
   border-radius: 999px;
 }
 
+#new-task-close {
+  min-width: 36px;
+  line-height: 1;
+  font-size: 20px !important;
+  padding: 4px 0 !important;
+}
+
 #new-task-modal .btn:not(.btn-primary),
 #new-subject-modal .btn:not(.btn-primary) {
   background: rgba(15, 23, 42, 0.9);
@@ -871,9 +900,15 @@ body {
 
 
 @media (max-width: 480px) {
+  #new-task-modal {
+    justify-content: center;
+    padding: 16px;
+  }
+
   #new-task-modal .modal-card,
   #new-subject-modal .modal-card {
     max-width: 90vw;
+    width: 100%;
     padding: 16px 14px 12px;
   }
 }
@@ -2326,10 +2361,15 @@ body {
   background-color: rgba(0, 0, 0, 0.55) !important; 
 }
 
+#new-task-modal {
+  justify-content: flex-start;
+  padding: 24px 24px 24px max(24px, calc((100vw - 980px) / 2));
+}
+
 
 #new-task-modal .modal-card {
-  width: 100%;
-  max-width: 360px;
+  width: min(560px, calc(100vw - 96px));
+  max-width: 560px;
   background-color: #0f172a;                     
   border-radius: 14px;
   padding: 20px 20px 16px;
@@ -2339,9 +2379,21 @@ body {
   border: 1px solid rgba(148, 163, 184, 0.35)  !important;
 }
 
+#new-task-modal .modal-card-task {
+  position: relative;
+}
+
+#new-task-modal .new-task-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
 
 #new-task-modal .modal-card h3 {
-  margin: 0 0 12px;
+  margin: 0;
   font-size: 18px;
   font-weight: 600;
   letter-spacing: 0.01em;
@@ -2404,6 +2456,13 @@ body {
   border-radius: 999px;
 }
 
+#new-task-close {
+  min-width: 36px;
+  line-height: 1;
+  font-size: 20px !important;
+  padding: 4px 0 !important;
+}
+
 #new-task-modal .btn:not(.btn-primary) {
   background: rgba(15, 23, 42, 0.9);
   color: #e5e7eb;
@@ -2432,8 +2491,14 @@ body {
 
 
 @media (max-width: 480px) {
+  #new-task-modal {
+    justify-content: center;
+    padding: 16px;
+  }
+
   #new-task-modal .modal-card {
     max-width: 90vw;
+    width: 100%;
     padding: 16px 14px 12px;
   }
 }
