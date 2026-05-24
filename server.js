@@ -355,10 +355,10 @@ app.post('/api/tasks', (req, res) => {
     pending--;
     if (pending === 0) {
       if (inserted === 0) {
-        return res.status(400).json({ 
+        return stmt.finalize(() => res.status(400).json({ 
           success: false, inserted, duplicates, errors, 
           message: errors.length === tasks.length ? errors[0].error : "Some tasks are invalid"
-        });
+        }));
       }
       stmt.finalize(() => res.status(400).json({ 
         success: false, inserted, duplicates, errors, 
