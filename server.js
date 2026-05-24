@@ -131,6 +131,9 @@ function nlpExtractDate(text, now = new Date()) {
   if (/\bend of (the\s+)?month\b/.test(lower)) {
     return nlpStartOf(new Date(now.getFullYear(), now.getMonth() + 1, 0)).toISOString();
   }
+  if (/\bend of (the\s+)?year\b/.test(lower)) {
+  return nlpStartOf(new Date(now.getFullYear(), 11, 31)).toISOString();
+  }
   if (/\bnext month\b/.test(lower)) {
     const d = new Date(now); d.setMonth(d.getMonth() + 1);
     return nlpStartOf(d).toISOString();
