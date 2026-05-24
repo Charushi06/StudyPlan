@@ -20,6 +20,13 @@ app.use(express.static(__dirname));
 
 initDb();
 
+// Environment Validation
+if (!process.env.GEMINI_API_KEY) {
+  console.warn('\x1b[33m%s\x1b[0m', '⚠️  WARNING: GEMINI_API_KEY is not defined in .env');
+  console.warn('\x1b[33m%s\x1b[0m', '   AI extraction features will fall back to local heuristic NLP.');
+  console.warn('\x1b[33m%s\x1b[0m', '   Get a key at: https://aistudio.google.com/app/apikey\n');
+}
+
 const ai = process.env.GEMINI_API_KEY
   ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
   : null;
@@ -269,16 +276,32 @@ app.post('/api/subjects', (req, res) => {
   if (!ALLOWED_SUBJECT_COLORS.has(color)) {
     color = 'var(--color-text-info)';
   }
-  const shortCode = name.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 4) || 'SUB';
-  const id = `sub_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
-  db.run(
-    'INSERT INTO subjects (id, name, short_code, color) VALUES (?, ?, ?, ?)',
-    [id, name, shortCode, color],
-    function (err) {
-      if (err) return res.status(500).json({ error: err.message });
-      res.status(201).json({ id, name, short_code: shortCode, color });
+  db.get(
+    'SELECT * FROM subjects WHERE LOWER(name) = LOWER(?)',
+    [name],
+    (err, row) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+
+      if (row) {
+        return res.status(400).json({
+          error: 'Subject already exists',
+        });
+      }
+
+      const shortCode = name.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 4) || 'SUB';
+      const id = `sub_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+      db.run(
+        'INSERT INTO subjects (id, name, short_code, color) VALUES (?, ?, ?, ?)',
+        [id, name, shortCode, color],
+        function (err) {
+          if (err) return res.status(500).json({ error: err.message });
+          res.status(201).json({ id, name, short_code: shortCode, color });
+        }
+      );
     }
-  );
+  )
 });
 
 // ================= TASKS =================
@@ -316,14 +339,34 @@ app.post('/api/tasks', (req, res) => {
     let pending = tasks.length;
 
     tasks.forEach(t => {
-      if (!t.title || !t.due_at || !t.subject_id) {
-        errors.push({ task: t, error: "Missing title, subject or due date" });
-        pending--;
-        if (pending === 0) {
-          stmt.finalize(() => res.status(400).json({ success: false, inserted, duplicates, errors, message: "All tasks invalid" }));
-        }
-        return;
+      let validationError = null;
+  if (!t.title && !t.subject_id && !t.due_at) {
+    validationError = "Missing title, subject, and deadline";
+  } else if (!t.title) {
+    validationError = "Task name is required";
+  } else if (!t.subject_id) {
+    validationError = "Subject is required";
+  } else if (!t.due_at) {
+    validationError = "Deadline is required";
+  }
+
+  if (validationError) {
+    errors.push({ task: t, error: validationError });
+    pending--;
+    if (pending === 0) {
+      if (inserted === 0) {
+        return res.status(400).json({ 
+          success: false, inserted, duplicates, errors, 
+          message: errors.length === tasks.length ? errors[0].error : "Some tasks are invalid"
+        });
       }
+      stmt.finalize(() => res.status(400).json({ 
+        success: false, inserted, duplicates, errors, 
+        message: "Some tasks are invalid"
+      }));
+    }
+    return;
+  }
 
       db.get(
         `SELECT * FROM tasks WHERE LOWER(title) = LOWER(?) AND subject_id = ? AND DATE(due_at) = DATE(?)`,

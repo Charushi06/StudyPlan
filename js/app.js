@@ -9,6 +9,7 @@ import {
   isNewTaskFormDirty as hasNewTaskDraftChanged,
 } from './utils/newTaskModal.mjs';
 import { joinMarkup } from './utils/taskMarkup.mjs';
+import { Toast } from './utils/toast.js';
 
 initGlobalErrorBoundary();
 
@@ -246,7 +247,7 @@ function startTimer() {
     if (timeLeft === 0) {
       clearInterval(timerInterval);
       timerInterval = null;
-      alert('Focus session complete!');
+      Toast.show('Focus session complete!', 'success');
       resetTimer();
     }
   }, 1000);
@@ -418,7 +419,7 @@ async function downloadData() {
 
     } catch (error) {
         console.error(error);
-        alert('Failed to download data');
+        Toast.show('Failed to download data', 'error');
     }
 }
 
@@ -1102,6 +1103,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
 //NEw Task addition event listeners
 function populateNewTaskSubjects() {
+newTaskBtn.addEventListener('click', () => {
+  
+  if (!store.subjects || store.subjects.length === 0) {
+    Toast.show('Subjects are still loading. Please try again in a moment.', 'warning');
+    return;
+  }
+
   newTaskSubject.innerHTML = store.subjects
     .map(s => `<option value="${s.id}">${s.name}</option>`)
     .join('');
@@ -1181,6 +1189,15 @@ newTaskSave.addEventListener('click', async () => {
     return;
   }
 
+  if (!dateVal) {
+  alert('Please enter a deadline');
+  return;
+}
+
+if (!subject_id) {
+  alert('Please select a subject');
+  return;
+}
   const { cleanTitle, labels } = extractLabels(rawTitle);
   const due_at = dateVal ? new Date(dateVal).toISOString() : '';
 
@@ -1226,6 +1243,11 @@ addItemsBtn.addEventListener('click', () => {
 });
 });
 
+// Ensures the button is hidden on initial page load if the textarea is empty
+if (pasteInput.value.trim() === "") {
+    clearBtn.style.display = 'none';
+}
+
 extractBtn.addEventListener('click', async () => {
   const text = pasteInput.value;
   if (!text.trim()) return;
@@ -1241,15 +1263,52 @@ extractBtn.addEventListener('click', async () => {
   store.setExtracted(items);
 });
 
+// Wipes the text, clears the store, hides the button, and refocuses the cursor
 clearBtn.addEventListener('click', () => {
-  pasteInput.value = '';
-  store.clearExtracted();
+    pasteInput.value = '';
+    store.clearExtracted();
+    clearBtn.style.display = 'none'; // Hides the clear button instantly
+    pasteInput.focus();              // Puts the typing cursor back in the box
+});
+
+// Listens to typing/pasting to show or hide the button dynamically
+pasteInput.addEventListener('input', () => {
+    if (pasteInput.value.trim().length > 0) {
+        clearBtn.style.display = 'block'; 
+    } else {
+        clearBtn.style.display = 'none';
+    }
 });
 
 downloadBtn.addEventListener('click', () => {
   downloadData();
 });
 
+// Motivational Quotes
+const quotes = [
+  "Small Progress is still Progress",
+  "Focus on being productive instead of busy",
+  "The secret of getting ahead is getting started",
+  "Strive for progress, not perfection",
+  "Don't wait for opportunity. Create it.",
+  "Success is the sum of small efforts repeated daily",
+  "Time is not refundable, use it with intention.",
+  "Sometimes, getting it done is better than perfect.",
+  "Believe you can and you're halfway there.",
+  "Arise, awake, and stop not till the goal is reached."
+];
+
+const quoteEl = document.getElementById('motivational-quotes');
+if (quoteEl) {
+  const today = new Date();
+  const seed = today.toDateString();
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = seed.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash % quotes.length);
+  quoteEl.textContent = `${quotes[index]}`;
+}
 calendarDownloadBtn.addEventListener('click', () => {
   downloadCalendar();
 });
