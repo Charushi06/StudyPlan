@@ -1,4 +1,6 @@
 import { authFetch } from './utils/auth.js';
+import { Toast } from './utils/toast.js';
+import { triggerConfetti } from './utils/confetti.js';
 
 export const store = {
   subjects: [],
@@ -39,7 +41,7 @@ export const store = {
   async addSubject({ name, color }) {
     const trimmed = String(name || '').trim();
     if (!trimmed) {
-      alert('Please enter a subject name');
+      Toast.show('Please enter a subject name', 'warning');
       return false;
     }
     try {
@@ -50,7 +52,7 @@ export const store = {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        alert(data.error || 'Failed to add subject');
+        Toast.show(data.error || 'Failed to add subject', 'error');
         return false;
       }
       const subsRes = await authFetch('/api/subjects');
@@ -59,7 +61,7 @@ export const store = {
       return true;
     } catch (e) {
       console.error('Failed to add subject', e);
-      alert('Network error. Please try again.');
+      Toast.show('Network error. Please try again.', 'error');
       return false;
     }
   },
@@ -77,7 +79,7 @@ export const store = {
 
       if (!res.ok) {
         //  Backend error
-        alert(`❌ ${data.message || "Failed to add tasks"}`);
+        Toast.show(`❌ ${data.message || "Failed to add tasks"}`, 'error');
         console.error('Add task error:', data);
         return;
       }
@@ -85,11 +87,11 @@ export const store = {
       // ================= USER MESSAGES =================
 
       if (data.duplicates?.length > 0) {
-        alert(`⚠ ${data.duplicates.length} duplicate task(s) skipped`);
+        Toast.show(`⚠ ${data.duplicates.length} duplicate task(s) skipped`, 'warning');
       }
 
       if (data.errors?.length > 0) {
-        alert(`❌ ${data.errors.length} task(s) failed to add`);
+        Toast.show(`❌ ${data.errors.length} task(s) failed to add`, 'error');
       }
 
       if (
@@ -97,7 +99,7 @@ export const store = {
         (data.duplicates?.length || 0) === 0 &&
         (data.errors?.length || 0) === 0
       ) {
-        alert("✅ Tasks added successfully");
+        Toast.show("✅ Tasks added successfully", 'success');
       }
 
       // ================= REFRESH =================
@@ -107,7 +109,7 @@ export const store = {
 
     } catch (e) {
       console.error('Failed to add tasks', e);
-      alert("❌ Network error. Please try again.");
+      Toast.show("❌ Network error. Please try again.", 'error');
     }
   },
 
@@ -142,7 +144,7 @@ export const store = {
       }
     } catch (e) {
       console.error('Failed to update task', e);
-      alert("❌ Failed to save task changes. Please try again.");
+      Toast.show("❌ Failed to save task changes. Please try again.", 'error');
       // Revert
       this.tasks[taskIndex] = originalTask;
       this.notify();
@@ -155,6 +157,10 @@ export const store = {
       const newStatus = task.status === 'Done' ? 'Not Started' : 'Done';
       task.status = newStatus;
       this.notify();
+
+      if (newStatus === 'Done') {
+        triggerConfetti();
+      }
 
       try {
         await authFetch(`/api/tasks/${taskId}`, {
@@ -208,7 +214,7 @@ export const store = {
   },
 
   async deleteTask(taskId) {
-    const confirmed = confirm('Are you sure you want to permanently delete this task?');
+    const confirmed = await Toast.confirm('Are you sure you want to permanently delete this task?');
     if (!confirmed) return;
 
     const taskIndex = this.tasks.findIndex(t => String(t.id) === String(taskId));
@@ -237,6 +243,7 @@ export const store = {
       t.status = 'Done';
     });
     this.notify();
+    triggerConfetti();
 
     try {
       await Promise.all(
@@ -274,6 +281,7 @@ export const store = {
       t.status = 'Done';
     });
     this.notify();
+    triggerConfetti();
 
     try {
       await Promise.all(

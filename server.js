@@ -23,6 +23,13 @@ app.use(express.static(__dirname));
 
 initDb();
 
+// Environment Validation
+if (!process.env.GEMINI_API_KEY) {
+  console.warn('\x1b[33m%s\x1b[0m', '⚠️  WARNING: GEMINI_API_KEY is not defined in .env');
+  console.warn('\x1b[33m%s\x1b[0m', '   AI extraction features will fall back to local heuristic NLP.');
+  console.warn('\x1b[33m%s\x1b[0m', '   Get a key at: https://aistudio.google.com/app/apikey\n');
+}
+
 const ai = process.env.GEMINI_API_KEY
   ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
   : null;
@@ -208,10 +215,21 @@ function nlpTaskScore(seg) {
 }
 
 function nlpCleanTitle(seg) {
-  return seg
+  const labelMatch = seg.match(/#[\w-]+/g);
+  let cleaned = seg
     .replace(/^(please|kindly|remember to|don't forget to|make sure to)\s+/i, '')
     .replace(/\s+(by|before|due|on|at)\s+.*/i, '')
     .trim().substring(0, 80);
+    
+  if (labelMatch) {
+    // Re-append labels so frontend can still extract them
+    labelMatch.forEach(l => {
+      if (!cleaned.includes(l)) {
+        cleaned += ' ' + l;
+      }
+    });
+  }
+  return cleaned;
 }
 
 function nlpFallbackDate() {
@@ -280,7 +298,7 @@ const ALLOWED_SUBJECT_COLORS = new Set([
   'var(--color-text-secondary)',
 ]);
 
-app.post('/api/subjects', (req, res) => {
+app.post('/api/subjects', authRequired, (req, res) => {
   const name = String(req.body?.name || '').trim();
   let color = String(req.body?.color || '').trim() || 'var(--color-text-info)';
   if (!name) {
@@ -289,16 +307,32 @@ app.post('/api/subjects', (req, res) => {
   if (!ALLOWED_SUBJECT_COLORS.has(color)) {
     color = 'var(--color-text-info)';
   }
-  const shortCode = name.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 4) || 'SUB';
-  const id = `sub_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
-  db.run(
-    'INSERT INTO subjects (id, name, short_code, color) VALUES (?, ?, ?, ?)',
-    [id, name, shortCode, color],
-    function (err) {
-      if (err) return res.status(500).json({ error: err.message });
-      res.status(201).json({ id, name, short_code: shortCode, color });
+  db.get(
+    'SELECT * FROM subjects WHERE LOWER(name) = LOWER(?)',
+    [name],
+    (err, row) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+
+      if (row) {
+        return res.status(400).json({
+          error: 'Subject already exists',
+        });
+      }
+
+      const shortCode = name.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 4) || 'SUB';
+      const id = `sub_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+      db.run(
+        'INSERT INTO subjects (id, name, short_code, color) VALUES (?, ?, ?, ?)',
+        [id, name, shortCode, color],
+        function (err) {
+          if (err) return res.status(500).json({ error: err.message });
+          res.status(201).json({ id, name, short_code: shortCode, color });
+        }
+      );
     }
-  );
+  )
 });
 
 // ================= TASKS =================
@@ -308,6 +342,15 @@ app.get('/api/tasks', authRequired, (req, res) => {
     [req.user.id],
     (err, rows) => {
       if (err) return res.status(500).json({ error: err.message });
+
+      rows.forEach(row => {
+        try {
+          row.labels = JSON.parse(row.labels || '[]');
+        } catch (e) {
+          row.labels = [];
+        }
+      });
+
       res.json(rows);
     }
   );
@@ -319,25 +362,62 @@ app.post('/api/tasks', authRequired, (req, res) => {
     const tasks = Array.isArray(req.body) ? req.body : [req.body];
 
     if (!tasks || tasks.length === 0) {
-      return res.status(400).json({ success: false, message: "No tasks provided" });
+      return res.status(400).json({ success: false, message: 'No tasks provided' });
     }
 
     let inserted = 0;
-    let duplicates = [];
-    let errors = [];
+    const duplicates = [];
+    const errors = [];
+    const validationErrors = [];
 
+    const normalizeLabels = value => (typeof value === 'string' ? value : JSON.stringify(value || []));
     const stmt = db.prepare(`INSERT INTO tasks 
-      (id, user_id, subject_id, title, due_at, status, priority, confidence_score, notes) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+      (id, user_id, subject_id, title, due_at, status, priority, confidence_score, notes, labels) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
 
     let pending = tasks.length;
 
+    const finalize = (statusCode, payload) => {
+      stmt.finalize(finalErr => {
+        if (finalErr) {
+          return res.status(500).json({ success: false, message: 'Database error', error: finalErr.message });
+        }
+        return res.status(statusCode).json(payload);
+      });
+    };
+
+    const buildMessage = () => {
+      if (validationErrors.length > 0 && duplicates.length > 0) return 'Some tasks failed and some duplicates were skipped';
+      if (validationErrors.length > 0) return 'Some tasks failed to add';
+      if (duplicates.length > 0) return 'Duplicate tasks were skipped';
+      if (errors.length > 0) return 'Some tasks failed to add';
+      return 'All tasks added successfully';
+    };
+
     tasks.forEach(t => {
-      if (!t.title || !t.due_at || !t.subject_id) {
-        errors.push({ task: t, error: "Missing title, subject or due date" });
+      let validationError = null;
+      if (!t.title && !t.subject_id && !t.due_at) {
+        validationError = 'Missing title, subject, and deadline';
+      } else if (!t.title) {
+        validationError = 'Task name is required';
+      } else if (!t.subject_id) {
+        validationError = 'Subject is required';
+      } else if (!t.due_at) {
+        validationError = 'Deadline is required';
+      }
+
+      if (validationError) {
+        validationErrors.push({ task: t, error: validationError });
+        errors.push({ task: t, error: validationError });
         pending--;
         if (pending === 0) {
-          stmt.finalize(() => res.status(400).json({ success: false, inserted, duplicates, errors, message: "All tasks invalid" }));
+          return finalize(400, {
+            success: false,
+            inserted,
+            duplicates,
+            errors,
+            message: validationErrors.length === tasks.length ? validationErrors[0].error : 'Some tasks are invalid',
+          });
         }
         return;
       }
@@ -352,7 +432,7 @@ app.post('/api/tasks', authRequired, (req, res) => {
             duplicates.push({
               title: t.title,
               due_at: t.due_at,
-              subject_id: t.subject_id
+              subject_id: t.subject_id,
             });
           } else {
             const id = 'task_' + Date.now() + Math.random().toString(36).substr(2, 5);
@@ -366,6 +446,7 @@ app.post('/api/tasks', authRequired, (req, res) => {
               t.priority || 'medium',
               t.confidence_score || 100,
               t.notes || '',
+              normalizeLabels(t.labels),
               function (insertErr) {
                 if (insertErr) {
                   errors.push({ task: t, error: insertErr.message });
@@ -378,36 +459,25 @@ app.post('/api/tasks', authRequired, (req, res) => {
 
           pending--;
           if (pending === 0) {
-            stmt.finalize((finalErr) => {
-              if (finalErr) return res.status(500).json({ success: false, message: "Database error", error: finalErr.message });
-              return res.json({
-                success: true,
-                inserted,
-                duplicates,
-                errors,
-                message:
-                  errors.length > 0 && duplicates.length > 0
-                    ? "Some tasks failed and some duplicates were skipped"
-                    : errors.length > 0
-                      ? "Some tasks failed to add"
-                      : duplicates.length > 0
-                        ? "Duplicate tasks were skipped"
-                        : "All tasks added successfully"
-              });
+            return finalize(validationErrors.length > 0 ? 400 : 200, {
+              success: validationErrors.length === 0,
+              inserted,
+              duplicates,
+              errors,
+              message: buildMessage(),
             });
           }
         }
       );
     });
-
   } catch (e) {
-    return res.status(500).json({ success: false, message: "Unexpected server error", error: e.message });
+    return res.status(500).json({ success: false, message: 'Unexpected server error', error: e.message });
   }
 });
 
 // ================= UPDATE =================
 app.put('/api/tasks/:id', authRequired, (req, res) => {
-  const { status, archived, title, subject_id, due_at, notes, priority } = req.body;
+  const { status, archived, title, subject_id, due_at, notes, priority, labels } = req.body;
 
   let query = 'UPDATE tasks SET ';
   const params = [];
@@ -420,6 +490,7 @@ app.put('/api/tasks/:id', authRequired, (req, res) => {
   if (due_at !== undefined) { updates.push('due_at = ?'); params.push(due_at); }
   if (notes !== undefined) { updates.push('notes = ?'); params.push(notes); }
   if (priority !== undefined) { updates.push('priority = ?'); params.push(priority); }
+  if (labels !== undefined) { updates.push('labels = ?'); params.push(typeof labels === 'string' ? labels : JSON.stringify(labels)); }
 
   if (updates.length === 0) {
     return res.status(400).json({ error: 'No fields to update' });
@@ -453,7 +524,7 @@ app.delete('/api/tasks/:id', authRequired, (req, res) => {
 });
 
 // ================= AI EXTRACTION =================
-app.post('/api/extract', async (req, res) => {
+app.post('/api/extract', authRequired, async (req, res) => {
   const { text } = req.body;
   if (!text) return res.status(400).json({ error: 'Text is required' });
 
@@ -463,6 +534,7 @@ app.post('/api/extract', async (req, res) => {
 You are an AI study planner assistant. Extract ALL tasks and deadlines from the text below.
 Return ONLY a raw JSON array (no markdown, no backticks, no explanation).
 Each object must have: title (string), subject_name (string), due_at (ISO 8601 datetime), notes (string), confidence_score (number 0-100), priority ("low"|"medium"|"high"), icon (emoji).
+IMPORTANT: Do not strip hashtags from the task description! If the original text contains hashtag labels (e.g. #urgent, #Group), you MUST include them at the end of the 'title' field (e.g. 'Read chapter 1 #urgent').
 
 Text: "${text}"
 `;

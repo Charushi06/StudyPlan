@@ -1,10 +1,13 @@
-const express = require("express");
-const { downloadData } = require("../controllers/csvDownload.controller.js")
-const { authRequired } = require("../../auth");
+const express = require('express');
+const { authRequired } = require('../../auth');
+const {
+  downloadData,
+  downloadCalendar,
+} = require('../controllers/csvDownload.controller.js');
 
 const router = express.Router();
 
-// [GET] /api/download
-router.get("/download", authRequired, downloadData);
+router.get('/download', authRequired, downloadData);
+router.get('/download/calendar', authRequired, downloadCalendar);
 
 module.exports = router;

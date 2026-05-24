@@ -37,17 +37,24 @@ function initDb() {
       confidence_score REAL,
       notes TEXT,
       archived INTEGER DEFAULT 0,
+      labels TEXT DEFAULT '[]',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (subject_id) REFERENCES subjects(id),
       FOREIGN KEY (user_id) REFERENCES users(id)
     )`);
 
-    // Migration: ensure user_id exists for older databases
+    // Migration: ensure legacy databases have the task ownership and label columns.
     db.all('PRAGMA table_info(tasks)', (err, columns) => {
       if (err) return;
+
       const hasUserId = columns.some(col => col.name === 'user_id');
       if (!hasUserId) {
         db.run('ALTER TABLE tasks ADD COLUMN user_id TEXT');
+      }
+
+      const hasLabels = columns.some(col => col.name === 'labels');
+      if (!hasLabels) {
+        db.run("ALTER TABLE tasks ADD COLUMN labels TEXT DEFAULT '[]'");
       }
     });
 
