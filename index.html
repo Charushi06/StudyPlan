@@ -427,44 +427,59 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
 
   // Load preferences
   const loadPreferences = () => {
-    const isDarkMode = localStorage.getItem('studyplan_dark_mode') === 'true';
-    const isCompactView = localStorage.getItem('studyplan_compact_view') === 'true';
+  const savedTheme = localStorage.getItem('studyplan_theme');
 
-    darkModeToggle.checked = isDarkMode;
-    compactViewToggle.checked = isCompactView;
+  // If user already selected manually
+  if (savedTheme) {
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    darkModeToggle.checked = savedTheme === 'dark';
+  } else {
+    // Detect system preference
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
-    if (isDarkMode) {
+    if (prefersDark) {
       document.documentElement.setAttribute('data-theme', 'dark');
+      darkModeToggle.checked = true;
     } else {
       document.documentElement.setAttribute('data-theme', 'light');
+      darkModeToggle.checked = false;
     }
+  }
 
-    if (isCompactView) {
-      document.body.classList.add('compact-view');
-    } else {
-      document.body.classList.remove('compact-view');
-    }
-  };
+  // Compact view
+  const isCompactView = localStorage.getItem('studyplan_compact_view') === 'true';
+
+  compactViewToggle.checked = isCompactView;
+
+  if (isCompactView) {
+    document.body.classList.add('compact-view');
+  } else {
+    document.body.classList.remove('compact-view');
+  }
+};
 
   // Run on load
   loadPreferences();
 
   // Save changes when user clicks "Save Changes"
   settingsSave.addEventListener('click', () => {
-    localStorage.setItem('studyplan_dark_mode', darkModeToggle.checked);
+    localStorage.setItem(
+  'studyplan_theme',
+  darkModeToggle.checked ? 'dark' : 'light'
+);
     localStorage.setItem('studyplan_compact_view', compactViewToggle.checked);
     loadPreferences();
     settingsModal.style.display = 'none';
   });
 
   // Also apply immediately on toggle for better UX
-  darkModeToggle.addEventListener('change', (e) => {
-    if (e.target.checked) {
-      document.documentElement.setAttribute('data-theme', 'dark');
-    } else {
-      document.documentElement.setAttribute('data-theme', 'light');
-    }
-  });
+ darkModeToggle.addEventListener('change', (e) => {
+    const theme = e.target.checked ? 'dark' : 'light';
+
+    document.documentElement.setAttribute('data-theme', theme);
+
+    localStorage.setItem('studyplan_theme', theme);
+});
 
   compactViewToggle.addEventListener('change', (e) => {
     if (e.target.checked) {
