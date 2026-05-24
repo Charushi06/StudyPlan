@@ -368,9 +368,9 @@ function renderFocusTasks() {
         });
       }
       
-      const clearBtn = activeFocusTask.querySelector('.clear-focus-task-btn');
-      if (clearBtn) {
-        clearBtn.addEventListener('click', () => {
+      const clearFocusBtn = activeFocusTask.querySelector('.clear-focus-task-btn');
+      if (clearFocusBtn) {
+        clearFocusBtn.addEventListener('click', () => {
           activeFocusTaskId = null;
           renderFocusTasks();
         });
