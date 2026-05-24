@@ -1245,3 +1245,21 @@ if (quoteEl) {
 calendarDownloadBtn.addEventListener('click', () => {
   downloadCalendar();
 });
+
+// Mobile Menu Toggle
+const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+const sidebarContainer = document.querySelector('.sidebar');
+if (mobileMenuBtn && sidebarContainer) {
+  mobileMenuBtn.addEventListener('click', () => {
+    sidebarContainer.classList.toggle('mobile-open');
+  });
+  
+  // Close sidebar when clicking outside on mobile
+  document.addEventListener('click', (e) => {
+    if (window.innerWidth <= 768 && sidebarContainer.classList.contains('mobile-open')) {
+      if (!sidebarContainer.contains(e.target) && !mobileMenuBtn.contains(e.target)) {
+        sidebarContainer.classList.remove('mobile-open');
+      }
+    }
+  });
+}

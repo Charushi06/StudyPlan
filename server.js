@@ -511,6 +511,18 @@ Text: "${text}"
 // ================= AUTH =================
 const users = {}; // Simple in-memory user store
 
+app.post('/api/auth/forgot-password', (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ error: 'Email required' });
+  }
+  const user = users[email];
+  if (!user) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+  res.json({ success: true, message: 'Password reset link sent to ' + email });
+});
+
 app.post('/api/auth/signup', (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
