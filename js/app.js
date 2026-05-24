@@ -1,5 +1,6 @@
 import { store } from './store.js';
 import { extractTasksFromText } from './utils/api.js';
+import { authFetch } from './utils/auth.js';
 import { initGlobalErrorBoundary } from './utils/errorBoundary.js';
 import { analyzeWorkload } from './utils/scheduler.js';
 import { Toast } from './utils/toast.js';
@@ -392,7 +393,7 @@ function formatDate(dateStr) {
 
 async function downloadData() {
     try {
-        const response = await fetch('/api/download');
+        const response = await authFetch('/api/download');
         
         if (!response.ok) {
             throw new Error('Failed to download data');
@@ -416,7 +417,7 @@ async function downloadData() {
 
 async function downloadCalendar() {
     try {
-        const response = await fetch('/api/download/calendar');
+    const response = await authFetch('/api/download/calendar');
 
         if (!response.ok) {
             throw new Error('Failed to export calendar');

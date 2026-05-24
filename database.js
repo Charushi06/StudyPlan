@@ -5,6 +5,16 @@ const db = new sqlite3.Database(path.join(__dirname, 'studyplan.db'));
 
 function initDb() {
   db.serialize(() => {
+    db.run('PRAGMA foreign_keys = ON');
+
+    // Users Table
+    db.run(`CREATE TABLE IF NOT EXISTS users (
+      id TEXT PRIMARY KEY,
+      email TEXT UNIQUE NOT NULL,
+      password_hash TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`);
+
     // Subjects Table
     db.run(`CREATE TABLE IF NOT EXISTS subjects (
       id TEXT PRIMARY KEY,
@@ -17,6 +27,7 @@ function initDb() {
     // Tasks Table
     db.run(`CREATE TABLE IF NOT EXISTS tasks (
       id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
       subject_id TEXT,
       title TEXT NOT NULL,
       description TEXT,
@@ -28,13 +39,20 @@ function initDb() {
       archived INTEGER DEFAULT 0,
       labels TEXT DEFAULT '[]',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (subject_id) REFERENCES subjects(id)
+      FOREIGN KEY (subject_id) REFERENCES subjects(id),
+      FOREIGN KEY (user_id) REFERENCES users(id)
     )`);
 
-    // Add labels column to existing tasks table if it doesn't exist
-    db.all("PRAGMA table_info(tasks)", (err, rows) => {
+    // Migration: ensure legacy databases have the task ownership and label columns.
+    db.all('PRAGMA table_info(tasks)', (err, columns) => {
       if (err) return;
-      const hasLabels = rows.some(r => r.name === 'labels');
+
+      const hasUserId = columns.some(col => col.name === 'user_id');
+      if (!hasUserId) {
+        db.run('ALTER TABLE tasks ADD COLUMN user_id TEXT');
+      }
+
+      const hasLabels = columns.some(col => col.name === 'labels');
       if (!hasLabels) {
         db.run("ALTER TABLE tasks ADD COLUMN labels TEXT DEFAULT '[]'");
       }

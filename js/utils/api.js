@@ -1,6 +1,8 @@
+import { authFetch } from './auth.js';
+
 export async function extractTasksFromText(text) {
   try {
-    const res = await fetch('/api/extract', {
+    const res = await authFetch('/api/extract', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text })

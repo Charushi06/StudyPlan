@@ -1,14 +1,15 @@
 const { db } = require('../../database.js');
 
-function getAllTasksWithSubjects() {
+function getAllTasksWithSubjects(userId = null) {
   const query = `
     SELECT tasks.*, subjects.name AS subject_name
     FROM tasks
     LEFT JOIN subjects ON tasks.subject_id = subjects.id
+    ${userId ? 'WHERE tasks.user_id = ?' : ''}
   `;
 
   return new Promise((resolve, reject) => {
-    db.all(query, [], (err, rows) => {
+    db.all(query, userId ? [userId] : [], (err, rows) => {
       if (err) reject(err);
       else resolve(rows);
     });
@@ -76,7 +77,12 @@ function buildCalendarIcs(tasks = []) {
 
 async function downloadData(req, res) {
   try {
-    const data = await getAllTasksWithSubjects();
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    const data = await getAllTasksWithSubjects(userId);
 
     const rows = [
       ['Task ID', 'Subject', 'Title', 'Due At', 'Status', 'Priority', 'Confidence Score', 'Notes'],
@@ -93,7 +99,6 @@ async function downloadData(req, res) {
     ];
 
     const csvString = rows.map(row => row.join(',')).join('\n');
-
     res.setHeader('Content-Type', 'text/csv');
     res.setHeader('Content-Disposition', 'attachment; filename="study_data.csv"');
     return res.status(200).send(csvString);
@@ -105,7 +110,12 @@ async function downloadData(req, res) {
 
 async function downloadCalendar(req, res) {
   try {
-    const data = await getAllTasksWithSubjects();
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    const data = await getAllTasksWithSubjects(userId);
     const icsString = buildCalendarIcs(data);
 
     res.setHeader('Content-Type', 'text/calendar; charset=utf-8');

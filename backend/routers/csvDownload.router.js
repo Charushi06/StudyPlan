@@ -1,4 +1,5 @@
 const express = require('express');
+const { authRequired } = require('../../auth');
 const {
   downloadData,
   downloadCalendar,
@@ -6,7 +7,7 @@ const {
 
 const router = express.Router();
 
-router.get('/download', downloadData);
-router.get('/download/calendar', downloadCalendar);
+router.get('/download', authRequired, downloadData);
+router.get('/download/calendar', authRequired, downloadCalendar);
 
 module.exports = router;

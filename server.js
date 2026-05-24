@@ -3,8 +3,11 @@ const express = require('express');
 const cors = require('cors');
 const { db, initDb } = require('./database');
 const { GoogleGenAI } = require('@google/genai');
+const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 const path = require('path');
 const csvDownloadRouter = require('./backend/routers/csvDownload.router.js');
+const { signToken, authRequired } = require('./auth');
 
 const app = express();
 app.use(cors());
@@ -30,6 +33,34 @@ if (!process.env.GEMINI_API_KEY) {
 const ai = process.env.GEMINI_API_KEY
   ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
   : null;
+
+const PASSWORD_SALT_ROUNDS = 10;
+
+function dbGet(sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.get(sql, params, (err, row) => {
+      if (err) return reject(err);
+      return resolve(row);
+    });
+  });
+}
+
+function dbRun(sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.run(sql, params, function (err) {
+      if (err) return reject(err);
+      return resolve({ changes: this.changes, lastID: this.lastID });
+    });
+  });
+}
+
+function normalizeEmail(email) {
+  return String(email || '').trim().toLowerCase();
+}
+
+function generateUserId() {
+  return `user_${crypto.randomUUID()}`;
+}
 
 // ============================================================
 // INLINE NLP FALLBACK
@@ -267,7 +298,7 @@ const ALLOWED_SUBJECT_COLORS = new Set([
   'var(--color-text-secondary)',
 ]);
 
-app.post('/api/subjects', (req, res) => {
+app.post('/api/subjects', authRequired, (req, res) => {
   const name = String(req.body?.name || '').trim();
   let color = String(req.body?.color || '').trim() || 'var(--color-text-info)';
   if (!name) {
@@ -305,72 +336,95 @@ app.post('/api/subjects', (req, res) => {
 });
 
 // ================= TASKS =================
-app.get('/api/tasks', (req, res) => {
-  db.all('SELECT * FROM tasks ORDER BY due_at ASC', (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
-    rows.forEach(r => {
-      try {
-        r.labels = JSON.parse(r.labels || '[]');
-      } catch(e) {
-        r.labels = [];
-      }
-    });
-    res.json(rows);
-  });
+app.get('/api/tasks', authRequired, (req, res) => {
+  db.all(
+    'SELECT * FROM tasks WHERE user_id = ? ORDER BY due_at ASC',
+    [req.user.id],
+    (err, rows) => {
+      if (err) return res.status(500).json({ error: err.message });
+
+      rows.forEach(row => {
+        try {
+          row.labels = JSON.parse(row.labels || '[]');
+        } catch (e) {
+          row.labels = [];
+        }
+      });
+
+      res.json(rows);
+    }
+  );
 });
 
 // ================= ADD TASKS =================
-app.post('/api/tasks', (req, res) => {
+app.post('/api/tasks', authRequired, (req, res) => {
   try {
     const tasks = Array.isArray(req.body) ? req.body : [req.body];
 
     if (!tasks || tasks.length === 0) {
-      return res.status(400).json({ success: false, message: "No tasks provided" });
+      return res.status(400).json({ success: false, message: 'No tasks provided' });
     }
 
     let inserted = 0;
-    let duplicates = [];
-    let errors = [];
+    const duplicates = [];
+    const errors = [];
+    const validationErrors = [];
 
+    const normalizeLabels = value => (typeof value === 'string' ? value : JSON.stringify(value || []));
     const stmt = db.prepare(`INSERT INTO tasks 
-      (id, subject_id, title, due_at, status, priority, confidence_score, notes, labels) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+      (id, user_id, subject_id, title, due_at, status, priority, confidence_score, notes, labels) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
 
     let pending = tasks.length;
 
+    const finalize = (statusCode, payload) => {
+      stmt.finalize(finalErr => {
+        if (finalErr) {
+          return res.status(500).json({ success: false, message: 'Database error', error: finalErr.message });
+        }
+        return res.status(statusCode).json(payload);
+      });
+    };
+
+    const buildMessage = () => {
+      if (validationErrors.length > 0 && duplicates.length > 0) return 'Some tasks failed and some duplicates were skipped';
+      if (validationErrors.length > 0) return 'Some tasks failed to add';
+      if (duplicates.length > 0) return 'Duplicate tasks were skipped';
+      if (errors.length > 0) return 'Some tasks failed to add';
+      return 'All tasks added successfully';
+    };
+
     tasks.forEach(t => {
       let validationError = null;
-  if (!t.title && !t.subject_id && !t.due_at) {
-    validationError = "Missing title, subject, and deadline";
-  } else if (!t.title) {
-    validationError = "Task name is required";
-  } else if (!t.subject_id) {
-    validationError = "Subject is required";
-  } else if (!t.due_at) {
-    validationError = "Deadline is required";
-  }
-
-  if (validationError) {
-    errors.push({ task: t, error: validationError });
-    pending--;
-    if (pending === 0) {
-      if (inserted === 0) {
-        return res.status(400).json({ 
-          success: false, inserted, duplicates, errors, 
-          message: errors.length === tasks.length ? errors[0].error : "Some tasks are invalid"
-        });
+      if (!t.title && !t.subject_id && !t.due_at) {
+        validationError = 'Missing title, subject, and deadline';
+      } else if (!t.title) {
+        validationError = 'Task name is required';
+      } else if (!t.subject_id) {
+        validationError = 'Subject is required';
+      } else if (!t.due_at) {
+        validationError = 'Deadline is required';
       }
-      stmt.finalize(() => res.status(400).json({ 
-        success: false, inserted, duplicates, errors, 
-        message: "Some tasks are invalid"
-      }));
-    }
-    return;
-  }
+
+      if (validationError) {
+        validationErrors.push({ task: t, error: validationError });
+        errors.push({ task: t, error: validationError });
+        pending--;
+        if (pending === 0) {
+          return finalize(400, {
+            success: false,
+            inserted,
+            duplicates,
+            errors,
+            message: validationErrors.length === tasks.length ? validationErrors[0].error : 'Some tasks are invalid',
+          });
+        }
+        return;
+      }
 
       db.get(
-        `SELECT * FROM tasks WHERE LOWER(title) = LOWER(?) AND subject_id = ? AND DATE(due_at) = DATE(?)`,
-        [t.title, t.subject_id, t.due_at],
+        `SELECT * FROM tasks WHERE user_id = ? AND LOWER(title) = LOWER(?) AND subject_id = ? AND DATE(due_at) = DATE(?)`,
+        [req.user.id, t.title, t.subject_id, t.due_at],
         (err, existing) => {
           if (err) {
             errors.push({ task: t, error: err.message });
@@ -378,12 +432,13 @@ app.post('/api/tasks', (req, res) => {
             duplicates.push({
               title: t.title,
               due_at: t.due_at,
-              subject_id: t.subject_id
+              subject_id: t.subject_id,
             });
           } else {
             const id = 'task_' + Date.now() + Math.random().toString(36).substr(2, 5);
             stmt.run(
               id,
+              req.user.id,
               t.subject_id,
               t.title,
               t.due_at,
@@ -391,7 +446,7 @@ app.post('/api/tasks', (req, res) => {
               t.priority || 'medium',
               t.confidence_score || 100,
               t.notes || '',
-              typeof t.labels === 'string' ? t.labels : JSON.stringify(t.labels || []),
+              normalizeLabels(t.labels),
               function (insertErr) {
                 if (insertErr) {
                   errors.push({ task: t, error: insertErr.message });
@@ -404,35 +459,24 @@ app.post('/api/tasks', (req, res) => {
 
           pending--;
           if (pending === 0) {
-            stmt.finalize((finalErr) => {
-              if (finalErr) return res.status(500).json({ success: false, message: "Database error", error: finalErr.message });
-              return res.json({
-                success: true,
-                inserted,
-                duplicates,
-                errors,
-                message:
-                  errors.length > 0 && duplicates.length > 0
-                    ? "Some tasks failed and some duplicates were skipped"
-                    : errors.length > 0
-                      ? "Some tasks failed to add"
-                      : duplicates.length > 0
-                        ? "Duplicate tasks were skipped"
-                        : "All tasks added successfully"
-              });
+            return finalize(validationErrors.length > 0 ? 400 : 200, {
+              success: validationErrors.length === 0,
+              inserted,
+              duplicates,
+              errors,
+              message: buildMessage(),
             });
           }
         }
       );
     });
-
   } catch (e) {
-    return res.status(500).json({ success: false, message: "Unexpected server error", error: e.message });
+    return res.status(500).json({ success: false, message: 'Unexpected server error', error: e.message });
   }
 });
 
 // ================= UPDATE =================
-app.put('/api/tasks/:id', (req, res) => {
+app.put('/api/tasks/:id', authRequired, (req, res) => {
   const { status, archived, title, subject_id, due_at, notes, priority, labels } = req.body;
 
   let query = 'UPDATE tasks SET ';
@@ -452,29 +496,35 @@ app.put('/api/tasks/:id', (req, res) => {
     return res.status(400).json({ error: 'No fields to update' });
   }
 
-  query += updates.join(', ') + ' WHERE id = ?';
-  params.push(req.params.id);
+  query += updates.join(', ') + ' WHERE id = ? AND user_id = ?';
+  params.push(req.params.id, req.user.id);
 
   db.run(query, params, function (err) {
     if (err) return res.status(500).json({ error: err.message });
-    res.json({ success: true, changes: this.changes });
+    if (this.changes === 0) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+    return res.json({ success: true, changes: this.changes });
   });
 });
 
 // ================= DELETE =================
-app.delete('/api/tasks/:id', (req, res) => {
+app.delete('/api/tasks/:id', authRequired, (req, res) => {
   db.run(
-    'DELETE FROM tasks WHERE id = ?',
-    [req.params.id],
+    'DELETE FROM tasks WHERE id = ? AND user_id = ?',
+    [req.params.id, req.user.id],
     function (err) {
       if (err) return res.status(500).json({ error: err.message });
-      res.json({ success: true, changes: this.changes });
+      if (this.changes === 0) {
+        return res.status(404).json({ error: 'Task not found' });
+      }
+      return res.json({ success: true, changes: this.changes });
     }
   );
 });
 
 // ================= AI EXTRACTION =================
-app.post('/api/extract', async (req, res) => {
+app.post('/api/extract', authRequired, async (req, res) => {
   const { text } = req.body;
   if (!text) return res.status(400).json({ error: 'Text is required' });
 
@@ -509,30 +559,66 @@ Text: "${text}"
   return res.json(tasks);
 });
 // ================= AUTH =================
-const users = {}; // Simple in-memory user store
+app.post('/api/auth/signup', async (req, res) => {
+  try {
+    const email = normalizeEmail(req.body?.email);
+    const password = String(req.body?.password || '');
 
-app.post('/api/auth/signup', (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
-    return res.status(400).json({ error: 'Email and password required' });
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password required' });
+    }
+
+    const existing = await dbGet('SELECT id FROM users WHERE email = ?', [email]);
+    if (existing) {
+      return res.status(400).json({ error: 'User already exists' });
+    }
+
+    const countRow = await dbGet('SELECT COUNT(*) as count FROM users');
+    const passwordHash = await bcrypt.hash(password, PASSWORD_SALT_ROUNDS);
+    const id = generateUserId();
+
+    await dbRun(
+      'INSERT INTO users (id, email, password_hash) VALUES (?, ?, ?)',
+      [id, email, passwordHash]
+    );
+
+    if (countRow && countRow.count === 0) {
+      await dbRun('UPDATE tasks SET user_id = ? WHERE user_id IS NULL', [id]);
+    }
+
+    const token = signToken({ id, email });
+    return res.status(201).json({ success: true, token });
+  } catch (err) {
+    console.error('Signup failed:', err);
+    return res.status(500).json({ error: 'Failed to create account' });
   }
-  if (users[email]) {
-    return res.status(400).json({ error: 'User already exists' });
-  }
-  users[email] = { email, password };
-  res.json({ success: true, message: 'Account created successfully' });
 });
 
-app.post('/api/auth/login', (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
-    return res.status(400).json({ error: 'Email and password required' });
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const email = normalizeEmail(req.body?.email);
+    const password = String(req.body?.password || '');
+
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password required' });
+    }
+
+    const user = await dbGet('SELECT id, email, password_hash FROM users WHERE email = ?', [email]);
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+
+    const ok = await bcrypt.compare(password, user.password_hash);
+    if (!ok) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+
+    const token = signToken({ id: user.id, email: user.email });
+    return res.json({ success: true, token });
+  } catch (err) {
+    console.error('Login failed:', err);
+    return res.status(500).json({ error: 'Failed to login' });
   }
-  const user = users[email];
-  if (!user || user.password !== password) {
-    return res.status(401).json({ error: 'Invalid email or password' });
-  }
-  res.json({ success: true, email: user.email });
 });
 
 // Intentional test route for verifying server error page behavior.
