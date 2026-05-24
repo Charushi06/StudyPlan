@@ -208,7 +208,7 @@
 </div>
 
 <footer class="site-footer">
-  <p>© 2026 StudyPlan. All rights reserved.</p>
+  <p>&copy; <span id="year"></span> StudyPlan. All rights reserved.</p>
   <div class="footer-links">
     <a href="/support-page/index.html#privacy">Privacy</a>
     <a href="/support-page/index.html#terms">Terms</a>
@@ -265,7 +265,9 @@
     </button>
   </div>
 </div>
-
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
   <script type="module" src="/js/app.js"></script>
   <script>
   let isLogin = true;
