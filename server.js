@@ -509,18 +509,20 @@ Text: "${text}"
   return res.json(tasks);
 });
 // ================= AUTH =================
-const users = {}; // Simple in-memory user store
-
+// Users stored in SQLite database (persistent)
 app.post('/api/auth/signup', (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password required' });
   }
-  if (users[email]) {
-    return res.status(400).json({ error: 'User already exists' });
-  }
-  users[email] = { email, password };
-  res.json({ success: true, message: 'Account created successfully' });
+  db.get('SELECT * FROM users WHERE email = ?', [email], (err, row) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (row) return res.status(400).json({ error: 'User already exists' });
+    db.run('INSERT INTO users (email, password) VALUES (?, ?)', [email, password], function(err) {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ success: true, message: 'Account created successfully' });
+    });
+  });
 });
 
 app.post('/api/auth/login', (req, res) => {
@@ -528,11 +530,11 @@ app.post('/api/auth/login', (req, res) => {
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password required' });
   }
-  const user = users[email];
-  if (!user || user.password !== password) {
-    return res.status(401).json({ error: 'Invalid email or password' });
-  }
-  res.json({ success: true, email: user.email });
+  db.get('SELECT * FROM users WHERE email = ? AND password = ?', [email, password], (err, row) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!row) return res.status(401).json({ error: 'Invalid email or password' });
+    res.json({ success: true, email: row.email });
+  });
 });
 
 // Intentional test route for verifying server error page behavior.
