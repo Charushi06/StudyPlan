@@ -8,17 +8,26 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div class="dashboard-container">
-    <div class="dashboard-header">
-      <div class="logo-section">
-        <img src="/logo.png" alt="Logo" class="dashboard-logo">
-        <h1 class="dashboard-title">StudyPlan</h1>
+  <div class="crescent"></div>
+  <div class="stars-container" id="stars-container"></div>
+  
+  <div class="wrapper">
+    <header class="dashboard-header">
+      <div class="header-left">
+        <img src="/logo.png" alt="Logo" class="logo">
+        <h1 class="site-title">StudyPlan</h1>
       </div>
-    </div>
+      <!-- <nav class="header-nav">
+        <a href="/">Dashboard</a>
+        <a href="/planner.html">Planner</a>
+        <a href="/planner.html#calendar">Calendar</a>
+        <a href="#" id="nav-settings">Settings</a>
+      </nav> -->
+    </header>
 
     <div class="dashboard-content">
       <div class="greeting-section">
-        <div class="greeting-text" id="greeting-text">Good evening</div>
+        <div class="greeting-text" id="greeting-text">Good morning</div>
         <div class="user-name" id="user-name">Chinmayee</div>
         <div class="date-text" id="date-text"></div>
       </div>
@@ -62,18 +71,13 @@
         </div>
 
         <div class="dashboard-card">
-          <div class="card-header">
-            <span class="card-title">Focus Streak</span>
-          </div>
-          <div class="streak-content">
-            <div class="streak-number" id="streak-days">0</div>
-            <div class="streak-label">current streak</div>
-            <div class="streak-progress-bar">
-              <div class="streak-progress-fill" id="streak-bar" style="width: 0%"></div>
+            <div class="card-header">
+                <span class="card-title">Recent Activity</span>
             </div>
-            <div class="streak-best-text" id="streak-best">Best: 0 days</div>
-          </div>
-        </div>
+            <div class="recent-list" id="recent-list">
+                <div class="empty-state">No recent activity</div>
+            </div>
+            </div>
       </div>
 
       <button class="start-planning-btn" id="start-planning-btn">
@@ -88,7 +92,7 @@
   <script type="module" src="/js/dashboard.js"></script>
   <script>
     const cursor = document.querySelector('.custom-cursor');
-    const interactive = document.querySelectorAll('button, .stat-item, .dashboard-card, .start-planning-btn');
+    const interactive = document.querySelectorAll('button, .stat-item, .dashboard-card, .start-planning-btn, .header-nav a');
     
     if (window.innerWidth > 768) {
       document.addEventListener('mousemove', function(e) {
@@ -105,6 +109,30 @@
         });
       });
     }
+
+    function createStars() {
+      const starsContainer = document.getElementById('stars-container');
+      if (!starsContainer) return;
+      
+      starsContainer.innerHTML = '';
+      const starCount = 300;
+      const starShapes = ['✦', '✧', '★', '☆', '✴', '✳', '⋆'];
+      
+      for (let i = 0; i < starCount; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        star.textContent = starShapes[Math.floor(Math.random() * starShapes.length)];
+        star.style.left = Math.random() * 100 + '%';
+        star.style.top = Math.random() * 100 + '%';
+        star.style.fontSize = (Math.random() * 12 + 6) + 'px';
+        star.style.animationDelay = Math.random() * 8 + 's';
+        star.style.animationDuration = (Math.random() * 4 + 2) + 's';
+        star.style.opacity = Math.random() * 0.5 + 0.3;
+        starsContainer.appendChild(star);
+      }
+    }
+    
+    createStars();
   </script>
 </body>
 </html>
