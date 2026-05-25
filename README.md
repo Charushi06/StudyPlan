@@ -138,7 +138,13 @@ npm install
 
 ## 🔑 Environment Setup
 
-Create `.env`:
+Copy the template and set your key (do not commit real keys):
+
+```bash
+cp .env.example .env
+```
+
+Then update `.env`:
 
 ```env
 GEMINI_API_KEY=your_gen_ai_key_here
