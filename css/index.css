@@ -2161,3 +2161,16 @@ body {
   color: #ffcc66;
   font-weight: 600;
 }
+/* ── Keyboard Shortcuts ───────────────────────────── */
+.sp-hidden { display: none !important; }
+
+.sp-kbd {
+  font-size: 11px;
+  font-family: var(--font-mono, monospace);
+  padding: 2px 7px;
+  border: 0.5px solid var(--color-border-secondary);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  background: var(--color-background-secondary);
+  color: var(--color-text-secondary);
+}

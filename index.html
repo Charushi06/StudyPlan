@@ -45,10 +45,44 @@
     <a href="#" id="nav-settings">Settings</a>
   </nav>
 
-  <div class="header-right">
+  <div class="header-right" style="display:flex; align-items:center; gap:10px;">
+    <div style="position:relative; display:flex; align-items:center;">
+      <svg width="14" height="14" fill="none" style="position:absolute; left:10px; color:var(--color-text-tertiary); pointer-events:none;" viewBox="0 0 16 16">
+        <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M10.5 10.5l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <input
+        id="shortcut-search"
+        type="text"
+        placeholder="Search tasks… ( / )"
+        oninput="handleTaskSearch(this.value)"
+        style="padding:7px 12px 7px 30px; border:0.5px solid var(--color-border-secondary); border-radius:8px; font-size:13px; background:var(--color-background-secondary); color:var(--color-text-primary); width:200px; outline:none; transition:border-color 0.15s, width 0.2s;"
+        onfocus="this.style.borderColor='var(--color-border-primary)'; this.style.width='260px';"
+        onblur="this.style.borderColor='var(--color-border-secondary)'; this.style.width='200px'; if(!this.value) handleTaskSearch('');"
+      >
+    </div>
     <button class="profile-btn">Profile</button>
   </div>
 </header>
+<!-- Keyboard Shortcuts Help Modal -->
+<div id="shortcut-help-modal" class="sp-hidden" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:10000; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
+  <div style="background:var(--color-background-primary); border:0.5px solid var(--color-border-tertiary); border-radius:16px; padding:28px; width:380px; box-shadow:0 12px 40px rgba(0,0,0,0.25); color:var(--color-text-primary);">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+      <h2 style="margin:0; font-size:17px; font-weight:600;">Keyboard shortcuts</h2>
+      <kbd class="sp-kbd">?</kbd>
+    </div>
+    <p style="font-size:11px; font-weight:600; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:8px;">Navigation</p>
+    <div style="display:flex; justify-content:space-between; font-size:13px; padding:6px 0; border-bottom:0.5px solid var(--color-border-tertiary);"><span style="color:var(--color-text-secondary);">Calendar view</span><kbd class="sp-kbd">C</kbd></div>
+    <div style="display:flex; justify-content:space-between; font-size:13px; padding:6px 0; border-bottom:0.5px solid var(--color-border-tertiary);"><span style="color:var(--color-text-secondary);">All tasks</span><kbd class="sp-kbd">A</kbd></div>
+    <div style="display:flex; justify-content:space-between; font-size:13px; padding:6px 0; border-bottom:0.5px solid var(--color-border-tertiary);"><span style="color:var(--color-text-secondary);">Focus mode</span><kbd class="sp-kbd">F</kbd></div>
+    <p style="font-size:11px; font-weight:600; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.06em; margin:14px 0 8px;">Actions</p>
+    <div style="display:flex; justify-content:space-between; font-size:13px; padding:6px 0; border-bottom:0.5px solid var(--color-border-tertiary);"><span style="color:var(--color-text-secondary);">New task</span><kbd class="sp-kbd">N</kbd></div>
+    <div style="display:flex; justify-content:space-between; font-size:13px; padding:6px 0; border-bottom:0.5px solid var(--color-border-tertiary);"><span style="color:var(--color-text-secondary);">New subject</span><kbd class="sp-kbd">S</kbd></div>
+    <div style="display:flex; justify-content:space-between; font-size:13px; padding:6px 0; border-bottom:0.5px solid var(--color-border-tertiary);"><span style="color:var(--color-text-secondary);">Search tasks</span><kbd class="sp-kbd">/</kbd></div>
+    <div style="display:flex; justify-content:space-between; font-size:13px; padding:6px 0; border-bottom:0.5px solid var(--color-border-tertiary);"><span style="color:var(--color-text-secondary);">Close / dismiss</span><kbd class="sp-kbd">Esc</kbd></div>
+    <div style="display:flex; justify-content:space-between; font-size:13px; padding:6px 0;"><span style="color:var(--color-text-secondary);">This help panel</span><kbd class="sp-kbd">?</kbd></div>
+  </div>
+</div>
 <!-- Profile Modal -->
 <div id="profile-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
   <div style="background:var(--color-background-primary); border:1px solid var(--color-border-tertiary); border-radius:16px; padding:28px; width:340px; box-shadow:0 12px 40px rgba(0,0,0,0.25); position:relative; color:var(--color-text-primary);">
@@ -447,6 +481,48 @@
 
   window.addEventListener('click', (e) => {
     if (e.target === profileModal) profileModal.style.display = 'none';
+  });
+   // ── Keyboard Shortcuts ─────────────────────────────────────────
+  const SHORTCUTS = {
+    'n': () => document.getElementById('add-task-btn')?.click(),
+    's': () => document.getElementById('add-subject-btn')?.click(),
+    'f': () => document.getElementById('focus-mode-btn')?.click(),
+    'a': () => document.getElementById('all-tasks-btn')?.click(),
+    'c': () => document.getElementById('calendar-btn')?.click(),
+    '/': () => {
+      const si = document.getElementById('shortcut-search');
+      if (si) { si.focus(); si.select(); }
+    },
+    'Escape': () => {
+      ['new-task-modal','new-subject-modal','settings-modal','profile-modal']
+        .forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.style.display = 'none';
+        });
+      const help = document.getElementById('shortcut-help-modal');
+      if (help) help.classList.add('sp-hidden');
+      document.getElementById('shortcut-search')?.blur();
+    },
+    '?': () => {
+      const m = document.getElementById('shortcut-help-modal');
+      if (m) m.classList.toggle('sp-hidden');
+    },
+  };
+
+  document.addEventListener('keydown', (e) => {
+    const tag = document.activeElement?.tagName.toLowerCase();
+    const isTyping = ['input','textarea','select'].includes(tag);
+
+    if (e.key === 'Escape') { SHORTCUTS['Escape'](); return; }
+    if (e.key === '?' && !isTyping) { SHORTCUTS['?'](); return; }
+    if (isTyping || e.metaKey || e.ctrlKey || e.altKey) return;
+
+    const handler = SHORTCUTS[e.key.toLowerCase()];
+    if (handler) { e.preventDefault(); handler(); }
+  });
+
+  document.getElementById('shortcut-help-modal')?.addEventListener('click', function(e) {
+    if (e.target === this) this.classList.add('sp-hidden');
   });
 </script>
 

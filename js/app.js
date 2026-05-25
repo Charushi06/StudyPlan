@@ -2,6 +2,17 @@ import { store } from './store.js';
 import { extractTasksFromText } from './utils/api.js';
 import { initGlobalErrorBoundary } from './utils/errorBoundary.js';
 import { analyzeWorkload } from './utils/scheduler.js';
+// ── Search handler (called by header search input) ─────────────
+window.handleTaskSearch = function(query) {
+  const q = query.trim().toLowerCase();
+  if (!q) {
+    document.querySelectorAll('.task-item').forEach(el => el.style.display = '');
+    return;
+  }
+  document.querySelectorAll('.task-item').forEach(el => {
+    el.style.display = el.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+};
 
 initGlobalErrorBoundary();
 
