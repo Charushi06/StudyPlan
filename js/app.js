@@ -78,6 +78,13 @@ let currentMonthDate = new Date();
 let selectedDate = null;
 let currentView = 'calendar'; // 'calendar', 'all-tasks', 'archived'
 
+const calendarNavBtn = document.getElementById('calendar-nav-btn');
+const tasksNavBtn = document.getElementById('tasks-nav-btn');
+const dashboardNavBtn = document.getElementById('dashboard-nav-btn');
+
+const calendarSidebarBtn = document.getElementById('calendar-btn');
+const allTasksSidebarBtn = document.getElementById('all-tasks-btn');
+
 const tasksSection = document.getElementById('tasks-section');
 const focusSection = document.getElementById('focus-section');
 const extractPreview = document.getElementById('extract-preview');
@@ -1076,6 +1083,29 @@ document.addEventListener('DOMContentLoaded', () => {
       renderFocusTasks();
     });
   }
+
+  // Top Navbar Navigation Sync
+
+if (calendarNavBtn && calendarSidebarBtn) {
+  calendarNavBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    calendarSidebarBtn.click();
+  });
+}
+
+if (tasksNavBtn && allTasksSidebarBtn) {
+  tasksNavBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    allTasksSidebarBtn.click();
+  });
+}
+
+if (dashboardNavBtn && calendarSidebarBtn) {
+  dashboardNavBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    calendarSidebarBtn.click();
+  });
+}
 
   document.getElementById('cal-prev').addEventListener('click', () => {
     currentMonthDate.setMonth(currentMonthDate.getMonth() - 1);
