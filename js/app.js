@@ -28,50 +28,82 @@ function extractLabels(title) {
 
 let activeLabelFilter = '';
 
-function generateSummary(tasks, subjects) {
+function generateProgressDashboard(tasks, subjects) {
   const now = new Date();
   const weekEnd = new Date();
   weekEnd.setDate(now.getDate() + 7);
 
-  let todayCount = 0;
-  let weekCount = 0;
-  let subjectCount = {};
+ const activeTasks = tasks.filter(t => !t.archived);
 
-  tasks.forEach(t => {
-    if (t.archived || t.status === 'Done' || !t.due_at) return;
+const completedTasks = activeTasks.filter(
+  t => t.status === 'Done'
+);
 
-    const d = new Date(t.due_at);
+const pendingTasks = activeTasks.filter(
+  t => t.status !== 'Done'
+);
 
-    // today
-    if (d.toDateString() === now.toDateString()) {
-      todayCount++;
-    }
+const overallProgress =
+  activeTasks.length === 0
+    ? 0
+    : Math.round(
+        (completedTasks.length / activeTasks.length) * 100
+      );
+   
+      let subjectsHtml = '';
 
-    // this week
-    if (d >= now && d <= weekEnd) {
-      weekCount++;
-    }
+subjects.forEach(subject => {
+  const subjectTasks = activeTasks.filter(
+    t => t.subject_id === subject.id
+  );
 
-    const sub = subjects.find(s => s.id === t.subject_id);
-    const name = sub ? sub.name : 'General';
-    subjectCount[name] = (subjectCount[name] || 0) + 1;
-  });
+  const completed = subjectTasks.filter(
+    t => t.status === 'Done'
+  ).length;
 
-  const topSubject = Object.keys(subjectCount).length
-    ? Object.keys(subjectCount).reduce((a, b) =>
-        subjectCount[a] > subjectCount[b] ? a : b
-      )
-    : 'no specific subject';
+  const total = subjectTasks.length;
+
+  const progress =
+    total === 0
+      ? 0
+      : Math.round((completed / total) * 100);
+
+  subjectsHtml += `
+    <div class="subject-progress">
+      <div class="subject-header">
+        <span>${subject.name}</span>
+        <span>${progress}%</span>
+      </div>
+
+      <div class="progress-bar">
+        <div
+          class="progress-fill"
+          style="width:${progress}%">
+        </div>
+      </div>
+    </div>
+  `;
+});
 
   return `
-    <strong>📅 Daily</strong><br>
-    Today you have <b>${todayCount}</b> task(s).<br>
-    Focus on <b>${topSubject}</b>.<br><br>
+  <h3>📈 Study Progress Dashboard</h3>
 
-    <strong>📊 Weekly</strong><br>
-    This week you have <b>${weekCount}</b> task(s).<br>
-    Most work is in <b>${topSubject}</b>.
-  `;
+  <div style="margin-bottom:10px;">
+    <strong>Overall Progress: ${overallProgress}%</strong>
+  </div>
+
+  <div class="progress-bar">
+    <div
+      class="progress-fill"
+      style="width:${overallProgress}%">
+    </div>
+  </div>
+
+  <p><strong>Completed:</strong> ${completedTasks.length}</p>
+  <p><strong>Pending:</strong> ${pendingTasks.length}</p>
+
+  ${subjectsHtml}
+`;
 }
 
 let currentMonthDate = new Date();
@@ -780,9 +812,18 @@ function renderTasks() {
 
 
 const summaryBox = document.getElementById('summary-box');
-if (summaryBox) {
-  summaryBox.innerHTML = generateSummary(store.tasks, store.subjects);
+
+function renderProgressDashboard() {
+  if (!summaryBox) return;
+
+  summaryBox.innerHTML = generateProgressDashboard(
+    store.tasks,
+    store.subjects
+  );
 }
+
+renderProgressDashboard();
+store.subscribe(renderProgressDashboard);
 
 function renderCalendar() {
   const calTitle = document.getElementById('cal-month-title');

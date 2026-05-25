@@ -3798,6 +3798,32 @@ body {
   border: 1px solid var(--color-border-tertiary);
 }
 
+ .progress-bar {
+  width: 100%;
+  height: 10px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 6px 0 12px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #22c55e;
+  border-radius: 999px;
+}
+
+.subject-progress {
+  margin-top: 12px;
+}
+
+.subject-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
 .panel.panel-collapsed .panel-title,
 .panel.panel-collapsed .panel-subtitle,
 .panel.panel-collapsed .paste-zone,
