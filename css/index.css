@@ -4966,3 +4966,131 @@ body {
 @keyframes slideDown {
   to { opacity: 0; transform: translateY(10px); }
 }
+.task-id {
+      font-size: 11.5px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      color: var(--color-text-tertiary);
+      white-space: nowrap;
+    }
+    .subject-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 20px;
+      background: var(--color-background-info);
+      color: var(--color-text-info);
+      border: 1px solid var(--color-border-info);
+      white-space: nowrap;
+    }
+    .title-cell { font-weight: 500; }
+    .due-date {
+      white-space: nowrap;
+      color: var(--color-text-secondary);
+      font-variant-numeric: tabular-nums;
+    }
+    .due-date.overdue { color: var(--color-text-danger); font-weight: 600; }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+    .status-badge::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .status-not-started {
+      background: var(--color-background-tertiary);
+      color: var(--color-text-secondary);
+      border: 1px solid var(--color-border-secondary);
+    }
+    .status-not-started::before { background: var(--color-text-tertiary); }
+    .status-in-progress {
+      background: var(--color-background-info);
+      color: var(--color-text-info);
+      border: 1px solid var(--color-border-info);
+    }
+    .status-in-progress::before { background: var(--color-text-info); }
+    .status-completed {
+      background: var(--color-background-success);
+      color: var(--color-text-success);
+      border: 1px solid var(--color-border-success);
+    }
+    .status-completed::before { background: var(--color-text-success); }
+    .priority-badge {
+      display: inline-flex;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+    .priority-high {
+      background: var(--color-background-danger);
+      color: var(--color-text-danger);
+      border: 1px solid var(--color-border-danger);
+    }
+    .priority-medium {
+      background: var(--color-background-warning);
+      color: var(--color-text-warning);
+      border: 1px solid rgba(133,79,11,.2);
+    }
+    .priority-low {
+      background: var(--color-background-success);
+      color: var(--color-text-success);
+      border: 1px solid var(--color-border-success);
+    }
+    .score-wrap { display: flex; align-items: center; gap: 8px; }
+    .score-bar {
+      width: 60px; height: 5px;
+      border-radius: 4px;
+      background: var(--color-border-tertiary);
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .score-fill {
+      height: 100%;
+      border-radius: 4px;
+      background: var(--color-text-success);
+      transition: width .4s ease;
+    }
+    .score-fill.mid { background: var(--color-text-warning); }
+    .score-fill.low { background: var(--color-text-danger); }
+    .score-val {
+      font-size: 13px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      color: var(--color-text-secondary);
+      min-width: 30px;
+    }
+    .notes-cell {
+      color: var(--color-text-secondary);
+      max-width: 200px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .card-title { font-size: 17px; font-weight: 700; flex: 1; letter-spacing: -.01em; }
+    .review-table-wrap table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    .review-table-wrap thead tr {
+      background: var(--color-background-secondary);
+      border-bottom: 1px solid var(--color-border-secondary);
+    }
+    .review-table-wrap tbody tr {
+      border-bottom: 1px solid var(--color-border-tertiary);
+      transition: background .15s;
+    }
+    .review-table-wrap tbody tr:last-child { border-bottom: none; }
+    .review-table-wrap tbody tr:hover { background: var(--color-background-secondary); }
+    .review-table-wrap td { padding: 14px 16px; vertical-align: middle; }
