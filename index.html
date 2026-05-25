@@ -6,8 +6,15 @@
   <title>StudyPlan — Dashboard</title>
   <link rel="stylesheet" href="/css/design-system.css">
   <link rel="stylesheet" href="/css/index.css">
+<<<<<<< HEAD
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
+=======
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+>>>>>>> upstream/main
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script>
     // Apply theme before paint — prevents flash of wrong theme
@@ -20,8 +27,40 @@
 </head>
 <body>
 
+<<<<<<< HEAD
 <!-- ========== HEADER ========== -->
 <header class="site-header">
+=======
+    <input id="auth-email" type="email" placeholder="Email address" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:12px; box-sizing:border-box;">
+    
+    <input id="auth-password" type="password" placeholder="Password" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:20px; box-sizing:border-box;">
+
+    <button id="auth-submit-btn" style="width:100%; padding:12px; background:#4f46e5; color:white; border:none; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer;">
+    Sign In
+    </button>
+
+    <div style="font-size:12px; color:#666; margin-top:10px; line-height:1.6;">
+    Password must contain:
+     <ul style="padding-left:18px; margin-top:6px;">
+      <li>Minimum 8 characters</li>
+      <li>At least 1 capital letter</li>
+      <li>At least 1 special character</li>
+     </ul>
+    </div>
+
+    <p id="auth-error" style="color:red; font-size:13px; text-align:center; margin:8px 0 0; display:none;"></p>
+
+    <p style="text-align:center; margin:16px 0 0; font-size:13px; color:#666;">
+      <span id="auth-toggle-text">Don't have an account?</span>
+      <a id="auth-toggle-btn" href="#" style="color:#4f46e5; font-weight:600; margin-left:4px;">Sign Up</a>
+    </p>
+
+    <p id="auth-error" style="color:red; font-size:13px; text-align:center; margin:8px 0 0; display:none;"></p>
+  </div>
+</div>
+
+  <header class="site-header">
+>>>>>>> upstream/main
   <div class="header-left">
     <img src="/logo.png" alt="StudyPlan logo" class="logo" width="28" height="28">
     <h1 class="site-title">StudyPlan</h1>
@@ -87,7 +126,14 @@
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2v8M5 7l3 3 3-3M2 12h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Download Data
       </div>
+<<<<<<< HEAD
 
+=======
+      <div class="nav-item" id="calendar-download-btn">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M1 6h14" stroke="currentColor" stroke-width="1.5"/><path d="M5 1v2M11 1v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Export to Calendar
+      </div>
+>>>>>>> upstream/main
       <div class="sidebar-divider"></div>
       <div class="sidebar-header">Subjects</div>
       <div id="subjects-sidebar-list"></div>
@@ -100,6 +146,7 @@
     <!-- Main content -->
     <main class="main" id="main-content">
       <div class="topbar">
+<<<<<<< HEAD
         <div class="topbar-title" id="topbar-date">Loading...</div>
         <div class="topbar-actions">
           <button class="btn" id="week-btn">Week</button>
@@ -112,6 +159,32 @@
 
       <!-- Calendar section -->
       <div class="cal-section" id="calendar-section">
+=======
+        <div class="topbar-title">April 2026</div>
+        <select id="label-filter" style="margin-left:auto; margin-right: 12px; padding: 6px; border-radius: 6px; border: 1px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); outline: none; cursor: pointer;">
+          <option value="">All Labels</option>
+        </select>
+        <button class="btn">Week</button>
+        <button class="btn btn-primary"  id="add-task-btn">
+          <svg width="12" height="12" fill="none" style="margin-right:2px"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> New task
+        </button>
+      </div>
+
+      <!-- Dashboard Greeting -->
+        <div class="dashboard-greeting" style="padding: 16px 24px 0; display: flex; justify-content: center;">
+          <div class="quote-widget">
+            <svg class="quote-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <p id="motivational-quotes">
+              Small Progress is still Progress
+            </p>
+          </div>
+        </div>
+
+      <!-- Calendar -->
+      <div class="cal-section">
+>>>>>>> upstream/main
         <div class="cal-header">
           <div id="cal-month-title" class="cal-title"></div>
           <div class="cal-nav-btns">
@@ -213,9 +286,15 @@
 <footer class="site-footer">
   <p>&copy; 2026 StudyPlan. All rights reserved.</p>
   <div class="footer-links">
+<<<<<<< HEAD
     <a href="/support-page/index.html#privacy" target="_blank" rel="noopener">Privacy</a>
     <a href="/support-page/index.html#terms" target="_blank" rel="noopener">Terms</a>
     <a href="/support-page/index.html#support" target="_blank" rel="noopener">Support</a>
+=======
+    <a href="/support-page/privacy.html">Privacy</a>
+    <a href="/support-page/terms.html">Terms</a>
+    <a href="/support-page/support.html">Support</a>
+>>>>>>> upstream/main
   </div>
 </footer>
 
@@ -302,6 +381,7 @@
   </div>
 </div>
 
+<<<<<<< HEAD
 <!-- ========== NEW TASK MODAL ========== -->
 <div id="new-task-modal" class="modal-backdrop" role="dialog" aria-modal="true" style="display:none">
   <div class="modal-card" style="border-radius:12px; padding:20px; width:320px;">
@@ -329,6 +409,55 @@
 
   // 1. Auth guard — redirects to /signin.html if not logged in
   requireAuth();
+=======
+  // Password validation function
+function validatePassword(password) {
+
+  // Minimum 8 characters
+  const minLength = password.length >= 8;
+
+  // At least 1 capital letter
+  const hasCapital = /[A-Z]/.test(password);
+
+  // At least 1 special character
+  const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+  return minLength && hasCapital && hasSpecial;
+}
+
+document.getElementById('auth-submit-btn').addEventListener('click', async () => {
+
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value.trim();
+  const errorEl = document.getElementById('auth-error');
+
+  errorEl.style.display = 'none';
+
+  // Empty fields check
+  if (!email || !password) {
+    errorEl.textContent = 'Please fill in all fields';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  // Password validation check
+  if (!validatePassword(password)) {
+    errorEl.textContent =
+      'Password must be at least 8 characters long, contain 1 capital letter and 1 special character.';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  const endpoint = isLogin ? '/api/auth/login' : '/api/auth/signup';
+
+  try {
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+      const data = await res.json();
+>>>>>>> upstream/main
 
   // 2. Show user info in header and profile modal
   const user = getUser();
@@ -465,5 +594,44 @@
   });
 </script>
 
+<<<<<<< HEAD
+=======
+<div id="new-subject-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0; z-index:9998; align-items:center; justify-content:center;">
+  <div class="modal-card" style="border-radius:12px; padding:20px; width:320px; box-shadow:0 12px 40px rgba(0,0,0,0.25);">
+    <h3 style="margin:0 0 12px; font-size:18px; font-weight:600;">New subject</h3>
+    <label style="display:block; font-size:12px; margin-bottom:4px;">Subject name</label>
+    <input id="new-subject-name" type="text" style="width:100%; padding:6px; margin-bottom:12px;" placeholder="e.g. History">
+    <label style="display:block; font-size:12px; margin-bottom:6px;">Color</label>
+    <div id="new-subject-colors" class="subject-color-swatches"></div>
+    <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
+      <button id="new-subject-cancel" class="btn" style="padding:6px 10px;">Cancel</button>
+      <button id="new-subject-save" class="btn btn-primary" style="padding:6px 12px;">Save</button>
+    </div>
+  </div>
+</div>
+
+<div id="new-task-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0;  z-index:9998; align-items:center; justify-content:center;">
+  <div class="modal-card" style=" border-radius:12px; padding:20px; width:320px; box-shadow:0 12px 40px rgba(0,0,0,0.25);">
+    <h3 style="margin:0 0 12px; font-size:18px; font-weight:600;">New task</h3>
+
+    <label style="display:block; font-size:12px; margin-bottom:4px;">Subject</label>
+    <select id="new-task-subject" paceholder="Subject" style="width:100%; padding:6px; margin-bottom:10px;"></select>
+
+    <label style="display:block; font-size:12px; margin-bottom:4px;">Task name (Use #tag for labels)</label>
+    <input id="new-task-title" type="text" style="width:100%; padding:6px; margin-bottom:10px;"placeholder="e.g. Study for exam #urgent #school">
+
+    <label style="display:block; font-size:12px; margin-bottom:4px;">Deadline</label>
+    <input id="new-task-date" type="datetime-local" style="width:100%; padding:6px; margin-bottom:10px;" placeholder="Deadline">
+
+    <!-- <label style="display:block; font-size:12px; margin-bottom:4px;">Notes</label> -->
+    <input id="new-task-notes" type="text" style="width:100%; padding:6px; margin-bottom:16px;" placeholder="Notes">
+
+    <div style="display:flex; justify-content:flex-end; gap:8px;">
+      <button id="new-task-cancel" class="btn" style="padding:6px 10px;">Cancel</button>
+      <button id="new-task-save" class="btn btn-primary" style="padding:6px 12px;">Save</button>
+    </div>
+  </div>
+</div>
+>>>>>>> upstream/main
 </body>
 </html>
