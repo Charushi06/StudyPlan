@@ -12,9 +12,19 @@
   "description": "",
   "dependencies": {
     "@google/genai": "^1.49.0",
+    "bcrypt": "^6.0.0",
+    "connect-sqlite3": "^0.9.16",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
+    "csrf-csrf": "^4.0.3",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.5.2",
+    "express-session": "^1.19.0",
+    "helmet": "^8.1.0",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
+    "passport-local": "^1.0.0",
     "sqlite3": "^6.0.1"
   },
   "engines": {

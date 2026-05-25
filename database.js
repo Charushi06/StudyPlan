@@ -31,6 +31,15 @@ function initDb() {
       FOREIGN KEY (subject_id) REFERENCES subjects(id)
     )`);
 
+    db.run(`CREATE TABLE IF NOT EXISTS users (
+      id TEXT PRIMARY KEY,
+      email TEXT UNIQUE NOT NULL,
+      password_hash TEXT,
+      google_id TEXT UNIQUE,
+      name TEXT,
+      avatar_url TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`);
     // Add labels column to existing tasks table if it doesn't exist
     db.all("PRAGMA table_info(tasks)", (err, rows) => {
       if (err) return;

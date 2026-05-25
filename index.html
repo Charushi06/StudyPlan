@@ -19,6 +19,16 @@
     <h2 id="auth-title" style="margin:0 0 8px; font-size:22px; font-weight:700;">Welcome back</h2>
     <p id="auth-subtitle" style="margin:0 0 24px; color:#666; font-size:14px;">Sign in to your StudyPlan account</p>
 
+    <button id="auth-google-btn" type="button" style="width:100%; padding:12px; background:white; color:#374151; border:1px solid #ddd; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer; margin-bottom:16px;">
+      Continue with Google
+    </button>
+
+    <p style="display:flex; align-items:center; gap:12px; color:#888; font-size:11px; margin:0 0 16px; text-transform:uppercase; letter-spacing:0.04em;">
+      <span style="flex:1; height:1px; background:#eee;"></span>
+      or email
+      <span style="flex:1; height:1px; background:#eee;"></span>
+    </p>
+
     <input id="auth-email" type="email" placeholder="Email address" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:12px; box-sizing:border-box;">
     
     <input id="auth-password" type="password" placeholder="Password" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:20px; box-sizing:border-box;">
@@ -304,6 +314,65 @@
   <script type="module" src="/js/app.js"></script>
   <script>
   let isLogin = true;
+  let csrfToken = null;
+  const authModal = document.getElementById('auth-modal');
+  const errorEl = document.getElementById('auth-error');
+
+  async function bootstrapCsrf() {
+    const res = await fetch('/api/csrf-token', { credentials: 'include' });
+    if (!res.ok) throw new Error('CSRF bootstrap failed');
+    const data = await res.json();
+    csrfToken = data.csrfToken;
+  }
+
+  async function initAuth() {
+    try {
+      await bootstrapCsrf();
+    } catch (e) {
+      console.warn('CSRF token fetch failed', e);
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('auth') === 'oauth_unconfigured') {
+      authModal.style.display = 'flex';
+      errorEl.textContent =
+        'Google sign-in is not configured on this server. Use email/password or configure OAuth (see README).';
+      errorEl.style.display = 'block';
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+
+    if (params.get('auth') === 'error') {
+      authModal.style.display = 'flex';
+      errorEl.textContent = 'Google sign-in failed or was cancelled. Please try again.';
+      errorEl.style.display = 'block';
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+
+    if (params.get('auth') === 'success') {
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+
+    try {
+      const meRes = await fetch('/api/auth/me', { credentials: 'include' });
+      if (meRes.ok) {
+        const user = await meRes.json();
+        localStorage.setItem('studyplan_user', JSON.stringify(user));
+        authModal.style.display = 'none';
+        return;
+      }
+    } catch (e) {
+      console.warn('/api/auth/me failed', e);
+    }
+
+    localStorage.removeItem('studyplan_user');
+    authModal.style.display = 'flex';
+  }
+
+  initAuth();
+
+  document.getElementById('auth-google-btn').addEventListener('click', () => {
+    window.location.href = '/api/auth/google';
+  });
 
   document.getElementById('auth-toggle-btn').addEventListener('click', (e) => {
     e.preventDefault();
@@ -313,9 +382,40 @@
     document.getElementById('auth-submit-btn').textContent = isLogin ? 'Sign In' : 'Sign Up';
     document.getElementById('auth-toggle-text').textContent = isLogin ? "Don't have an account?" : 'Already have an account?';
     document.getElementById('auth-toggle-btn').textContent = isLogin ? 'Sign Up' : 'Sign In';
-    document.getElementById('auth-error').style.display = 'none';
+    errorEl.style.display = 'none';
   });
 
+  document.getElementById('auth-submit-btn').addEventListener('click', async () => {
+    const emailInput = document.getElementById('auth-email').value.trim();
+    const password = document.getElementById('auth-password').value.trim();
+
+    if (!emailInput || !password) {
+      errorEl.textContent = 'Please fill in all fields';
+      errorEl.style.display = 'block';
+      return;
+    }
+
+    try {
+      await bootstrapCsrf();
+    } catch (e) {
+      errorEl.textContent = 'Could not secure this session. Please refresh and try again.';
+      errorEl.style.display = 'block';
+      return;
+    }
+
+    const endpoint = isLogin ? '/api/auth/login' : '/api/auth/signup';
+
+    try {
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken,
+        },
+        body: JSON.stringify({ email: emailInput, password }),
+      });
+      const data = await res.json().catch(() => ({}));
   // Password validation function
 function validatePassword(password) {
 
@@ -365,34 +465,42 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
       const data = await res.json();
 
       if (!res.ok) {
-        errorEl.textContent = data.error || 'Something went wrong';
+        errorEl.textContent = data.error || data.message || 'Something went wrong';
         errorEl.style.display = 'block';
         return;
       }
 
-      localStorage.setItem('studyplan_user', JSON.stringify({ email: data.email }));
-      document.getElementById('auth-modal').style.display = 'none';
+      if (!data.user) {
+        errorEl.textContent = 'Unexpected server response';
+        errorEl.style.display = 'block';
+        return;
+      }
 
+      localStorage.setItem('studyplan_user', JSON.stringify(data.user));
+      authModal.style.display = 'none';
     } catch (err) {
       errorEl.textContent = 'Network error. Please try again.';
       errorEl.style.display = 'block';
     }
   });
 
-  // Check if already logged in
-  if (localStorage.getItem('studyplan_user')) {
-    document.getElementById('auth-modal').style.display = 'none';
-  }
-
-  // Logout Button Functionality
   const logoutBtn = document.getElementById('logout-btn');
-  logoutBtn.addEventListener('click', () => {
+  logoutBtn.addEventListener('click', async () => {
+    try {
+      await bootstrapCsrf();
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken,
+        },
+      });
+    } catch (e) {
+      console.warn('Logout request failed', e);
+    }
+
     localStorage.removeItem('studyplan_user');
-
-    // Show login modal again
-    document.getElementById('auth-modal').style.display = 'flex';
-
-    // Refresh page state
     window.location.reload();
 });
 

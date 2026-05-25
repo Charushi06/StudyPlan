@@ -112,6 +112,7 @@ State Management + UI Sync
 | Backend | Node.js + Express |
 | Database | SQLite |
 | AI | Google Gemini (GenAI SDK) |
+| Auth | Passport.js (`passport-google-oauth20`, `passport-local`), `express-session` (SQLite), bcrypt, Helmet, `csrf-csrf`, rate limiting |
 
 ---
 
@@ -138,11 +139,34 @@ npm install
 
 ## 🔑 Environment Setup
 
-Create `.env`:
+Copy `.env.example` to `.env` and configure at minimum:
 
 ```env
 GEMINI_API_KEY=your_gen_ai_key_here
+SESSION_SECRET=your_random_secret_here
 ```
+
+`SESSION_SECRET` signs the session and CSRF cookies. In production it is **required**. Generate one with:
+
+```bash
+openssl rand -hex 32
+```
+
+Optional variables (`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_CALLBACK_URL`, `CLIENT_ORIGIN`, `NODE_ENV`) are documented in [.env.example](.env.example).
+
+### Google OAuth (optional login)
+
+Sessions are cookie-based (**HttpOnly**, **Secure** in production); JWT is not used for browser authentication.
+
+1. Open [Google Cloud Console](https://console.cloud.google.com/) → **APIs & Services** → **Credentials** → **Create credentials** → **OAuth client ID** → Application type **Web application**.
+2. **Authorized JavaScript origins**: `http://localhost:3000` and your deployed site URL (for example `https://studyplan-jvgd.onrender.com`).
+3. **Authorized redirect URIs**: must include the callback StudyPlan exposes, matching `GOOGLE_CALLBACK_URL` exactly:
+   - Local: `http://localhost:3000/api/auth/google/callback`
+   - Production example: `https://studyplan-jvgd.onrender.com/api/auth/google/callback`
+4. Paste **Client ID** / **Client secret** into `.env` (`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`) and set `GOOGLE_CALLBACK_URL` to that callback URL.
+5. On Render or another host, add the same variables in the dashboard.
+
+Without Google vars, users can still sign up with email and password (bcrypt-hashed); “Continue with Google” shows an explanatory message.
 
 ---
 
@@ -168,8 +192,11 @@ Open → http://localhost:3000
 │   │   └──  toast.js        # Modern toast & confirmation modal system
 │   ├──  app.js              # The main controller (handles DOM UI, event bindings, and Calendar)
 │   └──  store.js            # The Custom State Manager handling our frontend Pub/Sub state
-├──  .env.example            # Template file for setting the GEMINI_API_KEY
+├──  db
+│   └──  users.js            # SQLite helpers for user accounts (OAuth + local)
+├──  .env.example            # Template file for Gemini, sessions, OAuth, and optional vars
 ├──  .gitignore              # Tells git to ignore databases, environments, and node packages
+├──  auth.js                 # Passport (Google + local), auth routes, bcrypt signup/login
 ├──  database.js             # Initializes the SQLite database and executes DB table schemas
 ├──  index.html              # The frontend structural entry point
 ├──  package.json            # Node project configuration and backend dependencies
