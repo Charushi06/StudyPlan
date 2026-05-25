@@ -494,7 +494,17 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
     <h3 style="margin:0 0 12px; font-size:18px; font-weight:600;">New task</h3>
 
     <label style="display:block; font-size:12px; margin-bottom:4px;">Subject</label>
-    <select id="new-task-subject" paceholder="Subject" style="width:100%; padding:6px; margin-bottom:10px;"></select>
+
+    <input 
+      id="new-task-subject"
+      type="text"
+      list="subjects-list"
+      placeholder="Enter or select subject"
+      style="width:100%; padding:6px; margin-bottom:10px;"
+    >
+
+    <datalist id="subjects-list"></datalist>
+    
 
     <label style="display:block; font-size:12px; margin-bottom:4px;">Task name (Use #tag for labels)</label>
     <input id="new-task-title" type="text" style="width:100%; padding:6px; margin-bottom:10px;"placeholder="e.g. Study for exam #urgent #school">

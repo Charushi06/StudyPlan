@@ -168,12 +168,12 @@ function renderSidebarSubjects() {
 
 const newTaskModal = document.getElementById('new-task-modal');
 const newTaskSubject = document.getElementById('new-task-subject');
+const subjectsList = document.getElementById('subjects-list');
 const newTaskTitle = document.getElementById('new-task-title');
 const newTaskDate = document.getElementById('new-task-date');
 const newTaskNotes = document.getElementById('new-task-notes');
 const newTaskCancel = document.getElementById('new-task-cancel');
 const newTaskSave = document.getElementById('new-task-save');
-
 // Timer elements
 const timerText = document.getElementById('timer-text');
 const timerPathRemaining = document.getElementById('timer-path-remaining');
@@ -1088,65 +1088,96 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
 
-//NEw Task addition event listeners
+
+// NEW TASK ADDITION EVENT LISTENERS
 newTaskBtn.addEventListener('click', () => {
-  
+
+  // Check if subjects loaded
   if (!store.subjects || store.subjects.length === 0) {
     Toast.show('Subjects are still loading. Please try again in a moment.', 'warning');
     return;
   }
 
-  newTaskSubject.innerHTML = store.subjects
-    .map(s => `<option value="${s.id}">${s.name}</option>`)
+  // Fill datalist with subjects
+  subjectsList.innerHTML = store.subjects
+    .map(s => `<option value="${s.name}"></option>`)
     .join('');
 
-
+  // Default date
   if (selectedDate) {
     const d = new Date(selectedDate);
-    d.setHours(18, 0, 0, 0); 
+    d.setHours(18, 0, 0, 0);
     newTaskDate.value = d.toISOString().substring(0, 16);
   } else {
     newTaskDate.value = '';
   }
 
+  // Clear fields
+  newTaskSubject.value = '';
   newTaskTitle.value = '';
   newTaskNotes.value = '';
 
+  // Open modal
   newTaskModal.style.display = 'flex';
 });
 
+// Cancel button
 newTaskCancel.addEventListener('click', () => {
   newTaskModal.style.display = 'none';
 });
 
+// Close when clicking outside
 newTaskModal.addEventListener('click', (e) => {
   if (e.target === newTaskModal) {
     newTaskModal.style.display = 'none';
   }
 });
 
+// Save task
 newTaskSave.addEventListener('click', async () => {
-  const rawTitle = newTaskTitle.value.trim();
-  const subject_id = newTaskSubject.value;
-  const notes = newTaskNotes.value.trim();
-  const dateVal = newTaskDate.value;
+const rawTitle = newTaskTitle.value.trim();
+const subjectName = newTaskSubject.value.trim();
+const notes = newTaskNotes.value.trim();
+const dateVal = newTaskDate.value;
 
-  if (!rawTitle) {
-    alert('Please enter a task name');
-    return;
-  }
+if (!rawTitle) {
+  alert('Please enter a task name');
+  return;
+}
 
-  if (!dateVal) {
+if (!subjectName) {
+  alert('Please enter a subject');
+  return;
+}
+
+if (!dateVal) {
   alert('Please enter a deadline');
   return;
 }
+    
 
-if (!subject_id) {
-  alert('Please select a subject');
-  return;
+// Find existing subject
+let selectedSubject = store.subjects.find(
+  s => s.name.toLowerCase() === subjectName.toLowerCase()
+);
+
+// Create subject if not found
+if (!selectedSubject) {
+  await store.addSubject({
+    name: subjectName,
+    color: SUBJECT_COLORS[0]
+  });
+
+  selectedSubject = store.subjects.find(
+    s => s.name.toLowerCase() === subjectName.toLowerCase()
+  );
 }
-  const { cleanTitle, labels } = extractLabels(rawTitle);
-  const due_at = dateVal ? new Date(dateVal).toISOString() : '';
+
+const subject_id = selectedSubject.id;
+
+const { cleanTitle, labels } = extractLabels(rawTitle);
+
+const due_at = new Date(dateVal).toISOString();
 
   const newTask = {
     title: cleanTitle || rawTitle,
@@ -1160,9 +1191,11 @@ if (!subject_id) {
   };
 
   await store.addTasks([newTask]);
+
   newTaskModal.style.display = 'none';
 });
 
+// Add extracted items
 addItemsBtn.addEventListener('click', () => {
   if (store.currentPaste) {
     const pasteWithLabels = store.currentPaste.map(t => {
@@ -1174,12 +1207,13 @@ addItemsBtn.addEventListener('click', () => {
     pasteInput.value = '';
   }
 });
-});
+
 
 // Ensures the button is hidden on initial page load if the textarea is empty
 if (pasteInput.value.trim() === "") {
     clearBtn.style.display = 'none';
 }
+
 
 extractBtn.addEventListener('click', async () => {
   const text = pasteInput.value;
@@ -1217,6 +1251,7 @@ downloadBtn.addEventListener('click', () => {
   downloadData();
 });
 
+
 // Motivational Quotes
 const quotes = [
   "Small Progress is still Progress",
@@ -1245,3 +1280,4 @@ if (quoteEl) {
 calendarDownloadBtn.addEventListener('click', () => {
   downloadCalendar();
 });
+
