@@ -80,7 +80,7 @@ export const store = {
         //  Backend error
         Toast.show(`❌ ${data.message || "Failed to add tasks"}`, 'error');
         console.error('Add task error:', data);
-        return;
+        return false;
       }
 
       // ================= USER MESSAGES =================
@@ -105,6 +105,7 @@ export const store = {
       const tasksRes = await fetch('/api/tasks');
       this.tasks = await tasksRes.json();
       this.notify();
+      return true;
 
     } catch (e) {
       console.error('Failed to add tasks', e);

@@ -2,6 +2,13 @@ import { store } from './store.js';
 import { extractTasksFromText } from './utils/api.js';
 import { initGlobalErrorBoundary } from './utils/errorBoundary.js';
 import { analyzeWorkload } from './utils/scheduler.js';
+import {
+  buildPostSaveCalendarState,
+  buildDefaultNewTaskDateValue,
+  captureNewTaskFormState,
+  isNewTaskFormDirty as hasNewTaskDraftChanged,
+} from './utils/newTaskModal.mjs';
+import { joinMarkup } from './utils/taskMarkup.mjs';
 import { Toast } from './utils/toast.js';
 
 initGlobalErrorBoundary();
@@ -173,6 +180,8 @@ const newTaskDate = document.getElementById('new-task-date');
 const newTaskNotes = document.getElementById('new-task-notes');
 const newTaskCancel = document.getElementById('new-task-cancel');
 const newTaskSave = document.getElementById('new-task-save');
+const newTaskClose = document.getElementById('new-task-close');
+let newTaskInitialState = null;
 
 // Timer elements
 const timerText = document.getElementById('timer-text');
@@ -637,10 +646,12 @@ function renderTasks() {
          </div>`
       : '';
 
-    tasksSection.innerHTML = actionBar +
-                             renderGroup(`Tasks for ${selStr}`, dueSoon, 'var(--color-text-primary)') +
-                             renderGroup('Completed', completed, 'var(--color-text-tertiary)') +
-                             emptyState;
+    tasksSection.innerHTML = joinMarkup(
+      actionBar,
+      renderGroup(`Tasks for ${selStr}`, dueSoon, 'var(--color-text-primary)'),
+      renderGroup('Completed', completed, 'var(--color-text-tertiary)'),
+      emptyState
+    );
   } else {
     const actionBar = currentView === 'archived' ? '' : `<div class="tasks-actions-bar">
            <button id="mark-all-pending-btn" class="task-action-btn" ${pending.length === 0 ? 'disabled' : ''}>Mark all pending completed (${pending.length})</button>
@@ -666,11 +677,13 @@ function renderTasks() {
          </div>`
       : '';
 
-    tasksSection.innerHTML = actionBar +
-                             renderGroup(titlePrefix + '⚠ Due soon', dueSoon, 'var(--color-text-danger)', true)
-                             + renderGroup(titlePrefix + 'This week', thisWeek, 'var(--color-text-secondary)', true) +
-                             renderGroup(titlePrefix + 'Completed', completed, 'var(--color-text-tertiary)') +
-                             emptyState;
+    tasksSection.innerHTML = joinMarkup(
+      actionBar,
+      renderGroup(titlePrefix + '⚠ Due soon', dueSoon, 'var(--color-text-danger)', true),
+      renderGroup(titlePrefix + 'This week', thisWeek, 'var(--color-text-secondary)', true),
+      renderGroup(titlePrefix + 'Completed', completed, 'var(--color-text-tertiary)'),
+      emptyState
+    );
   }
 
   // Bind CTA button in empty state
@@ -1089,6 +1102,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 //NEw Task addition event listeners
+function populateNewTaskSubjects() {
 newTaskBtn.addEventListener('click', () => {
   
   if (!store.subjects || store.subjects.length === 0) {
@@ -1099,31 +1113,70 @@ newTaskBtn.addEventListener('click', () => {
   newTaskSubject.innerHTML = store.subjects
     .map(s => `<option value="${s.id}">${s.name}</option>`)
     .join('');
+}
 
+function getNewTaskFormState() {
+  return captureNewTaskFormState({
+    subjectId: newTaskSubject.value,
+    title: newTaskTitle.value,
+    notes: newTaskNotes.value,
+    dueAt: newTaskDate.value,
+  });
+}
 
-  if (selectedDate) {
-    const d = new Date(selectedDate);
-    d.setHours(18, 0, 0, 0); 
-    newTaskDate.value = d.toISOString().substring(0, 16);
-  } else {
-    newTaskDate.value = '';
-  }
-
+function resetNewTaskForm() {
+  populateNewTaskSubjects();
+  newTaskDate.value = buildDefaultNewTaskDateValue(selectedDate);
   newTaskTitle.value = '';
   newTaskNotes.value = '';
+  newTaskInitialState = getNewTaskFormState();
+}
 
+function openNewTaskModal() {
+  resetNewTaskForm();
   newTaskModal.style.display = 'flex';
-});
+  newTaskModal.classList.add('showing');
+  newTaskTitle.focus();
+}
 
-newTaskCancel.addEventListener('click', () => {
+function hideNewTaskModal() {
   newTaskModal.style.display = 'none';
+  newTaskModal.classList.remove('showing');
+}
+
+function discardNewTaskDraft() {
+  hideNewTaskModal();
+  newTaskTitle.value = '';
+  newTaskNotes.value = '';
+  newTaskDate.value = '';
+  newTaskInitialState = null;
+}
+
+function confirmDiscardNewTask() {
+  const currentState = getNewTaskFormState();
+  if (!hasNewTaskDraftChanged(newTaskInitialState, currentState)) return true;
+  return window.confirm('Discard this task draft? Unsaved changes will be lost.');
+}
+
+function requestCloseNewTaskModal() {
+  if (!confirmDiscardNewTask()) return;
+  discardNewTaskDraft();
+}
+
+newTaskBtn.addEventListener('click', () => {
+  
+  if (!store.subjects || store.subjects.length === 0) {
+    alert('Subjects are still loading. Please try again in a moment.');
+    return;
+  }
+
+  openNewTaskModal();
 });
 
-newTaskModal.addEventListener('click', (e) => {
-  if (e.target === newTaskModal) {
-    newTaskModal.style.display = 'none';
-  }
-});
+newTaskCancel.addEventListener('click', requestCloseNewTaskModal);
+if (newTaskClose) {
+  newTaskClose.addEventListener('click', requestCloseNewTaskModal);
+}
 
 newTaskSave.addEventListener('click', async () => {
   const rawTitle = newTaskTitle.value.trim();
@@ -1159,8 +1212,22 @@ if (!subject_id) {
     labels
   };
 
-  await store.addTasks([newTask]);
-  newTaskModal.style.display = 'none';
+  const saved = await store.addTasks([newTask]);
+  if (!saved) return;
+
+  const postSaveCalendarState = buildPostSaveCalendarState(currentView, due_at);
+  if (postSaveCalendarState) {
+    selectedDate = postSaveCalendarState.selectedDate;
+    currentMonthDate = postSaveCalendarState.currentMonthDate;
+  }
+
+  discardNewTaskDraft();
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.key !== 'Escape') return;
+  if (!newTaskModal || newTaskModal.style.display !== 'flex') return;
+  requestCloseNewTaskModal();
 });
 
 addItemsBtn.addEventListener('click', () => {
