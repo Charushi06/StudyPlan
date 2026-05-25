@@ -6,27 +6,102 @@ import { Toast } from './utils/toast.js';
 
 initGlobalErrorBoundary();
 
-function getLabelColor(labelStr) {
-  const colors = ['#ef4444', '#f59e0b', '#3b82f6', '#8b5cf6', '#10b981', '#ec4899', '#14b8a6', '#f97316'];
-  let hash = 0;
-  for (let i = 0; i < labelStr.length; i++) {
-    hash = labelStr.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return colors[Math.abs(hash) % colors.length];
+// --- ACHIEVEMENTS SYSTEM START ---
+const BADGES_CONFIG = [
+    { id: 'first_task', name: 'First Blood', desc: 'Complete your first task', icon: '🎯' },
+    { id: 'task_5', name: 'High Five', desc: 'Complete 5 tasks', icon: '🖐️' },
+    { id: 'task_20', name: 'Machine', desc: 'Complete 20 tasks', icon: '🤖' },
+    { id: 'streak_3', name: 'On Fire', desc: 'Hit a 3-day study streak', icon: '🔥' },
+    { id: 'streak_7', name: 'Unstoppable', desc: 'Hit a 7-day study streak', icon: '⚡' },
+    { id: 'focus_master', name: 'Zen Mode', desc: 'Complete a focus session', icon: '🧘' }
+];
+
+function getStats() {
+    let stats = localStorage.getItem('studyplan_achievements');
+    if (!stats) {
+        stats = { tasksCompleted: 0, streak: 0, lastDate: null, unlocked: [] };
+        localStorage.setItem('studyplan_achievements', JSON.stringify(stats));
+    } else {
+        stats = JSON.parse(stats);
+    }
+    return stats;
 }
 
-function extractLabels(title) {
-  const labelRegex = /#([\w-]+)/g;
-  let match;
-  const labels = [];
-  while ((match = labelRegex.exec(title)) !== null) {
-    labels.push(match[1]);
-  }
-  const cleanTitle = title.replace(labelRegex, '').trim();
-  return { cleanTitle, labels };
+function saveStats(stats) {
+    localStorage.setItem('studyplan_achievements', JSON.stringify(stats));
+    updateBadgesUI();
 }
 
-let activeLabelFilter = '';
+function trackTaskCompletion(count = 1) {
+    let stats = getStats();
+    stats.tasksCompleted += count;
+
+    const today = new Date().toDateString();
+    if (stats.lastDate) {
+        const last = new Date(stats.lastDate);
+        const current = new Date(today);
+        const diffTime = Math.abs(current - last);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 1) {
+            stats.streak += 1;
+        } else if (diffDays > 1) {
+            stats.streak = 1;
+        }
+    } else {
+        stats.streak = 1;
+    }
+    stats.lastDate = today;
+
+    checkUnlocks(stats);
+}
+
+function trackFocusTimer() {
+    let stats = getStats();
+    checkUnlocks(stats, 'focus');
+}
+
+function checkUnlocks(stats, eventType = null) {
+    let newlyUnlocked = false;
+
+    const unlock = (id) => {
+        if (!stats.unlocked.includes(id)) {
+            stats.unlocked.push(id);
+            newlyUnlocked = true;
+            setTimeout(() => alert(`🏆 Achievement Unlocked: ${BADGES_CONFIG.find(b=>b.id===id).name}!\nCheck your Achievements tab.`), 100);
+        }
+    };
+
+    if (stats.tasksCompleted >= 1) unlock('first_task');
+    if (stats.tasksCompleted >= 5) unlock('task_5');
+    if (stats.tasksCompleted >= 20) unlock('task_20');
+    if (stats.streak >= 3) unlock('streak_3');
+    if (stats.streak >= 7) unlock('streak_7');
+    if (eventType === 'focus') unlock('focus_master');
+
+    if (newlyUnlocked || eventType === null) saveStats(stats);
+}
+
+function updateBadgesUI() {
+    const stats = getStats();
+    const badgeCountEl = document.getElementById('achievements-badge');
+    if (badgeCountEl) badgeCountEl.textContent = stats.unlocked.length;
+
+    const grid = document.getElementById('badges-grid');
+    if (!grid) return;
+
+    grid.innerHTML = BADGES_CONFIG.map(badge => {
+        const isUnlocked = stats.unlocked.includes(badge.id);
+        return `
+            <div class="badge-card ${isUnlocked ? 'badge-unlocked' : 'badge-locked'}">
+                <div class="badge-icon">${badge.icon}</div>
+                <div class="badge-title">${badge.name}</div>
+                <div class="badge-desc">${badge.desc}</div>
+            </div>
+        `;
+    }).join('');
+}
+// --- ACHIEVEMENTS SYSTEM END ---
 
 function generateSummary(tasks, subjects) {
   const now = new Date();
@@ -89,13 +164,6 @@ const downloadBtn = document.getElementById('download-btn');
 const calendarDownloadBtn = document.getElementById('calendar-download-btn');
 const newTaskBtn = document.getElementById('add-task-btn');
 const labelFilterSelect = document.getElementById('label-filter');
-
-if (labelFilterSelect) {
-  labelFilterSelect.addEventListener('change', (e) => {
-    activeLabelFilter = e.target.value;
-    renderTasks();
-  });
-}
 
 const SUBJECT_COLORS = [
   'var(--color-text-info)',
@@ -238,7 +306,8 @@ function startTimer() {
     if (timeLeft === 0) {
       clearInterval(timerInterval);
       timerInterval = null;
-      Toast.show('Focus session complete!', 'success');
+      trackFocusTimer(); // ACHIEVEMENTS INJECTED
+      alert('Focus session complete!');
       resetTimer();
     }
   }, 1000);
@@ -362,6 +431,7 @@ function renderFocusTasks() {
       const completeBtn = activeFocusTask.querySelector('.complete-focus-task-btn');
       if (completeBtn) {
         completeBtn.addEventListener('click', () => {
+          if(activeT.status !== 'Done') trackTaskCompletion(); // ACHIEVEMENTS INJECTED
           store.toggleTaskStatus(activeT.id);
           activeFocusTaskId = null;
           renderFocusTasks();
@@ -667,8 +737,8 @@ function renderTasks() {
       : '';
 
     tasksSection.innerHTML = actionBar +
-                             renderGroup(titlePrefix + '⚠ Due soon', dueSoon, 'var(--color-text-danger)', true)
-                             + renderGroup(titlePrefix + 'This week', thisWeek, 'var(--color-text-secondary)', true) +
+                             renderGroup(titlePrefix + '⚠ Due soon', dueSoon, 'var(--color-text-danger)', true) +
+                             renderGroup(titlePrefix + 'This week', thisWeek, 'var(--color-text-secondary)', true) +
                              renderGroup(titlePrefix + 'Completed', completed, 'var(--color-text-tertiary)') +
                              emptyState;
   }
@@ -689,6 +759,7 @@ function renderTasks() {
       const task = store.tasks.find(t => String(t.id) === String(taskId));
       if (task && task._isEditing) return;
       
+      if(task && task.status !== 'Done') trackTaskCompletion(); // ACHIEVEMENTS INJECTED
       store.toggleTaskStatus(taskId);
     });
   });
@@ -736,6 +807,8 @@ function renderTasks() {
     el.addEventListener('click', (e) => {
       e.stopPropagation();
       const taskId = el.closest('.task-item').dataset.id;
+      const task = store.tasks.find(t => String(t.id) === String(taskId));
+      if(task && task.status !== 'Done') trackTaskCompletion(); // ACHIEVEMENTS INJECTED
       store.toggleTaskStatus(taskId);
     });
   });
@@ -765,6 +838,7 @@ function renderTasks() {
   if (markAllPendingBtn) {
     markAllPendingBtn.addEventListener('click', (e) => {
       e.stopPropagation();
+      trackTaskCompletion(pending.length); // ACHIEVEMENTS INJECTED
       store.markAllPendingCompleted();
     });
   }
@@ -773,11 +847,11 @@ function renderTasks() {
   if (markDayCompleteBtn) {
     markDayCompleteBtn.addEventListener('click', (e) => {
       e.stopPropagation();
+      trackTaskCompletion(pending.length); // ACHIEVEMENTS INJECTED
       store.markPendingTasksForDateCompleted(selectedDate);
     });
   }
 }
-
 
 const summaryBox = document.getElementById('summary-box');
 if (summaryBox) {
@@ -973,6 +1047,29 @@ store.subscribe(renderFocusTasks);
 store.subscribe(renderSidebarSubjects);
 
 document.addEventListener('DOMContentLoaded', () => {
+  // ACHIEVEMENTS INJECTED: Load initial badges
+  updateBadgesUI();
+  const achNavBtn = document.getElementById('achievements-nav-btn');
+  const achModal = document.getElementById('achievements-modal');
+  const achCloseBtn = document.getElementById('close-achievements-btn');
+
+  if(achNavBtn) {
+      achNavBtn.addEventListener('click', () => {
+          updateBadgesUI();
+          achModal.style.display = 'flex';
+      });
+  }
+  if(achCloseBtn) {
+      achCloseBtn.addEventListener('click', () => {
+          achModal.style.display = 'none';
+      });
+  }
+  if(achModal) {
+      achModal.addEventListener('click', (e) => {
+          if(e.target === achModal) achModal.style.display = 'none';
+      });
+  }
+
   if (newSubjectColorsEl) {
     SUBJECT_COLORS.forEach(c => {
       const btn = document.createElement('button');
@@ -1215,33 +1312,4 @@ pasteInput.addEventListener('input', () => {
 
 downloadBtn.addEventListener('click', () => {
   downloadData();
-});
-
-// Motivational Quotes
-const quotes = [
-  "Small Progress is still Progress",
-  "Focus on being productive instead of busy",
-  "The secret of getting ahead is getting started",
-  "Strive for progress, not perfection",
-  "Don't wait for opportunity. Create it.",
-  "Success is the sum of small efforts repeated daily",
-  "Time is not refundable, use it with intention.",
-  "Sometimes, getting it done is better than perfect.",
-  "Believe you can and you're halfway there.",
-  "Arise, awake, and stop not till the goal is reached."
-];
-
-const quoteEl = document.getElementById('motivational-quotes');
-if (quoteEl) {
-  const today = new Date();
-  const seed = today.toDateString();
-  let hash = 0;
-  for (let i = 0; i < seed.length; i++) {
-    hash = seed.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const index = Math.abs(hash % quotes.length);
-  quoteEl.textContent = `${quotes[index]}`;
-}
-calendarDownloadBtn.addEventListener('click', () => {
-  downloadCalendar();
 });

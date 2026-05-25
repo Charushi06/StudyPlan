@@ -12,8 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <!-- Auth Modal -->
-<div id="auth-modal" style="display:flex; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+  <div id="auth-modal" style="display:flex; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
   <div style="background:white; border-radius:16px; padding:32px; width:360px; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
     
     <h2 id="auth-title" style="margin:0 0 8px; font-size:22px; font-weight:700;">Welcome back</h2>
@@ -68,10 +67,7 @@
 
 
 <div class="wrapper">
-  <!-- <p class="label">StudyPlan</p> -->
-
   <div class="app">
-    <!-- Sidebar -->
     <div class="sidebar">
       <div class="sidebar-header">Study Planner</div>
       <div class="nav-item active" id="calendar-btn" role="link" aria-label="View Calendar">
@@ -98,10 +94,12 @@
         Download Data
         <span class="badge">7</span>
       </div>
-      <div class="nav-item" id="calendar-download-btn">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M1 6h14" stroke="currentColor" stroke-width="1.5"/><path d="M5 1v2M11 1v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-        Export to Calendar
+      <div class="nav-item" id="achievements-nav-btn">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 3v4c0 2.76 2.24 5 5 5s5-2.24 5-5V3H3zm5 9v3m-2 0h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Achievements
+        <span class="badge" id="achievements-badge" style="background:var(--color-text-warning); color:var(--color-background-primary)">0</span>
       </div>
+      
       <div class="sidebar-divider"></div>
       <div class="sidebar-header">Subjects</div>
       <div id="subjects-sidebar-list"></div>
@@ -110,7 +108,6 @@
       </div>
     </div>
 
-    <!-- Main -->
     <div class="main">
       <div class="topbar">
         <div class="topbar-title">April 2026</div>
@@ -123,19 +120,6 @@
         </button>
       </div>
 
-      <!-- Dashboard Greeting -->
-        <div class="dashboard-greeting" style="padding: 16px 24px 0; display: flex; justify-content: center;">
-          <div class="quote-widget">
-            <svg class="quote-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path d="M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <p id="motivational-quotes">
-              Small Progress is still Progress
-            </p>
-          </div>
-        </div>
-
-      <!-- Calendar -->
       <div class="cal-section">
         <div class="cal-header">
           <div id="cal-month-title" class="cal-title">April 2026</div>
@@ -151,13 +135,9 @@
         </div>
       </div>
 
-      <!-- Tasks -->
       <div id="tasks-section" class="tasks-section">
-        <!-- Javascript will inject tasks here -->
-        
-      </div>
+        </div>
 
-      <!-- Focus Mode -->
       <div id="focus-section" class="focus-section hidden">
         <div class="focus-dashboard">
           <div class="timer-container">
@@ -193,13 +173,11 @@
         <div class="focus-task-selector">
           <div class="focus-task-header">Select a task to focus on</div>
           <div id="focus-task-list" class="focus-task-list">
-            <!-- JS will populate tasks -->
-          </div>
+            </div>
         </div>
       </div>
     </div>
 
-    <!-- Right Panel -->
     <div class="panel">
       <div class="panel-header">
         <button id="panel-toggle-btn" class="panel-toggle-btn" title="Toggle Smart Paste">
@@ -227,8 +205,7 @@
       </div>
 
       <div id="extract-preview" class="extract-preview">
-        <!-- Javascript will inject extracted items here -->
-      </div>
+        </div>
       <div id="summary-box" class="summary-box"></div>
 
   <button id="add-btn" class="add-btn" disabled>
@@ -237,7 +214,6 @@
 </div>
 
 
-      <button id="add-btn" class="add-btn" disabled>Add items to planner</button>
     </div>
   </div>
 </div>
@@ -251,7 +227,6 @@
   </div>
 </footer>
 
-<!-- Settings Modal -->
 <div id="settings-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
   <div style="background:var(--color-background-primary); border:1px solid var(--color-border-tertiary); border-radius:16px; padding:32px; width:400px; box-shadow:var(--shadow-lg); color:var(--color-text-primary);">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
@@ -298,6 +273,17 @@
     <button id="settings-save" style="width:100%; padding:12px; background:var(--color-text-primary); color:var(--color-background-primary); border:none; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; margin-top:8px;">
       Save Changes
     </button>
+  </div>
+</div>
+
+<div id="achievements-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0; z-index:9998; align-items:center; justify-content:center; background-color: rgba(0, 0, 0, 0.55);">
+  <div class="modal-card" style="border-radius:16px; padding:24px; width:90%; max-width:640px; max-height:85vh; background:var(--color-background-primary); border:1px solid var(--color-border-tertiary); box-shadow:var(--shadow-lg); overflow-y:auto; position:relative;">
+    <button id="close-achievements-btn" style="position:absolute; top:20px; right:20px; background:none; border:none; font-size:24px; color:var(--color-text-tertiary); cursor:pointer; line-height:1;">&times;</button>
+    <h2 style="margin:0 0 20px 0; font-size:20px; font-weight:700; color:var(--color-text-primary); display:flex; align-items:center; gap:10px;">
+      <span style="font-size:24px;">🏆</span> My Achievements
+    </h2>
+    <div id="badges-grid" class="badges-grid">
+      </div>
   </div>
 </div>
 
@@ -502,7 +488,6 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
     <label style="display:block; font-size:12px; margin-bottom:4px;">Deadline</label>
     <input id="new-task-date" type="datetime-local" style="width:100%; padding:6px; margin-bottom:10px;" placeholder="Deadline">
 
-    <!-- <label style="display:block; font-size:12px; margin-bottom:4px;">Notes</label> -->
     <input id="new-task-notes" type="text" style="width:100%; padding:6px; margin-bottom:16px;" placeholder="Notes">
 
     <div style="display:flex; justify-content:flex-end; gap:8px;">
