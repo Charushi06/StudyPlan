@@ -61,8 +61,35 @@
   </nav>
 
   <div class="header-right">
-    <button class="profile-btn">Profile</button>
-    <button class="profile-btn" id="logout-btn">Logout</button>
+    <div class="profile-container">
+      <button class="profile-icon-btn" id="profile-icon-btn" aria-label="Profile menu" aria-haspopup="true">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+      </button>
+      <div class="profile-dropdown" id="profile-dropdown">
+        <div class="profile-dropdown-header">
+          <div class="profile-info">
+            <div class="profile-username" id="profile-username">Username</div>
+            <div class="profile-email" id="profile-email">email@example.com</div>
+          </div>
+        </div>
+        <div class="profile-dropdown-divider"></div>
+        <div class="profile-dropdown-content">
+          <div class="profile-detail">
+            <span class="profile-detail-label">Name:</span>
+            <span class="profile-detail-value" id="profile-name">User Name</span>
+          </div>
+          <div class="profile-detail">
+            <span class="profile-detail-label">Role:</span>
+            <span class="profile-detail-value" id="profile-role">Student</span>
+          </div>
+        </div>
+        <div class="profile-dropdown-divider"></div>
+        <button class="profile-logout-btn" id="logout-btn">Logout</button>
+      </div>
+    </div>
   </div>
 </header>
 
