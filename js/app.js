@@ -223,7 +223,7 @@ function setCircleDasharray() {
 
 function startTimer() {
   if (timerInterval) return;
-  TIME_LIMIT = 3;
+  TIME_LIMIT = getTimerDuration();
   if (timePassed === 0) timeLeft = TIME_LIMIT;
   timerDurationInput.disabled = true;
   timerStartBtn.classList.add('hidden');
