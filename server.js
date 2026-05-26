@@ -5,6 +5,8 @@ const { db, initDb } = require('./database');
 const { GoogleGenAI } = require('@google/genai');
 const path = require('path');
 const csvDownloadRouter = require('./backend/routers/csvDownload.router.js');
+const crypto = require('crypto');
+const { authenticate, generateToken } = require('./backend/middleware/auth');
 
 const app = express();
 app.use(cors());
@@ -251,8 +253,8 @@ function nlpExtractTasksFromText(text) {
 // ============================================================
 
 // ================= SUBJECTS =================
-app.get('/api/subjects', (req, res) => {
-  db.all('SELECT * FROM subjects', (err, rows) => {
+app.get('/api/subjects', authenticate, (req, res) => {
+  db.all('SELECT * FROM subjects WHERE user_id = ? OR user_id = \'system\'', [req.user.id], (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(rows);
   });
@@ -267,7 +269,7 @@ const ALLOWED_SUBJECT_COLORS = new Set([
   'var(--color-text-secondary)',
 ]);
 
-app.post('/api/subjects', (req, res) => {
+app.post('/api/subjects', authenticate, (req, res) => {
   const name = String(req.body?.name || '').trim();
   let color = String(req.body?.color || '').trim() || 'var(--color-text-info)';
   if (!name) {
@@ -277,8 +279,8 @@ app.post('/api/subjects', (req, res) => {
     color = 'var(--color-text-info)';
   }
   db.get(
-    'SELECT * FROM subjects WHERE LOWER(name) = LOWER(?)',
-    [name],
+    'SELECT * FROM subjects WHERE LOWER(name) = LOWER(?) AND (user_id = ? OR user_id = \'system\')',
+    [name, req.user.id],
     (err, row) => {
       if (err) {
         return res.status(500).json({ error: err.message });
@@ -293,8 +295,8 @@ app.post('/api/subjects', (req, res) => {
       const shortCode = name.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 4) || 'SUB';
       const id = `sub_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
       db.run(
-        'INSERT INTO subjects (id, name, short_code, color) VALUES (?, ?, ?, ?)',
-        [id, name, shortCode, color],
+        'INSERT INTO subjects (id, name, short_code, color, user_id) VALUES (?, ?, ?, ?, ?)',
+        [id, name, shortCode, color, req.user.id],
         function (err) {
           if (err) return res.status(500).json({ error: err.message });
           res.status(201).json({ id, name, short_code: shortCode, color });
@@ -305,8 +307,8 @@ app.post('/api/subjects', (req, res) => {
 });
 
 // ================= TASKS =================
-app.get('/api/tasks', (req, res) => {
-  db.all('SELECT * FROM tasks ORDER BY due_at ASC', (err, rows) => {
+app.get('/api/tasks', authenticate, (req, res) => {
+  db.all('SELECT * FROM tasks WHERE user_id = ? ORDER BY due_at ASC', [req.user.id], (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
     rows.forEach(r => {
       try {
@@ -320,7 +322,7 @@ app.get('/api/tasks', (req, res) => {
 });
 
 // ================= ADD TASKS =================
-app.post('/api/tasks', (req, res) => {
+app.post('/api/tasks', authenticate, (req, res) => {
   try {
     const tasks = Array.isArray(req.body) ? req.body : [req.body];
 
@@ -333,44 +335,44 @@ app.post('/api/tasks', (req, res) => {
     let errors = [];
 
     const stmt = db.prepare(`INSERT INTO tasks 
-      (id, subject_id, title, due_at, status, priority, confidence_score, notes, labels) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+      (id, subject_id, title, due_at, status, priority, confidence_score, notes, labels, user_id) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
 
     let pending = tasks.length;
 
     tasks.forEach(t => {
       let validationError = null;
-  if (!t.title && !t.subject_id && !t.due_at) {
-    validationError = "Missing title, subject, and deadline";
-  } else if (!t.title) {
-    validationError = "Task name is required";
-  } else if (!t.subject_id) {
-    validationError = "Subject is required";
-  } else if (!t.due_at) {
-    validationError = "Deadline is required";
-  }
-
-  if (validationError) {
-    errors.push({ task: t, error: validationError });
-    pending--;
-    if (pending === 0) {
-      if (inserted === 0) {
-        return res.status(400).json({ 
-          success: false, inserted, duplicates, errors, 
-          message: errors.length === tasks.length ? errors[0].error : "Some tasks are invalid"
-        });
+      if (!t.title && !t.subject_id && !t.due_at) {
+        validationError = "Missing title, subject, and deadline";
+      } else if (!t.title) {
+        validationError = "Task name is required";
+      } else if (!t.subject_id) {
+        validationError = "Subject is required";
+      } else if (!t.due_at) {
+        validationError = "Deadline is required";
       }
-      stmt.finalize(() => res.status(400).json({ 
-        success: false, inserted, duplicates, errors, 
-        message: "Some tasks are invalid"
-      }));
-    }
-    return;
-  }
+
+      if (validationError) {
+        errors.push({ task: t, error: validationError });
+        pending--;
+        if (pending === 0) {
+          if (inserted === 0) {
+            return res.status(400).json({ 
+              success: false, inserted, duplicates, errors, 
+              message: errors.length === tasks.length ? errors[0].error : "Some tasks are invalid"
+            });
+          }
+          stmt.finalize(() => res.status(400).json({ 
+            success: false, inserted, duplicates, errors, 
+            message: "Some tasks are invalid"
+          }));
+        }
+        return;
+      }
 
       db.get(
-        `SELECT * FROM tasks WHERE LOWER(title) = LOWER(?) AND subject_id = ? AND DATE(due_at) = DATE(?)`,
-        [t.title, t.subject_id, t.due_at],
+        `SELECT * FROM tasks WHERE LOWER(title) = LOWER(?) AND subject_id = ? AND DATE(due_at) = DATE(?) AND user_id = ?`,
+        [t.title, t.subject_id, t.due_at, req.user.id],
         (err, existing) => {
           if (err) {
             errors.push({ task: t, error: err.message });
@@ -392,6 +394,7 @@ app.post('/api/tasks', (req, res) => {
               t.confidence_score || 100,
               t.notes || '',
               typeof t.labels === 'string' ? t.labels : JSON.stringify(t.labels || []),
+              req.user.id,
               function (insertErr) {
                 if (insertErr) {
                   errors.push({ task: t, error: insertErr.message });
@@ -432,7 +435,7 @@ app.post('/api/tasks', (req, res) => {
 });
 
 // ================= UPDATE =================
-app.put('/api/tasks/:id', (req, res) => {
+app.put('/api/tasks/:id', authenticate, (req, res) => {
   const { status, archived, title, subject_id, due_at, notes, priority, labels } = req.body;
 
   let query = 'UPDATE tasks SET ';
@@ -452,8 +455,8 @@ app.put('/api/tasks/:id', (req, res) => {
     return res.status(400).json({ error: 'No fields to update' });
   }
 
-  query += updates.join(', ') + ' WHERE id = ?';
-  params.push(req.params.id);
+  query += updates.join(', ') + ' WHERE id = ? AND user_id = ?';
+  params.push(req.params.id, req.user.id);
 
   db.run(query, params, function (err) {
     if (err) return res.status(500).json({ error: err.message });
@@ -462,10 +465,10 @@ app.put('/api/tasks/:id', (req, res) => {
 });
 
 // ================= DELETE =================
-app.delete('/api/tasks/:id', (req, res) => {
+app.delete('/api/tasks/:id', authenticate, (req, res) => {
   db.run(
-    'DELETE FROM tasks WHERE id = ?',
-    [req.params.id],
+    'DELETE FROM tasks WHERE id = ? AND user_id = ?',
+    [req.params.id, req.user.id],
     function (err) {
       if (err) return res.status(500).json({ error: err.message });
       res.json({ success: true, changes: this.changes });
@@ -474,7 +477,7 @@ app.delete('/api/tasks/:id', (req, res) => {
 });
 
 // ================= AI EXTRACTION =================
-app.post('/api/extract', async (req, res) => {
+app.post('/api/extract', authenticate, async (req, res) => {
   const { text } = req.body;
   if (!text) return res.status(400).json({ error: 'Text is required' });
 
@@ -508,19 +511,75 @@ Text: "${text}"
   const tasks = nlpExtractTasksFromText(text);
   return res.json(tasks);
 });
+
 // ================= AUTH =================
-const users = {}; // Simple in-memory user store
+function hashPassword(password) {
+  return crypto.createHash('sha256').update(password).digest('hex');
+}
+
+function validateEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function validatePassword(password) {
+  const minLength = password.length >= 8;
+  const hasCapital = /[A-Z]/.test(password);
+  const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+  return minLength && hasCapital && hasSpecial;
+}
 
 app.post('/api/auth/signup', (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password required' });
   }
-  if (users[email]) {
-    return res.status(400).json({ error: 'User already exists' });
+
+  if (!validateEmail(email)) {
+    return res.status(400).json({ error: 'Invalid email address format' });
   }
-  users[email] = { email, password };
-  res.json({ success: true, message: 'Account created successfully' });
+
+  if (!validatePassword(password)) {
+    return res.status(400).json({ error: 'Password must be at least 8 characters long, contain 1 capital letter and 1 special character.' });
+  }
+
+  const hashedPassword = hashPassword(password);
+  const userId = 'user_' + Date.now() + Math.random().toString(36).substring(2, 7);
+
+  db.get('SELECT * FROM users WHERE email = ?', [email], (err, row) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    if (row) {
+      return res.status(400).json({ error: 'User already exists' });
+    }
+
+    db.run(
+      'INSERT INTO users (id, email, password) VALUES (?, ?, ?)',
+      [userId, email, hashedPassword],
+      function (insertErr) {
+        if (insertErr) {
+          return res.status(500).json({ error: insertErr.message });
+        }
+
+        // Seed default subjects for this user
+        const stmt = db.prepare("INSERT INTO subjects (id, name, short_code, color, user_id) VALUES (?, ?, ?, ?, ?)");
+        stmt.run(`sub_1_${userId}`, 'Computer Science', 'CS', 'var(--color-text-info)', userId);
+        stmt.run(`sub_2_${userId}`, 'Mathematics', 'Maths', 'var(--color-text-success)', userId);
+        stmt.run(`sub_3_${userId}`, 'English Lit', 'English', 'var(--color-text-purple)', userId);
+        stmt.run(`sub_4_${userId}`, 'Physics', 'Physics', 'var(--color-text-warning)', userId);
+        stmt.finalize((finalizeErr) => {
+          // Migration check: Assign any orphaned subjects/tasks to this user
+          db.serialize(() => {
+            db.run("UPDATE subjects SET user_id = ? WHERE user_id IS NULL OR user_id = 'system'", [userId]);
+            db.run("UPDATE tasks SET user_id = ? WHERE user_id IS NULL", [userId]);
+          });
+
+          const token = generateToken({ id: userId, email });
+          res.json({ success: true, token, email, message: 'Account created successfully' });
+        });
+      }
+    );
+  });
 });
 
 app.post('/api/auth/login', (req, res) => {
@@ -528,11 +587,20 @@ app.post('/api/auth/login', (req, res) => {
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password required' });
   }
-  const user = users[email];
-  if (!user || user.password !== password) {
-    return res.status(401).json({ error: 'Invalid email or password' });
-  }
-  res.json({ success: true, email: user.email });
+
+  const hashedPassword = hashPassword(password);
+
+  db.get('SELECT * FROM users WHERE email = ?', [email], (err, user) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    if (!user || user.password !== hashedPassword) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+
+    const token = generateToken({ id: user.id, email: user.email });
+    res.json({ success: true, token, email: user.email });
+  });
 });
 
 // Intentional test route for verifying server error page behavior.

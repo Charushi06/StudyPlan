@@ -1,8 +1,12 @@
 export async function extractTasksFromText(text) {
   try {
+    const user = JSON.parse(localStorage.getItem('studyplan_user') || '{}');
     const res = await fetch('/api/extract', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': user.token ? `Bearer ${user.token}` : ''
+      },
       body: JSON.stringify({ text })
     });
     

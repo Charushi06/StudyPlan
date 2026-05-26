@@ -392,7 +392,10 @@ function formatDate(dateStr) {
 
 async function downloadData() {
     try {
-        const response = await fetch('/api/download');
+        const user = JSON.parse(localStorage.getItem('studyplan_user') || '{}');
+        const response = await fetch('/api/download', {
+            headers: { 'Authorization': user.token ? `Bearer ${user.token}` : '' }
+        });
         
         if (!response.ok) {
             throw new Error('Failed to download data');
@@ -416,7 +419,10 @@ async function downloadData() {
 
 async function downloadCalendar() {
     try {
-        const response = await fetch('/api/download/calendar');
+        const user = JSON.parse(localStorage.getItem('studyplan_user') || '{}');
+        const response = await fetch('/api/download/calendar', {
+            headers: { 'Authorization': user.token ? `Bearer ${user.token}` : '' }
+        });
 
         if (!response.ok) {
             throw new Error('Failed to export calendar');

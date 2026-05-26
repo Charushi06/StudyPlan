@@ -7,6 +7,37 @@ export const store = {
   currentPaste: null,
   listeners: [],
 
+  getAuthHeaders() {
+    const user = JSON.parse(localStorage.getItem('studyplan_user') || '{}');
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': user.token ? `Bearer ${user.token}` : ''
+    };
+  },
+
+  async authenticatedFetch(url, options = {}) {
+    const headers = this.getAuthHeaders();
+    options.headers = {
+      ...headers,
+      ...(options.headers || {})
+    };
+    
+    try {
+      const res = await fetch(url, options);
+      if (res.status === 401) {
+        localStorage.removeItem('studyplan_user');
+        window.location.reload();
+        throw new Error('Unauthorized');
+      }
+      return res;
+    } catch (e) {
+      if (e.message !== 'Unauthorized') {
+        console.error('Fetch error:', e);
+      }
+      throw e;
+    }
+  },
+
   isSameCalendarDate(dateA, dateB) {
     return (
       dateA.getFullYear() === dateB.getFullYear() &&
@@ -24,10 +55,12 @@ export const store = {
   },
   
   async fetchInitialData() {
+    // Only load if logged in
+    if (!localStorage.getItem('studyplan_user')) return;
     try {
       const [subsRes, tasksRes] = await Promise.all([
-        fetch('/api/subjects'),
-        fetch('/api/tasks')
+        this.authenticatedFetch('/api/subjects'),
+        this.authenticatedFetch('/api/tasks')
       ]);
       this.subjects = await subsRes.json();
       this.tasks = await tasksRes.json();
@@ -44,9 +77,8 @@ export const store = {
       return false;
     }
     try {
-      const res = await fetch('/api/subjects', {
+      const res = await this.authenticatedFetch('/api/subjects', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: trimmed, color: color || 'var(--color-text-info)' })
       });
       const data = await res.json().catch(() => ({}));
@@ -54,7 +86,7 @@ export const store = {
         Toast.show(data.error || 'Failed to add subject', 'error');
         return false;
       }
-      const subsRes = await fetch('/api/subjects');
+      const subsRes = await this.authenticatedFetch('/api/subjects');
       this.subjects = await subsRes.json();
       this.notify();
       return true;
@@ -65,25 +97,20 @@ export const store = {
     }
   },
 
-  // ================= UPDATED FUNCTION =================
   async addTasks(newTasks) {
     try {
-      const res = await fetch('/api/tasks', {
+      const res = await this.authenticatedFetch('/api/tasks', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newTasks)
       });
 
-      const data = await res.json(); // always parse response
+      const data = await res.json();
 
       if (!res.ok) {
-        //  Backend error
         Toast.show(`❌ ${data.message || "Failed to add tasks"}`, 'error');
         console.error('Add task error:', data);
         return;
       }
-
-      // ================= USER MESSAGES =================
 
       if (data.duplicates?.length > 0) {
         Toast.show(`⚠ ${data.duplicates.length} duplicate task(s) skipped`, 'warning');
@@ -101,8 +128,7 @@ export const store = {
         Toast.show("✅ Tasks added successfully", 'success');
       }
 
-      // ================= REFRESH =================
-      const tasksRes = await fetch('/api/tasks');
+      const tasksRes = await this.authenticatedFetch('/api/tasks');
       this.tasks = await tasksRes.json();
       this.notify();
 
@@ -124,17 +150,14 @@ export const store = {
     const taskIndex = this.tasks.findIndex(t => String(t.id) === String(taskId));
     if (taskIndex === -1) return;
     
-    // Store original in case of failure
     const originalTask = { ...this.tasks[taskIndex] };
     
-    // Optimistic update
     this.tasks[taskIndex] = { ...this.tasks[taskIndex], ...updatedFields, _isEditing: false };
     this.notify();
 
     try {
-      const res = await fetch(`/api/tasks/${taskId}`, {
+      const res = await this.authenticatedFetch(`/api/tasks/${taskId}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedFields)
       });
       
@@ -144,7 +167,6 @@ export const store = {
     } catch (e) {
       console.error('Failed to update task', e);
       Toast.show("❌ Failed to save task changes. Please try again.", 'error');
-      // Revert
       this.tasks[taskIndex] = originalTask;
       this.notify();
     }
@@ -162,9 +184,8 @@ export const store = {
       }
 
       try {
-        await fetch(`/api/tasks/${taskId}`, {
+        await this.authenticatedFetch(`/api/tasks/${taskId}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status: newStatus })
         });
       } catch (e) {
@@ -180,9 +201,8 @@ export const store = {
       task.archived = 1;
       this.notify();
       try {
-        await fetch(`/api/tasks/${taskId}`, {
+        await this.authenticatedFetch(`/api/tasks/${taskId}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ archived: 1 })
         });
       } catch (e) {
@@ -199,9 +219,8 @@ export const store = {
       task.archived = 0;
       this.notify();
       try {
-        await fetch(`/api/tasks/${taskId}`, {
+        await this.authenticatedFetch(`/api/tasks/${taskId}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ archived: 0 })
         });
       } catch (e) {
@@ -221,7 +240,7 @@ export const store = {
       const removedTask = this.tasks.splice(taskIndex, 1)[0];
       this.notify();
       try {
-        await fetch(`/api/tasks/${taskId}`, {
+        await this.authenticatedFetch(`/api/tasks/${taskId}`, {
           method: 'DELETE'
         });
       } catch (e) {
@@ -247,9 +266,8 @@ export const store = {
     try {
       await Promise.all(
         pendingTasks.map(t =>
-          fetch(`/api/tasks/${t.id}`, {
+          this.authenticatedFetch(`/api/tasks/${t.id}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: 'Done' })
           })
         )
@@ -285,9 +303,8 @@ export const store = {
     try {
       await Promise.all(
         pendingTasksForDate.map(t =>
-          fetch(`/api/tasks/${t.id}`, {
+          this.authenticatedFetch(`/api/tasks/${t.id}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: 'Done' })
           })
         )
