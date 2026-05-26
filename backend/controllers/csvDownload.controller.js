@@ -1,14 +1,15 @@
 const { db } = require('../../database.js');
 
-function getAllTasksWithSubjects() {
+function getAllTasksWithSubjects(userId) {
   const query = `
     SELECT tasks.*, subjects.name AS subject_name
     FROM tasks
     LEFT JOIN subjects ON tasks.subject_id = subjects.id
+    WHERE tasks.user_id = ?
   `;
 
   return new Promise((resolve, reject) => {
-    db.all(query, [], (err, rows) => {
+    db.all(query, [userId], (err, rows) => {
       if (err) reject(err);
       else resolve(rows);
     });
@@ -76,7 +77,7 @@ function buildCalendarIcs(tasks = []) {
 
 async function downloadData(req, res) {
   try {
-    const data = await getAllTasksWithSubjects();
+    const data = await getAllTasksWithSubjects(req.user.id);
 
     const rows = [
       ['Task ID', 'Subject', 'Title', 'Due At', 'Status', 'Priority', 'Confidence Score', 'Notes'],
@@ -105,7 +106,7 @@ async function downloadData(req, res) {
 
 async function downloadCalendar(req, res) {
   try {
-    const data = await getAllTasksWithSubjects();
+    const data = await getAllTasksWithSubjects(req.user.id);
     const icsString = buildCalendarIcs(data);
 
     res.setHeader('Content-Type', 'text/calendar; charset=utf-8');

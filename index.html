@@ -12,40 +12,83 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <!-- Auth Modal -->
-<div id="auth-modal" style="display:flex; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
-  <div style="background:white; border-radius:16px; padding:32px; width:360px; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
-    
-    <h2 id="auth-title" style="margin:0 0 8px; font-size:22px; font-weight:700;">Welcome back</h2>
-    <p id="auth-subtitle" style="margin:0 0 24px; color:#666; font-size:14px;">Sign in to your StudyPlan account</p>
+  <!-- Auth Overlay -->
+  <div id="auth-modal">
+    <div class="auth-blob auth-blob-1"></div>
+    <div class="auth-blob auth-blob-2"></div>
+    <div class="auth-blob auth-blob-3"></div>
 
-    <input id="auth-email" type="email" placeholder="Email address" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:12px; box-sizing:border-box;">
-    
-    <input id="auth-password" type="password" placeholder="Password" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:20px; box-sizing:border-box;">
+    <div class="auth-card">
+      <div class="auth-logo-container">
+        <img src="/logo.png" alt="Logo" class="auth-logo-img">
+        <span class="auth-logo-title">StudyPlan</span>
+      </div>
 
-    <button id="auth-submit-btn" style="width:100%; padding:12px; background:#4f46e5; color:white; border:none; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer;">
-    Sign In
-    </button>
+      <div class="auth-header">
+        <h2 id="auth-title">Welcome back</h2>
+        <p id="auth-subtitle">Sign in to your StudyPlan account</p>
+      </div>
 
-    <div style="font-size:12px; color:#666; margin-top:10px; line-height:1.6;">
-    Password must contain:
-     <ul style="padding-left:18px; margin-top:6px;">
-      <li>Minimum 8 characters</li>
-      <li>At least 1 capital letter</li>
-      <li>At least 1 special character</li>
-     </ul>
+      <div id="auth-error" class="auth-error-msg"></div>
+
+      <div class="auth-form-group">
+        <label for="auth-email">Email address</label>
+        <input id="auth-email" type="email" placeholder="name@example.com" autocomplete="email">
+      </div>
+      
+      <div class="auth-form-group">
+        <label for="auth-password">Password</label>
+        <div class="password-input-wrapper">
+          <input id="auth-password" type="password" placeholder="••••••••" autocomplete="current-password">
+          <button type="button" class="password-toggle-btn" id="toggle-password" aria-label="Toggle Password Visibility">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-open-icon"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-closed-icon" style="display: none;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+          </button>
+        </div>
+      </div>
+
+      <div id="auth-confirm-group" class="auth-form-group" style="display: none;">
+        <label for="auth-confirm-password">Confirm Password</label>
+        <div class="password-input-wrapper">
+          <input id="auth-confirm-password" type="password" placeholder="••••••••" autocomplete="new-password">
+          <button type="button" class="password-toggle-btn" id="toggle-confirm-password" aria-label="Toggle Password Visibility">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-open-icon"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-closed-icon" style="display: none;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Password checklist, shown only during sign up -->
+      <div id="auth-requirements" class="password-requirements" style="display: none;">
+        <div class="password-requirements-title">Password Requirements:</div>
+        <div id="req-length" class="requirement-item">
+          <span class="requirement-icon"></span>
+          <span>At least 8 characters</span>
+        </div>
+        <div id="req-capital" class="requirement-item">
+          <span class="requirement-icon"></span>
+          <span>At least 1 uppercase letter</span>
+        </div>
+        <div id="req-special" class="requirement-item">
+          <span class="requirement-icon"></span>
+          <span>At least 1 special character</span>
+        </div>
+        <div id="req-match" class="requirement-item">
+          <span class="requirement-icon"></span>
+          <span>Passwords match</span>
+        </div>
+      </div>
+
+      <button id="auth-submit-btn" class="auth-submit-btn" disabled>
+        Sign In
+      </button>
+
+      <p class="auth-toggle-link">
+        <span id="auth-toggle-text">Don't have an account?</span>
+        <a id="auth-toggle-btn" href="#">Sign Up</a>
+      </p>
     </div>
-
-    <p id="auth-error" style="color:red; font-size:13px; text-align:center; margin:8px 0 0; display:none;"></p>
-
-    <p style="text-align:center; margin:16px 0 0; font-size:13px; color:#666;">
-      <span id="auth-toggle-text">Don't have an account?</span>
-      <a id="auth-toggle-btn" href="#" style="color:#4f46e5; font-weight:600; margin-left:4px;">Sign Up</a>
-    </p>
-
-    <p id="auth-error" style="color:red; font-size:13px; text-align:center; margin:8px 0 0; display:none;"></p>
   </div>
-</div>
 
   <header class="site-header">
   <div class="header-left">
@@ -305,63 +348,209 @@
   <script>
   let isLogin = true;
 
+  const emailInput = document.getElementById('auth-email');
+  const passwordInput = document.getElementById('auth-password');
+  const confirmPasswordInput = document.getElementById('auth-confirm-password');
+  const confirmGroup = document.getElementById('auth-confirm-group');
+  const requirementsBox = document.getElementById('auth-requirements');
+  const submitBtn = document.getElementById('auth-submit-btn');
+  const errorEl = document.getElementById('auth-error');
+
+  function updateUIForLoginState() {
+    const isLoggedIn = !!localStorage.getItem('studyplan_user');
+    const header = document.querySelector('.site-header');
+    const wrapper = document.querySelector('.wrapper');
+    const footer = document.querySelector('.site-footer');
+    const authModal = document.getElementById('auth-modal');
+
+    if (isLoggedIn) {
+      if (header) header.style.display = 'flex';
+      if (wrapper) wrapper.style.display = 'block';
+      if (footer) footer.style.display = 'flex';
+      if (authModal) authModal.style.display = 'none';
+    } else {
+      if (header) header.style.display = 'none';
+      if (wrapper) wrapper.style.display = 'none';
+      if (footer) footer.style.display = 'none';
+      if (authModal) authModal.style.display = 'flex';
+    }
+  }
+
+  // Check login state immediately
+  updateUIForLoginState();
+  document.addEventListener('DOMContentLoaded', updateUIForLoginState);
+
   document.getElementById('auth-toggle-btn').addEventListener('click', (e) => {
     e.preventDefault();
     isLogin = !isLogin;
+    
     document.getElementById('auth-title').textContent = isLogin ? 'Welcome back' : 'Create account';
     document.getElementById('auth-subtitle').textContent = isLogin ? 'Sign in to your StudyPlan account' : 'Start planning your studies';
-    document.getElementById('auth-submit-btn').textContent = isLogin ? 'Sign In' : 'Sign Up';
+    submitBtn.textContent = isLogin ? 'Sign In' : 'Sign Up';
     document.getElementById('auth-toggle-text').textContent = isLogin ? "Don't have an account?" : 'Already have an account?';
     document.getElementById('auth-toggle-btn').textContent = isLogin ? 'Sign Up' : 'Sign In';
-    document.getElementById('auth-error').style.display = 'none';
+    
+    errorEl.style.display = 'none';
+    
+    // Toggle fields visibility
+    confirmGroup.style.display = isLogin ? 'none' : 'block';
+    requirementsBox.style.display = isLogin ? 'none' : 'block';
+    
+    // Reset fields
+    passwordInput.value = '';
+    confirmPasswordInput.value = '';
+    passwordInput.type = 'password';
+    confirmPasswordInput.type = 'password';
+    
+    // Reset eye icons
+    document.querySelectorAll('.password-toggle-btn').forEach(btn => {
+      const openIcon = btn.querySelector('.eye-open-icon');
+      const closedIcon = btn.querySelector('.eye-closed-icon');
+      if (openIcon) openIcon.style.display = 'block';
+      if (closedIcon) closedIcon.style.display = 'none';
+    });
+    
+    updateValidationUI();
   });
 
-  // Password validation function
-function validatePassword(password) {
-
-  // Minimum 8 characters
-  const minLength = password.length >= 8;
-
-  // At least 1 capital letter
-  const hasCapital = /[A-Z]/.test(password);
-
-  // At least 1 special character
-  const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-
-  return minLength && hasCapital && hasSpecial;
-}
-
-document.getElementById('auth-submit-btn').addEventListener('click', async () => {
-
-  const email = document.getElementById('auth-email').value.trim();
-  const password = document.getElementById('auth-password').value.trim();
-  const errorEl = document.getElementById('auth-error');
-
-  errorEl.style.display = 'none';
-
-  // Empty fields check
-  if (!email || !password) {
-    errorEl.textContent = 'Please fill in all fields';
-    errorEl.style.display = 'block';
-    return;
+  function validateEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   }
 
-  // Password validation check
-  if (!validatePassword(password)) {
-    errorEl.textContent =
-      'Password must be at least 8 characters long, contain 1 capital letter and 1 special character.';
-    errorEl.style.display = 'block';
-    return;
+  function checkPasswordStrength(password) {
+    return {
+      length: password.length >= 8,
+      capital: /[A-Z]/.test(password),
+      special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+    };
   }
 
-  const endpoint = isLogin ? '/api/auth/login' : '/api/auth/signup';
+  function updateValidationUI() {
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+    const confirmPassword = confirmPasswordInput.value;
 
-  try {
-    const res = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    });
+    const isEmailOk = validateEmail(email);
+    const strength = checkPasswordStrength(password);
+    const isPasswordOk = strength.length && strength.capital && strength.special;
+    
+    if (!isLogin) {
+      // Update requirements indicators
+      const reqLength = document.getElementById('req-length');
+      const reqCapital = document.getElementById('req-capital');
+      const reqSpecial = document.getElementById('req-special');
+      const reqMatch = document.getElementById('req-match');
+      
+      const updateItemClass = (el, isValid) => {
+        if (!el) return;
+        if (password.length === 0) {
+          el.classList.remove('valid', 'invalid');
+        } else if (isValid) {
+          el.classList.add('valid');
+          el.classList.remove('invalid');
+        } else {
+          el.classList.add('invalid');
+          el.classList.remove('valid');
+        }
+      };
+
+      updateItemClass(reqLength, strength.length);
+      updateItemClass(reqCapital, strength.capital);
+      updateItemClass(reqSpecial, strength.special);
+      
+      if (reqMatch) {
+        if (password.length === 0 && confirmPassword.length === 0) {
+          reqMatch.classList.remove('valid', 'invalid');
+        } else {
+          const isMatchOk = password === confirmPassword && password.length > 0;
+          if (isMatchOk) {
+            reqMatch.classList.add('valid');
+            reqMatch.classList.remove('invalid');
+          } else {
+            reqMatch.classList.add('invalid');
+            reqMatch.classList.remove('valid');
+          }
+        }
+      }
+
+      submitBtn.disabled = !(isEmailOk && isPasswordOk && (password === confirmPassword));
+    } else {
+      submitBtn.disabled = !(isEmailOk && password.length > 0);
+    }
+  }
+
+  emailInput.addEventListener('input', updateValidationUI);
+  passwordInput.addEventListener('input', updateValidationUI);
+  confirmPasswordInput.addEventListener('input', updateValidationUI);
+
+  // Setup Password Visibility Toggle Events
+  function setupPasswordToggles() {
+    const togglePasswordBtn = document.getElementById('toggle-password');
+    const toggleConfirmBtn = document.getElementById('toggle-confirm-password');
+
+    const setupToggle = (btn, inputEl) => {
+      if (!btn || !inputEl) return;
+      btn.addEventListener('click', () => {
+        const isPwd = inputEl.type === 'password';
+        inputEl.type = isPwd ? 'text' : 'password';
+        
+        const openIcon = btn.querySelector('.eye-open-icon');
+        const closedIcon = btn.querySelector('.eye-closed-icon');
+        
+        if (openIcon && closedIcon) {
+          openIcon.style.display = isPwd ? 'none' : 'block';
+          closedIcon.style.display = isPwd ? 'block' : 'none';
+        }
+      });
+    };
+
+    setupToggle(togglePasswordBtn, passwordInput);
+    setupToggle(toggleConfirmBtn, confirmPasswordInput);
+  }
+
+  setupPasswordToggles();
+
+  submitBtn.addEventListener('click', async () => {
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+    
+    errorEl.style.display = 'none';
+
+    if (!email || !password) {
+      errorEl.textContent = 'Please fill in all fields';
+      errorEl.style.display = 'block';
+      return;
+    }
+
+    if (!isLogin) {
+      const confirmPassword = confirmPasswordInput.value;
+      if (password !== confirmPassword) {
+        errorEl.textContent = 'Passwords do not match';
+        errorEl.style.display = 'block';
+        return;
+      }
+      
+      const strength = checkPasswordStrength(password);
+      const missing = [];
+      if (!strength.length) missing.push('At least 8 characters');
+      if (!strength.capital) missing.push('At least 1 uppercase letter');
+      if (!strength.special) missing.push('At least 1 special character');
+
+      if (missing.length > 0) {
+        errorEl.textContent = 'Missing requirements: ' + missing.join(', ');
+        errorEl.style.display = 'block';
+        return;
+      }
+    }
+
+    const endpoint = isLogin ? '/api/auth/login' : '/api/auth/signup';
+
+    try {
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
       const data = await res.json();
 
       if (!res.ok) {
@@ -370,31 +559,24 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
         return;
       }
 
-      localStorage.setItem('studyplan_user', JSON.stringify({ email: data.email }));
-      document.getElementById('auth-modal').style.display = 'none';
-
+      localStorage.setItem('studyplan_user', JSON.stringify({ email: data.email, token: data.token }));
+      
+      // Page reload will run updates and populate data
+      window.location.reload();
     } catch (err) {
       errorEl.textContent = 'Network error. Please try again.';
       errorEl.style.display = 'block';
     }
   });
 
-  // Check if already logged in
-  if (localStorage.getItem('studyplan_user')) {
-    document.getElementById('auth-modal').style.display = 'none';
-  }
-
   // Logout Button Functionality
   const logoutBtn = document.getElementById('logout-btn');
-  logoutBtn.addEventListener('click', () => {
-    localStorage.removeItem('studyplan_user');
-
-    // Show login modal again
-    document.getElementById('auth-modal').style.display = 'flex';
-
-    // Refresh page state
-    window.location.reload();
-});
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+      localStorage.removeItem('studyplan_user');
+      window.location.replace(window.location.origin);
+    });
+  }
 
   // Settings Modal Logic
   const settingsModal = document.getElementById('settings-modal');
@@ -402,22 +584,28 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
   const settingsClose = document.getElementById('settings-close');
   const settingsSave = document.getElementById('settings-save');
 
-  navSettings.addEventListener('click', (e) => {
-    e.preventDefault();
-    settingsModal.style.display = 'flex';
-  });
+  if (navSettings) {
+    navSettings.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (settingsModal) settingsModal.style.display = 'flex';
+    });
+  }
 
-  settingsClose.addEventListener('click', () => {
-    settingsModal.style.display = 'none';
-  });
+  if (settingsClose) {
+    settingsClose.addEventListener('click', () => {
+      if (settingsModal) settingsModal.style.display = 'none';
+    });
+  }
 
-  settingsSave.addEventListener('click', () => {
-    settingsModal.style.display = 'none';
-  });
+  if (settingsSave) {
+    settingsSave.addEventListener('click', () => {
+      if (settingsModal) settingsModal.style.display = 'none';
+    });
+  }
 
   window.addEventListener('click', (e) => {
     if (e.target === settingsModal) {
-      settingsModal.style.display = 'none';
+      if (settingsModal) settingsModal.style.display = 'none';
     }
   });
 
@@ -427,6 +615,7 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
 
   // Load preferences
   const loadPreferences = () => {
+    if (!darkModeToggle || !compactViewToggle) return;
     const isDarkMode = localStorage.getItem('studyplan_dark_mode') === 'true';
     const isCompactView = localStorage.getItem('studyplan_compact_view') === 'true';
 
@@ -450,29 +639,37 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
   loadPreferences();
 
   // Save changes when user clicks "Save Changes"
-  settingsSave.addEventListener('click', () => {
-    localStorage.setItem('studyplan_dark_mode', darkModeToggle.checked);
-    localStorage.setItem('studyplan_compact_view', compactViewToggle.checked);
-    loadPreferences();
-    settingsModal.style.display = 'none';
-  });
+  if (settingsSave) {
+    settingsSave.addEventListener('click', () => {
+      if (darkModeToggle && compactViewToggle) {
+        localStorage.setItem('studyplan_dark_mode', darkModeToggle.checked);
+        localStorage.setItem('studyplan_compact_view', compactViewToggle.checked);
+      }
+      loadPreferences();
+      if (settingsModal) settingsModal.style.display = 'none';
+    });
+  }
 
   // Also apply immediately on toggle for better UX
-  darkModeToggle.addEventListener('change', (e) => {
-    if (e.target.checked) {
-      document.documentElement.setAttribute('data-theme', 'dark');
-    } else {
-      document.documentElement.setAttribute('data-theme', 'light');
-    }
-  });
+  if (darkModeToggle) {
+    darkModeToggle.addEventListener('change', (e) => {
+      if (e.target.checked) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    });
+  }
 
-  compactViewToggle.addEventListener('change', (e) => {
-    if (e.target.checked) {
-      document.body.classList.add('compact-view');
-    } else {
-      document.body.classList.remove('compact-view');
-    }
-  });
+  if (compactViewToggle) {
+    compactViewToggle.addEventListener('change', (e) => {
+      if (e.target.checked) {
+        document.body.classList.add('compact-view');
+      } else {
+        document.body.classList.remove('compact-view');
+      }
+    });
+  }
 </script>
 
 <div id="new-subject-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0; z-index:9998; align-items:center; justify-content:center;">
