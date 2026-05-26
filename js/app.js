@@ -180,6 +180,7 @@ const timerPathRemaining = document.getElementById('timer-path-remaining');
 const timerStartBtn = document.getElementById('timer-start-btn');
 const timerPauseBtn = document.getElementById('timer-pause-btn');
 const timerResetBtn = document.getElementById('timer-reset-btn');
+const focusProgress = document.getElementById('focus-progress');
 
 // Task elements
 const focusTaskList = document.getElementById('focus-task-list');
@@ -187,13 +188,134 @@ const activeFocusTask = document.getElementById('active-focus-task');
 let activeFocusTaskId = null;
 
 // Timer Logic
+const FOCUS_SESSIONS_KEY = 'studyplan_focus_sessions';
+const FOCUS_XP_PER_MINUTE = 2;
+const FOCUS_BADGES = [
+  { id: 'first-session', label: 'First Session', sessions: 1 },
+  { id: 'focused-hour', label: 'Focused Hour', minutes: 60 },
+  { id: 'consistent', label: 'Consistency', sessions: 5 },
+  { id: 'deep-work', label: 'Deep Work', minutes: 180 },
+];
 const FULL_DASH_ARRAY = 283;
 let TIME_LIMIT = 25 * 60;
 let timePassed = 0;
 let timeLeft = TIME_LIMIT;
 let timerInterval = null;
+let timerTaskId = null;
+let focusSessions = loadFocusSessions();
 
 const timerDurationInput = document.getElementById('timer-duration-input');
+
+function loadFocusSessions() {
+  try {
+    const sessions = JSON.parse(localStorage.getItem(FOCUS_SESSIONS_KEY) || '[]');
+    return Array.isArray(sessions)
+      ? sessions.filter(session => Number.isFinite(session.minutes) && session.minutes > 0 && session.completedAt)
+      : [];
+  } catch (error) {
+    return [];
+  }
+}
+
+function saveFocusSessions() {
+  localStorage.setItem(FOCUS_SESSIONS_KEY, JSON.stringify(focusSessions));
+}
+
+function focusDateKey(value) {
+  const date = new Date(value);
+  return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+}
+
+function getFocusStreak() {
+  const days = [...new Set(focusSessions.map(session => focusDateKey(session.completedAt)))];
+  if (days.length === 0) return 0;
+
+  const sorted = days.map(key => {
+    const [year, month, day] = key.split('-').map(Number);
+    return new Date(year, month, day);
+  }).sort((a, b) => b - a);
+
+  let streak = 1;
+  for (let i = 1; i < sorted.length; i++) {
+    const previousDay = new Date(sorted[i - 1]);
+    previousDay.setDate(previousDay.getDate() - 1);
+    if (previousDay.getTime() !== sorted[i].getTime()) break;
+    streak += 1;
+  }
+  return streak;
+}
+
+function getFocusStats() {
+  const totalMinutes = focusSessions.reduce((total, session) => total + session.minutes, 0);
+  const xp = totalMinutes * FOCUS_XP_PER_MINUTE;
+  const level = Math.floor(xp / 100) + 1;
+  const levelProgress = xp % 100;
+  const badges = FOCUS_BADGES.filter(badge =>
+    (badge.sessions && focusSessions.length >= badge.sessions) ||
+    (badge.minutes && totalMinutes >= badge.minutes)
+  );
+
+  return {
+    badges,
+    level,
+    levelProgress,
+    sessions: focusSessions.length,
+    streak: getFocusStreak(),
+    totalMinutes,
+    xp,
+  };
+}
+
+function getTaskFocusMinutes(taskId) {
+  return focusSessions
+    .filter(session => String(session.taskId) === String(taskId))
+    .reduce((total, session) => total + session.minutes, 0);
+}
+
+function formatFocusMinutes(minutes) {
+  if (minutes < 60) return `${minutes}m`;
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  return remainingMinutes ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
+}
+
+function renderFocusProgress() {
+  if (!focusProgress) return;
+
+  const stats = getFocusStats();
+  const badgeHtml = stats.badges.length
+    ? stats.badges.map(badge => `<span class="focus-badge earned">${badge.label}</span>`).join('')
+    : '<span class="focus-badge">Complete a session to unlock badges</span>';
+
+  focusProgress.innerHTML = `
+    <div class="focus-level-row">
+      <strong>Level ${stats.level}</strong>
+      <span>${stats.xp} XP</span>
+    </div>
+    <div class="focus-xp-track" aria-label="${stats.levelProgress} of 100 XP toward the next level">
+      <div class="focus-xp-fill" style="width:${stats.levelProgress}%"></div>
+    </div>
+    <div class="focus-metrics">
+      <div><strong>${formatFocusMinutes(stats.totalMinutes)}</strong><span>Study time</span></div>
+      <div><strong>${stats.sessions}</strong><span>Sessions</span></div>
+      <div><strong>${stats.streak}</strong><span>Day streak</span></div>
+    </div>
+    <div class="focus-badges">${badgeHtml}</div>
+  `;
+}
+
+function recordCompletedFocusSession() {
+  const minutes = Math.round(TIME_LIMIT / 60);
+  focusSessions.push({
+    id: `focus_${Date.now()}`,
+    minutes,
+    taskId: timerTaskId || null,
+    completedAt: new Date().toISOString(),
+  });
+  saveFocusSessions();
+  renderFocusTasks();
+  Toast.show(`Focus complete: +${minutes * FOCUS_XP_PER_MINUTE} XP earned`, 'success');
+}
 
 function getTimerDuration() {
   const val = parseInt(timerDurationInput.value);
@@ -224,7 +346,10 @@ function setCircleDasharray() {
 function startTimer() {
   if (timerInterval) return;
   TIME_LIMIT = getTimerDuration();
-  if (timePassed === 0) timeLeft = TIME_LIMIT;
+  if (timePassed === 0) {
+    timeLeft = TIME_LIMIT;
+    timerTaskId = activeFocusTaskId;
+  }
   timerDurationInput.disabled = true;
   timerStartBtn.classList.add('hidden');
   timerPauseBtn.classList.remove('hidden');
@@ -238,7 +363,7 @@ function startTimer() {
     if (timeLeft === 0) {
       clearInterval(timerInterval);
       timerInterval = null;
-      Toast.show('Focus session complete!', 'success');
+      recordCompletedFocusSession();
       resetTimer();
     }
   }, 1000);
@@ -255,6 +380,7 @@ function resetTimer() {
   clearInterval(timerInterval);
   timerInterval = null;
   timePassed = 0;
+  timerTaskId = null;
   TIME_LIMIT = getTimerDuration();
   timeLeft = TIME_LIMIT;
   timerDurationInput.disabled = false;
@@ -328,6 +454,7 @@ function renderFocusTasks() {
           <div class="task-name">${t.title}</div>
           <div class="task-meta">
             <span class="task-pill ${pillClass}">${sub.short_code}</span>
+            <span class="task-pill focus-minutes-pill">${formatFocusMinutes(getTaskFocusMinutes(t.id))} focused</span>
           </div>
         </div>
       `;
@@ -351,6 +478,7 @@ function renderFocusTasks() {
           <div class="task-meta">
             <span class="task-pill pill-amber">Due ${formatDate(activeT.due_at)}</span>
             <span class="task-pill">${sub.name}</span>
+            <span class="task-pill focus-minutes-pill">${formatFocusMinutes(getTaskFocusMinutes(activeT.id))} focused</span>
           </div>
           <div style="margin-top: 12px; display: flex; gap: 8px;">
             <button class="btn btn-primary complete-focus-task-btn" data-id="${activeT.id}">Mark Done</button>
@@ -382,6 +510,8 @@ function renderFocusTasks() {
   } else {
     activeFocusTask.innerHTML = '<div class="no-task-selected">No task selected. Choose one below.</div>';
   }
+
+  renderFocusProgress();
 }
 
 function formatDate(dateStr) {

@@ -4845,6 +4845,115 @@ body {
   font-weight: 600;
 }
 
+/* Completed focus sessions and rewards */
+.focus-progress {
+  background: var(--color-background-secondary);
+  border: 1px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-md);
+  max-width: 600px;
+  padding: 14px;
+  width: 100%;
+}
+
+.focus-level-row {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 9px;
+}
+
+.focus-level-row strong {
+  color: var(--color-text-primary);
+  font-size: 14px;
+}
+
+.focus-level-row span {
+  color: var(--color-text-success);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.focus-xp-track {
+  background: var(--color-background-tertiary);
+  border-radius: 999px;
+  height: 7px;
+  overflow: hidden;
+}
+
+.focus-xp-fill {
+  background: var(--color-text-success);
+  border-radius: inherit;
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.focus-metrics {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(3, 1fr);
+  margin-top: 14px;
+}
+
+.focus-metrics div {
+  background: var(--color-background-primary);
+  border-radius: var(--border-radius-sm);
+  padding: 10px 8px;
+  text-align: center;
+}
+
+.focus-metrics strong {
+  color: var(--color-text-primary);
+  display: block;
+  font-size: 18px;
+  margin-bottom: 3px;
+}
+
+.focus-metrics span {
+  color: var(--color-text-tertiary);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.focus-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.focus-badge {
+  border: 1px dashed var(--color-border-secondary);
+  border-radius: 999px;
+  color: var(--color-text-tertiary);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 9px;
+}
+
+.focus-badge.earned {
+  background: var(--color-background-success);
+  border-color: var(--color-border-success);
+  border-style: solid;
+  color: var(--color-text-success);
+}
+
+.focus-minutes-pill {
+  background: var(--color-background-info);
+  border-color: var(--color-border-info);
+  color: var(--color-text-info);
+}
+
+@media (max-width: 480px) {
+  .focus-section {
+    padding: 16px;
+  }
+
+  .timer-container {
+    height: min(240px, 70vw);
+    width: min(240px, 70vw);
+  }
+}
+
 /* ==========================================================================
    Modern Toast Notifications
    ========================================================================== */
