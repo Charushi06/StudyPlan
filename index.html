@@ -135,6 +135,38 @@
           </div>
         </div>
 
+      <!-- Stats Dashboard -->
+      <div class="stats-dashboard" id="stats-dashboard">
+        <!-- Daily Progress Card -->
+        <div class="stat-card" id="card-progress">
+          <div class="stat-header">
+            <span class="stat-label">Daily Progress</span>
+            <span id="stats-progress-percent" class="stat-percent">0%</span>
+          </div>
+          <div class="progress-bar-container">
+            <div id="stats-progress-fill" class="progress-fill"></div>
+          </div>
+        </div>
+
+        <!-- Total Tasks Card -->
+        <div class="stat-card" id="card-total">
+          <span class="stat-label">Total Tasks</span>
+          <span id="stats-total" class="stat-value">0</span>
+        </div>
+
+        <!-- Overdue Tasks Card -->
+        <div class="stat-card highlight-danger" id="card-overdue">
+          <span class="stat-label">Overdue Tasks</span>
+          <span id="stats-overdue" class="stat-value danger-text">0</span>
+        </div>
+
+        <!-- Study Confidence Card -->
+        <div class="stat-card highlight-purple" id="card-confidence">
+          <span class="stat-label">Average Confidence</span>
+          <span id="stats-confidence" class="stat-value">0%</span>
+        </div>
+      </div>
+
       <!-- Calendar -->
       <div class="cal-section">
         <div class="cal-header">

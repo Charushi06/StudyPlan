@@ -778,6 +778,50 @@ function renderTasks() {
   }
 }
 
+function renderStats() {
+  const tasks = store.tasks.filter(t => !t.archived);
+  const total = tasks.length;
+
+  const fillEl = document.getElementById('stats-progress-fill');
+  const percentEl = document.getElementById('stats-progress-percent');
+  const totalEl = document.getElementById('stats-total');
+  const overdueEl = document.getElementById('stats-overdue');
+  const confidenceEl = document.getElementById('stats-confidence');
+
+  if (!fillEl || !percentEl || !totalEl || !overdueEl || !confidenceEl) return;
+
+  if (total === 0) {
+    fillEl.style.width = '0%';
+    percentEl.textContent = '0%';
+    totalEl.textContent = '0';
+    overdueEl.textContent = '0';
+    confidenceEl.textContent = '100%';
+    return;
+  }
+
+  // 1. Completion Progress
+  const completed = tasks.filter(t => t.status === 'Done').length;
+  const progressPercent = Math.round((completed / total) * 100);
+
+  // 2. Overdue calculation
+  const now = new Date();
+  const overdue = tasks.filter(t => t.status !== 'Done' && t.due_at && new Date(t.due_at) < now).length;
+
+  // 3. Average confidence extraction
+  const confidenceTasks = tasks.filter(t => t.confidence_score !== null && t.confidence_score !== undefined);
+  const avgConfidence = confidenceTasks.length
+    ? Math.round(confidenceTasks.reduce((sum, t) => sum + Number(t.confidence_score), 0) / confidenceTasks.length)
+    : 100;
+
+  // Render to DOM
+  fillEl.style.width = `${progressPercent}%`;
+  percentEl.textContent = `${progressPercent}%`;
+  totalEl.textContent = total;
+  overdueEl.textContent = overdue;
+  confidenceEl.textContent = `${avgConfidence}%`;
+}
+
+
 
 const summaryBox = document.getElementById('summary-box');
 if (summaryBox) {
@@ -971,6 +1015,7 @@ store.subscribe(renderExtraction);
 store.subscribe(renderCalendar);
 store.subscribe(renderFocusTasks);
 store.subscribe(renderSidebarSubjects);
+store.subscribe(renderStats);
 
 document.addEventListener('DOMContentLoaded', () => {
   if (newSubjectColorsEl) {
