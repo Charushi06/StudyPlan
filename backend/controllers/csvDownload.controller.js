@@ -78,21 +78,26 @@ async function downloadData(req, res) {
   try {
     const data = await getAllTasksWithSubjects();
 
-    const rows = [
-      ['Task ID', 'Subject', 'Title', 'Due At', 'Status', 'Priority', 'Confidence Score', 'Notes'],
-      ...data.map(task => [
-        task.id,
-        task.subject_name,
-        task.title,
-        task.due_at,
-        task.status,
-        task.priority,
-        task.confidence_score,
-        `"${(task.notes || '').replace(/"/g, '""')}"`,
-      ]),
-    ];
+    const escapeCsvField = (value) => {
+      if (value === null || value === undefined) return '""';
+      const stringValue = String(value);
+      return `"${stringValue.replace(/"/g, '""')}"`;
+    };
 
-    const csvString = rows.map(row => row.join(',')).join('\n');
+    const header = ['Task ID', 'Subject', 'Title', 'Due At', 'Status', 'Priority', 'Confidence Score', 'Notes'];
+    
+    const rows = data.map(task => [
+      escapeCsvField(task.id),
+      escapeCsvField(task.subject_name),
+      escapeCsvField(task.title),
+      escapeCsvField(task.due_at),
+      escapeCsvField(task.status),
+      escapeCsvField(task.priority),
+      escapeCsvField(task.confidence_score),
+      escapeCsvField(task.notes)
+    ]);
+    
+    const csvString = [header.map(h => `"${h}"`).join(','), ...rows.map(r => r.join(','))].join('\n');
 
     res.setHeader('Content-Type', 'text/csv');
     res.setHeader('Content-Disposition', 'attachment; filename="study_data.csv"');
