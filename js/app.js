@@ -238,6 +238,8 @@ function startTimer() {
     if (timeLeft === 0) {
       clearInterval(timerInterval);
       timerInterval = null;
+      const audio = new Audio('/public/timersound.mp3');
+      audio.play();
       Toast.show('Focus session complete!', 'success');
       resetTimer();
     }
