@@ -54,14 +54,14 @@
   </div>
 
   <nav class="header-nav">
-    <a href="#">Dashboard</a>
-    <a href="#">Tasks</a>
-    <a href="#">Calendar</a>
+   <a href="#" id="nav-dashboard">Dashboard</a>
+<a href="#" id="nav-tasks">Tasks</a>
+<a href="#" id="nav-calendar">Calendar</a>
     <a href="#" id="nav-settings">Settings</a>
   </nav>
 
   <div class="header-right">
-    <button class="profile-btn">Profile</button>
+    <button class="profile-btn" id="profile-btn">Profile</button>
     <button class="profile-btn" id="logout-btn">Logout</button>
   </div>
 </header>
@@ -395,6 +395,11 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
     // Refresh page state
     window.location.reload();
 });
+const profileBtn = document.getElementById('profile-btn');
+
+profileBtn.addEventListener('click', () => {
+  alert('Profile page coming soon!');
+});
 
   // Settings Modal Logic
   const settingsModal = document.getElementById('settings-modal');
@@ -473,6 +478,38 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
       document.body.classList.remove('compact-view');
     }
   });
+
+  const navDashboard = document.getElementById('nav-dashboard');
+const navTasks = document.getElementById('nav-tasks');
+const navCalendar = document.getElementById('nav-calendar');
+
+const tasksSection = document.getElementById('tasks-section');
+const calendarSection = document.querySelector('.cal-section');
+
+// Dashboard
+navDashboard.addEventListener('click', (e) => {
+  e.preventDefault();
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  });
+});
+
+// Tasks
+navTasks.addEventListener('click', (e) => {
+  e.preventDefault();
+  tasksSection.scrollIntoView({
+    behavior: 'smooth'
+  });
+});
+
+// Calendar
+navCalendar.addEventListener('click', (e) => {
+  e.preventDefault();
+  calendarSection.scrollIntoView({
+    behavior: 'smooth'
+  });
+});
 </script>
 
 <div id="new-subject-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0; z-index:9998; align-items:center; justify-content:center;">
