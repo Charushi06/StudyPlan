@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="/css/index.css">
 
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
-  <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
 
   <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -87,10 +86,7 @@
       <div class="nav-item" id="focus-mode-btn">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         Focus Mode
-      </div>
-      <div class="nav-item" id="rooms-btn">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M11 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm-9 8c0-2.5 3-4 6-4s6 1.5 6 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Study Rooms
+        
       </div>
       <div class="nav-item" id="archived-tasks-btn">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 3h12v2H2V3zm1 3h10v7H3V6zm2 2v3h2V8H5zm4 0v3h2V8H9z" fill="currentColor"/></svg>
@@ -143,8 +139,8 @@
       <div class="cal-section">
         <div class="cal-header">
           <div id="cal-month-title" class="cal-title">April 2026</div>
-          <span id="cal-prev" class="cal-nav" role="button" aria-label="Previous Month">‹</span>
-          <span id="cal-next" class="cal-nav" role="button" aria-label="Next Month">›</span>
+          <span id="cal-prev" class="cal-nav" role="button" aria-label="Previous Month">ΓÇ╣</span>
+          <span id="cal-next" class="cal-nav" role="button" aria-label="Next Month">ΓÇ║</span>
         </div>
         <div id="cal-grid" class="cal-grid">
           <div class="cal-day-label">Su</div><div class="cal-day-label">Mo</div><div class="cal-day-label">Tu</div><div class="cal-day-label">We</div><div class="cal-day-label">Th</div><div class="cal-day-label">Fr</div><div class="cal-day-label">Sa</div>
@@ -201,74 +197,6 @@
           </div>
         </div>
       </div>
-
-      <!-- Study Rooms -->
-      <div id="rooms-section" class="rooms-section hidden" style="padding: 24px;">
-        <div id="room-lobby">
-          <h2>Study Group Rooms</h2>
-          <p style="color: var(--color-text-secondary); margin-bottom: 24px;">Join a live focus room or create a new one to study with friends.</p>
-          <button id="create-room-btn" class="btn btn-primary" style="margin-right: 12px;">Create New Room</button>
-          
-          <div style="margin-top: 24px;">
-            <h3>Have an invite code?</h3>
-            <div style="display: flex; gap: 8px; margin-top: 8px;">
-              <input type="text" id="join-room-input" placeholder="Room ID" style="padding: 8px; border-radius: 6px; border: 1px solid var(--color-border-secondary);">
-              <button id="join-room-btn" class="btn">Join</button>
-            </div>
-          </div>
-        </div>
-
-        <div id="room-active" class="hidden">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-            <h2>Live Study Room</h2>
-            <button id="leave-room-btn" class="btn" style="color: var(--color-text-danger);">Leave Room</button>
-          </div>
-          
-          <div style="background: var(--color-background-secondary); padding: 16px; border-radius: 8px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;">
-            <div>
-              <span style="font-weight: 600;">Invite Link:</span>
-              <code id="room-invite-link" style="background: var(--color-background-primary); padding: 4px 8px; border-radius: 4px; margin-left: 8px; user-select: all;"></code>
-            </div>
-            <button id="copy-invite-btn" class="btn" style="padding: 6px 12px;">Copy</button>
-          </div>
-
-          <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
-            <!-- Timer & Goal -->
-            <div style="background: var(--color-background-primary); border: 1px solid var(--color-border-secondary); padding: 24px; border-radius: 12px; text-align: center;">
-              <h3>Shared Focus Goal</h3>
-              <input type="text" id="room-goal-input" placeholder="What are we focusing on?" style="width: 100%; padding: 8px; margin-top: 8px; margin-bottom: 24px; text-align: center; border: 1px solid var(--color-border-secondary); border-radius: 6px;">
-              
-              <div class="timer-container" style="margin: 0 auto;">
-                <svg class="timer-svg" viewBox="0 0 100 100">
-                  <circle class="timer-path-elapsed" cx="50" cy="50" r="45" />
-                  <path id="room-timer-path-remaining" stroke-dasharray="283" class="timer-path-remaining" d="
-                    M 50, 50
-                    m -45, 0
-                    a 45,45 0 1,0 90,0
-                    a 45,45 0 1,0 -90,0
-                  "></path>
-                </svg>
-                <div id="room-timer-text" class="timer-text">25:00</div>
-              </div>
-              
-              <div id="room-host-controls" class="timer-controls hidden" style="margin-top: 24px; justify-content: center;">
-                <button id="room-start-btn" class="btn btn-primary">Start</button>
-                <button id="room-pause-btn" class="btn hidden">Pause</button>
-                <button id="room-reset-btn" class="btn">Reset</button>
-              </div>
-              <p id="room-guest-msg" style="margin-top: 16px; color: var(--color-text-secondary); font-size: 13px;">Only the room host can control the timer.</p>
-            </div>
-
-            <!-- Participants -->
-            <div style="background: var(--color-background-primary); border: 1px solid var(--color-border-secondary); padding: 24px; border-radius: 12px;">
-              <h3>Participants (<span id="room-participant-count">0</span>)</h3>
-              <ul id="room-participants-list" style="list-style: none; padding: 0; margin-top: 16px;">
-                <!-- JS will inject here -->
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
 
     <!-- Right Panel -->
@@ -282,20 +210,20 @@
             <svg width="18" height="18" fill="none"><path d="M9 13V5M9 5L5 9M9 5l4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             Smart Paste
           </div>
-          <div class="panel-subtitle">Drop any text — email, brief, message</div>
+          <div class="panel-subtitle">Drop any text ΓÇö email, brief, message</div>
         </div>
       </div>
 
       <div class="paste-zone">
-        <div class="paste-icon">⌘ V</div>
+        <div class="paste-icon">Γîÿ V</div>
         <div class="paste-label">Paste text here</div>
-        <div class="paste-hint">e.g. "Your OS assignment is due this Friday by 11pm…"</div>
+        <div class="paste-hint">e.g. "Your OS assignment is due this Friday by 11pmΓÇª"</div>
         <textarea id="paste-input" class="paste-input" placeholder="Paste your syllabus or notes..."></textarea>
       </div>
 
       <div class="paste-actions">
         <button id="clear-btn" class="btn" style="flex:1;" aria-label="Clear paste area">Clear</button>
-        <button id="extract-btn" class="btn btn-primary" style="flex:2;" aria-label="Extract tasks with AI">Extract with AI →</button>
+        <button id="extract-btn" class="btn btn-primary" style="flex:2;" aria-label="Extract tasks with AI">Extract with AI ΓåÆ</button>
       </div>
 
       <div id="extract-preview" class="extract-preview">
@@ -315,7 +243,7 @@
 </div>
 
 <footer class="site-footer">
-  <p>© 2026 StudyPlan. All rights reserved.</p>
+  <p>┬⌐ 2026 StudyPlan. All rights reserved.</p>
   <div class="footer-links">
     <a href="/support-page/privacy.html">Privacy</a>
     <a href="/support-page/terms.html">Terms</a>
@@ -374,7 +302,6 @@
 </div>
 
   <script type="module" src="/js/app.js"></script>
-  <script type="module" src="/js/room.js"></script>
   <script>
   let isLogin = true;
 

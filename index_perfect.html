@@ -7,37 +7,29 @@
   <link rel="stylesheet" href="/css/index.css">
 
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
-  <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
 
   <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
   <!-- Auth Modal -->
-<div id="auth-modal" style="display:flex; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
-  <div style="background:white; border-radius:16px; padding:32px; width:360px; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+<div id="auth-modal" class="modal-backdrop" style="display:flex; position:fixed; inset:0; z-index:9999; align-items:center; justify-content:center;">
+  <div class="modal-card" style="border-radius:16px; padding:32px; width:360px; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
     
     <h2 id="auth-title" style="margin:0 0 8px; font-size:22px; font-weight:700;">Welcome back</h2>
     <p id="auth-subtitle" style="margin:0 0 24px; color:#666; font-size:14px;">Sign in to your StudyPlan account</p>
 
     <input id="auth-email" type="email" placeholder="Email address" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:12px; box-sizing:border-box;">
     
-    <input id="auth-password" type="password" placeholder="Password" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:20px; box-sizing:border-box;">
+    <input id="auth-password" type="password" placeholder="Password" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:12px; box-sizing:border-box;">
 
-    <button id="auth-submit-btn" style="width:100%; padding:12px; background:#4f46e5; color:white; border:none; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer;">
-    Sign In
-    </button>
-
-    <div style="font-size:12px; color:#666; margin-top:10px; line-height:1.6;">
-    Password must contain:
-     <ul style="padding-left:18px; margin-top:6px;">
-      <li>Minimum 8 characters</li>
-      <li>At least 1 capital letter</li>
-      <li>At least 1 special character</li>
-     </ul>
+    <div style="text-align: right; margin-bottom: 20px;">
+      <a id="forgot-password-link" href="#" style="color:#4f46e5; font-size:13px; font-weight:500; text-decoration:none;">Forgot Password?</a>
     </div>
 
-    <p id="auth-error" style="color:red; font-size:13px; text-align:center; margin:8px 0 0; display:none;"></p>
+    <button id="auth-submit-btn" style="width:100%; padding:12px; background:#4f46e5; color:white; border:none; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer;">
+      Sign In
+    </button>
 
     <p style="text-align:center; margin:16px 0 0; font-size:13px; color:#666;">
       <span id="auth-toggle-text">Don't have an account?</span>
@@ -49,10 +41,13 @@
 </div>
 
   <header class="site-header">
-  <div class="header-left">
-    <img src="/logo.png" alt="Logo" class="logo">
-    <h1 class="site-title">StudyPlan</h1>
-  </div>
+    <div class="header-left">
+      <button id="mobile-menu-btn" class="mobile-menu-btn" aria-label="Toggle Menu">
+        <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+      </button>
+      <img src="/logo.png" alt="Logo" class="logo">
+      <h1 class="site-title">StudyPlan</h1>
+    </div>
 
   <nav class="header-nav">
     <a href="#">Dashboard</a>
@@ -87,10 +82,7 @@
       <div class="nav-item" id="focus-mode-btn">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         Focus Mode
-      </div>
-      <div class="nav-item" id="rooms-btn">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M11 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm-9 8c0-2.5 3-4 6-4s6 1.5 6 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Study Rooms
+        
       </div>
       <div class="nav-item" id="archived-tasks-btn">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 3h12v2H2V3zm1 3h10v7H3V6zm2 2v3h2V8H5zm4 0v3h2V8H9z" fill="currentColor"/></svg>
@@ -201,74 +193,6 @@
           </div>
         </div>
       </div>
-
-      <!-- Study Rooms -->
-      <div id="rooms-section" class="rooms-section hidden" style="padding: 24px;">
-        <div id="room-lobby">
-          <h2>Study Group Rooms</h2>
-          <p style="color: var(--color-text-secondary); margin-bottom: 24px;">Join a live focus room or create a new one to study with friends.</p>
-          <button id="create-room-btn" class="btn btn-primary" style="margin-right: 12px;">Create New Room</button>
-          
-          <div style="margin-top: 24px;">
-            <h3>Have an invite code?</h3>
-            <div style="display: flex; gap: 8px; margin-top: 8px;">
-              <input type="text" id="join-room-input" placeholder="Room ID" style="padding: 8px; border-radius: 6px; border: 1px solid var(--color-border-secondary);">
-              <button id="join-room-btn" class="btn">Join</button>
-            </div>
-          </div>
-        </div>
-
-        <div id="room-active" class="hidden">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-            <h2>Live Study Room</h2>
-            <button id="leave-room-btn" class="btn" style="color: var(--color-text-danger);">Leave Room</button>
-          </div>
-          
-          <div style="background: var(--color-background-secondary); padding: 16px; border-radius: 8px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;">
-            <div>
-              <span style="font-weight: 600;">Invite Link:</span>
-              <code id="room-invite-link" style="background: var(--color-background-primary); padding: 4px 8px; border-radius: 4px; margin-left: 8px; user-select: all;"></code>
-            </div>
-            <button id="copy-invite-btn" class="btn" style="padding: 6px 12px;">Copy</button>
-          </div>
-
-          <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
-            <!-- Timer & Goal -->
-            <div style="background: var(--color-background-primary); border: 1px solid var(--color-border-secondary); padding: 24px; border-radius: 12px; text-align: center;">
-              <h3>Shared Focus Goal</h3>
-              <input type="text" id="room-goal-input" placeholder="What are we focusing on?" style="width: 100%; padding: 8px; margin-top: 8px; margin-bottom: 24px; text-align: center; border: 1px solid var(--color-border-secondary); border-radius: 6px;">
-              
-              <div class="timer-container" style="margin: 0 auto;">
-                <svg class="timer-svg" viewBox="0 0 100 100">
-                  <circle class="timer-path-elapsed" cx="50" cy="50" r="45" />
-                  <path id="room-timer-path-remaining" stroke-dasharray="283" class="timer-path-remaining" d="
-                    M 50, 50
-                    m -45, 0
-                    a 45,45 0 1,0 90,0
-                    a 45,45 0 1,0 -90,0
-                  "></path>
-                </svg>
-                <div id="room-timer-text" class="timer-text">25:00</div>
-              </div>
-              
-              <div id="room-host-controls" class="timer-controls hidden" style="margin-top: 24px; justify-content: center;">
-                <button id="room-start-btn" class="btn btn-primary">Start</button>
-                <button id="room-pause-btn" class="btn hidden">Pause</button>
-                <button id="room-reset-btn" class="btn">Reset</button>
-              </div>
-              <p id="room-guest-msg" style="margin-top: 16px; color: var(--color-text-secondary); font-size: 13px;">Only the room host can control the timer.</p>
-            </div>
-
-            <!-- Participants -->
-            <div style="background: var(--color-background-primary); border: 1px solid var(--color-border-secondary); padding: 24px; border-radius: 12px;">
-              <h3>Participants (<span id="room-participant-count">0</span>)</h3>
-              <ul id="room-participants-list" style="list-style: none; padding: 0; margin-top: 16px;">
-                <!-- JS will inject here -->
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
 
     <!-- Right Panel -->
@@ -317,15 +241,15 @@
 <footer class="site-footer">
   <p>© 2026 StudyPlan. All rights reserved.</p>
   <div class="footer-links">
-    <a href="/support-page/privacy.html">Privacy</a>
-    <a href="/support-page/terms.html">Terms</a>
-    <a href="/support-page/support.html">Support</a>
+    <a href="/support-page/index.html#privacy">Privacy</a>
+    <a href="/support-page/index.html#terms">Terms</a>
+    <a href="/support-page/index.html#support">Support</a>
   </div>
 </footer>
 
 <!-- Settings Modal -->
-<div id="settings-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
-  <div style="background:var(--color-background-primary); border:1px solid var(--color-border-tertiary); border-radius:16px; padding:32px; width:400px; box-shadow:var(--shadow-lg); color:var(--color-text-primary);">
+<div id="settings-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0; z-index:9999; align-items:center; justify-content:center;">
+  <div class="modal-card" style="border-radius:16px; padding:32px; width:400px; box-shadow:var(--shadow-lg);">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
       <h2 style="margin:0; font-size:20px; font-weight:700;">Settings</h2>
       <button id="settings-close" style="background:none; border:none; font-size:24px; cursor:pointer; color:var(--color-text-secondary);">&times;</button>
@@ -374,71 +298,112 @@
 </div>
 
   <script type="module" src="/js/app.js"></script>
-  <script type="module" src="/js/room.js"></script>
   <script>
   let isLogin = true;
+  let isForgotPassword = false;
 
   document.getElementById('auth-toggle-btn').addEventListener('click', (e) => {
     e.preventDefault();
     isLogin = !isLogin;
+    isForgotPassword = false;
+    document.getElementById('auth-password').style.display = 'block';
+    document.getElementById('forgot-password-link').style.display = isLogin ? 'inline' : 'none';
     document.getElementById('auth-title').textContent = isLogin ? 'Welcome back' : 'Create account';
     document.getElementById('auth-subtitle').textContent = isLogin ? 'Sign in to your StudyPlan account' : 'Start planning your studies';
     document.getElementById('auth-submit-btn').textContent = isLogin ? 'Sign In' : 'Sign Up';
     document.getElementById('auth-toggle-text').textContent = isLogin ? "Don't have an account?" : 'Already have an account?';
     document.getElementById('auth-toggle-btn').textContent = isLogin ? 'Sign Up' : 'Sign In';
     document.getElementById('auth-error').style.display = 'none';
+    document.getElementById('auth-error').style.color = 'red';
+  });
+
+  document.getElementById('forgot-password-link').addEventListener('click', (e) => {
+    e.preventDefault();
+    isForgotPassword = true;
+    document.getElementById('auth-title').textContent = 'Reset Password';
+    document.getElementById('auth-subtitle').textContent = 'Enter your email to receive a reset link';
+    document.getElementById('auth-password').style.display = 'none';
+    document.getElementById('forgot-password-link').style.display = 'none';
+    document.getElementById('auth-submit-btn').textContent = 'Send Reset Link';
+    document.getElementById('auth-toggle-text').textContent = 'Remember your password?';
+    document.getElementById('auth-toggle-btn').textContent = 'Sign In';
+    document.getElementById('auth-error').style.display = 'none';
   });
 
   // Password validation function
-function validatePassword(password) {
-
-  // Minimum 8 characters
-  const minLength = password.length >= 8;
-
-  // At least 1 capital letter
-  const hasCapital = /[A-Z]/.test(password);
-
-  // At least 1 special character
-  const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-
-  return minLength && hasCapital && hasSpecial;
-}
-
-document.getElementById('auth-submit-btn').addEventListener('click', async () => {
-
-  const email = document.getElementById('auth-email').value.trim();
-  const password = document.getElementById('auth-password').value.trim();
-  const errorEl = document.getElementById('auth-error');
-
-  errorEl.style.display = 'none';
-
-  // Empty fields check
-  if (!email || !password) {
-    errorEl.textContent = 'Please fill in all fields';
-    errorEl.style.display = 'block';
-    return;
+  function validatePassword(password) {
+    // Minimum 8 characters
+    const minLength = password.length >= 8;
+    // At least 1 capital letter
+    const hasCapital = /[A-Z]/.test(password);
+    // At least 1 special character
+    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    return minLength && hasCapital && hasSpecial;
   }
 
-  // Password validation check
-  if (!validatePassword(password)) {
-    errorEl.textContent =
-      'Password must be at least 8 characters long, contain 1 capital letter and 1 special character.';
-    errorEl.style.display = 'block';
-    return;
-  }
+  document.getElementById('auth-submit-btn').addEventListener('click', async () => {
+    const email = document.getElementById('auth-email').value.trim();
+    const password = document.getElementById('auth-password').value.trim();
+    const errorEl = document.getElementById('auth-error');
 
-  const endpoint = isLogin ? '/api/auth/login' : '/api/auth/signup';
+    if (!email || (!password && !isForgotPassword)) {
+      errorEl.textContent = 'Please fill in all fields';
+      errorEl.style.color = 'red';
+      errorEl.style.display = 'block';
+      return;
+    }
 
-  try {
-    const res = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    });
+    if (isForgotPassword) {
+      try {
+        const res = await fetch('/api/auth/forgot-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          errorEl.textContent = data.message || 'Password reset link sent';
+          errorEl.style.color = 'green';
+          errorEl.style.display = 'block';
+          setTimeout(() => {
+            isLogin = false; // so click toggles to true
+            document.getElementById('auth-toggle-btn').click();
+          }, 2000);
+        } else {
+          errorEl.textContent = data.error || 'An error occurred';
+          errorEl.style.color = 'red';
+          errorEl.style.display = 'block';
+        }
+      } catch (err) {
+        errorEl.textContent = 'Network error. Please try again.';
+        errorEl.style.color = 'red';
+        errorEl.style.display = 'block';
+      }
+      return;
+    }
+
+    if (!isForgotPassword && !validatePassword(password)) {
+      errorEl.textContent =
+        'Password must be at least 8 characters long, contain 1 capital letter and 1 special character.';
+      errorEl.style.color = 'red';
+      errorEl.style.display = 'block';
+      return;
+    }
+
+    const endpoint = isLogin ? '/api/auth/login' : '/api/auth/signup';
+
+    try {
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
       const data = await res.json();
 
       if (!res.ok) {
         errorEl.textContent = data.error || 'Something went wrong';
+        errorEl.style.color = 'red';
         errorEl.style.display = 'block';
         return;
       }
@@ -448,6 +413,7 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
 
     } catch (err) {
       errorEl.textContent = 'Network error. Please try again.';
+      errorEl.style.color = 'red';
       errorEl.style.display = 'block';
     }
   });
@@ -562,8 +528,8 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
   </div>
 </div>
 
-<div id="new-task-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0;  z-index:9998; align-items:center; justify-content:center;">
-  <div class="modal-card" style=" border-radius:12px; padding:20px; width:320px; box-shadow:0 12px 40px rgba(0,0,0,0.25);">
+<div id="new-task-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0; z-index:9998; align-items:center; justify-content:center;">
+  <div class="modal-card" style="border-radius:12px; padding:20px; width:320px; box-shadow:0 12px 40px rgba(0,0,0,0.25);">
     <h3 style="margin:0 0 12px; font-size:18px; font-weight:600;">New task</h3>
 
     <label style="display:block; font-size:12px; margin-bottom:4px;">Subject</label>

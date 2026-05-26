@@ -6,7 +6,16 @@ const { GoogleGenAI } = require('@google/genai');
 const path = require('path');
 const csvDownloadRouter = require('./backend/routers/csvDownload.router.js');
 
+const http = require('http');
+const { Server } = require('socket.io');
+
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server, { cors: { origin: '*' } });
+
+// Initialize Socket.io Logic
+require('./backend/socket.js')(io);
+
 app.use(cors());
 app.use(express.json());
 
@@ -570,6 +579,6 @@ app.use((err, req, res, next) => {
 
 // ================= SERVER =================
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log('Server running on port ' + PORT);
 });
