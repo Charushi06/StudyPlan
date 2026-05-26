@@ -378,6 +378,7 @@
 
   // Check login state immediately
   updateUIForLoginState();
+  document.addEventListener('DOMContentLoaded', updateUIForLoginState);
 
   document.getElementById('auth-toggle-btn').addEventListener('click', (e) => {
     e.preventDefault();
@@ -573,7 +574,7 @@
   if (logoutBtn) {
     logoutBtn.addEventListener('click', () => {
       localStorage.removeItem('studyplan_user');
-      window.location.reload();
+      window.location.replace(window.location.origin);
     });
   }
 
