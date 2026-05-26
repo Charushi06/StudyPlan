@@ -295,8 +295,7 @@
       </div>
     </div>
 
-    <button id="settings-save" style="width:100%; padding:12px; background:var(--color-text-primary); color:var(--color-background-primary); border:none; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; margin-top:8px;">
-      Save Changes
+    <button id="settings-save" style="width:100%; padding:12px; background:var(--color-text-primary); color:var(--color-background-primary); border:none; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; margin-top:8px;">Close
     </button>
   </div>
 </div>
@@ -449,11 +448,8 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
   // Run on load
   loadPreferences();
 
-  // Save changes when user clicks "Save Changes"
+  // Close modal when user clicks Close button
   settingsSave.addEventListener('click', () => {
-    localStorage.setItem('studyplan_dark_mode', darkModeToggle.checked);
-    localStorage.setItem('studyplan_compact_view', compactViewToggle.checked);
-    loadPreferences();
     settingsModal.style.display = 'none';
   });
 
