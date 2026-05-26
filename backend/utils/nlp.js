@@ -148,10 +148,21 @@ function nlpTaskScore(seg) {
 }
 
 function nlpCleanTitle(seg) {
-  return seg
+  const labelMatch = seg.match(/#[\w-]+/g);
+  let cleaned = seg
     .replace(/^(please|kindly|remember to|don't forget to|make sure to)\s+/i, '')
     .replace(/\s+(by|before|due|on|at)\s+.*/i, '')
     .trim().substring(0, 80);
+    
+  if (labelMatch) {
+    // Re-append labels so frontend can still extract them
+    labelMatch.forEach(l => {
+      if (!cleaned.includes(l)) {
+        cleaned += ' ' + l;
+      }
+    });
+  }
+  return cleaned;
 }
 
 function nlpFallbackDate() {
