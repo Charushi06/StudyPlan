@@ -223,7 +223,7 @@ function setCircleDasharray() {
 
 function startTimer() {
   if (timerInterval) return;
-  TIME_LIMIT = getTimerDuration();
+  TIME_LIMIT = 3;
   if (timePassed === 0) timeLeft = TIME_LIMIT;
   timerDurationInput.disabled = true;
   timerStartBtn.classList.add('hidden');
@@ -243,6 +243,10 @@ function startTimer() {
       const audio = new Audio(
       `/public/timer-end-sounds/${selectedSound}`
       );
+
+      const volume = document.getElementById('volumeControl').value;
+    audio.volume = volume;
+
       audio.play();
       Toast.show('Focus session complete!', 'success');
       resetTimer();
@@ -263,7 +267,7 @@ function resetTimer() {
   timePassed = 0;
   TIME_LIMIT = getTimerDuration();
   timeLeft = TIME_LIMIT;
-  timerDurationInput.disabled = false;
+  timerDurationInput.disabsled = false;
   timerText.innerHTML = formatTimeLeft(timeLeft);
   timerPathRemaining.setAttribute("stroke-dasharray", "283 283");
   timerPauseBtn.classList.add('hidden');

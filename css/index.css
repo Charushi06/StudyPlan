@@ -1229,6 +1229,17 @@ body {
   align-items: center;
 }
 
+/*volume toggle*/
+.timer-volume-settings {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+  #volumeControl {
+  cursor: pointer;
+}
+
 /* Focus Mode */
 .focus-section {
   flex: 1;
