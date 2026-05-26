@@ -215,7 +215,7 @@
       </div>
 
       <div class="paste-zone">
-        <div class="paste-icon">⌘ V</div>
+        <div class="paste-icon" id="paste-shortcut-icon">⌘V</div>
         <div class="paste-label">Paste text here</div>
         <div class="paste-hint">e.g. "Your OS assignment is due this Friday by 11pm…"</div>
         <textarea id="paste-input" class="paste-input" placeholder="Paste your syllabus or notes..."></textarea>
@@ -473,6 +473,12 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
       document.body.classList.remove('compact-view');
     }
   });
+  // Dynamically show correct keyboard shortcut based on OS
+  const isMac = navigator.platform.toUpperCase().includes('MAC');
+  const shortcutIcon = document.getElementById('paste-shortcut-icon');
+  if (shortcutIcon) {
+    shortcutIcon.textContent = isMac ? '⌘V' : 'Ctrl+V';
+  }
 </script>
 
 <div id="new-subject-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0; z-index:9998; align-items:center; justify-content:center;">
