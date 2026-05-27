@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>StudyPlan</title>
   <link rel="stylesheet" href="/css/index.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
   <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -21,8 +24,19 @@
     <input id="auth-password" type="password" placeholder="Password" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:20px; box-sizing:border-box;">
 
     <button id="auth-submit-btn" style="width:100%; padding:12px; background:#4f46e5; color:white; border:none; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer;">
-      Sign In
+    Sign In
     </button>
+
+    <div style="font-size:12px; color:#666; margin-top:10px; line-height:1.6;">
+    Password must contain:
+     <ul style="padding-left:18px; margin-top:6px;">
+      <li>Minimum 8 characters</li>
+      <li>At least 1 capital letter</li>
+      <li>At least 1 special character</li>
+     </ul>
+    </div>
+
+    <p id="auth-error" style="color:red; font-size:13px; text-align:center; margin:8px 0 0; display:none;"></p>
 
     <p style="text-align:center; margin:16px 0 0; font-size:13px; color:#666;">
       <span id="auth-toggle-text">Don't have an account?</span>
@@ -84,6 +98,10 @@
         Download Data
         <span class="badge">7</span>
       </div>
+      <div class="nav-item" id="calendar-download-btn">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M1 6h14" stroke="currentColor" stroke-width="1.5"/><path d="M5 1v2M11 1v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Export to Calendar
+      </div>
       <div class="sidebar-divider"></div>
       <div class="sidebar-header">Subjects</div>
       <div id="subjects-sidebar-list"></div>
@@ -96,11 +114,26 @@
     <div class="main">
       <div class="topbar">
         <div class="topbar-title">April 2026</div>
+        <select id="label-filter" style="margin-left:auto; margin-right: 12px; padding: 6px; border-radius: 6px; border: 1px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); outline: none; cursor: pointer;">
+          <option value="">All Labels</option>
+        </select>
         <button class="btn">Week</button>
         <button class="btn btn-primary"  id="add-task-btn">
           <svg width="12" height="12" fill="none" style="margin-right:2px"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> New task
         </button>
       </div>
+
+      <!-- Dashboard Greeting -->
+        <div class="dashboard-greeting" style="padding: 16px 24px 0; display: flex; justify-content: center;">
+          <div class="quote-widget">
+            <svg class="quote-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <p id="motivational-quotes">
+              Small Progress is still Progress
+            </p>
+          </div>
+        </div>
 
       <!-- Calendar -->
       <div class="cal-section">
@@ -212,9 +245,9 @@
 <footer class="site-footer">
   <p>© 2026 StudyPlan. All rights reserved.</p>
   <div class="footer-links">
-    <a href="/support-page/index.html#privacy">Privacy</a>
-    <a href="/support-page/index.html#terms">Terms</a>
-    <a href="/support-page/index.html#support">Support</a>
+    <a href="/support-page/privacy.html">Privacy</a>
+    <a href="/support-page/terms.html">Terms</a>
+    <a href="/support-page/support.html">Support</a>
   </div>
 </footer>
 
@@ -283,25 +316,52 @@
     document.getElementById('auth-error').style.display = 'none';
   });
 
-  document.getElementById('auth-submit-btn').addEventListener('click', async () => {
-    const email = document.getElementById('auth-email').value.trim();
-    const password = document.getElementById('auth-password').value.trim();
-    const errorEl = document.getElementById('auth-error');
+  // Password validation function
+function validatePassword(password) {
 
-    if (!email || !password) {
-      errorEl.textContent = 'Please fill in all fields';
-      errorEl.style.display = 'block';
-      return;
-    }
+  // Minimum 8 characters
+  const minLength = password.length >= 8;
 
-    const endpoint = isLogin ? '/api/auth/login' : '/api/auth/signup';
+  // At least 1 capital letter
+  const hasCapital = /[A-Z]/.test(password);
 
-    try {
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
+  // At least 1 special character
+  const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+  return minLength && hasCapital && hasSpecial;
+}
+
+document.getElementById('auth-submit-btn').addEventListener('click', async () => {
+
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value.trim();
+  const errorEl = document.getElementById('auth-error');
+
+  errorEl.style.display = 'none';
+
+  // Empty fields check
+  if (!email || !password) {
+    errorEl.textContent = 'Please fill in all fields';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  // Password validation check
+  if (!validatePassword(password)) {
+    errorEl.textContent =
+      'Password must be at least 8 characters long, contain 1 capital letter and 1 special character.';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  const endpoint = isLogin ? '/api/auth/login' : '/api/auth/signup';
+
+  try {
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
       const data = await res.json();
 
       if (!res.ok) {
@@ -436,8 +496,8 @@
     <label style="display:block; font-size:12px; margin-bottom:4px;">Subject</label>
     <select id="new-task-subject" paceholder="Subject" style="width:100%; padding:6px; margin-bottom:10px;"></select>
 
-    <label style="display:block; font-size:12px; margin-bottom:4px;">Task name</label>
-    <input id="new-task-title" type="text" style="width:100%; padding:6px; margin-bottom:10px;"placeholder="TaskName">
+    <label style="display:block; font-size:12px; margin-bottom:4px;">Task name (Use #tag for labels)</label>
+    <input id="new-task-title" type="text" style="width:100%; padding:6px; margin-bottom:10px;"placeholder="e.g. Study for exam #urgent #school">
 
     <label style="display:block; font-size:12px; margin-bottom:4px;">Deadline</label>
     <input id="new-task-date" type="datetime-local" style="width:100%; padding:6px; margin-bottom:10px;" placeholder="Deadline">
