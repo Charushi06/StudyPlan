@@ -52,24 +52,22 @@ Planner + Calendar Update
 
 ---
 
-## ✨ Features
-
-### 🤖 AI Intelligence
-- Smart extraction from unstructured text
-- Detects **deadlines, subjects, tasks, notes**
-- Handles ambiguous dates with user confirmation
+### 🤖 AI & Offline Intelligence
+- Smart extraction from unstructured text via Google Gemini API
+- **Local Heuristic NLP Fallback**: Operates fully offline when API keys are not present, utilizing keyword matching and regex parsing to automatically extract deadlines, subjects, and tasks.
 
 ### 📊 Smart Planning System
 - Auto-categorized boards:
   - Due Soon
   - This Week
   - Completed
-- Conflict detection (deadline clustering alerts)
+- Conflict detection (deadline clustering alerts with reschedule recommendations)
 
-### 📅 Interactive Calendar
-- Global calendar view
-- Click a date → filter tasks instantly
-- Color-coded deadlines
+### 📅 Interactive Calendar & Export
+- Global calendar view (click a date to filter tasks instantly)
+- Color-coded deadlines for subject visual mapping
+- **Export to CSV**: Download your study data in a clean, RFC 4180-compliant spreadsheet.
+- **Export to Calendar (iCalendar)**: Download an `.ics` file to sync tasks with Google Calendar, Outlook, or Apple Calendar.
 
 ### 🧩 Seamless Editing
 - Inline editing (no popups)
@@ -77,12 +75,12 @@ Planner + Calendar Update
 
 ### 🔔 Smart Notifications
 - Modern, glassmorphic toast notifications
-- Interactive confirmation modals
+- Accessible confirmation modals (fully keyboard navigatable with Escape key dismissal)
 - Zero-dependency Vanilla JS implementation
 - Automatically adapts to Light/Dark mode
 
 ### 💾 Persistent Storage
-- SQLite-based local database
+- SQLite-based local database with auto-seeding for core science & humanities subjects (CS, Math, Physics, Chemistry, Biology, History, English Lit)
 - Structured task + subject mapping
 
 ---
