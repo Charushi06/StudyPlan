@@ -1,24 +1,36 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>StudyPlan</title>
+  <title>StudyPlan — Dashboard</title>
+  <link rel="stylesheet" href="/css/design-system.css">
   <link rel="stylesheet" href="/css/index.css">
+<<<<<<< HEAD
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+=======
 
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 
   <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+>>>>>>> upstream/main
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    // Apply theme before paint — prevents flash of wrong theme
+    (function(){
+      var s = localStorage.getItem('studyplan_theme');
+      var d = window.matchMedia('(prefers-color-scheme:dark)').matches;
+      document.documentElement.setAttribute('data-theme', s || (d ? 'dark' : 'light'));
+    })();
+  </script>
 </head>
 <body>
-  <!-- Auth Modal -->
-<div id="auth-modal" style="display:flex; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
-  <div style="background:white; border-radius:16px; padding:32px; width:360px; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
-    
-    <h2 id="auth-title" style="margin:0 0 8px; font-size:22px; font-weight:700;">Welcome back</h2>
-    <p id="auth-subtitle" style="margin:0 0 24px; color:#666; font-size:14px;">Sign in to your StudyPlan account</p>
 
+<<<<<<< HEAD
+<!-- ========== HEADER ========== -->
+<header class="site-header">
+=======
     <input id="auth-email" type="email" placeholder="Email address" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:12px; box-sizing:border-box;">
     
     <input id="auth-password" type="password" placeholder="Password" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:20px; box-sizing:border-box;">
@@ -48,71 +60,106 @@
 </div>
 
   <header class="site-header">
+>>>>>>> upstream/main
   <div class="header-left">
-    <img src="/logo.png" alt="Logo" class="logo">
+    <img src="/logo.png" alt="StudyPlan logo" class="logo" width="28" height="28">
     <h1 class="site-title">StudyPlan</h1>
   </div>
 
-  <nav class="header-nav">
-    <a href="#">Dashboard</a>
-    <a href="#">Tasks</a>
-    <a href="#">Calendar</a>
-    <a href="#" id="nav-settings">Settings</a>
+  <nav class="header-nav" role="navigation" aria-label="Main navigation">
+    <a href="#" class="nav-link active" data-view="calendar" id="nav-dashboard">Dashboard</a>
+    <a href="#" class="nav-link" data-view="tasks" id="nav-tasks">Tasks</a>
+    <a href="#" class="nav-link" data-view="focus" id="nav-focus">Focus</a>
+    <a href="#" class="nav-link" id="nav-settings">Settings</a>
   </nav>
 
   <div class="header-right">
-    <button class="profile-btn">Profile</button>
-    <button class="profile-btn" id="logout-btn">Logout</button>
+    <!-- Dark mode toggle -->
+    <button class="icon-btn" id="theme-toggle-btn" aria-label="Toggle dark mode" title="Toggle dark mode">
+      <svg id="theme-icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <svg id="theme-icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+    </button>
+
+    <!-- Profile button -->
+    <button class="profile-btn" id="profile-btn" aria-label="Open profile" aria-haspopup="dialog">
+      <span id="profile-avatar-initials">U</span>
+    </button>
+
+    <!-- Logout -->
+    <button class="icon-btn" id="logout-btn" aria-label="Sign out" title="Sign out">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    </button>
   </div>
 </header>
 
-
+<!-- ========== APP SHELL ========== -->
 <div class="wrapper">
-  <!-- <p class="label">StudyPlan</p> -->
-
   <div class="app">
+
     <!-- Sidebar -->
-    <div class="sidebar">
+    <aside class="sidebar" role="complementary" aria-label="Sidebar navigation">
       <div class="sidebar-header">Study Planner</div>
-      <div class="nav-item active" id="calendar-btn" role="link" aria-label="View Calendar">
+
+      <div class="nav-item active" id="calendar-btn" role="button" tabindex="0" aria-label="View Calendar">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="1" y="2" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M1 6h14" stroke="currentColor" stroke-width="1.5"/><path d="M5 1v2M11 1v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         Calendar
       </div>
-      <div class="nav-item" id="all-tasks-btn" role="link" aria-label="View All Tasks">
+
+      <div class="nav-item" id="all-tasks-btn" role="button" tabindex="0" aria-label="View All Tasks">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 4h12M2 8h9M2 12h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         All Tasks
-        <span class="badge" aria-label="9 pending tasks">9</span>
+        <span class="badge" id="tasks-badge" aria-label="pending tasks">0</span>
       </div>
-      <div class="nav-item" id="focus-mode-btn">
+
+      <div class="nav-item" id="focus-mode-btn" role="button" tabindex="0">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         Focus Mode
-        
       </div>
-      <div class="nav-item" id="archived-tasks-btn">
+
+      <div class="nav-item" id="archived-tasks-btn" role="button" tabindex="0">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 3h12v2H2V3zm1 3h10v7H3V6zm2 2v3h2V8H5zm4 0v3h2V8H9z" fill="currentColor"/></svg>
         Archived Tasks
-        <span class="badge">0</span>
+        <span class="badge" id="archived-badge">0</span>
       </div>
-      <div class="nav-item" id="download-btn">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h9M2 12h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+
+      <div class="nav-item" id="download-btn" role="button" tabindex="0">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2v8M5 7l3 3 3-3M2 12h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Download Data
-        <span class="badge">7</span>
       </div>
+<<<<<<< HEAD
+
+=======
       <div class="nav-item" id="calendar-download-btn">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M1 6h14" stroke="currentColor" stroke-width="1.5"/><path d="M5 1v2M11 1v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         Export to Calendar
       </div>
+>>>>>>> upstream/main
       <div class="sidebar-divider"></div>
       <div class="sidebar-header">Subjects</div>
       <div id="subjects-sidebar-list"></div>
       <div class="add-subject" id="add-subject-btn" role="button" tabindex="0">
-        <svg width="14" height="14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Add subject
+        <svg width="14" height="14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        Add subject
       </div>
-    </div>
+    </aside>
 
-    <!-- Main -->
-    <div class="main">
+    <!-- Main content -->
+    <main class="main" id="main-content">
       <div class="topbar">
+<<<<<<< HEAD
+        <div class="topbar-title" id="topbar-date">Loading...</div>
+        <div class="topbar-actions">
+          <button class="btn" id="week-btn">Week</button>
+          <button class="btn btn-primary" id="add-task-btn">
+            <svg width="12" height="12" fill="none" style="margin-right:4px"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            New task
+          </button>
+        </div>
+      </div>
+
+      <!-- Calendar section -->
+      <div class="cal-section" id="calendar-section">
+=======
         <div class="topbar-title">April 2026</div>
         <select id="label-filter" style="margin-left:auto; margin-right: 12px; padding: 6px; border-radius: 6px; border: 1px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); outline: none; cursor: pointer;">
           <option value="">All Labels</option>
@@ -137,13 +184,22 @@
 
       <!-- Calendar -->
       <div class="cal-section">
+>>>>>>> upstream/main
         <div class="cal-header">
-          <div id="cal-month-title" class="cal-title">April 2026</div>
-          <span id="cal-prev" class="cal-nav" role="button" aria-label="Previous Month">‹</span>
-          <span id="cal-next" class="cal-nav" role="button" aria-label="Next Month">›</span>
+          <div id="cal-month-title" class="cal-title"></div>
+          <div class="cal-nav-btns">
+            <span id="cal-prev" class="cal-nav" role="button" tabindex="0" aria-label="Previous Month">&#8249;</span>
+            <span id="cal-next" class="cal-nav" role="button" tabindex="0" aria-label="Next Month">&#8250;</span>
+          </div>
         </div>
         <div id="cal-grid" class="cal-grid">
-          <div class="cal-day-label">Su</div><div class="cal-day-label">Mo</div><div class="cal-day-label">Tu</div><div class="cal-day-label">We</div><div class="cal-day-label">Th</div><div class="cal-day-label">Fr</div><div class="cal-day-label">Sa</div>
+          <div class="cal-day-label">Su</div>
+          <div class="cal-day-label">Mo</div>
+          <div class="cal-day-label">Tu</div>
+          <div class="cal-day-label">We</div>
+          <div class="cal-day-label">Th</div>
+          <div class="cal-day-label">Fr</div>
+          <div class="cal-day-label">Sa</div>
         </div>
         <div class="cal-legend">
           <span><span class="legend-dot" style="background:var(--color-text-info)"></span>Study session</span>
@@ -151,24 +207,17 @@
         </div>
       </div>
 
-      <!-- Tasks -->
-      <div id="tasks-section" class="tasks-section">
-        <!-- Javascript will inject tasks here -->
-        
-      </div>
+      <!-- Tasks section -->
+      <div id="tasks-section" class="tasks-section"></div>
 
-      <!-- Focus Mode -->
+      <!-- Focus Mode section -->
       <div id="focus-section" class="focus-section hidden">
         <div class="focus-dashboard">
           <div class="timer-container">
             <svg class="timer-svg" viewBox="0 0 100 100">
-              <circle class="timer-path-elapsed" cx="50" cy="50" r="45" />
-              <path id="timer-path-remaining" stroke-dasharray="283" class="timer-path-remaining" d="
-                M 50, 50
-                m -45, 0
-                a 45,45 0 1,0 90,0
-                a 45,45 0 1,0 -90,0
-              "></path>
+              <circle class="timer-path-elapsed" cx="50" cy="50" r="45"/>
+              <path id="timer-path-remaining" stroke-dasharray="283" class="timer-path-remaining"
+                d="M 50,50 m -45,0 a 45,45 0 1,0 90,0 a 45,45 0 1,0 -90,0"></path>
             </svg>
             <div id="timer-text" class="timer-text">25:00</div>
           </div>
@@ -181,7 +230,6 @@
             <button id="timer-pause-btn" class="btn hidden">Pause</button>
             <button id="timer-reset-btn" class="btn">Reset</button>
           </div>
-          
           <div class="focus-task-container">
             <div class="focus-task-header">Current Focus Task</div>
             <div id="active-focus-task" class="active-focus-task">
@@ -189,79 +237,81 @@
             </div>
           </div>
         </div>
-
         <div class="focus-task-selector">
           <div class="focus-task-header">Select a task to focus on</div>
-          <div id="focus-task-list" class="focus-task-list">
-            <!-- JS will populate tasks -->
-          </div>
+          <div id="focus-task-list" class="focus-task-list"></div>
         </div>
       </div>
-    </div>
+    </main>
 
-    <!-- Right Panel -->
+    <!-- Right Panel (Smart Paste) -->
     <div class="panel">
       <div class="panel-header">
-        <button id="panel-toggle-btn" class="panel-toggle-btn" title="Toggle Smart Paste">
-          <svg id="panel-toggle-icon" width="16" height="16" fill="none" viewBox="0 0 16 16"><path d="M10 4l-4 4 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <button id="panel-toggle-btn" class="panel-toggle-btn" title="Toggle Smart Paste" aria-label="Toggle Smart Paste panel">
+          <svg id="panel-toggle-icon" width="16" height="16" fill="none" viewBox="0 0 16 16">
+            <path d="M10 4l-4 4 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
         </button>
         <div>
           <div class="panel-title">
             <svg width="18" height="18" fill="none"><path d="M9 13V5M9 5L5 9M9 5l4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             Smart Paste
           </div>
-          <div class="panel-subtitle">Drop any text — email, brief, message</div>
+          <div class="panel-subtitle">Drop any text &#8212; email, brief, notes</div>
         </div>
       </div>
 
       <div class="paste-zone">
-        <div class="paste-icon">⌘ V</div>
+        <div class="paste-icon">&#8984; V</div>
         <div class="paste-label">Paste text here</div>
-        <div class="paste-hint">e.g. "Your OS assignment is due this Friday by 11pm…"</div>
+        <div class="paste-hint">e.g. &ldquo;OS assignment due Friday at 11pm&hellip;&rdquo;</div>
         <textarea id="paste-input" class="paste-input" placeholder="Paste your syllabus or notes..."></textarea>
       </div>
 
       <div class="paste-actions">
-        <button id="clear-btn" class="btn" style="flex:1;" aria-label="Clear paste area">Clear</button>
-        <button id="extract-btn" class="btn btn-primary" style="flex:2;" aria-label="Extract tasks with AI">Extract with AI →</button>
+        <button id="clear-btn" class="btn" style="flex:1" aria-label="Clear paste area">Clear</button>
+        <button id="extract-btn" class="btn btn-primary" style="flex:2" aria-label="Extract tasks with AI">Extract with AI &#8594;</button>
       </div>
 
-      <div id="extract-preview" class="extract-preview">
-        <!-- Javascript will inject extracted items here -->
-      </div>
+      <div id="extract-preview" class="extract-preview"></div>
       <div id="summary-box" class="summary-box"></div>
-
-  <button id="add-btn" class="add-btn" disabled>
-    Add items to planner
-  </button>
-</div>
-
 
       <button id="add-btn" class="add-btn" disabled>Add items to planner</button>
     </div>
-  </div>
-</div>
 
+  </div><!-- /.app -->
+</div><!-- /.wrapper -->
+
+<!-- ========== FOOTER ========== -->
 <footer class="site-footer">
-  <p>© 2026 StudyPlan. All rights reserved.</p>
+  <p>&copy; 2026 StudyPlan. All rights reserved.</p>
   <div class="footer-links">
+<<<<<<< HEAD
+    <a href="/support-page/index.html#privacy" target="_blank" rel="noopener">Privacy</a>
+    <a href="/support-page/index.html#terms" target="_blank" rel="noopener">Terms</a>
+    <a href="/support-page/index.html#support" target="_blank" rel="noopener">Support</a>
+=======
     <a href="/support-page/privacy.html">Privacy</a>
     <a href="/support-page/terms.html">Terms</a>
     <a href="/support-page/support.html">Support</a>
+>>>>>>> upstream/main
   </div>
 </footer>
 
-<!-- Settings Modal -->
-<div id="settings-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
-  <div style="background:var(--color-background-primary); border:1px solid var(--color-border-tertiary); border-radius:16px; padding:32px; width:400px; box-shadow:var(--shadow-lg); color:var(--color-text-primary);">
+<!-- Toast container -->
+<div id="toast-container" aria-live="polite"></div>
+
+<!-- ========== SETTINGS MODAL ========== -->
+<div id="settings-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="settings-title" style="display:none">
+  <div class="modal-card" style="width:400px; padding:32px;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
-      <h2 style="margin:0; font-size:20px; font-weight:700;">Settings</h2>
-      <button id="settings-close" style="background:none; border:none; font-size:24px; cursor:pointer; color:var(--color-text-secondary);">&times;</button>
+      <h2 id="settings-title" style="margin:0; font-size:20px; font-weight:700;">Settings</h2>
+      <button id="settings-close" class="icon-btn" aria-label="Close settings">&times;</button>
     </div>
-    
-    <div style="margin-bottom: 24px;">
+
+    <div style="margin-bottom:24px;">
       <h3 style="font-size:12px; font-weight:700; text-transform:uppercase; color:var(--color-text-tertiary); margin-bottom:16px; letter-spacing:0.05em;">Appearance</h3>
-      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 16px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
         <span style="font-size:14px; font-weight:500;">Dark Mode</span>
         <label class="toggle-switch">
           <input type="checkbox" id="dark-mode-toggle">
@@ -277,45 +327,89 @@
       </div>
     </div>
 
-    <div style="margin-bottom: 24px;">
+    <div style="margin-bottom:24px;">
       <h3 style="font-size:12px; font-weight:700; text-transform:uppercase; color:var(--color-text-tertiary); margin-bottom:16px; letter-spacing:0.05em;">Notifications</h3>
-      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 16px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
         <span style="font-size:14px; font-weight:500;">Email Reminders</span>
-        <label class="toggle-switch">
-          <input type="checkbox" checked>
-          <span class="toggle-slider"></span>
-        </label>
+        <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
       </div>
       <div style="display:flex; align-items:center; justify-content:space-between;">
         <span style="font-size:14px; font-weight:500;">Browser Notifications</span>
-        <label class="toggle-switch">
-          <input type="checkbox">
-          <span class="toggle-slider"></span>
-        </label>
+        <label class="toggle-switch"><input type="checkbox"><span class="toggle-slider"></span></label>
       </div>
     </div>
 
-    <button id="settings-save" style="width:100%; padding:12px; background:var(--color-text-primary); color:var(--color-background-primary); border:none; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; margin-top:8px;">
-      Save Changes
-    </button>
+    <button id="settings-save" class="btn btn-primary" style="width:100%; justify-content:center;">Save Changes</button>
   </div>
 </div>
 
-  <script type="module" src="/js/app.js"></script>
-  <script>
-  let isLogin = true;
+<!-- ========== PROFILE MODAL ========== -->
+<div id="profile-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="profile-modal-title" style="display:none">
+  <div class="modal-card" style="width:360px; padding:32px; text-align:center;">
+    <div style="display:flex; justify-content:flex-end; margin-bottom:8px;">
+      <button id="profile-close" class="icon-btn" aria-label="Close profile">&times;</button>
+    </div>
+    <div id="profile-avatar-large" style="width:72px; height:72px; border-radius:50%; background:var(--color-accent); color:#fff; font-size:28px; font-weight:700; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">U</div>
+    <h2 id="profile-modal-title" style="margin:0 0 4px; font-size:18px; font-weight:700;" id="profile-email-display">user@example.com</h2>
+    <p style="color:var(--color-text-secondary); font-size:13px; margin:0 0 24px;">StudyPlan Member</p>
+    <div style="background:var(--color-surface-secondary); border-radius:10px; padding:16px; text-align:left; margin-bottom:20px;">
+      <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:8px;">
+        <span style="color:var(--color-text-secondary);">Member since</span>
+        <span id="profile-since" style="font-weight:500;">2026</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; font-size:13px;">
+        <span style="color:var(--color-text-secondary);">Account type</span>
+        <span style="font-weight:500;">Free</span>
+      </div>
+    </div>
+    <button id="profile-logout-btn" class="btn" style="width:100%; justify-content:center; color:var(--color-text-danger);">Sign out</button>
+  </div>
+</div>
 
-  document.getElementById('auth-toggle-btn').addEventListener('click', (e) => {
-    e.preventDefault();
-    isLogin = !isLogin;
-    document.getElementById('auth-title').textContent = isLogin ? 'Welcome back' : 'Create account';
-    document.getElementById('auth-subtitle').textContent = isLogin ? 'Sign in to your StudyPlan account' : 'Start planning your studies';
-    document.getElementById('auth-submit-btn').textContent = isLogin ? 'Sign In' : 'Sign Up';
-    document.getElementById('auth-toggle-text').textContent = isLogin ? "Don't have an account?" : 'Already have an account?';
-    document.getElementById('auth-toggle-btn').textContent = isLogin ? 'Sign Up' : 'Sign In';
-    document.getElementById('auth-error').style.display = 'none';
-  });
+<!-- ========== SUBJECT MODAL ========== -->
+<div id="new-subject-modal" class="modal-backdrop" role="dialog" aria-modal="true" style="display:none">
+  <div class="modal-card" style="border-radius:12px; padding:20px; width:320px;">
+    <h3 style="margin:0 0 12px; font-size:18px; font-weight:600;">New subject</h3>
+    <label style="display:block; font-size:12px; margin-bottom:4px;">Subject name</label>
+    <input id="new-subject-name" type="text" class="input" style="width:100%; margin-bottom:12px;" placeholder="e.g. History">
+    <label style="display:block; font-size:12px; margin-bottom:6px;">Color</label>
+    <div id="new-subject-colors" class="subject-color-swatches"></div>
+    <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
+      <button id="new-subject-cancel" class="btn">Cancel</button>
+      <button id="new-subject-save" class="btn btn-primary">Save</button>
+    </div>
+  </div>
+</div>
 
+<<<<<<< HEAD
+<!-- ========== NEW TASK MODAL ========== -->
+<div id="new-task-modal" class="modal-backdrop" role="dialog" aria-modal="true" style="display:none">
+  <div class="modal-card" style="border-radius:12px; padding:20px; width:320px;">
+    <h3 style="margin:0 0 12px; font-size:18px; font-weight:600;">New task</h3>
+    <label style="display:block; font-size:12px; margin-bottom:4px;">Subject</label>
+    <select id="new-task-subject" class="input" style="width:100%; margin-bottom:10px;"></select>
+    <label style="display:block; font-size:12px; margin-bottom:4px;">Task name</label>
+    <input id="new-task-title" type="text" class="input" style="width:100%; margin-bottom:10px;" placeholder="Task name">
+    <label style="display:block; font-size:12px; margin-bottom:4px;">Deadline</label>
+    <input id="new-task-date" type="datetime-local" class="input" style="width:100%; margin-bottom:10px;">
+    <input id="new-task-notes" type="text" class="input" style="width:100%; margin-bottom:16px;" placeholder="Notes (optional)">
+    <div style="display:flex; justify-content:flex-end; gap:8px;">
+      <button id="new-task-cancel" class="btn">Cancel</button>
+      <button id="new-task-save" class="btn btn-primary">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SCRIPTS ========== -->
+<script type="module" src="/js/app.js"></script>
+
+<script type="module">
+  import { requireAuth, getUser, doLogout } from '/js/auth.js';
+  import { notify } from '/js/notifications.js';
+
+  // 1. Auth guard — redirects to /signin.html if not logged in
+  requireAuth();
+=======
   // Password validation function
 function validatePassword(password) {
 
@@ -363,118 +457,145 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
       body: JSON.stringify({ email, password })
     });
       const data = await res.json();
+>>>>>>> upstream/main
 
-      if (!res.ok) {
-        errorEl.textContent = data.error || 'Something went wrong';
-        errorEl.style.display = 'block';
-        return;
-      }
-
-      localStorage.setItem('studyplan_user', JSON.stringify({ email: data.email }));
-      document.getElementById('auth-modal').style.display = 'none';
-
-    } catch (err) {
-      errorEl.textContent = 'Network error. Please try again.';
-      errorEl.style.display = 'block';
-    }
-  });
-
-  // Check if already logged in
-  if (localStorage.getItem('studyplan_user')) {
-    document.getElementById('auth-modal').style.display = 'none';
+  // 2. Show user info in header and profile modal
+  const user = getUser();
+  if (user && user.email) {
+    const initials = user.email.slice(0,1).toUpperCase();
+    document.getElementById('profile-avatar-initials').textContent = initials;
+    document.getElementById('profile-avatar-large').textContent = initials;
+    const emailEl = document.getElementById('profile-email-display');
+    if (emailEl) emailEl.textContent = user.email;
   }
 
-  // Logout Button Functionality
-  const logoutBtn = document.getElementById('logout-btn');
-  logoutBtn.addEventListener('click', () => {
-    localStorage.removeItem('studyplan_user');
+  // 3. Set topbar date to current month
+  const now = new Date();
+  const monthName = now.toLocaleString('default', { month: 'long' });
+  document.getElementById('topbar-date').textContent = `${monthName} ${now.getFullYear()}`;
 
-    // Show login modal again
-    document.getElementById('auth-modal').style.display = 'flex';
+  // 4. Dark mode toggle in header
+  const themeToggle = document.getElementById('theme-toggle-btn');
+  const moonIcon = document.getElementById('theme-icon-moon');
+  const sunIcon = document.getElementById('theme-icon-sun');
+  let currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
 
-    // Refresh page state
-    window.location.reload();
-});
-
-  // Settings Modal Logic
-  const settingsModal = document.getElementById('settings-modal');
-  const navSettings = document.getElementById('nav-settings');
-  const settingsClose = document.getElementById('settings-close');
-  const settingsSave = document.getElementById('settings-save');
-
-  navSettings.addEventListener('click', (e) => {
-    e.preventDefault();
-    settingsModal.style.display = 'flex';
-  });
-
-  settingsClose.addEventListener('click', () => {
-    settingsModal.style.display = 'none';
-  });
-
-  settingsSave.addEventListener('click', () => {
-    settingsModal.style.display = 'none';
-  });
-
-  window.addEventListener('click', (e) => {
-    if (e.target === settingsModal) {
-      settingsModal.style.display = 'none';
+  function applyThemeUI(t) {
+    document.documentElement.setAttribute('data-theme', t);
+    localStorage.setItem('studyplan_theme', t);
+    if (t === 'dark') {
+      moonIcon.style.display = 'none';
+      sunIcon.style.display = 'block';
+      const dmToggle = document.getElementById('dark-mode-toggle');
+      if (dmToggle) dmToggle.checked = true;
+    } else {
+      moonIcon.style.display = 'block';
+      sunIcon.style.display = 'none';
+      const dmToggle = document.getElementById('dark-mode-toggle');
+      if (dmToggle) dmToggle.checked = false;
     }
+    currentTheme = t;
+  }
+  applyThemeUI(currentTheme);
+
+  themeToggle.addEventListener('click', () => {
+    applyThemeUI(currentTheme === 'dark' ? 'light' : 'dark');
   });
 
-  // Settings Toggles State Management
+  // 5. Navbar view switching (Dashboard=calendar, Tasks, Focus)
+  const viewMap = {
+    calendar: { show: ['calendar-section', 'tasks-section'], hide: ['focus-section'], sidebar: 'calendar-btn' },
+    tasks: { show: ['tasks-section'], hide: ['focus-section', 'calendar-section'], sidebar: 'all-tasks-btn' },
+    focus: { show: ['focus-section'], hide: ['calendar-section', 'tasks-section'], sidebar: 'focus-mode-btn' }
+  };
+
+  function switchView(view) {
+    const map = viewMap[view];
+    if (!map) return;
+    Object.values(viewMap).forEach(v => {
+      v.show.concat(v.hide).forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('hidden');
+      });
+    });
+    map.show.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove('hidden');
+    });
+    document.querySelectorAll('.header-nav .nav-link').forEach(a => a.classList.remove('active'));
+    document.querySelectorAll('.sidebar .nav-item').forEach(el => el.classList.remove('active'));
+    const activeNavLink = document.querySelector(`.header-nav [data-view="${view}"]`);
+    if (activeNavLink) activeNavLink.classList.add('active');
+    const activeSidebarItem = document.getElementById(map.sidebar);
+    if (activeSidebarItem) activeSidebarItem.classList.add('active');
+  }
+
+  document.querySelectorAll('.header-nav .nav-link[data-view]').forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      switchView(link.getAttribute('data-view'));
+    });
+  });
+
+  document.getElementById('calendar-btn').addEventListener('click', () => switchView('calendar'));
+  document.getElementById('all-tasks-btn').addEventListener('click', () => switchView('tasks'));
+  document.getElementById('focus-mode-btn').addEventListener('click', () => switchView('focus'));
+
+  // 6. Settings modal
+  const settingsModal = document.getElementById('settings-modal');
+  document.getElementById('nav-settings').addEventListener('click', e => { e.preventDefault(); settingsModal.style.display = 'flex'; });
+  document.getElementById('settings-close').addEventListener('click', () => { settingsModal.style.display = 'none'; });
+  settingsModal.addEventListener('click', e => { if (e.target === settingsModal) settingsModal.style.display = 'none'; });
+
   const darkModeToggle = document.getElementById('dark-mode-toggle');
   const compactViewToggle = document.getElementById('compact-view-toggle');
 
-  // Load preferences
-  const loadPreferences = () => {
-    const isDarkMode = localStorage.getItem('studyplan_dark_mode') === 'true';
-    const isCompactView = localStorage.getItem('studyplan_compact_view') === 'true';
-
-    darkModeToggle.checked = isDarkMode;
-    compactViewToggle.checked = isCompactView;
-
-    if (isDarkMode) {
-      document.documentElement.setAttribute('data-theme', 'dark');
-    } else {
-      document.documentElement.setAttribute('data-theme', 'light');
-    }
-
-    if (isCompactView) {
-      document.body.classList.add('compact-view');
-    } else {
-      document.body.classList.remove('compact-view');
-    }
-  };
-
-  // Run on load
-  loadPreferences();
-
-  // Save changes when user clicks "Save Changes"
-  settingsSave.addEventListener('click', () => {
-    localStorage.setItem('studyplan_dark_mode', darkModeToggle.checked);
+  document.getElementById('settings-save').addEventListener('click', () => {
+    applyThemeUI(darkModeToggle.checked ? 'dark' : 'light');
+    if (compactViewToggle.checked) document.body.classList.add('compact-view');
+    else document.body.classList.remove('compact-view');
     localStorage.setItem('studyplan_compact_view', compactViewToggle.checked);
-    loadPreferences();
     settingsModal.style.display = 'none';
+    notify('Settings saved', 'success');
   });
 
-  // Also apply immediately on toggle for better UX
-  darkModeToggle.addEventListener('change', (e) => {
-    if (e.target.checked) {
-      document.documentElement.setAttribute('data-theme', 'dark');
-    } else {
-      document.documentElement.setAttribute('data-theme', 'light');
-    }
+  darkModeToggle.addEventListener('change', e => applyThemeUI(e.target.checked ? 'dark' : 'light'));
+  compactViewToggle.addEventListener('change', e => {
+    if (e.target.checked) document.body.classList.add('compact-view');
+    else document.body.classList.remove('compact-view');
   });
 
-  compactViewToggle.addEventListener('change', (e) => {
-    if (e.target.checked) {
-      document.body.classList.add('compact-view');
-    } else {
-      document.body.classList.remove('compact-view');
+  if (localStorage.getItem('studyplan_compact_view') === 'true') {
+    document.body.classList.add('compact-view');
+    compactViewToggle.checked = true;
+  }
+
+  // 7. Profile modal
+  const profileModal = document.getElementById('profile-modal');
+  document.getElementById('profile-btn').addEventListener('click', () => { profileModal.style.display = 'flex'; });
+  document.getElementById('profile-close').addEventListener('click', () => { profileModal.style.display = 'none'; });
+  profileModal.addEventListener('click', e => { if (e.target === profileModal) profileModal.style.display = 'none'; });
+
+  // 8. Logout — uses doLogout (correct export name from auth.js)
+  function handleLogout() {
+    notify('Signed out successfully', 'success');
+    setTimeout(() => { doLogout(); }, 600);
+  }
+
+  document.getElementById('logout-btn').addEventListener('click', handleLogout);
+  document.getElementById('profile-logout-btn').addEventListener('click', handleLogout);
+
+  // 9. Keyboard accessibility for modals (Escape to close)
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      settingsModal.style.display = 'none';
+      profileModal.style.display = 'none';
     }
   });
 </script>
 
+<<<<<<< HEAD
+=======
 <div id="new-subject-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0; z-index:9998; align-items:center; justify-content:center;">
   <div class="modal-card" style="border-radius:12px; padding:20px; width:320px; box-shadow:0 12px 40px rgba(0,0,0,0.25);">
     <h3 style="margin:0 0 12px; font-size:18px; font-weight:600;">New subject</h3>
@@ -511,5 +632,6 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
     </div>
   </div>
 </div>
+>>>>>>> upstream/main
 </body>
 </html>

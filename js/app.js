@@ -503,7 +503,7 @@ function renderTasks() {
   const activeTasks = tasks.filter(t => !t.archived);
   const archivedTasks = tasks.filter(t => t.archived);
   
-  // Update badges
+  // Fix #523: Update badge counts dynamically from real task data
   const allTasksBadge = document.querySelector('#all-tasks-btn .badge');
   if (allTasksBadge) {
     allTasksBadge.textContent = activeTasks.length;
@@ -721,9 +721,15 @@ function renderTasks() {
          </div>`
       : '';
 
+    // Fix #536: added missing + operator between renderGroup calls
     tasksSection.innerHTML = actionBar +
+<<<<<<< HEAD
+                             renderGroup(titlePrefix + '⚠ Due soon', dueSoon, 'var(--color-text-danger)', true) +
+                             renderGroup(titlePrefix + 'This week', thisWeek, 'var(--color-text-secondary)', true) +
+=======
                              renderGroup(titlePrefix + '⚠ Due soon', dueSoon, 'var(--color-text-danger)', true)
                              + renderGroup(titlePrefix + 'This week', thisWeek, 'var(--color-text-secondary)', true) +
+>>>>>>> upstream/main
                              renderGroup(titlePrefix + 'Completed', completed, 'var(--color-text-tertiary)') +
                              emptyState;
   }
@@ -1143,7 +1149,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
 
-//NEw Task addition event listeners
+//New Task addition event listeners
 newTaskBtn.addEventListener('click', () => {
   
   if (!store.subjects || store.subjects.length === 0) {
@@ -1218,6 +1224,7 @@ if (!subject_id) {
   newTaskModal.style.display = 'none';
 });
 
+// Fix #521: removed duplicate addItemsBtn event listener (was registered twice)
 addItemsBtn.addEventListener('click', () => {
   if (store.currentPaste) {
     const pasteWithLabels = store.currentPaste.map(t => {
@@ -1259,6 +1266,8 @@ clearBtn.addEventListener('click', () => {
     pasteInput.focus();              // Puts the typing cursor back in the box
 });
 
+<<<<<<< HEAD
+=======
 // Listens to typing/pasting to show or hide the button dynamically
 pasteInput.addEventListener('input', () => {
     if (pasteInput.value.trim().length > 0) {
@@ -1268,6 +1277,7 @@ pasteInput.addEventListener('input', () => {
     }
 });
 
+>>>>>>> upstream/main
 downloadBtn.addEventListener('click', () => {
   downloadData();
 });

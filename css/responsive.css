@@ -1,0 +1,154 @@
+/* ============================================================
+   Responsive — Mobile, Tablet, Desktop
+   ============================================================ */
+
+/* Mobile sidebar overlay */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 9;
+  backdrop-filter: blur(2px);
+  animation: fadeIn 150ms ease;
+}
+
+/* Tablet: 768px–1024px */
+@media (max-width: 1024px) {
+  .app-shell-with-panel {
+    grid-template-columns: 240px 1fr;
+    grid-template-areas:
+      'sidebar topbar'
+      'sidebar content';
+  }
+  .smart-panel {
+    position: fixed;
+    right: 0;
+    top: 56px;
+    height: calc(100dvh - 56px);
+    z-index: 20;
+    transform: translateX(100%);
+    transition: transform var(--t-slow);
+    box-shadow: var(--shadow-xl);
+  }
+  .smart-panel.open {
+    transform: translateX(0);
+  }
+  .panel-fab {
+    display: flex !important;
+  }
+}
+
+/* Mobile: ≤768px */
+@media (max-width: 768px) {
+  .app-shell,
+  .app-shell-with-panel {
+    grid-template-columns: 1fr;
+    grid-template-rows: 56px 1fr;
+    grid-template-areas:
+      'topbar'
+      'content';
+  }
+
+  .sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 100;
+    transform: translateX(-100%);
+    width: 260px;
+    height: 100dvh;
+    box-shadow: var(--shadow-xl);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+    transition: transform var(--t-slow);
+  }
+
+  .sidebar-overlay.show {
+    display: block;
+  }
+
+  .topbar-menu-btn { display: flex; }
+
+  .content-area {
+    height: calc(100dvh - 56px);
+    padding-bottom: 80px; /* space for FAB */
+  }
+
+  .view-panel { padding: var(--sp-4); }
+
+  .dashboard-grid { grid-template-columns: 1fr; }
+
+  .stat-cards { grid-template-columns: repeat(2, 1fr); }
+
+  .focus-view { grid-template-columns: 1fr; }
+
+  .profile-hero {
+    flex-direction: column;
+    text-align: center;
+    padding: var(--sp-6);
+  }
+
+  .profile-stats { justify-content: center; }
+
+  .profile-grid { grid-template-columns: 1fr; }
+
+  .settings-grid { grid-template-columns: 1fr; }
+
+  .cal-cell { min-height: 56px; }
+  .cal-event { display: none; }
+  .cal-cell.has-events::after {
+    content: '';
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    display: block;
+    margin: 2px auto 0;
+  }
+
+  .smart-panel {
+    position: fixed;
+    right: 0;
+    top: 0;
+    height: 100dvh;
+    width: 90vw !important;
+    max-width: 360px;
+    z-index: 200;
+    transform: translateX(100%);
+    transition: transform var(--t-slow);
+  }
+  .smart-panel.open { transform: translateX(0); }
+}
+
+/* Floating Action Button — Smart Paste trigger on mobile/tablet */
+.panel-fab {
+  display: none;
+  position: fixed;
+  bottom: var(--sp-6);
+  right: var(--sp-6);
+  z-index: 30;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--r-full);
+  background: var(--color-accent);
+  color: white;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-lg);
+  transition: all var(--t-spring);
+  border: none;
+  cursor: pointer;
+}
+.panel-fab:hover { background: var(--color-accent-hover); transform: scale(1.05); }
+.panel-fab:active { transform: scale(0.96); }
+
+/* Touch target minimum */
+@media (hover: none) {
+  .nav-item { min-height: 44px; }
+  .btn { min-height: 40px; }
+  .task-item { min-height: 44px; }
+}
