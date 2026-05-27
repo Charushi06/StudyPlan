@@ -75,6 +75,12 @@ Planner + Calendar Update
 - Inline editing (no popups)
 - Modify extracted data before saving
 
+### 🔔 Smart Notifications
+- Modern, glassmorphic toast notifications
+- Interactive confirmation modals
+- Zero-dependency Vanilla JS implementation
+- Automatically adapts to Light/Dark mode
+
 ### 💾 Persistent Storage
 - SQLite-based local database
 - Structured task + subject mapping
@@ -158,7 +164,8 @@ Open → http://localhost:3000
 ├──  js
 │   ├──  utils
 │   │   ├──  aiMock.js       # The original mock UI extraction hook (deprecated)
-│   │   └──  api.js          # The live fetch logic communicating with our Express API
+│   │   ├──  api.js          # The live fetch logic communicating with our Express API
+│   │   └──  toast.js        # Modern toast & confirmation modal system
 │   ├──  app.js              # The main controller (handles DOM UI, event bindings, and Calendar)
 │   └──  store.js            # The Custom State Manager handling our frontend Pub/Sub state
 ├──  .env.example            # Template file for setting the GEMINI_API_KEY
@@ -245,9 +252,7 @@ GitHub: https://github.com/Charushi06
 
 ---
 
-## 🌱 Nexus Spring of Code 2026
-
-This project is part of NSoC 2026
+### GSSoC 2026
 
 ---
 
