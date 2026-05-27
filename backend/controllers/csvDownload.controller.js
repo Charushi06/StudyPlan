@@ -74,6 +74,15 @@ function buildCalendarIcs(tasks = []) {
   ].join('\r\n');
 }
 
+function escapeCsvField(val) {
+  if (val === null || val === undefined) return '';
+  const str = String(val);
+  if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+    return `"${str.replace(/"/g, '""')}"`;
+  }
+  return str;
+}
+
 async function downloadData(req, res) {
   try {
     const data = await getAllTasksWithSubjects();
@@ -88,11 +97,11 @@ async function downloadData(req, res) {
         task.status,
         task.priority,
         task.confidence_score,
-        `"${(task.notes || '').replace(/"/g, '""')}"`,
+        task.notes || '',
       ]),
     ];
 
-    const csvString = rows.map(row => row.join(',')).join('\n');
+    const csvString = rows.map(row => row.map(escapeCsvField).join(',')).join('\n');
 
     res.setHeader('Content-Type', 'text/csv');
     res.setHeader('Content-Disposition', 'attachment; filename="study_data.csv"');
@@ -123,4 +132,5 @@ module.exports = {
   buildCalendarIcs,
   formatIcsDate,
   escapeIcsText,
+  escapeCsvField,
 };
