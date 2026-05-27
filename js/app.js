@@ -27,11 +27,13 @@ function extractLabels(title) {
 }
 
 let activeLabelFilter = '';
+let activeSubjectFilter = null;
 
 function generateSummary(tasks, subjects) {
-  const now = new Date();
-  const weekEnd = new Date();
-  weekEnd.setDate(now.getDate() + 7);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const weekEnd = new Date(today);
+  weekEnd.setDate(today.getDate() + 7);
 
   let todayCount = 0;
   let weekCount = 0;
@@ -41,14 +43,15 @@ function generateSummary(tasks, subjects) {
     if (t.archived || t.status === 'Done' || !t.due_at) return;
 
     const d = new Date(t.due_at);
+    d.setHours(0, 0, 0, 0);
 
     // today
-    if (d.toDateString() === now.toDateString()) {
+    if (+d === +today) {
       todayCount++;
     }
 
     // this week
-    if (d >= now && d <= weekEnd) {
+    if (d >= today && d <= weekEnd) {
       weekCount++;
     }
 
@@ -160,10 +163,20 @@ function renderSidebarSubjects() {
   listEl.innerHTML = subjects.map(s => {
     const n = countBySubject[s.id] ?? 0;
     const safeColor = s.color ? escapeHtml(s.color) : 'var(--color-text-info)';
-    return `<div class="nav-item subject-sidebar-item" data-subject-id="${escapeHtml(s.id)}">
+    const active = activeSubjectFilter && String(s.id) === String(activeSubjectFilter) ? ' active' : '';
+    return `<div class="nav-item subject-sidebar-item${active}" data-subject-id="${escapeHtml(s.id)}">
       <span class="nav-dot" style="background:${safeColor}"></span>${escapeHtml(s.name)}<span class="badge">${n}</span>
     </div>`;
   }).join('');
+
+  listEl.querySelectorAll('.subject-sidebar-item').forEach(el => {
+    el.addEventListener('click', () => {
+      const sid = el.dataset.subjectId;
+      activeSubjectFilter = activeSubjectFilter === sid ? null : sid;
+      renderTasks();
+      renderSidebarSubjects();
+    });
+  });
 }
 
 const newTaskModal = document.getElementById('new-task-modal');
@@ -320,7 +333,8 @@ function resetTimer() {
 }
 
 timerDurationInput.addEventListener('change', () => {
-  if (!timerInterval && timePassed === 0) {
+  if (!timerInterval) {
+    timePassed = 0;
     TIME_LIMIT = getTimerDuration();
     timeLeft = TIME_LIMIT;
     timerText.innerHTML = formatTimeLeft(timeLeft);
@@ -423,9 +437,9 @@ function renderFocusTasks() {
         });
       }
       
-      const clearBtn = activeFocusTask.querySelector('.clear-focus-task-btn');
-      if (clearBtn) {
-        clearBtn.addEventListener('click', () => {
+      const clearFocusBtn = activeFocusTask.querySelector('.clear-focus-task-btn');
+      if (clearFocusBtn) {
+        clearFocusBtn.addEventListener('click', () => {
           activeFocusTaskId = null;
           renderFocusTasks();
         });
@@ -489,7 +503,7 @@ async function downloadCalendar() {
 
     } catch (error) {
         console.error(error);
-        alert('Failed to export calendar');
+        Toast.show('Failed to export calendar', 'error');
     }
 }
 
@@ -510,13 +524,16 @@ function renderTasks() {
   }
   const archivedBadge = document.querySelector('#archived-tasks-btn .badge');
   if (archivedBadge) {
-    archivedBadge.textContent = archivedTasks.length;
+    archivedBadge.textContent = archivedTasks.filter(t => t.status !== 'Done').length;
   }
   
   const displayTasksRaw = currentView === 'archived' ? archivedTasks : activeTasks;
-  const displayTasks = activeLabelFilter
-    ? displayTasksRaw.filter(t => t.labels && t.labels.includes(activeLabelFilter))
+  let displayTasks = activeSubjectFilter
+    ? displayTasksRaw.filter(t => String(t.subject_id) === String(activeSubjectFilter))
     : displayTasksRaw;
+  displayTasks = activeLabelFilter
+    ? displayTasks.filter(t => t.labels && t.labels.includes(activeLabelFilter))
+    : displayTasks;
 
   // Extract unique labels to populate the filter dropdown
   if (labelFilterSelect) {
@@ -834,10 +851,13 @@ function renderTasks() {
 }
 
 
-const summaryBox = document.getElementById('summary-box');
-if (summaryBox) {
-  summaryBox.innerHTML = generateSummary(store.tasks, store.subjects);
+function updateSummary() {
+  const summaryBox = document.getElementById('summary-box');
+  if (summaryBox) {
+    summaryBox.innerHTML = generateSummary(store.tasks, store.subjects);
+  }
 }
+updateSummary();
 
 function renderCalendar() {
   const calTitle = document.getElementById('cal-month-title');
@@ -937,7 +957,7 @@ function renderExtraction() {
   let html = `<div class="extract-title">Extracted — ${pasteItems.length} items</div>`;
   pasteItems.forEach((item, index) => {
     // try to match subject name
-    const sub = store.subjects.find(s => s.name.toLowerCase().includes((item.subject_name || '').toLowerCase())) || store.subjects[3];
+    const sub = store.subjects.find(s => s.name.toLowerCase().includes((item.subject_name || '').toLowerCase())) || store.subjects[0] || { id: null, name: 'General', color: 'var(--color-text-secondary)' };
     // Attach subject id to item so Add will work
     item.subject_id = sub.id;
     
@@ -1026,6 +1046,7 @@ store.subscribe(renderExtraction);
 store.subscribe(renderCalendar);
 store.subscribe(renderFocusTasks);
 store.subscribe(renderSidebarSubjects);
+store.subscribe(updateSummary);
 
 document.addEventListener('DOMContentLoaded', () => {
   if (newSubjectColorsEl) {
@@ -1094,12 +1115,18 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById(id).classList.add('active');
   }
 
+  function clearSubjectFilter() {
+    activeSubjectFilter = null;
+    renderSidebarSubjects();
+  }
+
   calendarBtn.addEventListener('click', () => {
     currentView = 'calendar';
     document.querySelector('.cal-section').classList.remove('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
     updateSidebarActive('calendar-btn');
+    clearSubjectFilter();
     renderTasks();
   });
 
@@ -1109,6 +1136,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
     updateSidebarActive('all-tasks-btn');
+    clearSubjectFilter();
     renderTasks();
   });
 
@@ -1118,6 +1146,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
     updateSidebarActive('archived-tasks-btn');
+    clearSubjectFilter();
     renderTasks();
   });
 
@@ -1142,6 +1171,40 @@ document.addEventListener('DOMContentLoaded', () => {
     renderCalendar();
   });
 
+  const weekBtn = document.getElementById('week-btn');
+  if (weekBtn) {
+    weekBtn.addEventListener('click', () => {
+      currentView = 'week';
+      document.querySelector('.cal-section').classList.add('hidden');
+      document.getElementById('tasks-section').classList.remove('hidden');
+      document.getElementById('focus-section').classList.add('hidden');
+      renderTasks();
+    });
+  }
+
+  const profileBtn = document.getElementById('profile-btn');
+  if (profileBtn) {
+    profileBtn.addEventListener('click', () => {
+      Toast.show(`Logged in as ${JSON.parse(localStorage.getItem('studyplan_user') || '{}').email || 'Guest'}`, 'info');
+    });
+  }
+
+  // Header navbar link handlers (#767)
+  document.querySelectorAll('header nav a').forEach(link => {
+    link.addEventListener('click', (e) => {
+      const text = link.textContent.trim().toLowerCase();
+      if (text === 'tasks') {
+        e.preventDefault();
+        document.getElementById('all-tasks-btn').click();
+      } else if (text === 'calendar') {
+        e.preventDefault();
+        document.getElementById('calendar-btn').click();
+      } else if (text === 'dashboard') {
+        e.preventDefault();
+        document.getElementById('calendar-btn').click();
+      }
+    });
+  });
 
 //NEw Task addition event listeners
 newTaskBtn.addEventListener('click', () => {
@@ -1187,17 +1250,17 @@ newTaskSave.addEventListener('click', async () => {
   const dateVal = newTaskDate.value;
 
   if (!rawTitle) {
-    alert('Please enter a task name');
+    Toast.show('Please enter a task name', 'warning');
     return;
   }
 
   if (!dateVal) {
-  alert('Please enter a deadline');
+  Toast.show('Please enter a deadline', 'warning');
   return;
 }
 
 if (!subject_id) {
-  alert('Please select a subject');
+  Toast.show('Please select a subject', 'warning');
   return;
 }
   const { cleanTitle, labels } = extractLabels(rawTitle);
@@ -1236,9 +1299,25 @@ if (pasteInput.value.trim() === "") {
     clearBtn.style.display = 'none';
 }
 
+const MAX_PASTE_LENGTH = 10000;
+
+function sanitizePasteText(raw) {
+  return raw
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
 extractBtn.addEventListener('click', async () => {
-  const text = pasteInput.value;
-  if (!text.trim()) return;
+  const text = sanitizePasteText(pasteInput.value);
+  if (!text) return;
+
+  if (text.length > MAX_PASTE_LENGTH) {
+    Toast.show(`Input too long (${text.length.toLocaleString()} chars). Max ${MAX_PASTE_LENGTH.toLocaleString()}.`, 'warning');
+    return;
+  }
   
   extractBtn.innerHTML = '<span class="loader-spinner"></span>';
   extractBtn.disabled = true;
@@ -1247,6 +1326,10 @@ extractBtn.addEventListener('click', async () => {
   
   extractBtn.innerHTML = 'Extract with AI →';
   extractBtn.disabled = false;
+  
+  if (items && items.length > 0) {
+    Toast.show(`Extracted ${items.length} task${items.length > 1 ? 's' : ''}`, 'success');
+  }
   
   store.setExtracted(items);
 });
@@ -1261,6 +1344,13 @@ clearBtn.addEventListener('click', () => {
 
 // Listens to typing/pasting to show or hide the button dynamically
 pasteInput.addEventListener('input', () => {
+    const len = pasteInput.value.length;
+    const counter = document.getElementById('paste-counter');
+    if (counter) {
+      const display = len > MAX_PASTE_LENGTH ? len.toLocaleString() : len;
+      counter.textContent = `${display} / ${MAX_PASTE_LENGTH.toLocaleString()}`;
+      counter.style.color = len > MAX_PASTE_LENGTH ? 'var(--color-text-danger)' : 'var(--color-text-tertiary)';
+    }
     if (pasteInput.value.trim().length > 0) {
         clearBtn.style.display = 'block'; 
     } else {
@@ -1272,85 +1362,18 @@ downloadBtn.addEventListener('click', () => {
   downloadData();
 });
 
-const fileInput = document.getElementById('file-input');
-const dropZone = document.getElementById('drop-zone');
-
-// Handle File Selection via File Explorer
-if (fileInput) {
-  fileInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file) handleFileContent(file);
+const logoutBtn = document.getElementById('logout-btn');
+if (logoutBtn) {
+  logoutBtn.addEventListener('click', async () => {
+    const confirmed = await Toast.confirm('Are you sure you want to logout?');
+    if (!confirmed) return;
+    localStorage.removeItem('studyplan_user');
+    document.getElementById('auth-modal').style.display = 'flex';
+    window.location.reload();
   });
 }
 
-// Handle Drag & Drop Events
-if (dropZone) {
-  // Prevent browser from opening the file
-  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-    dropZone.addEventListener(eventName, (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-    });
-  });
-
-  // Add highlight effect
-  ['dragenter', 'dragover'].forEach(eventName => {
-    dropZone.addEventListener(eventName, () => {
-      dropZone.classList.add('paste-zone--dragover');
-    });
-  });
-
-  // Remove highlight effect
-  ['dragleave', 'drop'].forEach(eventName => {
-    dropZone.addEventListener(eventName, () => {
-      dropZone.classList.remove('paste-zone--dragover');
-    });
-  });
-
-  // Handle dropped file
-  dropZone.addEventListener('drop', (e) => {
-    const dt = e.dataTransfer;
-
-    if (dt && dt.files.length > 0) {
-      const file = dt.files[0];
-      handleFileContent(file);
-    }
-  });
-}
-
-// File Reader Function
-function handleFileContent(file) {
-  const allowedExtensions = ['txt', 'md', 'json'];
-  const fileExtension = file.name.split('.').pop().toLowerCase();
-
-  // Validate extension
-  if (!allowedExtensions.includes(fileExtension)) {
-    alert('Invalid file format. Please upload a .txt, .md, or .json file.');
-    return;
-  }
-
-  const reader = new FileReader();
-
-  reader.onload = (e) => {
-    const pasteInput = document.getElementById('paste-input');
-
-    if (pasteInput) {
-      pasteInput.value = e.target.result;
-
-      alert(
-        `Loaded "${file.name}" successfully! Click "Extract with AI" to find your tasks.`
-      );
-    }
-  };
-
-  reader.onerror = () => {
-    alert('Error reading file content. Please try again.');
-  };
-
-  reader.readAsText(file);
-}
-
-
+// Motivational Quotes
 const quotes = [
   "Small Progress is still Progress",
   "Focus on being productive instead of busy",
@@ -1365,26 +1388,16 @@ const quotes = [
 ];
 
 const quoteEl = document.getElementById('motivational-quotes');
-
 if (quoteEl) {
   const today = new Date();
   const seed = today.toDateString();
-
   let hash = 0;
-
   for (let i = 0; i < seed.length; i++) {
     hash = seed.charCodeAt(i) + ((hash << 5) - hash);
   }
-
   const index = Math.abs(hash % quotes.length);
-
-  quoteEl.textContent = quotes[index];
+  quoteEl.textContent = `${quotes[index]}`;
 }
-
-const calendarDownloadBtn = document.getElementById('calendar-download-btn');
-
-if (calendarDownloadBtn) {
-  calendarDownloadBtn.addEventListener('click', () => {
-    downloadCalendar();
-  });
-}
+calendarDownloadBtn.addEventListener('click', () => {
+  downloadCalendar();
+});

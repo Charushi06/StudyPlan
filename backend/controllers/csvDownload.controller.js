@@ -78,17 +78,23 @@ async function downloadData(req, res) {
   try {
     const data = await getAllTasksWithSubjects();
 
+    const escapeCsv = (val) => {
+      const str = String(val ?? '');
+      const escaped = /[,"\n\r]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
+      return /^[=+\-@]/.test(escaped) ? `'${escaped}` : escaped;
+    };
+
     const rows = [
       ['Task ID', 'Subject', 'Title', 'Due At', 'Status', 'Priority', 'Confidence Score', 'Notes'],
       ...data.map(task => [
         task.id,
-        task.subject_name,
-        task.title,
-        task.due_at,
-        task.status,
-        task.priority,
+        escapeCsv(task.subject_name),
+        escapeCsv(task.title),
+        escapeCsv(task.due_at),
+        escapeCsv(task.status),
+        escapeCsv(task.priority),
         task.confidence_score,
-        `"${(task.notes || '').replace(/"/g, '""')}"`,
+        escapeCsv(task.notes),
       ]),
     ];
 

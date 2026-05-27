@@ -13,7 +13,7 @@
 </head>
 <body>
   <!-- Auth Modal -->
-<div id="auth-modal" style="display:flex; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+<div id="auth-modal" role="dialog" aria-modal="true" aria-labelledby="auth-title" style="display:flex; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
   <div style="background:white; border-radius:16px; padding:32px; width:360px; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
     
     <h2 id="auth-title" style="margin:0 0 8px; font-size:22px; font-weight:700;">Welcome back</h2>
@@ -21,7 +21,13 @@
 
     <input id="auth-email" type="email" placeholder="Email address" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:12px; box-sizing:border-box;">
     
-    <input id="auth-password" type="password" placeholder="Password" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:20px; box-sizing:border-box;">
+    <div style="position:relative; margin-bottom:12px;">
+      <input id="auth-password" type="password" placeholder="Password" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; box-sizing:border-box; padding-right:40px;">
+      <button id="auth-password-toggle" type="button" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; font-size:18px; color:#666; padding:4px; line-height:1;" aria-label="Toggle password visibility">👁</button>
+    </div>
+    <div id="auth-confirm-wrapper" style="display:none; margin-bottom:20px;">
+      <input id="auth-confirm-password" type="password" placeholder="Confirm password" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; box-sizing:border-box;">
+    </div>
 
     <button id="auth-submit-btn" style="width:100%; padding:12px; background:#4f46e5; color:white; border:none; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer;">
     Sign In
@@ -43,7 +49,6 @@
       <a id="auth-toggle-btn" href="#" style="color:#4f46e5; font-weight:600; margin-left:4px;">Sign Up</a>
     </p>
 
-    <p id="auth-error" style="color:red; font-size:13px; text-align:center; margin:8px 0 0; display:none;"></p>
   </div>
 </div>
 
@@ -61,7 +66,7 @@
   </nav>
 
   <div class="header-right">
-    <button class="profile-btn">Profile</button>
+        <button class="profile-btn" id="profile-btn">Profile</button>
     <button class="profile-btn" id="logout-btn">Logout</button>
   </div>
 </header>
@@ -70,7 +75,7 @@
 <div class="wrapper">
   <!-- <p class="label">StudyPlan</p> -->
 
-  <div class="app">
+  <div class="app" style="display:none">
     <!-- Sidebar -->
     <div class="sidebar">
       <div class="sidebar-header">Study Planner</div>
@@ -117,7 +122,7 @@
         <select id="label-filter" style="margin-left:auto; margin-right: 12px; padding: 6px; border-radius: 6px; border: 1px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); outline: none; cursor: pointer;">
           <option value="">All Labels</option>
         </select>
-        <button class="btn">Week</button>
+        <button class="btn" id="week-btn">Week</button>
         <button class="btn btn-primary"  id="add-task-btn">
           <svg width="12" height="12" fill="none" style="margin-right:2px"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> New task
         </button>
@@ -214,13 +219,13 @@
         </div>
       </div>
 
-      <div class="paste-zone" id = "drop-zone">
-        <div class="paste-icon">⌘ V</div>
-        <div class="paste-label">Paste text or drop a file here</div>
-        <div class="paste-hint">Supports .txt, .md, or .json files (e.g. "Your OS assignment is due this Friday by 11pm…)"</div>
+      <div class="paste-zone">
+        <div class="paste-icon" id="paste-icon">⌘ V</div>
+        <script>document.getElementById('paste-icon').textContent = navigator.platform.includes('Mac') ? '⌘ V' : 'Ctrl+V';</script>
+        <div class="paste-label">Paste text here</div>
+        <div class="paste-hint">e.g. "Your OS assignment is due this Friday by 11pm…"</div>
         <textarea id="paste-input" class="paste-input" placeholder="Paste your syllabus or notes..."></textarea>
-        <div class="file-upload-wrapper" style="margin-top: 10px; font-size: 13px; text-align: center;">
-          </div>
+        <div id="paste-counter" style="font-size:11px; color:var(--color-text-tertiary); text-align:right; padding:2px 4px 0;">0 / 10,000</div>
       </div>
 
       <div class="paste-actions">
@@ -316,7 +321,43 @@
     document.getElementById('auth-toggle-text').textContent = isLogin ? "Don't have an account?" : 'Already have an account?';
     document.getElementById('auth-toggle-btn').textContent = isLogin ? 'Sign Up' : 'Sign In';
     document.getElementById('auth-error').style.display = 'none';
+    document.getElementById('auth-email').value = '';
+    document.getElementById('auth-password').value = '';
+    document.getElementById('auth-confirm-password').value = '';
+    document.getElementById('auth-confirm-wrapper').style.display = isLogin ? 'none' : 'block';
   });
+
+  // Auth modal focus trap + keyboard accessibility
+  const authModal = document.getElementById('auth-modal');
+  authModal.addEventListener('keydown', (e) => {
+    const focusable = authModal.querySelectorAll(
+      'input, button, [tabindex]:not([tabindex="-1"])'
+    );
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      document.getElementById('auth-email').focus();
+      return;
+    }
+
+    if (e.key === 'Tab') {
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    }
+  });
+
+  document.getElementById('auth-email').focus();
 
   // Password validation function
 function validatePassword(password) {
@@ -348,12 +389,30 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
     return;
   }
 
+  // Email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    errorEl.textContent = 'Please enter a valid email address';
+    errorEl.style.display = 'block';
+    return;
+  }
+
   // Password validation check
   if (!validatePassword(password)) {
     errorEl.textContent =
       'Password must be at least 8 characters long, contain 1 capital letter and 1 special character.';
     errorEl.style.display = 'block';
     return;
+  }
+
+  // Confirm password check on signup
+  if (!isLogin) {
+    const confirm = document.getElementById('auth-confirm-password').value.trim();
+    if (password !== confirm) {
+      errorEl.textContent = 'Passwords do not match';
+      errorEl.style.display = 'block';
+      return;
+    }
   }
 
   const endpoint = isLogin ? '/api/auth/login' : '/api/auth/signup';
@@ -374,6 +433,7 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
 
       localStorage.setItem('studyplan_user', JSON.stringify({ email: data.email }));
       document.getElementById('auth-modal').style.display = 'none';
+      document.querySelector('.app').style.display = '';
 
     } catch (err) {
       errorEl.textContent = 'Network error. Please try again.';
@@ -381,22 +441,38 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
     }
   });
 
+  // Password visibility toggle
+  document.getElementById('auth-password-toggle').addEventListener('click', () => {
+    const pw = document.getElementById('auth-password');
+    const toggle = document.getElementById('auth-password-toggle');
+    if (pw.type === 'password') {
+      pw.type = 'text';
+      toggle.textContent = '🙈';
+    } else {
+      pw.type = 'password';
+      toggle.textContent = '👁';
+    }
+  });
+
   // Check if already logged in
   if (localStorage.getItem('studyplan_user')) {
     document.getElementById('auth-modal').style.display = 'none';
+    document.querySelector('.app').style.display = '';
   }
 
-  // Logout Button Functionality
-  const logoutBtn = document.getElementById('logout-btn');
-  logoutBtn.addEventListener('click', () => {
-    localStorage.removeItem('studyplan_user');
+  // Logout handled in app.js with confirmation dialog
 
-    // Show login modal again
-    document.getElementById('auth-modal').style.display = 'flex';
-
-    // Refresh page state
-    window.location.reload();
-});
+  // Set min date on task deadline picker to prevent past dates
+  const dateInput = document.getElementById('new-task-date');
+  if (dateInput) {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    const h = String(now.getHours()).padStart(2, '0');
+    const min = String(now.getMinutes()).padStart(2, '0');
+    dateInput.min = `${y}-${m}-${d}T${h}:${min}`;
+  }
 
   // Settings Modal Logic
   const settingsModal = document.getElementById('settings-modal');
@@ -502,7 +578,7 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
     <input id="new-task-title" type="text" style="width:100%; padding:6px; margin-bottom:10px;"placeholder="e.g. Study for exam #urgent #school">
 
     <label style="display:block; font-size:12px; margin-bottom:4px;">Deadline</label>
-    <input id="new-task-date" type="datetime-local" style="width:100%; padding:6px; margin-bottom:10px;" placeholder="Deadline">
+    <input id="new-task-date" type="datetime-local" style="width:100%; padding:6px; margin-bottom:10px;" placeholder="Deadline" min=""> <!-- min set by JS -->
 
     <!-- <label style="display:block; font-size:12px; margin-bottom:4px;">Notes</label> -->
     <input id="new-task-notes" type="text" style="width:100%; padding:6px; margin-bottom:16px;" placeholder="Notes">

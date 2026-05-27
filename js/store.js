@@ -43,6 +43,10 @@ export const store = {
       Toast.show('Please enter a subject name', 'warning');
       return false;
     }
+    if (this.subjects.some(s => s.name.toLowerCase() === trimmed.toLowerCase())) {
+      Toast.show('Subject already exists', 'warning');
+      return false;
+    }
     try {
       const res = await fetch('/api/subjects', {
         method: 'POST',
@@ -153,6 +157,7 @@ export const store = {
   async toggleTaskStatus(taskId) {
     const task = this.tasks.find(t => String(t.id) === String(taskId));
     if (task) {
+      const originalStatus = task.status;
       const newStatus = task.status === 'Done' ? 'Not Started' : 'Done';
       task.status = newStatus;
       this.notify();
@@ -162,13 +167,14 @@ export const store = {
       }
 
       try {
-        await fetch(`/api/tasks/${taskId}`, {
+        const res = await fetch(`/api/tasks/${taskId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status: newStatus })
         });
+        if (!res.ok) throw new Error('Update failed');
       } catch (e) {
-        task.status = newStatus === 'Done' ? 'Not Started' : 'Done';
+        task.status = originalStatus;
         this.notify();
       }
     }

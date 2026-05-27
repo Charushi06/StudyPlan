@@ -1,7 +1,8 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const { db, initDb } = require('./database');
+const { db, initDb, dbRun, dbGet } = require('./database');
+const crypto = require('crypto');
 const { GoogleGenAI } = require('@google/genai');
 const path = require('path');
 const csvDownloadRouter = require('./backend/routers/csvDownload.router.js');
@@ -17,8 +18,6 @@ const page500Path = path.join(__dirname, 'error.html');
 app.use('/css', express.static(path.join(__dirname, 'css')));
 app.use('/js', express.static(path.join(__dirname, 'js')));
 app.use(express.static(__dirname));
-
-initDb();
 
 // Environment Validation
 if (!process.env.GEMINI_API_KEY) {
@@ -130,6 +129,9 @@ function nlpExtractDate(text, now = new Date()) {
   }
   if (/\bend of (the\s+)?month\b/.test(lower)) {
     return nlpStartOf(new Date(now.getFullYear(), now.getMonth() + 1, 0)).toISOString();
+  }
+  if (/\bend of (the\s+)?year\b/.test(lower)) {
+    return nlpStartOf(new Date(now.getFullYear(), 11, 31)).toISOString();
   }
   if (/\bnext month\b/.test(lower)) {
     const d = new Date(now); d.setMonth(d.getMonth() + 1);
@@ -320,7 +322,7 @@ app.get('/api/tasks', (req, res) => {
 });
 
 // ================= ADD TASKS =================
-app.post('/api/tasks', (req, res) => {
+app.post('/api/tasks', async (req, res) => {
   try {
     const tasks = Array.isArray(req.body) ? req.body : [req.body];
 
@@ -328,102 +330,79 @@ app.post('/api/tasks', (req, res) => {
       return res.status(400).json({ success: false, message: "No tasks provided" });
     }
 
-    let inserted = 0;
-    let duplicates = [];
-    let errors = [];
+    const results = { inserted: 0, duplicates: [], errors: [] };
 
-    const stmt = db.prepare(`INSERT INTO tasks 
-      (id, subject_id, title, due_at, status, priority, confidence_score, notes, labels) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`);
-
-    let pending = tasks.length;
-
-    tasks.forEach(t => {
-      let validationError = null;
-  if (!t.title && !t.subject_id && !t.due_at) {
-    validationError = "Missing title, subject, and deadline";
-  } else if (!t.title) {
-    validationError = "Task name is required";
-  } else if (!t.subject_id) {
-    validationError = "Subject is required";
-  } else if (!t.due_at) {
-    validationError = "Deadline is required";
-  }
-
-  if (validationError) {
-    errors.push({ task: t, error: validationError });
-    pending--;
-    if (pending === 0) {
-      if (inserted === 0) {
-        return res.status(400).json({ 
-          success: false, inserted, duplicates, errors, 
-          message: errors.length === tasks.length ? errors[0].error : "Some tasks are invalid"
-        });
+    const processTask = (t) => new Promise((resolve) => {
+      if (!t.title && !t.subject_id && !t.due_at) {
+        results.errors.push({ task: t, error: "Missing title, subject, and deadline" });
+        return resolve();
       }
-      stmt.finalize(() => res.status(400).json({ 
-        success: false, inserted, duplicates, errors, 
-        message: "Some tasks are invalid"
-      }));
-    }
-    return;
-  }
+      if (!t.title) { results.errors.push({ task: t, error: "Task name is required" }); return resolve(); }
+      if (!t.subject_id) { results.errors.push({ task: t, error: "Subject is required" }); return resolve(); }
+      if (!t.due_at) { results.errors.push({ task: t, error: "Deadline is required" }); return resolve(); }
 
       db.get(
         `SELECT * FROM tasks WHERE LOWER(title) = LOWER(?) AND subject_id = ? AND DATE(due_at) = DATE(?)`,
         [t.title, t.subject_id, t.due_at],
         (err, existing) => {
           if (err) {
-            errors.push({ task: t, error: err.message });
+            results.errors.push({ task: t, error: err.message });
+            resolve();
           } else if (existing) {
-            duplicates.push({
-              title: t.title,
-              due_at: t.due_at,
-              subject_id: t.subject_id
+            results.duplicates.push({
+              title: t.title, due_at: t.due_at, subject_id: t.subject_id
             });
+            resolve();
           } else {
-            const id = 'task_' + Date.now() + Math.random().toString(36).substr(2, 5);
-            stmt.run(
-              id,
-              t.subject_id,
-              t.title,
-              t.due_at,
-              t.status || 'Not Started',
-              t.priority || 'medium',
-              t.confidence_score || 100,
-              t.notes || '',
-              typeof t.labels === 'string' ? t.labels : JSON.stringify(t.labels || []),
+            const id = 'task_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
+            db.run(`INSERT INTO tasks (id, subject_id, title, due_at, status, priority, confidence_score, notes, labels) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              [id, t.subject_id, t.title, t.due_at, t.status || 'Not Started', t.priority || 'medium', t.confidence_score || 100, t.notes || '',
+               typeof t.labels === 'string' ? t.labels : JSON.stringify(t.labels || [])],
               function (insertErr) {
-                if (insertErr) {
-                  errors.push({ task: t, error: insertErr.message });
-                } else {
-                  inserted++;
-                }
+                if (insertErr) results.errors.push({ task: t, error: insertErr.message });
+                else results.inserted++;
+                resolve();
               }
             );
           }
-
-          pending--;
-          if (pending === 0) {
-            stmt.finalize((finalErr) => {
-              if (finalErr) return res.status(500).json({ success: false, message: "Database error", error: finalErr.message });
-              return res.json({
-                success: true,
-                inserted,
-                duplicates,
-                errors,
-                message:
-                  errors.length > 0 && duplicates.length > 0
-                    ? "Some tasks failed and some duplicates were skipped"
-                    : errors.length > 0
-                      ? "Some tasks failed to add"
-                      : duplicates.length > 0
-                        ? "Duplicate tasks were skipped"
-                        : "All tasks added successfully"
-              });
-            });
-          }
         }
       );
+    });
+          } else {
+            const id = 'task_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
+            db.run(`INSERT INTO tasks (id, subject_id, title, due_at, status, priority, confidence_score, notes, labels) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              [id, t.subject_id, t.title, t.due_at, t.status || 'Not Started', t.priority || 'medium', t.confidence_score || 100, t.notes || '',
+               typeof t.labels === 'string' ? t.labels : JSON.stringify(t.labels || [])],
+              function (insertErr) {
+                if (insertErr) results.errors.push({ task: t, error: insertErr.message });
+                else results.inserted++;
+              }
+            );
+          }
+          resolve();
+        }
+      );
+    });
+
+    await Promise.all(tasks.map(processTask));
+
+    if (results.inserted === 0 && results.errors.length > 0) {
+      return res.status(400).json({
+        success: false, ...results,
+        message: results.errors.length === tasks.length ? results.errors[0].error : "Some tasks are invalid"
+      });
+    }
+
+    return res.json({
+      success: true, ...results,
+      message:
+        results.errors.length > 0 && results.duplicates.length > 0
+          ? "Some tasks failed and some duplicates were skipped"
+          : results.errors.length > 0
+            ? "Some tasks failed to add"
+            : results.duplicates.length > 0
+              ? "Duplicate tasks were skipped"
+              : "All tasks added successfully"
     });
 
   } catch (e) {
@@ -509,30 +488,49 @@ Text: "${text}"
   return res.json(tasks);
 });
 // ================= AUTH =================
-const users = {}; // Simple in-memory user store
-
-app.post('/api/auth/signup', (req, res) => {
+app.post('/api/auth/signup', async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password required' });
   }
-  if (users[email]) {
-    return res.status(400).json({ error: 'User already exists' });
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ error: 'Invalid email format' });
   }
-  users[email] = { email, password };
-  res.json({ success: true, message: 'Account created successfully' });
+  try {
+    const existing = await dbGet('SELECT email FROM users WHERE email = ?', [email]);
+    if (existing) {
+      return res.status(400).json({ error: 'User already exists' });
+    }
+    const salt = crypto.randomBytes(16).toString('hex');
+    const password_hash = crypto.scryptSync(password, salt, 64).toString('hex');
+    await dbRun('INSERT INTO users (email, password_hash, salt) VALUES (?, ?, ?)', [email, password_hash, salt]);
+    res.json({ success: true, message: 'Account created successfully' });
+  } catch (e) {
+    console.error('Signup error:', e);
+    res.status(500).json({ error: 'Server error during signup' });
+  }
 });
 
-app.post('/api/auth/login', (req, res) => {
+app.post('/api/auth/login', async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password required' });
   }
-  const user = users[email];
-  if (!user || user.password !== password) {
-    return res.status(401).json({ error: 'Invalid email or password' });
+  try {
+    const user = await dbGet('SELECT * FROM users WHERE email = ?', [email]);
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+    const hash = crypto.scryptSync(password, user.salt, 64).toString('hex');
+    if (hash !== user.password_hash) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+    res.json({ success: true, email: user.email });
+  } catch (e) {
+    console.error('Login error:', e);
+    res.status(500).json({ error: 'Server error during login' });
   }
-  res.json({ success: true, email: user.email });
 });
 
 // Intentional test route for verifying server error page behavior.
@@ -570,6 +568,8 @@ app.use((err, req, res, next) => {
 
 // ================= SERVER =================
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log('Server running on port ' + PORT);
+initDb().catch(e => console.error('initDb failed:', e.message)).then(() => {
+  app.listen(PORT, () => {
+    console.log('Server running on port ' + PORT);
+  });
 });
