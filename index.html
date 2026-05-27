@@ -55,7 +55,7 @@
 
   <nav class="header-nav">
     <a href="#">Dashboard</a>
-    <a href="#">Tasks</a>
+    <a href="#" id="nav-tasks">Tasks</a>
     <a href="#">Calendar</a>
     <a href="#" id="nav-settings">Settings</a>
   </nav>
@@ -114,10 +114,9 @@
     <div class="main">
       <div class="topbar">
         <div class="topbar-title">April 2026</div>
-        <select id="label-filter" style="margin-left:auto; margin-right: 12px; padding: 6px; border-radius: 6px; border: 1px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); outline: none; cursor: pointer;">
-          <option value="">All Labels</option>
-        </select>
-        <button class="btn">Week</button>
+        <div class="view-toggle">
+        <button class="btn" style="margin:0 0 12px;  font-size:16px; margin-top:10px; font-weight:600;">Week</button>
+        </div>
         <button class="btn btn-primary"  id="add-task-btn">
           <svg width="12" height="12" fill="none" style="margin-right:2px"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> New task
         </button>
@@ -250,6 +249,20 @@
     <a href="/support-page/support.html">Support</a>
   </div>
 </footer>
+
+<!--Task-->
+<div id="tasks-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
+
+  <div style="background:var(--color-background-primary); border:1px solid var(--color-border-tertiary); border-radius:16px; padding:32px; width:400px; box-shadow:var(--shadow-lg); color:var(--color-text-primary);">
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+      <h2 style="margin:0; font-size:20px; font-weight:700;">Tasks</h2>
+      <button id="tasks-close" style="background:none; border:none; font-size:24px; cursor:pointer; color:var(--color-text-secondary);">&times;</button>
+    </div>
+    <div id="tasks-list"></div>
+
+  </div>
+</div>
 
 <!-- Settings Modal -->
 <div id="settings-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
@@ -401,6 +414,7 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
   const navSettings = document.getElementById('nav-settings');
   const settingsClose = document.getElementById('settings-close');
   const settingsSave = document.getElementById('settings-save');
+  const navTasks = document.getElementById('nav-tasks');
 
   navSettings.addEventListener('click', (e) => {
     e.preventDefault();
@@ -413,6 +427,11 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
 
   settingsSave.addEventListener('click', () => {
     settingsModal.style.display = 'none';
+  });
+
+  navTasks.addEventListener('click',(e)=>{
+    e.preventDefault();
+    document.getElementById('tasks-section').scrollIntoView({behavior:'smooth'});
   });
 
   window.addEventListener('click', (e) => {
@@ -456,6 +475,8 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
     loadPreferences();
     settingsModal.style.display = 'none';
   });
+
+  
 
   // Also apply immediately on toggle for better UX
   darkModeToggle.addEventListener('change', (e) => {
