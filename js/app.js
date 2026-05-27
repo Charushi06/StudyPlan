@@ -90,6 +90,19 @@ const calendarDownloadBtn = document.getElementById('calendar-download-btn');
 const newTaskBtn = document.getElementById('add-task-btn');
 const labelFilterSelect = document.getElementById('label-filter');
 
+// Event listener for extract-btn
+pasteInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+
+    if (!pasteInput.value.trim()) return;
+    if (extractBtn.disabled) return;
+
+    extractBtn.click();
+  }
+});
+
+
 if (labelFilterSelect) {
   labelFilterSelect.addEventListener('change', (e) => {
     activeLabelFilter = e.target.value;

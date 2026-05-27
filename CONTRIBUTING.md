@@ -43,6 +43,17 @@ Welcome to GSSoC! Here's how the contribution flow works for this project:
    ```bash
    git checkout -b your-feature-name
    ```
+5. **Install Dependencies**
+   ```bash
+   npm install
+   ```
+6. Create a .env file and copy paste everything from .env.example and replace your api key there.
+
+7. **Run the backend** (Backend serves Frontend)
+   ```bash
+   npm start
+   ```
+8. Start [Local Host 3000](http://localhost:3000/)
 
 ---
 
