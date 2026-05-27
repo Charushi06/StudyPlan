@@ -87,6 +87,7 @@ const clearBtn = document.getElementById('clear-btn');
 const addItemsBtn = document.getElementById('add-btn');
 const downloadBtn = document.getElementById('download-btn');
 const calendarDownloadBtn = document.getElementById('calendar-download-btn');
+const markdownDownloadBtn = document.getElementById('markdown-download-btn');
 const newTaskBtn = document.getElementById('add-task-btn');
 const labelFilterSelect = document.getElementById('label-filter');
 
@@ -491,6 +492,80 @@ async function downloadCalendar() {
         console.error(error);
         alert('Failed to export calendar');
     }
+}
+
+function downloadMarkdown() {
+  const tasks = store.tasks.filter(t => !t.archived);
+  const subjects = store.subjects;
+  
+  if (tasks.length === 0) {
+    if (typeof Toast !== 'undefined') Toast.show('No active tasks to export', 'warning');
+    else alert('No active tasks to export');
+    return;
+  }
+  
+  let markdown = `# 📚 My Study Plan\n\n`;
+  
+  // Group tasks by subject
+  const tasksBySubject = {};
+  subjects.forEach(s => tasksBySubject[s.id] = []);
+  tasksBySubject['general'] = [];
+  
+  tasks.forEach(t => {
+    if (t.subject_id && tasksBySubject[t.subject_id]) {
+      tasksBySubject[t.subject_id].push(t);
+    } else {
+      tasksBySubject['general'].push(t);
+    }
+  });
+  
+  subjects.forEach(sub => {
+    const subTasks = tasksBySubject[sub.id];
+    if (subTasks && subTasks.length > 0) {
+      markdown += `## 📘 ${sub.name}\n`;
+      subTasks.sort((a,b) => new Date(a.due_at) - new Date(b.due_at)).forEach(t => {
+        const isDone = t.status === 'Done';
+        const dateStr = t.due_at ? new Date(t.due_at).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) : 'No Date';
+        let titleLine = `- [${isDone ? 'x' : ' '}] **${t.title}** *(Due: ${dateStr})*`;
+        if (t.labels && t.labels.length > 0) {
+           titleLine += ` ` + t.labels.map(l => `\`${l}\``).join(' ');
+        }
+        markdown += titleLine + `\n`;
+        if (t.notes) {
+          markdown += `  > Note: ${t.notes}\n`;
+        }
+      });
+      markdown += `\n`;
+    }
+  });
+  
+  const generalTasks = tasksBySubject['general'];
+  if (generalTasks && generalTasks.length > 0) {
+    markdown += `## 📘 General\n`;
+    generalTasks.sort((a,b) => new Date(a.due_at) - new Date(b.due_at)).forEach(t => {
+      const isDone = t.status === 'Done';
+      const dateStr = t.due_at ? new Date(t.due_at).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) : 'No Date';
+      let titleLine = `- [${isDone ? 'x' : ' '}] **${t.title}** *(Due: ${dateStr})*`;
+      if (t.labels && t.labels.length > 0) {
+         titleLine += ` ` + t.labels.map(l => `\`${l}\``).join(' ');
+      }
+      markdown += titleLine + `\n`;
+      if (t.notes) {
+        markdown += `  > Note: ${t.notes}\n`;
+      }
+    });
+    markdown += `\n`;
+  }
+  
+  const blob = new Blob([markdown], { type: 'text/markdown' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'StudyPlan_Export.md';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 100);
 }
 
 function renderTasks() {
@@ -1300,3 +1375,9 @@ if (quoteEl) {
 calendarDownloadBtn.addEventListener('click', () => {
   downloadCalendar();
 });
+
+if (markdownDownloadBtn) {
+  markdownDownloadBtn.addEventListener('click', () => {
+    downloadMarkdown();
+  });
+}
