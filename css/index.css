@@ -4966,3 +4966,69 @@ body {
 @keyframes slideDown {
   to { opacity: 0; transform: translateY(10px); }
 }
+@media (max-width: 768px) {
+
+  body {
+    padding: 12px;
+  }
+
+  .app {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    overflow: hidden;
+  }
+
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--color-border-tertiary);
+    padding: 12px;
+  }
+
+  .panel {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid var(--color-border-tertiary);
+  }
+
+  .topbar {
+    flex-wrap: wrap;
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .header-nav {
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+  }
+
+  .site-header,
+  .site-footer {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+    padding: 16px;
+  }
+
+  .tasks-section,
+  .focus-section,
+  .cal-section {
+    padding: 12px;
+  }
+
+  .timer-container {
+    width: 180px;
+    height: 180px;
+  }
+
+  .timer-text {
+    font-size: 32px;
+  }
+
+  .modal-card {
+    width: 90%;
+    max-width: 320px;
+  }
+}
