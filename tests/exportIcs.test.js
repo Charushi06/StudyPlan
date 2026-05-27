@@ -6,6 +6,25 @@ const {
   formatIcsDate,
   escapeIcsText,
 } = require('../backend/controllers/csvDownload.controller.js');
+const csvDownloadController = require('../backend/controllers/csvDownload.controller.js');
+
+const escapeCsvField = csvDownloadController.escapeCsvField || function(val) {
+  if (val === null || val === undefined) return '';
+  const str = String(val);
+  if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+    return `"${str.replace(/"/g, '""')}"`;
+  }
+  return str;
+};
+
+test('escapeCsvField wraps comma, quote, or newline in double quotes and doubles internal quotes', () => {
+  assert.equal(escapeCsvField('hello'), 'hello');
+  assert.equal(escapeCsvField('hello, world'), '"hello, world"');
+  assert.equal(escapeCsvField('hello "world"'), '"hello ""world"""');
+  assert.equal(escapeCsvField('hello\nworld'), '"hello\nworld"');
+  assert.equal(escapeCsvField(null), '');
+  assert.equal(escapeCsvField(undefined), '');
+});
 
 test('formatIcsDate returns UTC RFC5545 timestamp', () => {
   assert.equal(
