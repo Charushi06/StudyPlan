@@ -111,6 +111,9 @@ function openNewSubjectModal() {
   newSubjectName.focus();
 }
 
+
+
+
 function renderSidebarSubjects() {
   const listEl = document.getElementById('subjects-sidebar-list');
   if (!listEl) return;
@@ -917,6 +920,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const allTasksBtn = document.getElementById('all-tasks-btn');
   const archivedTasksBtn = document.getElementById('archived-tasks-btn');
   const focusModeBtn = document.getElementById('focus-mode-btn');
+
+
+  const navTasks = document.getElementById('nav-tasks');
+
+navTasks.addEventListener('click', (e) => {
+  e.preventDefault();
+  allTasksBtn.click();
+});
+
 
   function updateSidebarActive(id) {
     document.querySelectorAll('.sidebar .nav-item').forEach(el => el.classList.remove('active'));
