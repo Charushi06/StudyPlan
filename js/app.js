@@ -83,6 +83,7 @@ const focusSection = document.getElementById('focus-section');
 const extractPreview = document.getElementById('extract-preview');
 const pasteInput = document.getElementById('paste-input');
 const extractBtn = document.getElementById('extract-btn');
+const loadingSpinner = document.getElementById('loading-spinner');
 const clearBtn = document.getElementById('clear-btn');
 const addItemsBtn = document.getElementById('add-btn');
 const downloadBtn = document.getElementById('download-btn');
@@ -1238,17 +1239,29 @@ if (pasteInput.value.trim() === "") {
 
 extractBtn.addEventListener('click', async () => {
   const text = pasteInput.value;
+
   if (!text.trim()) return;
-  
+
+  loadingSpinner.style.display = 'flex';
+
   extractBtn.innerHTML = '<span class="loader-spinner"></span>';
   extractBtn.disabled = true;
-  
-  const items = await extractTasksFromText(text);
-  
-  extractBtn.innerHTML = 'Extract with AI →';
-  extractBtn.disabled = false;
-  
-  store.setExtracted(items);
+
+  try {
+    const items = await extractTasksFromText(text);
+
+    store.setExtracted(items);
+
+  } catch (error) {
+    console.error(error);
+    alert('Failed to generate study plan');
+  } finally {
+
+    loadingSpinner.style.display = 'none';
+
+    extractBtn.innerHTML = 'Extract with AI →';
+    extractBtn.disabled = false;
+  }
 });
 
 // Wipes the text, clears the store, hides the button, and refocuses the cursor
@@ -1381,7 +1394,6 @@ if (quoteEl) {
   quoteEl.textContent = quotes[index];
 }
 
-const calendarDownloadBtn = document.getElementById('calendar-download-btn');
 
 if (calendarDownloadBtn) {
   calendarDownloadBtn.addEventListener('click', () => {
