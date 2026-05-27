@@ -144,6 +144,9 @@ const NLP_SUBJECT_KEYWORDS = {
   'Mathematics': ['maths','math','mathematics','calculus','algebra','statistics','probability','theorem','equation','integral','derivative','matrix','vector','problem set','pset','worksheet','integration'],
   'English Lit': ['english','literature','essay','novel','poem','poetry','shakespeare','writing','prose','narrative','analysis','literary','book report','reading','thesis','draft','revision'],
   'Physics': ['physics','mechanics','thermodynamics','optics','velocity','acceleration','force','energy','momentum','lab','experiment','wave','circuit','resistance','voltage'],
+  'Chemistry': ['chemistry','chemical','reaction','organic','periodic table','molecule','atom','compound','acid','base','lab experiment','stoichiometry'],
+  'Biology': ['biology','biological','cell','genetics','dna','rna','evolution','organism','anatomy','photosynthesis','ecology','dissection'],
+  'History': ['history','historical','revolution','war','timeline','century','civilization','source analysis','documentary','treaty','empire']
 };
 
 function nlpDetectSubject(text) {
@@ -227,7 +230,7 @@ function nlpExtractTasksFromText(text) {
       subject_name: subjectName || 'General',
       due_at,
       notes: 'Extracted by heuristic NLP parser.',
-      icon: { 'Computer Science':'💻','Mathematics':'📐','English Lit':'📖','Physics':'⚗️' }[subjectName] || '📚',
+      icon: { 'Computer Science':'💻','Mathematics':'📐','English Lit':'📖','Physics':'⚗️','Chemistry':'🧪','Biology':'🧬','History':'📜' }[subjectName] || '📚',
       confidence_score: confidence,
       priority: confidence > 70 ? 'high' : 'medium',
     });
