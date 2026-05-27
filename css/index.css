@@ -4845,6 +4845,15 @@ body {
   font-weight: 600;
 }
 
+.paste-zone {
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.paste-zone--dragover {
+  border-color: #4f46e5 !important;
+  background-color: rgba(79, 70, 229, 0.05) !important;
+  box-shadow: inset 0 0 8px rgba(79, 70, 229, 0.1);
+}
 /* ==========================================================================
    Modern Toast Notifications
    ========================================================================== */
