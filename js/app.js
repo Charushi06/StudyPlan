@@ -1388,3 +1388,34 @@ if (calendarDownloadBtn) {
     downloadCalendar();
   });
 }
+
+// Mobile menu toggle
+(() => {
+  const mobileBtn = document.querySelector('.mobile-menu-btn');
+  const mobileMenu = document.getElementById('mobile-menu');
+  if (!mobileBtn || !mobileMenu) return;
+
+  mobileBtn.addEventListener('click', (e) => {
+    const open = mobileMenu.classList.toggle('open');
+    mobileBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    mobileMenu.setAttribute('aria-hidden', open ? 'false' : 'true');
+  });
+
+  // Close when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!mobileMenu.classList.contains('open')) return;
+    if (mobileMenu.contains(e.target) || mobileBtn.contains(e.target)) return;
+    mobileMenu.classList.remove('open');
+    mobileBtn.setAttribute('aria-expanded', 'false');
+    mobileMenu.setAttribute('aria-hidden', 'true');
+  });
+
+  // Close on Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && mobileMenu.classList.contains('open')) {
+      mobileMenu.classList.remove('open');
+      mobileBtn.setAttribute('aria-expanded', 'false');
+      mobileMenu.setAttribute('aria-hidden', 'true');
+    }
+  });
+})();
