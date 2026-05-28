@@ -21,7 +21,37 @@
 
     <input id="auth-email" type="email" placeholder="Email address" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:12px; box-sizing:border-box;">
     
-    <input id="auth-password" type="password" placeholder="Password" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:20px; box-sizing:border-box;">
+    <div style="position:relative; margin-bottom:20px;">
+  <input 
+    id="auth-password"
+    type="password"
+    placeholder="Password"
+    style="
+      width:100%;
+      padding:12px 12px 12px 12px;
+      border:1px solid #ddd;
+      border-radius:8px;
+      font-size:14px;
+      box-sizing:border-box;
+    "
+  >
+
+  <button
+  type="button"
+  id="toggle-password"
+  style="
+    position:absolute;
+    right:12px;
+    top:50%;
+    transform:translateY(-50%);
+    border:none;
+    background:none;
+    cursor:pointer;
+    font-size:18px;
+  "
+>
+</button>
+</div>
 
     <button id="auth-submit-btn" style="width:100%; padding:12px; background:#4f46e5; color:white; border:none; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer;">
     Sign In
@@ -347,6 +377,14 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
     errorEl.style.display = 'block';
     return;
   }
+const passwordInput = document.getElementById('auth-password');
+const togglePasswordBtn = document.getElementById('toggle-password');
+
+togglePasswordBtn.addEventListener('click', () => {
+  const isPassword = passwordInput.type === 'password';
+
+  passwordInput.type = isPassword ? 'text' : 'password';
+});
 
   // Password validation check
   if (!validatePassword(password)) {
