@@ -1,12 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script>
+    window.onerror = function(message, source, lineno, colno, error) {
+      const errDiv = document.createElement('div');
+      errDiv.style.position = 'fixed';
+      errDiv.style.top = '0';
+      errDiv.style.left = '0';
+      errDiv.style.width = '100%';
+      errDiv.style.background = 'red';
+      errDiv.style.color = 'white';
+      errDiv.style.padding = '10px';
+      errDiv.style.zIndex = '999999';
+      errDiv.innerHTML = `<strong>Error:</strong> ${message} at ${source}:${lineno}:${colno}`;
+      document.body.appendChild(errDiv);
+    };
+    window.addEventListener('unhandledrejection', function(event) {
+      const errDiv = document.createElement('div');
+      errDiv.style.position = 'fixed';
+      errDiv.style.top = '40px';
+      errDiv.style.left = '0';
+      errDiv.style.width = '100%';
+      errDiv.style.background = 'orange';
+      errDiv.style.color = 'white';
+      errDiv.style.padding = '10px';
+      errDiv.style.zIndex = '999999';
+      errDiv.innerHTML = `<strong>Unhandled Promise Rejection:</strong> ${event.reason}`;
+      document.body.appendChild(errDiv);
+    });
+  </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>StudyPlan</title>
   <link rel="stylesheet" href="/css/index.css">
+  <link rel="stylesheet" href="/css/planner.css">
 
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <script src="/js/confetti.browser.min.js"></script>
 
   <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -78,6 +107,10 @@
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="1" y="2" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M1 6h14" stroke="currentColor" stroke-width="1.5"/><path d="M5 1v2M11 1v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         Calendar
       </div>
+      <div class="nav-item" id="planner-nav-btn" role="link" aria-label="Smart Planner">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 2l2 4 4 1-3 3 1 4-4-2-4 2 1-4-3-3 4-1z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        Smart Planner
+      </div>
       <div class="nav-item" id="all-tasks-btn" role="link" aria-label="View All Tasks">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 4h12M2 8h9M2 12h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         All Tasks
@@ -110,8 +143,8 @@
       </div>
     </div>
 
-    <!-- Main -->
-    <div class="main">
+    <!-- Main Tasks View -->
+    <div class="main" id="tasks-view">
       <div class="topbar">
         <div class="topbar-title">April 2026</div>
         <select id="label-filter" style="margin-left:auto; margin-right: 12px; padding: 6px; border-radius: 6px; border: 1px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); outline: none; cursor: pointer;">
@@ -233,15 +266,84 @@
       </div>
       <div id="summary-box" class="summary-box"></div>
 
-  <button id="add-btn" class="add-btn" disabled>
-    Add items to planner
-  </button>
-</div>
-
-
       <button id="add-btn" class="add-btn" disabled>Add items to planner</button>
     </div>
+
   </div>
+  </div>
+
+    <!-- Planner View -->
+    <div class="main" id="planner-view" style="display:none; padding: 24px; flex-direction: column; gap: 24px; overflow-y: auto;">
+      
+      <!-- Top header for Planner -->
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="font-size: 24px; font-weight: 700; margin: 0;">AI Study Planner</h2>
+        <div style="display: flex; gap: 12px;">
+          <div class="streak-widget" style="background: var(--color-background-secondary); padding: 8px 12px; border-radius: 8px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+            🔥 Streak: <span id="streak-count">0</span> days
+          </div>
+          <button class="btn btn-primary" id="generate-schedule-btn">
+            ✨ Generate Smart Schedule
+          </button>
+        </div>
+      </div>
+
+      <!-- Main Layout: Sidebar (Exams/Goals/Pomodoro) + Timeline -->
+      <div style="display: flex; gap: 24px; flex-wrap: wrap;">
+        
+        <!-- Planner Sidebar -->
+        <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 24px;">
+          
+          <!-- Pomodoro Widget -->
+          <div class="panel" style="padding: 24px; text-align: center;">
+            <h3 style="margin-top: 0; color: var(--color-text-primary);">Pomodoro Timer</h3>
+            <div id="pomodoro-time" style="font-size: 48px; font-weight: 700; font-variant-numeric: tabular-nums; margin: 16px 0; color: var(--color-text-primary);">25:00</div>
+            <div style="display: flex; justify-content: center; gap: 8px;">
+              <button class="btn btn-primary" id="pomodoro-start">Start</button>
+              <button class="btn" id="pomodoro-pause">Pause</button>
+              <button class="btn" id="pomodoro-reset">Reset</button>
+            </div>
+            <div style="margin-top: 12px; font-size: 13px; color: var(--color-text-tertiary);">
+              <span id="pomodoro-mode">Focus Mode</span>
+            </div>
+          </div>
+
+          <!-- Exams -->
+          <div class="panel">
+            <div class="panel-header" style="padding: 16px; display: flex; justify-content: space-between;">
+              <div class="panel-title">Upcoming Exams</div>
+              <button class="btn" id="add-exam-btn" style="padding: 4px 8px; font-size: 12px;">+ Add</button>
+            </div>
+            <div id="exam-list" style="padding: 0 16px 16px; display:flex; flex-direction:column; gap:8px;">
+              <!-- JS injected -->
+            </div>
+          </div>
+
+          <!-- Goals -->
+          <div class="panel">
+            <div class="panel-header" style="padding: 16px; display: flex; justify-content: space-between;">
+              <div class="panel-title">Study Goals</div>
+              <button class="btn" id="add-goal-btn" style="padding: 4px 8px; font-size: 12px;">+ Add</button>
+            </div>
+            <div id="goal-list" style="padding: 0 16px 16px; display:flex; flex-direction:column; gap:8px;">
+              <!-- JS injected -->
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Schedule Timeline -->
+        <div class="panel" style="flex: 2; min-width: 400px; padding: 24px;">
+          <h3 style="margin-top: 0; margin-bottom: 24px;">Your Study Schedule</h3>
+          <div id="schedule-timeline" style="display: flex; flex-direction: column; gap: 16px;">
+            <div style="text-align: center; color: var(--color-text-tertiary); padding: 40px;">
+              Click "Generate Smart Schedule" to let AI plan your studies.
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
 </div>
 
 <footer class="site-footer">
@@ -510,6 +612,46 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
     <div style="display:flex; justify-content:flex-end; gap:8px;">
       <button id="new-task-cancel" class="btn" style="padding:6px 10px;">Cancel</button>
       <button id="new-task-save" class="btn btn-primary" style="padding:6px 12px;">Save</button>
+    </div>
+  </div>
+</div>
+
+<div id="new-exam-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0;  z-index:9998; align-items:center; justify-content:center;">
+  <div class="modal-card" style=" border-radius:12px; padding:20px; width:320px; box-shadow:0 12px 40px rgba(0,0,0,0.25);">
+    <h3 style="margin:0 0 12px; font-size:18px; font-weight:600;">New Exam</h3>
+
+    <label style="display:block; font-size:12px; margin-bottom:4px;">Exam Name</label>
+    <input id="new-exam-title" type="text" style="width:100%; padding:6px; margin-bottom:10px;" placeholder="e.g. Final OS Exam">
+
+    <label style="display:block; font-size:12px; margin-bottom:4px;">Subject</label>
+    <select id="new-exam-subject" style="width:100%; padding:6px; margin-bottom:10px;"></select>
+
+    <label style="display:block; font-size:12px; margin-bottom:4px;">Exam Date</label>
+    <input id="new-exam-date" type="date" style="width:100%; padding:6px; margin-bottom:16px;">
+
+    <div style="display:flex; justify-content:flex-end; gap:8px;">
+      <button id="new-exam-cancel" class="btn" style="padding:6px 10px;">Cancel</button>
+      <button id="new-exam-save" class="btn btn-primary" style="padding:6px 12px;">Save</button>
+    </div>
+  </div>
+</div>
+
+<div id="new-goal-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0;  z-index:9998; align-items:center; justify-content:center;">
+  <div class="modal-card" style=" border-radius:12px; padding:20px; width:320px; box-shadow:0 12px 40px rgba(0,0,0,0.25);">
+    <h3 style="margin:0 0 12px; font-size:18px; font-weight:600;">New Study Goal</h3>
+
+    <label style="display:block; font-size:12px; margin-bottom:4px;">Goal Description</label>
+    <input id="new-goal-desc" type="text" style="width:100%; padding:6px; margin-bottom:10px;" placeholder="e.g. Master dynamic programming">
+
+    <label style="display:block; font-size:12px; margin-bottom:4px;">Subject</label>
+    <select id="new-goal-subject" style="width:100%; padding:6px; margin-bottom:10px;"></select>
+
+    <label style="display:block; font-size:12px; margin-bottom:4px;">Target Date</label>
+    <input id="new-goal-date" type="date" style="width:100%; padding:6px; margin-bottom:16px;">
+
+    <div style="display:flex; justify-content:flex-end; gap:8px;">
+      <button id="new-goal-cancel" class="btn" style="padding:6px 10px;">Cancel</button>
+      <button id="new-goal-save" class="btn btn-primary" style="padding:6px 12px;">Save</button>
     </div>
   </div>
 </div>

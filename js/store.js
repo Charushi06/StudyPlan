@@ -4,6 +4,9 @@ import { triggerConfetti } from './utils/confetti.js';
 export const store = {
   subjects: [],
   tasks: [],
+  exams: [],
+  goals: [],
+  studySessions: [],
   currentPaste: null,
   listeners: [],
 
@@ -25,12 +28,18 @@ export const store = {
   
   async fetchInitialData() {
     try {
-      const [subsRes, tasksRes] = await Promise.all([
+      const [subsRes, tasksRes, examsRes, goalsRes, sessionsRes] = await Promise.all([
         fetch('/api/subjects'),
-        fetch('/api/tasks')
+        fetch('/api/tasks'),
+        fetch('/api/exams'),
+        fetch('/api/study_goals'),
+        fetch('/api/study_sessions')
       ]);
       this.subjects = await subsRes.json();
       this.tasks = await tasksRes.json();
+      this.exams = await examsRes.json();
+      this.goals = await goalsRes.json();
+      this.studySessions = await sessionsRes.json();
       this.notify();
     } catch (e) {
       console.error('Failed to load initial data', e);
@@ -317,5 +326,104 @@ export const store = {
   clearExtracted() {
     this.currentPaste = null;
     this.notify();
+  },
+
+  // ================= PLANNER METHODS =================
+  async addExam({ title, subject_id, date }) {
+    try {
+      const res = await fetch('/api/exams', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, subject_id, date })
+      });
+      if (!res.ok) throw new Error('Failed to add exam');
+      const examsRes = await fetch('/api/exams');
+      this.exams = await examsRes.json();
+      this.notify();
+      Toast.show('Exam added successfully', 'success');
+      return true;
+    } catch (e) {
+      console.error(e);
+      Toast.show('Failed to add exam', 'error');
+      return false;
+    }
+  },
+
+  async addGoal({ description, subject_id, target_date }) {
+    try {
+      const res = await fetch('/api/study_goals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ description, subject_id, target_date })
+      });
+      if (!res.ok) throw new Error('Failed to add goal');
+      const goalsRes = await fetch('/api/study_goals');
+      this.goals = await goalsRes.json();
+      this.notify();
+      Toast.show('Goal added successfully', 'success');
+      return true;
+    } catch (e) {
+      console.error(e);
+      Toast.show('Failed to add goal', 'error');
+      return false;
+    }
+  },
+
+  async generateSchedule() {
+    try {
+      // Determine weak subjects based on ratio of undone tasks (simple heuristic)
+      const weak_subjects = this.subjects.filter(s => {
+        const subTasks = this.tasks.filter(t => t.subject_id === s.id);
+        const undone = subTasks.filter(t => t.status !== 'Done');
+        return undone.length > 2; // if more than 2 pending tasks, mark as weak
+      }).map(s => s.id);
+
+      const res = await fetch('/api/planner/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tasks: this.tasks.filter(t => t.status !== 'Done').map(t => ({ title: t.title, due: t.due_at, subject: t.subject_id })),
+          exams: this.exams,
+          goals: this.goals,
+          weak_subjects
+        })
+      });
+      if (!res.ok) throw new Error('Failed to generate schedule');
+      const sessionsRes = await fetch('/api/study_sessions');
+      this.studySessions = await sessionsRes.json();
+      this.notify();
+      Toast.show('AI Schedule generated successfully!', 'success');
+      triggerConfetti();
+      return true;
+    } catch (e) {
+      console.error(e);
+      Toast.show('AI Generation failed. Check server logs.', 'error');
+      return false;
+    }
+  },
+
+  async toggleSessionStatus(sessionId) {
+    const session = this.studySessions.find(s => s.id === sessionId);
+    if (!session) return;
+    
+    const newStatus = session.status === 'completed' ? 'pending' : 'completed';
+    session.status = newStatus;
+    this.notify();
+
+    if (newStatus === 'completed') {
+      triggerConfetti();
+    }
+
+    try {
+      await fetch(`/api/study_sessions/${sessionId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+    } catch (e) {
+      session.status = newStatus === 'completed' ? 'pending' : 'completed';
+      this.notify();
+      console.error('Failed to update session status', e);
+    }
   }
 };

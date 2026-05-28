@@ -40,6 +40,39 @@ function initDb() {
       }
     });
 
+    // Exams Table
+    db.run(`CREATE TABLE IF NOT EXISTS exams (
+      id TEXT PRIMARY KEY,
+      subject_id TEXT,
+      title TEXT NOT NULL,
+      date DATETIME NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (subject_id) REFERENCES subjects(id)
+    )`);
+
+    // Study Goals Table
+    db.run(`CREATE TABLE IF NOT EXISTS study_goals (
+      id TEXT PRIMARY KEY,
+      subject_id TEXT,
+      description TEXT NOT NULL,
+      target_date DATETIME,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (subject_id) REFERENCES subjects(id)
+    )`);
+
+    // Study Sessions Table
+    db.run(`CREATE TABLE IF NOT EXISTS study_sessions (
+      id TEXT PRIMARY KEY,
+      subject_id TEXT,
+      title TEXT NOT NULL,
+      start_time DATETIME NOT NULL,
+      end_time DATETIME NOT NULL,
+      status TEXT DEFAULT 'pending',
+      type TEXT DEFAULT 'learning',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (subject_id) REFERENCES subjects(id)
+    )`);
+
     // Pre-populate some subjects if empty
     db.get('SELECT COUNT(*) as count FROM subjects', (err, row) => {
       if (row && row.count === 0) {

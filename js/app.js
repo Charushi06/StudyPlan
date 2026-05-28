@@ -3,6 +3,7 @@ import { extractTasksFromText } from './utils/api.js';
 import { initGlobalErrorBoundary } from './utils/errorBoundary.js';
 import { analyzeWorkload } from './utils/scheduler.js';
 import { Toast } from './utils/toast.js';
+import { initPlanner } from './planner.js';
 
 initGlobalErrorBoundary();
 
@@ -1028,6 +1029,7 @@ store.subscribe(renderFocusTasks);
 store.subscribe(renderSidebarSubjects);
 
 document.addEventListener('DOMContentLoaded', () => {
+  initPlanner();
   if (newSubjectColorsEl) {
     SUBJECT_COLORS.forEach(c => {
       const btn = document.createElement('button');
@@ -1381,7 +1383,7 @@ if (quoteEl) {
   quoteEl.textContent = quotes[index];
 }
 
-const calendarDownloadBtn = document.getElementById('calendar-download-btn');
+calendarDownloadBtn = document.getElementById('calendar-download-btn');
 
 if (calendarDownloadBtn) {
   calendarDownloadBtn.addEventListener('click', () => {
