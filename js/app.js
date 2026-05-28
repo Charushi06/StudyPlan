@@ -944,6 +944,21 @@ navTasks.addEventListener('click', (e) => {
     renderTasks();
   });
 
+  const navCalendar = document.getElementById('nav-calendar');
+
+  navCalendar.addEventListener('click', (e) => {
+  e.preventDefault();
+  calendarBtn.click();
+});
+
+
+const navDashboard = document.getElementById('nav-dashboard');
+
+navDashboard.addEventListener('click', (e) => {
+  e.preventDefault();
+  calendarBtn.click();
+});
+
   allTasksBtn.addEventListener('click', () => {
     currentView = 'all-tasks';
     document.querySelector('.cal-section').classList.add('hidden');
