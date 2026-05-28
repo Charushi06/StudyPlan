@@ -502,7 +502,8 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
     <input id="new-task-title" type="text" style="width:100%; padding:6px; margin-bottom:10px;"placeholder="e.g. Study for exam #urgent #school">
 
     <label style="display:block; font-size:12px; margin-bottom:4px;">Deadline</label>
-    <input id="new-task-date" type="datetime-local" style="width:100%; padding:6px; margin-bottom:10px;" placeholder="Deadline">
+    <div id="new-task-date-picker"></div>
+    <div id="new-task-error" style="color: #fc9c9c; background-color: rgba(252, 156, 156, 0.15); border: 1px solid rgba(252, 156, 156, 0.3); font-size: 12px; margin-bottom: 10px; display: none; border-radius: 6px; padding: 8px; box-sizing: border-box;"></div>
 
     <!-- <label style="display:block; font-size:12px; margin-bottom:4px;">Notes</label> -->
     <input id="new-task-notes" type="text" style="width:100%; padding:6px; margin-bottom:16px;" placeholder="Notes">

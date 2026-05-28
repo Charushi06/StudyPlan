@@ -3,6 +3,8 @@ import { extractTasksFromText } from './utils/api.js';
 import { initGlobalErrorBoundary } from './utils/errorBoundary.js';
 import { analyzeWorkload } from './utils/scheduler.js';
 import { Toast } from './utils/toast.js';
+import { formatDateTimeLocal, validateDateTime } from './utils/validation.js';
+import { DateTimePicker } from './utils/dateTimePicker.js';
 
 initGlobalErrorBoundary();
 
@@ -169,10 +171,14 @@ function renderSidebarSubjects() {
 const newTaskModal = document.getElementById('new-task-modal');
 const newTaskSubject = document.getElementById('new-task-subject');
 const newTaskTitle = document.getElementById('new-task-title');
-const newTaskDate = document.getElementById('new-task-date');
+const newTaskDatePickerEl = document.getElementById('new-task-date-picker');
 const newTaskNotes = document.getElementById('new-task-notes');
+const newTaskError = document.getElementById('new-task-error');
 const newTaskCancel = document.getElementById('new-task-cancel');
 const newTaskSave = document.getElementById('new-task-save');
+
+// Custom Date-Time Picker instance for the new task modal
+let newTaskPicker = null;
 
 // Timer elements
 const timerText = document.getElementById('timer-text');
@@ -1028,6 +1034,30 @@ store.subscribe(renderFocusTasks);
 store.subscribe(renderSidebarSubjects);
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Initialize the custom date-time picker for the new task modal
+  if (newTaskDatePickerEl) {
+    newTaskPicker = new DateTimePicker(newTaskDatePickerEl, {
+      onChange: (val) => {
+        if (!val) {
+          if (newTaskError) newTaskError.style.display = 'none';
+          newTaskSave.disabled = false;
+          return;
+        }
+        const valResult = validateDateTime(val);
+        if (!valResult.isValid) {
+          if (newTaskError) {
+            newTaskError.textContent = valResult.error;
+            newTaskError.style.display = 'block';
+          }
+          newTaskSave.disabled = true;
+        } else {
+          if (newTaskError) newTaskError.style.display = 'none';
+          newTaskSave.disabled = false;
+        }
+      }
+    });
+  }
+
   if (newSubjectColorsEl) {
     SUBJECT_COLORS.forEach(c => {
       const btn = document.createElement('button');
@@ -1155,13 +1185,24 @@ newTaskBtn.addEventListener('click', () => {
     .map(s => `<option value="${s.id}">${s.name}</option>`)
     .join('');
 
+  if (newTaskError) {
+    newTaskError.textContent = '';
+    newTaskError.style.display = 'none';
+  }
+  newTaskSave.disabled = false;
 
-  if (selectedDate) {
-    const d = new Date(selectedDate);
-    d.setHours(18, 0, 0, 0); 
-    newTaskDate.value = d.toISOString().substring(0, 16);
-  } else {
-    newTaskDate.value = '';
+  if (newTaskPicker) {
+    if (selectedDate) {
+      const d = new Date(selectedDate);
+      d.setHours(18, 0, 0, 0);
+      if (d < new Date()) {
+        newTaskPicker.setValue(formatDateTimeLocal());
+      } else {
+        newTaskPicker.setValue(formatDateTimeLocal(d));
+      }
+    } else {
+      newTaskPicker.setValue('');
+    }
   }
 
   newTaskTitle.value = '';
@@ -1184,7 +1225,7 @@ newTaskSave.addEventListener('click', async () => {
   const rawTitle = newTaskTitle.value.trim();
   const subject_id = newTaskSubject.value;
   const notes = newTaskNotes.value.trim();
-  const dateVal = newTaskDate.value;
+  const dateVal = newTaskPicker ? newTaskPicker.getValue() : '';
 
   if (!rawTitle) {
     alert('Please enter a task name');
@@ -1192,14 +1233,28 @@ newTaskSave.addEventListener('click', async () => {
   }
 
   if (!dateVal) {
-  alert('Please enter a deadline');
-  return;
-}
+    alert('Please enter a deadline');
+    return;
+  }
 
-if (!subject_id) {
-  alert('Please select a subject');
-  return;
-}
+  if (!subject_id) {
+    alert('Please select a subject');
+    return;
+  }
+
+  const valResult = validateDateTime(dateVal);
+  if (!valResult.isValid) {
+    if (newTaskError) {
+      newTaskError.textContent = valResult.error;
+      newTaskError.style.display = 'block';
+    } else {
+      alert(valResult.error);
+    }
+    return;
+  } else if (newTaskError) {
+    newTaskError.style.display = 'none';
+  }
+
   const { cleanTitle, labels } = extractLabels(rawTitle);
   const due_at = dateVal ? new Date(dateVal).toISOString() : '';
 
