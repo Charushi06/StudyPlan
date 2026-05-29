@@ -922,6 +922,20 @@ document.addEventListener('DOMContentLoaded', () => {
   const focusModeBtn = document.getElementById('focus-mode-btn');
 
 
+window.addEventListener('load', () => {
+  const params = new URLSearchParams(window.location.search);
+  const view = params.get('view');
+
+  if (view === 'tasks') {
+    allTasksBtn.click();
+  }
+
+  if (view === 'calendar') {
+    calendarBtn.click();
+  }
+});
+
+
   const navTasks = document.getElementById('nav-tasks');
 
 navTasks.addEventListener('click', (e) => {
