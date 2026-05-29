@@ -16,7 +16,7 @@ const page500Path = path.join(__dirname, 'error.html');
 // Static
 app.use('/css', express.static(path.join(__dirname, 'css')));
 app.use('/js', express.static(path.join(__dirname, 'js')));
-app.use(express.static(__dirname));
+app.use(express.static(path.join(__dirname, 'public')));
 
 initDb();
 
@@ -251,6 +251,11 @@ function nlpExtractTasksFromText(text) {
 // ============================================================
 
 // ================= SUBJECTS =================
+app.get('/profile', (req, res) => {
+    console.log("SUCCESS: Route hit!");
+    res.sendFile(path.join(__dirname, 'public', 'profile.html'));
+});
+
 app.get('/api/subjects', (req, res) => {
   db.all('SELECT * FROM subjects', (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
@@ -573,3 +578,8 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log('Server running on port ' + PORT);
 });
+//prifile
+
+//app.get('/profile', (req, res) => {
+    //res.sendFile(path.join(__dirname, 'public', 'profile.html'));
+//})
