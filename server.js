@@ -4,6 +4,8 @@ const cors = require('cors');
 const { db, initDb } = require('./database');
 const { GoogleGenAI } = require('@google/genai');
 const path = require('path');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const csvDownloadRouter = require('./backend/routers/csvDownload.router.js');
 
 const app = express();
@@ -509,30 +511,53 @@ Text: "${text}"
   return res.json(tasks);
 });
 // ================= AUTH =================
-const users = {}; // Simple in-memory user store
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  console.warn('\x1b[33m%s\x1b[0m', '⚠️  WARNING: JWT_SECRET is not defined in .env');
+  console.warn('\x1b[33m%s\x1b[0m', '   Auth endpoints will not work securely. Set JWT_SECRET in your .env file.');
+}
 
-app.post('/api/auth/signup', (req, res) => {
+app.post('/api/auth/signup', async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password required' });
   }
-  if (users[email]) {
-    return res.status(400).json({ error: 'User already exists' });
+  try {
+    const hash = await bcrypt.hash(password, 10);
+    const id = `user_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    db.run(
+      'INSERT INTO users (id, email, password_hash) VALUES (?, ?, ?)',
+      [id, email, hash],
+      function (err) {
+        if (err) return res.status(400).json({ error: 'User already exists' });
+        res.status(201).json({ success: true, message: 'Account created successfully' });
+      }
+    );
+  } catch (err) {
+    res.status(500).json({ error: 'Internal server error' });
   }
-  users[email] = { email, password };
-  res.json({ success: true, message: 'Account created successfully' });
 });
 
-app.post('/api/auth/login', (req, res) => {
+app.post('/api/auth/login', async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password required' });
   }
-  const user = users[email];
-  if (!user || user.password !== password) {
-    return res.status(401).json({ error: 'Invalid email or password' });
-  }
-  res.json({ success: true, email: user.email });
+  db.get('SELECT * FROM users WHERE email = ?', [email], async (err, user) => {
+    if (err || !user) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+    try {
+      const match = await bcrypt.compare(password, user.password_hash);
+      if (!match) {
+        return res.status(401).json({ error: 'Invalid email or password' });
+      }
+      const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
+      res.json({ success: true, token });
+    } catch (err) {
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
 });
 
 // Intentional test route for verifying server error page behavior.
