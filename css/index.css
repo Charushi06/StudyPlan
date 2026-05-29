@@ -1267,7 +1267,7 @@ body {
   stroke: var(--color-text-primary);
   stroke-width: 6;
   stroke-linecap: round;
-  transition: stroke-dashoffset 1s linear;
+  transition: stroke-dashoffset 1s linear, stroke 0.3s ease;
 }
 
 .timer-text {

@@ -221,6 +221,56 @@ function setCircleDasharray() {
   timerPathRemaining.setAttribute("stroke-dasharray", circleDasharray);
 }
 
+function getTimerColor(timeLeft, totalTime) {
+  const fraction = timeLeft / totalTime;
+  if (fraction <= 0.1) return '#ef4444';
+  if (fraction <= 0.3) return '#f59e0b';
+  return '#166534';
+}
+
+function updateTimerColor() {
+  const color = getTimerColor(timeLeft, TIME_LIMIT);
+  timerPathRemaining.style.stroke = color;
+}
+
+function playCompletionSound() {
+  try {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.3);
+    
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.5);
+  } catch (e) {
+    console.log('Audio not supported');
+  }
+}
+
+function requestNotificationPermission() {
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+}
+
+function showBrowserNotification() {
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification('Focus Session Complete!', {
+      body: 'Great job! You completed your focus session.',
+      icon: '/logo.png'
+    });
+  }
+}
+
 function startTimer() {
   if (timerInterval) return;
   TIME_LIMIT = getTimerDuration();
@@ -228,16 +278,20 @@ function startTimer() {
   timerDurationInput.disabled = true;
   timerStartBtn.classList.add('hidden');
   timerPauseBtn.classList.remove('hidden');
+  requestNotificationPermission();
   
   timerInterval = setInterval(() => {
     timePassed += 1;
     timeLeft = TIME_LIMIT - timePassed;
     timerText.innerHTML = formatTimeLeft(timeLeft);
     setCircleDasharray();
+    updateTimerColor();
 
     if (timeLeft === 0) {
       clearInterval(timerInterval);
       timerInterval = null;
+      playCompletionSound();
+      showBrowserNotification();
       Toast.show('Focus session complete!', 'success');
       resetTimer();
     }
@@ -260,6 +314,7 @@ function resetTimer() {
   timerDurationInput.disabled = false;
   timerText.innerHTML = formatTimeLeft(timeLeft);
   timerPathRemaining.setAttribute("stroke-dasharray", "283 283");
+  timerPathRemaining.style.stroke = 'var(--color-text-primary)';
   timerPauseBtn.classList.add('hidden');
   timerStartBtn.classList.remove('hidden');
 }
@@ -1217,7 +1272,85 @@ downloadBtn.addEventListener('click', () => {
   downloadData();
 });
 
-// Motivational Quotes
+const fileInput = document.getElementById('file-input');
+const dropZone = document.getElementById('drop-zone');
+
+// Handle File Selection via File Explorer
+if (fileInput) {
+  fileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) handleFileContent(file);
+  });
+}
+
+// Handle Drag & Drop Events
+if (dropZone) {
+  // Prevent browser from opening the file
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    dropZone.addEventListener(eventName, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    });
+  });
+
+  // Add highlight effect
+  ['dragenter', 'dragover'].forEach(eventName => {
+    dropZone.addEventListener(eventName, () => {
+      dropZone.classList.add('paste-zone--dragover');
+    });
+  });
+
+  // Remove highlight effect
+  ['dragleave', 'drop'].forEach(eventName => {
+    dropZone.addEventListener(eventName, () => {
+      dropZone.classList.remove('paste-zone--dragover');
+    });
+  });
+
+  // Handle dropped file
+  dropZone.addEventListener('drop', (e) => {
+    const dt = e.dataTransfer;
+
+    if (dt && dt.files.length > 0) {
+      const file = dt.files[0];
+      handleFileContent(file);
+    }
+  });
+}
+
+// File Reader Function
+function handleFileContent(file) {
+  const allowedExtensions = ['txt', 'md', 'json'];
+  const fileExtension = file.name.split('.').pop().toLowerCase();
+
+  // Validate extension
+  if (!allowedExtensions.includes(fileExtension)) {
+    alert('Invalid file format. Please upload a .txt, .md, or .json file.');
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = (e) => {
+    const pasteInput = document.getElementById('paste-input');
+
+    if (pasteInput) {
+      pasteInput.value = e.target.result;
+
+      alert(
+        `Loaded "${file.name}" successfully! Click "Extract with AI" to find your tasks.`
+      );
+    }
+  };
+
+  reader.onerror = () => {
+    alert('Error reading file content. Please try again.');
+  };
+
+  reader.readAsText(file);
+}
+
+
 const quotes = [
   "Small Progress is still Progress",
   "Focus on being productive instead of busy",
@@ -1232,16 +1365,26 @@ const quotes = [
 ];
 
 const quoteEl = document.getElementById('motivational-quotes');
+
 if (quoteEl) {
   const today = new Date();
   const seed = today.toDateString();
+
   let hash = 0;
+
   for (let i = 0; i < seed.length; i++) {
     hash = seed.charCodeAt(i) + ((hash << 5) - hash);
   }
+
   const index = Math.abs(hash % quotes.length);
-  quoteEl.textContent = `${quotes[index]}`;
+
+  quoteEl.textContent = quotes[index];
 }
-calendarDownloadBtn.addEventListener('click', () => {
-  downloadCalendar();
-});
+
+const calendarDownloadBtn = document.getElementById('calendar-download-btn');
+
+if (calendarDownloadBtn) {
+  calendarDownloadBtn.addEventListener('click', () => {
+    downloadCalendar();
+  });
+}

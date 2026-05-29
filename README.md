@@ -252,9 +252,7 @@ GitHub: https://github.com/Charushi06
 
 ---
 
-## 🌱 Nexus Spring of Code 2026
-
-This project is part of NSoC 2026
+### GSSoC 2026
 
 ---
 
