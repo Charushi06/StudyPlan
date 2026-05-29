@@ -1381,7 +1381,7 @@ if (quoteEl) {
   quoteEl.textContent = quotes[index];
 }
 
-const calendarDownloadBtn = document.getElementById('calendar-download-btn');
+calendarDownloadBtn = document.getElementById('calendar-download-btn');
 
 if (calendarDownloadBtn) {
   calendarDownloadBtn.addEventListener('click', () => {
