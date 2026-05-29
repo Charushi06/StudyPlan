@@ -86,10 +86,21 @@ const extractBtn = document.getElementById('extract-btn');
 const clearBtn = document.getElementById('clear-btn');
 const addItemsBtn = document.getElementById('add-btn');
 const downloadBtn = document.getElementById('download-btn');
-const calendarDownloadBtn = document.getElementById('calendar-download-btn');
+let calendarDownloadBtn = document.getElementById('calendar-download-btn');
 const newTaskBtn = document.getElementById('add-task-btn');
 const labelFilterSelect = document.getElementById('label-filter');
 
+// In js/app.js
+window.location.href = '/profile.html';
+
+const profileBtn = document.getElementById('profile-btn');
+
+if (profileBtn) {
+    profileBtn.addEventListener('click', () => {
+        
+        window.location.href = '/profile'; 
+    });
+}
 if (labelFilterSelect) {
   labelFilterSelect.addEventListener('change', (e) => {
     activeLabelFilter = e.target.value;
