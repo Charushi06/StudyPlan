@@ -39,7 +39,7 @@ function nlpAddDays(date, n) {
   const d = new Date(date); d.setDate(d.getDate() + n); return d;
 }
 function nlpStartOf(date) {
-  const d = new Date(date); d.setHours(23, 59, 0, 0); return d;
+  const d = new Date(date); d.setHours(0, 0, 0, 0); return d;
 }
 function nlpWithTime(dateStr, t) {
   const d = new Date(dateStr);
