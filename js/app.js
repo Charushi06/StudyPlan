@@ -1082,6 +1082,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  tasksSection.innerHTML = createSkeleton(4, "task");
+
   store.fetchInitialData();
   
   const calendarBtn = document.getElementById('calendar-btn');
@@ -1109,6 +1111,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
     updateSidebarActive('all-tasks-btn');
+    tasksSection.innerHTML = createSkeleton(4, "task");
     renderTasks();
   });
 
@@ -1118,6 +1121,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
     updateSidebarActive('archived-tasks-btn');
+    tasksSection.innerHTML = createSkeleton(2, "task");
     renderTasks();
   });
 
@@ -1243,6 +1247,7 @@ extractBtn.addEventListener('click', async () => {
   extractBtn.innerHTML = '<span class="loader-spinner"></span>';
   extractBtn.disabled = true;
 
+  extractPreview.innerHTML = createSkeleton(1, "task");
   // Show loading skeleton
   extractPreview.innerHTML = `
     <div class="extract-title">Extracting tasks...</div>
@@ -1258,6 +1263,8 @@ extractBtn.addEventListener('click', async () => {
     </div>
   `;
   
+  const items = await extractTasksFromText(text);
+
   const items = await extractTasksFromText(text);
   
   extractBtn.innerHTML = 'Extract with AI →';
@@ -1287,6 +1294,33 @@ downloadBtn.addEventListener('click', () => {
   downloadData();
 });
 
+
+function createSkeleton(count = 3, type = "card") {
+  return Array(count)
+    .fill("")
+    .map(() => {
+      switch (type) {
+        case "card":
+          return `
+            <div class="skeleton skeleton-card"></div>
+          `;
+
+        case "task":
+          return `
+            <div class="skeleton skeleton-card">
+              <div class="skeleton skeleton-text"></div>
+              <div class="skeleton skeleton-text"></div>
+            </div>
+          `;
+
+        default:
+          return `
+            <div class="skeleton skeleton-card"></div>
+          `;
+      }
+    })
+    .join("");
+}
 const fileInput = document.getElementById('file-input');
 const dropZone = document.getElementById('drop-zone');
 

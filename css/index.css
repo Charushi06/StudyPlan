@@ -4883,6 +4883,52 @@ body {
   font-weight: 600;
 }
 
+/* Skeleton Loader */
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: #e2e2e2;
+  border-radius: 8px;
+}
+
+.skeleton::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -150px;
+  width: 150px;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,255,255,0.5),
+    transparent
+  );
+  animation: shimmer 1.2s infinite;
+}
+
+@keyframes shimmer {
+  100% {
+    left: 100%;
+  }
+}
+
+.skeleton-card {
+  width: 100%;
+  height: 120px;
+  margin-bottom: 16px;
+}
+
+.skeleton-text {
+  height: 16px;
+  margin: 10px 0;
+}
+
+.skeleton-button {
+  width: 100px;
+  height: 36px;
+}
 .paste-zone {
   transition: border-color 0.2s ease, background-color 0.2s ease;
 }
