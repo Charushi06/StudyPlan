@@ -721,11 +721,12 @@ function renderTasks() {
          </div>`
       : '';
 
-    tasksSection.innerHTML = actionBar +
-                             renderGroup(titlePrefix + '⚠ Due soon', dueSoon, 'var(--color-text-danger)', true)
-                             + renderGroup(titlePrefix + 'This week', thisWeek, 'var(--color-text-secondary)', true) +
-                             renderGroup(titlePrefix + 'Completed', completed, 'var(--color-text-tertiary)') +
-                             emptyState;
+    tasksSection.innerHTML =
+      actionBar +
+      renderGroup(titlePrefix + '⚠ Due soon', dueSoon, 'var(--color-text-danger)', true) +
+      renderGroup(titlePrefix + 'This week', thisWeek, 'var(--color-text-secondary)', true) +
+      renderGroup(titlePrefix + 'Completed', completed, 'var(--color-text-tertiary)') +
+      emptyState;
   }
 
   // Bind CTA button in empty state
@@ -1218,7 +1219,9 @@ if (!subject_id) {
   newTaskModal.style.display = 'none';
 });
 
-addItemsBtn.addEventListener('click', () => {
+});
+
+addItemsBtn.onclick = () => {
   if (store.currentPaste) {
     const pasteWithLabels = store.currentPaste.map(t => {
       const { cleanTitle, labels } = extractLabels(t.title);
@@ -1228,8 +1231,7 @@ addItemsBtn.addEventListener('click', () => {
     store.clearExtracted();
     pasteInput.value = '';
   }
-});
-});
+};
 
 // Ensures the button is hidden on initial page load if the textarea is empty
 if (pasteInput.value.trim() === "") {
@@ -1380,8 +1382,6 @@ if (quoteEl) {
 
   quoteEl.textContent = quotes[index];
 }
-
-const calendarDownloadBtn = document.getElementById('calendar-download-btn');
 
 if (calendarDownloadBtn) {
   calendarDownloadBtn.addEventListener('click', () => {
