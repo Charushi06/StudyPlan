@@ -331,66 +331,63 @@ app.post('/api/tasks', (req, res) => {
     let inserted = 0;
     let duplicates = [];
     let errors = [];
+    let validTasks = [];
+
+    // Pre-validate all tasks synchronously
+    tasks.forEach(t => {
+      let validationError = null;
+      if (!t.title && !t.subject_id && !t.due_at) {
+        validationError = "Missing title, subject, and deadline";
+      } else if (!t.title) {
+        validationError = "Task name is required";
+      } else if (!t.subject_id) {
+        validationError = "Subject is required";
+      } else if (!t.due_at) {
+        validationError = "Deadline is required";
+      }
+
+      if (validationError) {
+        errors.push({ task: t, error: validationError });
+      } else {
+        validTasks.push(t);
+      }
+    });
+
+    if (validTasks.length === 0) {
+      return res.status(400).json({ 
+        success: false, inserted, duplicates, errors, 
+        message: errors.length === tasks.length ? errors[0].error : "Some tasks are invalid"
+      });
+    }
 
     const stmt = db.prepare(`INSERT INTO tasks 
       (id, subject_id, title, due_at, status, priority, confidence_score, notes, labels) 
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`);
 
-    let pending = tasks.length;
+    let pending = validTasks.length;
 
-    tasks.forEach(t => {
-      let validationError = null;
-  if (!t.title && !t.subject_id && !t.due_at) {
-    validationError = "Missing title, subject, and deadline";
-  } else if (!t.title) {
-    validationError = "Task name is required";
-  } else if (!t.subject_id) {
-    validationError = "Subject is required";
-  } else if (!t.due_at) {
-    validationError = "Deadline is required";
-  }
-
-  if (validationError) {
-    errors.push({ task: t, error: validationError });
-    pending--;
-    if (pending === 0) {
-      if (inserted === 0) {
-        return res.status(400).json({ 
-          success: false, inserted, duplicates, errors, 
-          message: errors.length === tasks.length ? errors[0].error : "Some tasks are invalid"
-        });
-      }
-      stmt.finalize(() => res.status(400).json({ 
-        success: false, inserted, duplicates, errors, 
-        message: "Some tasks are invalid"
-      }));
-    }
-    return;
-  }
-
+    validTasks.forEach(t => {
       db.get(
         `SELECT * FROM tasks WHERE LOWER(title) = LOWER(?) AND subject_id = ? AND DATE(due_at) = DATE(?)`,
         [t.title, t.subject_id, t.due_at],
         (err, existing) => {
           if (err) {
             errors.push({ task: t, error: err.message });
+            pending--;
+            checkComplete();
           } else if (existing) {
             duplicates.push({
               title: t.title,
               due_at: t.due_at,
               subject_id: t.subject_id
             });
+            pending--;
+            checkComplete();
           } else {
             const id = 'task_' + Date.now() + Math.random().toString(36).substr(2, 5);
             stmt.run(
-              id,
-              t.subject_id,
-              t.title,
-              t.due_at,
-              t.status || 'Not Started',
-              t.priority || 'medium',
-              t.confidence_score || 100,
-              t.notes || '',
+              id, t.subject_id, t.title, t.due_at, t.status || 'Not Started',
+              t.priority || 'medium', t.confidence_score || 100, t.notes || '',
               typeof t.labels === 'string' ? t.labels : JSON.stringify(t.labels || []),
               function (insertErr) {
                 if (insertErr) {
@@ -398,33 +395,34 @@ app.post('/api/tasks', (req, res) => {
                 } else {
                   inserted++;
                 }
+                pending--;
+                checkComplete();
               }
             );
-          }
-
-          pending--;
-          if (pending === 0) {
-            stmt.finalize((finalErr) => {
-              if (finalErr) return res.status(500).json({ success: false, message: "Database error", error: finalErr.message });
-              return res.json({
-                success: true,
-                inserted,
-                duplicates,
-                errors,
-                message:
-                  errors.length > 0 && duplicates.length > 0
-                    ? "Some tasks failed and some duplicates were skipped"
-                    : errors.length > 0
-                      ? "Some tasks failed to add"
-                      : duplicates.length > 0
-                        ? "Duplicate tasks were skipped"
-                        : "All tasks added successfully"
-              });
-            });
           }
         }
       );
     });
+
+    function checkComplete() {
+      if (pending === 0) {
+        stmt.finalize((finalErr) => {
+          if (finalErr) return res.status(500).json({ success: false, message: "Database error", error: finalErr.message });
+          const hasErrors = errors.length > 0;
+          return res.status(hasErrors ? 400 : 200).json({
+            success: !hasErrors,
+            inserted, duplicates, errors,
+            message: errors.length > 0 && duplicates.length > 0
+              ? "Some tasks failed and some duplicates were skipped"
+              : errors.length > 0
+                ? "Some tasks failed to add"
+                : duplicates.length > 0
+                  ? "Duplicate tasks were skipped"
+                  : "All tasks added successfully"
+          });
+        });
+      }
+    }
 
   } catch (e) {
     return res.status(500).json({ success: false, message: "Unexpected server error", error: e.message });
