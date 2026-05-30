@@ -2,8 +2,31 @@ import { store } from './store.js';
 import { extractTasksFromText } from './utils/api.js';
 import { initGlobalErrorBoundary } from './utils/errorBoundary.js';
 import { analyzeWorkload } from './utils/scheduler.js';
+import { Toast } from './utils/toast.js';
 
 initGlobalErrorBoundary();
+
+function getLabelColor(labelStr) {
+  const colors = ['#ef4444', '#f59e0b', '#3b82f6', '#8b5cf6', '#10b981', '#ec4899', '#14b8a6', '#f97316'];
+  let hash = 0;
+  for (let i = 0; i < labelStr.length; i++) {
+    hash = labelStr.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return colors[Math.abs(hash) % colors.length];
+}
+
+function extractLabels(title) {
+  const labelRegex = /#([\w-]+)/g;
+  let match;
+  const labels = [];
+  while ((match = labelRegex.exec(title)) !== null) {
+    labels.push(match[1]);
+  }
+  const cleanTitle = title.replace(labelRegex, '').trim();
+  return { cleanTitle, labels };
+}
+
+let activeLabelFilter = '';
 
 function generateSummary(tasks, subjects) {
   const now = new Date();
@@ -63,9 +86,16 @@ const extractBtn = document.getElementById('extract-btn');
 const clearBtn = document.getElementById('clear-btn');
 const addItemsBtn = document.getElementById('add-btn');
 const downloadBtn = document.getElementById('download-btn');
+const calendarDownloadBtn = document.getElementById('calendar-download-btn');
 const newTaskBtn = document.getElementById('add-task-btn');
+const labelFilterSelect = document.getElementById('label-filter');
 
-
+if (labelFilterSelect) {
+  labelFilterSelect.addEventListener('change', (e) => {
+    activeLabelFilter = e.target.value;
+    renderTasks();
+  });
+}
 
 const SUBJECT_COLORS = [
   'var(--color-text-info)',
@@ -191,6 +221,56 @@ function setCircleDasharray() {
   timerPathRemaining.setAttribute("stroke-dasharray", circleDasharray);
 }
 
+function getTimerColor(timeLeft, totalTime) {
+  const fraction = timeLeft / totalTime;
+  if (fraction <= 0.1) return '#ef4444';
+  if (fraction <= 0.3) return '#f59e0b';
+  return '#166534';
+}
+
+function updateTimerColor() {
+  const color = getTimerColor(timeLeft, TIME_LIMIT);
+  timerPathRemaining.style.stroke = color;
+}
+
+function playCompletionSound() {
+  try {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.3);
+    
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.5);
+  } catch (e) {
+    console.log('Audio not supported');
+  }
+}
+
+function requestNotificationPermission() {
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+}
+
+function showBrowserNotification() {
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification('Focus Session Complete!', {
+      body: 'Great job! You completed your focus session.',
+      icon: '/logo.png'
+    });
+  }
+}
+
 function startTimer() {
   if (timerInterval) return;
   TIME_LIMIT = getTimerDuration();
@@ -198,17 +278,21 @@ function startTimer() {
   timerDurationInput.disabled = true;
   timerStartBtn.classList.add('hidden');
   timerPauseBtn.classList.remove('hidden');
+  requestNotificationPermission();
   
   timerInterval = setInterval(() => {
     timePassed += 1;
     timeLeft = TIME_LIMIT - timePassed;
     timerText.innerHTML = formatTimeLeft(timeLeft);
     setCircleDasharray();
+    updateTimerColor();
 
     if (timeLeft === 0) {
       clearInterval(timerInterval);
       timerInterval = null;
-      alert('Focus session complete!');
+      playCompletionSound();
+      showBrowserNotification();
+      Toast.show('Focus session complete!', 'success');
       resetTimer();
     }
   }, 1000);
@@ -230,6 +314,7 @@ function resetTimer() {
   timerDurationInput.disabled = false;
   timerText.innerHTML = formatTimeLeft(timeLeft);
   timerPathRemaining.setAttribute("stroke-dasharray", "283 283");
+  timerPathRemaining.style.stroke = 'var(--color-text-primary)';
   timerPauseBtn.classList.add('hidden');
   timerStartBtn.classList.remove('hidden');
 }
@@ -380,7 +465,31 @@ async function downloadData() {
 
     } catch (error) {
         console.error(error);
-        alert('Failed to download data');
+        Toast.show('Failed to download data', 'error');
+    }
+}
+
+async function downloadCalendar() {
+    try {
+        const response = await fetch('/api/download/calendar');
+
+        if (!response.ok) {
+            throw new Error('Failed to export calendar');
+        }
+
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'studyplan_calendar.ics';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 100);
+
+    } catch (error) {
+        console.error(error);
+        alert('Failed to export calendar');
     }
 }
 
@@ -404,7 +513,29 @@ function renderTasks() {
     archivedBadge.textContent = archivedTasks.length;
   }
   
-  const displayTasks = currentView === 'archived' ? archivedTasks : activeTasks;
+  const displayTasksRaw = currentView === 'archived' ? archivedTasks : activeTasks;
+  const displayTasks = activeLabelFilter
+    ? displayTasksRaw.filter(t => t.labels && t.labels.includes(activeLabelFilter))
+    : displayTasksRaw;
+
+  // Extract unique labels to populate the filter dropdown
+  if (labelFilterSelect) {
+    const uniqueLabels = new Set();
+    store.tasks.forEach(t => {
+      if (t.labels && Array.isArray(t.labels)) {
+        t.labels.forEach(l => uniqueLabels.add(l));
+      }
+    });
+    
+    // Store current selection to restore it
+    const currentSel = labelFilterSelect.value;
+    let optionsHtml = '<option value="">All Labels</option>';
+    Array.from(uniqueLabels).sort().forEach(lbl => {
+      optionsHtml += `<option value="${lbl}" ${lbl === currentSel ? 'selected' : ''}>${lbl}</option>`;
+    });
+    labelFilterSelect.innerHTML = optionsHtml;
+  }
+
   const sorted = [...displayTasks].sort((a,b) => new Date(a.due_at) - new Date(b.due_at));
   
   const now = new Date(); 
@@ -460,8 +591,10 @@ function renderTasks() {
       
     items.forEach(t => {
       const sub = subjects.find(s => s.id === t.subject_id) || subjects[0];
-      const isUrgent = t.priority === 'high' && title === '⚠ Due soon';
       const isDone = t.status === 'Done';
+      const isHighPriority = t.priority === 'high';
+      const isOverdue = !isDone && t.due_at && new Date(t.due_at) < now;
+      const isUrgent = isHighPriority && title === '⚠ Due soon';
       
       let pillClass = '';
       if(sub.short_code === 'CS') pillClass = 'pill-blue';
@@ -475,17 +608,16 @@ function renderTasks() {
         ).join('');
         
         const localDate = t.due_at ? new Date(t.due_at).toISOString().substring(0, 16) : '';
-        const isHighPriority = t.priority === 'high';
         
         html += `
-          <div class="task-item" style="display:block; padding:12px; cursor:default;" data-id="${t.id}">
+          <div class="task-item editing" style="display:block; padding:12px; cursor:default;" data-id="${t.id}">
             <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Subject</label>
             <select class="board-edit-subject edit-field" style="width:100%; margin-bottom: 12px; font-size:12px; padding:4px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
               ${subjectOptions}
             </select>
 
             <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Task Name</label>
-            <input class="board-edit-title edit-field" type="text" value="${t.title}" style="width:100%; margin-bottom: 12px; font-size:13px; font-weight:600; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
+            <input class="board-edit-title edit-field" type="text" value="${t.title}${t.labels && t.labels.length > 0 ? ' #' + t.labels.join(' #') : ''}" style="width:100%; margin-bottom: 12px; font-size:13px; font-weight:600; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
 
             <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Deadline</label>
             <input class="board-edit-date edit-field" type="datetime-local" value="${localDate}" style="width:100%; margin-bottom: 12px; font-size:12px; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
@@ -506,25 +638,32 @@ function renderTasks() {
           </div>
         `;
       } else {
-        const archiveBtn = !t.archived 
-          ? `<button class="task-btn edit-task-btn" data-id="${t.id}" title="Edit">✏️ Edit</button>
-             <button class="task-btn archive-task-btn" data-id="${t.id}" title="Archive">Archive</button>`
-          : `<button class="task-btn edit-task-btn" data-id="${t.id}" title="Edit">✏️ Edit</button>
+        const actionButtons = !t.archived 
+          ? `<button class="task-btn edit-task-btn" data-id="${t.id}" title="Edit">Edit</button>
+             <button class="task-btn archive-task-btn" data-id="${t.id}" title="Archive">Archive</button>
+             <button class="task-btn delete-task-btn" data-id="${t.id}" title="Delete">Delete</button>`
+          : `<button class="task-btn edit-task-btn" data-id="${t.id}" title="Edit">Edit</button>
              <button class="task-btn task-btn-info restore-task-btn" data-id="${t.id}" title="Restore">Restore</button>
-             <button class="task-btn task-btn-danger delete-task-btn" data-id="${t.id}" title="Permanent Delete">Delete</button>`;
+             <button class="task-btn task-btn-danger delete-task-btn" data-id="${t.id}" title="Delete">Delete</button>`;
+
+        let labelsHtml = '';
+        if (t.labels && Array.isArray(t.labels)) {
+          labelsHtml = t.labels.map(l => `<span class="task-pill" style="background:${getLabelColor(l)}; color:white;">${l}</span>`).join(' ');
+        }
 
         html += `
-          <div class="task-item ${isUrgent ? 'urgent' : ''} ${isDone ? 'done' : ''}" data-id="${t.id}">
+          <div class="task-item ${isUrgent ? 'urgent' : ''} ${isHighPriority ? 'high-priority' : ''} ${isOverdue ? 'overdue' : ''} ${isDone ? 'done' : ''}" data-id="${t.id}">
             <div class="task-check ${isDone ? 'done' : ''}"></div>
             <div class="task-info">
               <div class="task-name">${t.title}</div>
               <div class="task-meta">
-                <span class="task-pill ${isDone ? 'pill-green' : (isUrgent ? 'pill-red' : 'pill-amber')}">${isDone ? 'Done' : 'Due ' + formatDate(t.due_at)}</span>
+                <span class="task-pill ${isDone ? 'pill-green' : (isOverdue || isHighPriority ? 'pill-red' : 'pill-amber')}">${isDone ? 'Done' : 'Due ' + formatDate(t.due_at)}</span>
                 <span class="task-pill ${pillClass}">${sub.short_code}</span>
+                ${labelsHtml}
               </div>
             </div>
             <div class="task-actions">
-              ${archiveBtn}
+              ${actionButtons}
             </div>
           </div>
         `;
@@ -542,7 +681,15 @@ function renderTasks() {
          </div>`;
 
     const emptyState = dueSoon.length === 0 && completed.length === 0
-      ? `<div class="tasks-empty-state">No tasks for this day yet.</div>`
+      ? `<div class="tasks-empty-state">
+           <div class="empty-state-icon">📅</div>
+           <div class="empty-state-title">No tasks for today</div>
+           <div class="empty-state-text">Your schedule is looking clear! Use this time to rest or start planning ahead.</div>
+           <button class="empty-state-cta" id="empty-state-add-btn">
+             <svg width="14" height="14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+             Add your first task
+           </button>
+         </div>`
       : '';
 
     tasksSection.innerHTML = actionBar +
@@ -555,17 +702,38 @@ function renderTasks() {
          </div>`;
 
     const titlePrefix = currentView === 'archived' ? 'Archived: ' : '';
-    const emptyStateText = currentView === 'archived' ? 'No archived tasks.' : 'No tasks yet. Add tasks from Smart Paste to get started.';
+    const emptyStateTitle = currentView === 'archived' ? 'No archived tasks' : 'Start your journey';
+    const emptyStateText = currentView === 'archived' 
+      ? 'Your archive is empty. Completed tasks you archive will appear here.' 
+      : 'No tasks yet! Start planning your study schedule and stay on top of your goals.';
+    const emptyStateIcon = currentView === 'archived' ? '📦' : '✨';
 
     const emptyState = dueSoon.length === 0 && thisWeek.length === 0 && completed.length === 0
-      ? `<div class="tasks-empty-state">${emptyStateText}</div>`
+      ? `<div class="tasks-empty-state">
+           <div class="empty-state-icon">${emptyStateIcon}</div>
+           <div class="empty-state-title">${emptyStateTitle}</div>
+           <div class="empty-state-text">${emptyStateText}</div>
+           ${currentView !== 'archived' ? `
+           <button class="empty-state-cta" id="empty-state-add-btn">
+             <svg width="14" height="14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+             Add your first task
+           </button>` : ''}
+         </div>`
       : '';
 
     tasksSection.innerHTML = actionBar +
                              renderGroup(titlePrefix + '⚠ Due soon', dueSoon, 'var(--color-text-danger)', true)
-                             renderGroup(titlePrefix + 'This week', thisWeek, 'var(--color-text-secondary)', true) +
+                             + renderGroup(titlePrefix + 'This week', thisWeek, 'var(--color-text-secondary)', true) +
                              renderGroup(titlePrefix + 'Completed', completed, 'var(--color-text-tertiary)') +
                              emptyState;
+  }
+
+  // Bind CTA button in empty state
+  const emptyStateAddBtn = document.getElementById('empty-state-add-btn');
+  if (emptyStateAddBtn) {
+    emptyStateAddBtn.addEventListener('click', () => {
+      document.getElementById('add-task-btn')?.click();
+    });
   }
                            
   document.querySelectorAll('.task-item').forEach(el => {
@@ -600,18 +768,21 @@ function renderTasks() {
       const taskId = el.dataset.id;
       const itemEl = el.closest('.task-item');
       
-      const title = itemEl.querySelector('.board-edit-title').value;
+      const rawTitle = itemEl.querySelector('.board-edit-title').value;
       const subject_id = itemEl.querySelector('.board-edit-subject').value;
       let dateVal = itemEl.querySelector('.board-edit-date').value;
       const notes = itemEl.querySelector('.board-edit-notes').value;
       const priority = itemEl.querySelector('.board-edit-priority').value;
       
+      const { cleanTitle, labels } = extractLabels(rawTitle);
+      
       store.updateTask(taskId, {
-        title,
+        title: cleanTitle || rawTitle,
         subject_id,
         due_at: dateVal ? new Date(dateVal).toISOString() : '',
         notes,
-        priority
+        priority,
+        labels
       });
     });
   });
@@ -980,7 +1151,7 @@ document.addEventListener('DOMContentLoaded', () => {
 newTaskBtn.addEventListener('click', () => {
   
   if (!store.subjects || store.subjects.length === 0) {
-    alert('Subjects are still loading. Please try again in a moment.');
+    Toast.show('Subjects are still loading. Please try again in a moment.', 'warning');
     return;
   }
 
@@ -1014,26 +1185,37 @@ newTaskModal.addEventListener('click', (e) => {
 });
 
 newTaskSave.addEventListener('click', async () => {
-  const title = newTaskTitle.value.trim();
+  const rawTitle = newTaskTitle.value.trim();
   const subject_id = newTaskSubject.value;
   const notes = newTaskNotes.value.trim();
   const dateVal = newTaskDate.value;
 
-  if (!title) {
+  if (!rawTitle) {
     alert('Please enter a task name');
     return;
   }
 
+  if (!dateVal) {
+  alert('Please enter a deadline');
+  return;
+}
+
+if (!subject_id) {
+  alert('Please select a subject');
+  return;
+}
+  const { cleanTitle, labels } = extractLabels(rawTitle);
   const due_at = dateVal ? new Date(dateVal).toISOString() : '';
 
   const newTask = {
-    title,
+    title: cleanTitle || rawTitle,
     subject_id,
     due_at,
     notes,
     priority: 'medium',
     status: 'Not Started',
-    archived: 0
+    archived: 0,
+    labels
   };
 
   await store.addTasks([newTask]);
@@ -1042,12 +1224,21 @@ newTaskSave.addEventListener('click', async () => {
 
 addItemsBtn.addEventListener('click', () => {
   if (store.currentPaste) {
-    store.addTasks(store.currentPaste);
+    const pasteWithLabels = store.currentPaste.map(t => {
+      const { cleanTitle, labels } = extractLabels(t.title);
+      return { ...t, title: cleanTitle || t.title, labels };
+    });
+    store.addTasks(pasteWithLabels);
     store.clearExtracted();
     pasteInput.value = '';
   }
 });
 });
+
+// Ensures the button is hidden on initial page load if the textarea is empty
+if (pasteInput.value.trim() === "") {
+    clearBtn.style.display = 'none';
+}
 
 extractBtn.addEventListener('click', async () => {
   const text = pasteInput.value;
@@ -1057,6 +1248,20 @@ extractBtn.addEventListener('click', async () => {
   extractBtn.disabled = true;
 
   extractPreview.innerHTML = createSkeleton(1, "task");
+  // Show loading skeleton
+  extractPreview.innerHTML = `
+    <div class="extract-title">Extracting tasks...</div>
+    <div class="skeleton-card">
+      <div class="skeleton-line short"></div>
+      <div class="skeleton-line long"></div>
+      <div class="skeleton-line medium"></div>
+    </div>
+    <div class="skeleton-card">
+      <div class="skeleton-line short"></div>
+      <div class="skeleton-line long"></div>
+      <div class="skeleton-line medium"></div>
+    </div>
+  `;
   
   const items = await extractTasksFromText(text);
 
@@ -1068,17 +1273,21 @@ extractBtn.addEventListener('click', async () => {
   store.setExtracted(items);
 });
 
+// Wipes the text, clears the store, hides the button, and refocuses the cursor
 clearBtn.addEventListener('click', () => {
-  pasteInput.value = '';
-  store.clearExtracted();
+    pasteInput.value = '';
+    store.clearExtracted();
+    clearBtn.style.display = 'none'; // Hides the clear button instantly
+    pasteInput.focus();              // Puts the typing cursor back in the box
 });
 
-addItemsBtn.addEventListener('click', () => {
-  if (store.currentPaste) {
-    store.addTasks(store.currentPaste);
-    store.clearExtracted();
-    pasteInput.value = '';
-  }
+// Listens to typing/pasting to show or hide the button dynamically
+pasteInput.addEventListener('input', () => {
+    if (pasteInput.value.trim().length > 0) {
+        clearBtn.style.display = 'block'; 
+    } else {
+        clearBtn.style.display = 'none';
+    }
 });
 
 downloadBtn.addEventListener('click', () => {
@@ -1112,3 +1321,112 @@ function createSkeleton(count = 3, type = "card") {
     })
     .join("");
 }
+const fileInput = document.getElementById('file-input');
+const dropZone = document.getElementById('drop-zone');
+
+// Handle File Selection via File Explorer
+if (fileInput) {
+  fileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) handleFileContent(file);
+  });
+}
+
+// Handle Drag & Drop Events
+if (dropZone) {
+  // Prevent browser from opening the file
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    dropZone.addEventListener(eventName, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    });
+  });
+
+  // Add highlight effect
+  ['dragenter', 'dragover'].forEach(eventName => {
+    dropZone.addEventListener(eventName, () => {
+      dropZone.classList.add('paste-zone--dragover');
+    });
+  });
+
+  // Remove highlight effect
+  ['dragleave', 'drop'].forEach(eventName => {
+    dropZone.addEventListener(eventName, () => {
+      dropZone.classList.remove('paste-zone--dragover');
+    });
+  });
+
+  // Handle dropped file
+  dropZone.addEventListener('drop', (e) => {
+    const dt = e.dataTransfer;
+
+    if (dt && dt.files.length > 0) {
+      const file = dt.files[0];
+      handleFileContent(file);
+    }
+  });
+}
+
+// File Reader Function
+function handleFileContent(file) {
+  const allowedExtensions = ['txt', 'md', 'json'];
+  const fileExtension = file.name.split('.').pop().toLowerCase();
+
+  // Validate extension
+  if (!allowedExtensions.includes(fileExtension)) {
+    alert('Invalid file format. Please upload a .txt, .md, or .json file.');
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = (e) => {
+    const pasteInput = document.getElementById('paste-input');
+
+    if (pasteInput) {
+      pasteInput.value = e.target.result;
+
+      alert(
+        `Loaded "${file.name}" successfully! Click "Extract with AI" to find your tasks.`
+      );
+    }
+  };
+
+  reader.onerror = () => {
+    alert('Error reading file content. Please try again.');
+  };
+
+  reader.readAsText(file);
+}
+
+
+const quotes = [
+  "Small Progress is still Progress",
+  "Focus on being productive instead of busy",
+  "The secret of getting ahead is getting started",
+  "Strive for progress, not perfection",
+  "Don't wait for opportunity. Create it.",
+  "Success is the sum of small efforts repeated daily",
+  "Time is not refundable, use it with intention.",
+  "Sometimes, getting it done is better than perfect.",
+  "Believe you can and you're halfway there.",
+  "Arise, awake, and stop not till the goal is reached."
+];
+
+const quoteEl = document.getElementById('motivational-quotes');
+
+if (quoteEl) {
+  const today = new Date();
+  const seed = today.toDateString();
+
+  let hash = 0;
+
+  for (let i = 0; i < seed.length; i++) {
+    hash = seed.charCodeAt(i) + ((hash << 5) - hash);
+  }
+
+  const index = Math.abs(hash % quotes.length);
+
+  quoteEl.textContent = quotes[index];
+}
+
