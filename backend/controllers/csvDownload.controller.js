@@ -1,5 +1,29 @@
 const { db } = require('../../database.js');
 
+// Characters that trigger formula execution in spreadsheet applications.
+const FORMULA_START_CHARS = new Set(['=', '+', '-', '@', '\t', '\r']);
+
+/**
+ * Serialize a single value as an RFC 4180–compliant CSV field.
+ *
+ * Rules applied:
+ *  - null / undefined  → empty quoted field
+ *  - embedded "        → doubled ("")
+ *  - always wrapped in double quotes so commas and newlines stay inside the cell
+ *  - values that start with a formula-triggering character are prefixed with a
+ *    tab so spreadsheet applications treat the cell content as plain text
+ */
+function escapeCSVField(value) {
+  if (value === null || value === undefined) {
+    return '""';
+  }
+  let str = String(value);
+  if (str.length > 0 && FORMULA_START_CHARS.has(str[0])) {
+    str = '\t' + str;
+  }
+  return '"' + str.replace(/"/g, '""') + '"';
+}
+
 function getAllTasksWithSubjects() {
   const query = `
     SELECT tasks.*, subjects.name AS subject_name
@@ -88,11 +112,13 @@ async function downloadData(req, res) {
         task.status,
         task.priority,
         task.confidence_score,
-        `"${(task.notes || '').replace(/"/g, '""')}"`,
+        task.notes,
       ]),
     ];
 
-    const csvString = rows.map(row => row.join(',')).join('\n');
+    const csvString = rows
+      .map(row => row.map(escapeCSVField).join(','))
+      .join('\r\n');
 
     res.setHeader('Content-Type', 'text/csv');
     res.setHeader('Content-Disposition', 'attachment; filename="study_data.csv"');
@@ -123,4 +149,5 @@ module.exports = {
   buildCalendarIcs,
   formatIcsDate,
   escapeIcsText,
+  escapeCSVField,
 };
