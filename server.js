@@ -16,7 +16,9 @@ const page500Path = path.join(__dirname, 'error.html');
 // Static
 app.use('/css', express.static(path.join(__dirname, 'css')));
 app.use('/js', express.static(path.join(__dirname, 'js')));
-app.use(express.static(__dirname));
+app.use('/support-page', express.static(path.join(__dirname, 'support-page')));
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+app.get('/logo.png', (req, res) => res.sendFile(path.join(__dirname, 'logo.png')));
 
 initDb();
 
