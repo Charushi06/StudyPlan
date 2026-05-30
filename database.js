@@ -5,8 +5,6 @@ const db = new sqlite3.Database(path.join(__dirname, 'studyplan.db'));
 
 function initDb() {
   db.serialize(() => {
-    db.run('PRAGMA foreign_keys = ON;');
-    
     // Subjects Table
     db.run(`CREATE TABLE IF NOT EXISTS subjects (
       id TEXT PRIMARY KEY,

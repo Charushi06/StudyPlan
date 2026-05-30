@@ -82,8 +82,8 @@ async function downloadData(req, res) {
       ['Task ID', 'Subject', 'Title', 'Due At', 'Status', 'Priority', 'Confidence Score', 'Notes'],
       ...data.map(task => [
         task.id,
-        `"${(task.subject_name || '').replace(/"/g, '""')}"`,
-        `"${(task.title || '').replace(/"/g, '""')}"`,
+        task.subject_name,
+        task.title,
         task.due_at,
         task.status,
         task.priority,
