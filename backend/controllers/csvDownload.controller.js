@@ -36,6 +36,14 @@ function formatIcsDate(dateInput) {
   return `${year}${month}${day}T${hours}${minutes}${seconds}Z`;
 }
 
+function escapeCsvField(value) {
+  let str = String(value || '');
+  if (/^[=+\-@]/.test(str)) {
+    str = "'" + str; // Prevent formula injection
+  }
+  return `"${str.replace(/"/g, '""')}"`;
+}
+
 function buildCalendarIcs(tasks = []) {
   const dtstamp = formatIcsDate(new Date().toISOString());
   const events = tasks
@@ -81,14 +89,14 @@ async function downloadData(req, res) {
     const rows = [
       ['Task ID', 'Subject', 'Title', 'Due At', 'Status', 'Priority', 'Confidence Score', 'Notes'],
       ...data.map(task => [
-        task.id,
-        task.subject_name,
-        task.title,
-        task.due_at,
-        task.status,
-        task.priority,
-        task.confidence_score,
-        `"${(task.notes || '').replace(/"/g, '""')}"`,
+        escapeCsvField(task.id),
+        escapeCsvField(task.subject_name),
+        escapeCsvField(task.title),
+        escapeCsvField(task.due_at),
+        escapeCsvField(task.status),
+        escapeCsvField(task.priority),
+        escapeCsvField(task.confidence_score),
+        escapeCsvField(task.notes),
       ]),
     ];
 
@@ -123,4 +131,5 @@ module.exports = {
   buildCalendarIcs,
   formatIcsDate,
   escapeIcsText,
+  escapeCsvField,
 };
