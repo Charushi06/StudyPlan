@@ -1626,6 +1626,21 @@ extractBtn.addEventListener('click', async () => {
   
   extractBtn.innerHTML = '<span class="loader-spinner"></span>';
   extractBtn.disabled = true;
+
+  // Show loading skeleton
+  extractPreview.innerHTML = `
+    <div class="extract-title">Extracting tasks...</div>
+    <div class="skeleton-card">
+      <div class="skeleton-line short"></div>
+      <div class="skeleton-line long"></div>
+      <div class="skeleton-line medium"></div>
+    </div>
+    <div class="skeleton-card">
+      <div class="skeleton-line short"></div>
+      <div class="skeleton-line long"></div>
+      <div class="skeleton-line medium"></div>
+    </div>
+  `;
   
   const items = await extractTasksFromText(text);
   
@@ -1656,7 +1671,85 @@ downloadBtn.addEventListener('click', () => {
   downloadData();
 });
 
-// Motivational Quotes
+const fileInput = document.getElementById('file-input');
+const dropZone = document.getElementById('drop-zone');
+
+// Handle File Selection via File Explorer
+if (fileInput) {
+  fileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) handleFileContent(file);
+  });
+}
+
+// Handle Drag & Drop Events
+if (dropZone) {
+  // Prevent browser from opening the file
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    dropZone.addEventListener(eventName, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    });
+  });
+
+  // Add highlight effect
+  ['dragenter', 'dragover'].forEach(eventName => {
+    dropZone.addEventListener(eventName, () => {
+      dropZone.classList.add('paste-zone--dragover');
+    });
+  });
+
+  // Remove highlight effect
+  ['dragleave', 'drop'].forEach(eventName => {
+    dropZone.addEventListener(eventName, () => {
+      dropZone.classList.remove('paste-zone--dragover');
+    });
+  });
+
+  // Handle dropped file
+  dropZone.addEventListener('drop', (e) => {
+    const dt = e.dataTransfer;
+
+    if (dt && dt.files.length > 0) {
+      const file = dt.files[0];
+      handleFileContent(file);
+    }
+  });
+}
+
+// File Reader Function
+function handleFileContent(file) {
+  const allowedExtensions = ['txt', 'md', 'json'];
+  const fileExtension = file.name.split('.').pop().toLowerCase();
+
+  // Validate extension
+  if (!allowedExtensions.includes(fileExtension)) {
+    alert('Invalid file format. Please upload a .txt, .md, or .json file.');
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = (e) => {
+    const pasteInput = document.getElementById('paste-input');
+
+    if (pasteInput) {
+      pasteInput.value = e.target.result;
+
+      alert(
+        `Loaded "${file.name}" successfully! Click "Extract with AI" to find your tasks.`
+      );
+    }
+  };
+
+  reader.onerror = () => {
+    alert('Error reading file content. Please try again.');
+  };
+
+  reader.readAsText(file);
+}
+
+
 const quotes = [
   "Small Progress is still Progress",
   "Focus on being productive instead of busy",
@@ -1671,16 +1764,19 @@ const quotes = [
 ];
 
 const quoteEl = document.getElementById('motivational-quotes');
+
 if (quoteEl) {
   const today = new Date();
   const seed = today.toDateString();
+
   let hash = 0;
+
   for (let i = 0; i < seed.length; i++) {
     hash = seed.charCodeAt(i) + ((hash << 5) - hash);
   }
+
   const index = Math.abs(hash % quotes.length);
-  quoteEl.textContent = `${quotes[index]}`;
+
+  quoteEl.textContent = quotes[index];
 }
-calendarDownloadBtn.addEventListener('click', () => {
-  downloadCalendar();
-});
+
