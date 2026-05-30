@@ -15,6 +15,14 @@ function getAllTasksWithSubjects() {
   });
 }
 
+function escapeCsvField(value = '') {
+  const str = String(value);
+  if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+    return '"' + str.replace(/"/g, '""') + '"';
+  }
+  return str;
+}
+
 function escapeIcsText(value = '') {
   return String(value)
     .replace(/\\/g, '\\\\')
@@ -79,7 +87,7 @@ async function downloadData(req, res) {
     const data = await getAllTasksWithSubjects();
 
     const rows = [
-      ['Task ID', 'Subject', 'Title', 'Due At', 'Status', 'Priority', 'Confidence Score', 'Notes'],
+      ['Task ID', 'Subject', 'Title', 'Due At', 'Status', 'Priority', 'Confidence Score', 'Notes'].map(escapeCsvField),
       ...data.map(task => [
         task.id,
         task.subject_name,
@@ -88,8 +96,8 @@ async function downloadData(req, res) {
         task.status,
         task.priority,
         task.confidence_score,
-        `"${(task.notes || '').replace(/"/g, '""')}"`,
-      ]),
+        task.notes || '',
+      ].map(escapeCsvField)),
     ];
 
     const csvString = rows.map(row => row.join(',')).join('\n');
