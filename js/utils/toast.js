@@ -82,7 +82,13 @@ class ToastManager {
       backdrop.style.animation = 'fadeIn 0.2s ease-out forwards';
       modal.style.animation = 'slideUp 0.2s ease-out forwards';
 
+      const onKeyDown = (e) => {
+        if (e.key === 'Escape') close(false);
+      };
+      document.addEventListener('keydown', onKeyDown);
+
       const close = (result) => {
+        document.removeEventListener('keydown', onKeyDown);
         backdrop.style.animation = 'fadeOut 0.2s ease-out forwards';
         modal.style.animation = 'slideDown 0.2s ease-out forwards';
         setTimeout(() => {
