@@ -1046,13 +1046,63 @@ body {
   background: var(--color-background-primary);
   border: 1px solid var(--color-border-tertiary);
   border-radius: var(--border-radius-md);
-  padding: 14px 16px;
   margin-bottom: 12px;
   box-shadow: var(--shadow-sm);
   animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
   transform-origin: center;
   position: relative;
   overflow: hidden;
+}
+
+.extract-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 16px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s;
+}
+
+.extract-card-header:hover {
+  background: var(--color-background-secondary);
+}
+
+.extract-card-header .extract-subject {
+  margin-bottom: 0;
+  flex-shrink: 0;
+}
+
+.extract-card-header .extract-task-name {
+  margin-bottom: 0;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.extract-chevron {
+  flex-shrink: 0;
+  font-size: 10px;
+  color: var(--color-text-tertiary);
+  transition: transform 0.2s;
+  margin-left: auto;
+}
+
+.extract-card.expanded .extract-chevron {
+  transform: rotate(180deg);
+}
+
+.extract-card-body {
+  display: none;
+  padding: 0 16px 14px;
+  border-top: 1px solid var(--color-border-tertiary);
+  padding-top: 12px;
+}
+
+.extract-card.expanded .extract-card-body {
+  display: block;
 }
 
 .extract-subject {
@@ -2665,7 +2715,6 @@ body {
   background: var(--color-background-primary);
   border: 1px solid var(--color-border-tertiary);
   border-radius: var(--border-radius-md);
-  padding: 14px 16px;
   margin-bottom: 12px;
   box-shadow: var(--shadow-sm);
   animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
@@ -4091,7 +4140,6 @@ body {
   background: var(--color-background-primary);
   border: 1px solid var(--color-border-tertiary);
   border-radius: var(--border-radius-md);
-  padding: 14px 16px;
   margin-bottom: 12px;
   box-shadow: var(--shadow-sm);
   animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
