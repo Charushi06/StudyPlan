@@ -4,6 +4,7 @@ const cors = require('cors');
 const { db, initDb } = require('./database');
 const { GoogleGenAI } = require('@google/genai');
 const path = require('path');
+const crypto = require('crypto');
 const csvDownloadRouter = require('./backend/routers/csvDownload.router.js');
 
 const app = express();
@@ -191,7 +192,6 @@ function nlpCleanTitle(seg) {
     .trim().substring(0, 80);
     
   if (labelMatch) {
-    // Re-append labels so frontend can still extract them
     labelMatch.forEach(l => {
       if (!cleaned.includes(l)) {
         cleaned += ' ' + l;
@@ -340,33 +340,33 @@ app.post('/api/tasks', (req, res) => {
 
     tasks.forEach(t => {
       let validationError = null;
-  if (!t.title && !t.subject_id && !t.due_at) {
-    validationError = "Missing title, subject, and deadline";
-  } else if (!t.title) {
-    validationError = "Task name is required";
-  } else if (!t.subject_id) {
-    validationError = "Subject is required";
-  } else if (!t.due_at) {
-    validationError = "Deadline is required";
-  }
-
-  if (validationError) {
-    errors.push({ task: t, error: validationError });
-    pending--;
-    if (pending === 0) {
-      if (inserted === 0) {
-        return res.status(400).json({ 
-          success: false, inserted, duplicates, errors, 
-          message: errors.length === tasks.length ? errors[0].error : "Some tasks are invalid"
-        });
+      if (!t.title && !t.subject_id && !t.due_at) {
+        validationError = "Missing title, subject, and deadline";
+      } else if (!t.title) {
+        validationError = "Task name is required";
+      } else if (!t.subject_id) {
+        validationError = "Subject is required";
+      } else if (!t.due_at) {
+        validationError = "Deadline is required";
       }
-      stmt.finalize(() => res.status(400).json({ 
-        success: false, inserted, duplicates, errors, 
-        message: "Some tasks are invalid"
-      }));
-    }
-    return;
-  }
+
+      if (validationError) {
+        errors.push({ task: t, error: validationError });
+        pending--;
+        if (pending === 0) {
+          if (inserted === 0) {
+            return res.status(400).json({ 
+              success: false, inserted, duplicates, errors, 
+              message: errors.length === tasks.length ? errors[0].error : "Some tasks are invalid"
+            });
+          }
+          stmt.finalize(() => res.status(400).json({ 
+            success: false, inserted, duplicates, errors, 
+            message: "Some tasks are invalid"
+          }));
+        }
+        return;
+      }
 
       db.get(
         `SELECT * FROM tasks WHERE LOWER(title) = LOWER(?) AND subject_id = ? AND DATE(due_at) = DATE(?)`,
@@ -504,35 +504,160 @@ Text: "${text}"
     }
   }
 
-  // NLP heuristic fallback (no API key, or Gemini failed)
   const tasks = nlpExtractTasksFromText(text);
   return res.json(tasks);
 });
-// ================= AUTH =================
-const users = {}; // Simple in-memory user store
 
+// ================= AUTH =================
+// Simple password hashing using built-in crypto (no extra dependencies)
+function hashPassword(password) {
+  const salt = crypto.randomBytes(16).toString('hex');
+  const hash = crypto.scryptSync(password, salt, 64).toString('hex');
+  return `${salt}:${hash}`;
+}
+
+function verifyPassword(password, stored) {
+  const [salt, hash] = stored.split(':');
+  const hashVerify = crypto.scryptSync(password, salt, 64).toString('hex');
+  return hash === hashVerify;
+}
+
+// ── POST /api/auth/signup ─────────────────────────────────────────────────────
 app.post('/api/auth/signup', (req, res) => {
   const { email, password } = req.body;
+
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password required' });
   }
-  if (users[email]) {
-    return res.status(400).json({ error: 'User already exists' });
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ error: 'Invalid email address' });
   }
-  users[email] = { email, password };
-  res.json({ success: true, message: 'Account created successfully' });
+
+  db.get('SELECT id FROM users WHERE email = ?', [email.toLowerCase()], (err, row) => {
+    if (err) return res.status(500).json({ error: 'Server error' });
+    if (row) return res.status(400).json({ error: 'An account with this email already exists' });
+
+    const id = `usr_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
+    const hashedPassword = hashPassword(password);
+
+    db.run(
+      'INSERT INTO users (id, email, password) VALUES (?, ?, ?)',
+      [id, email.toLowerCase(), hashedPassword],
+      function (err) {
+        if (err) return res.status(500).json({ error: 'Could not create account' });
+        res.json({ success: true, email: email.toLowerCase(), message: 'Account created successfully' });
+      }
+    );
+  });
 });
 
+// ── POST /api/auth/login ──────────────────────────────────────────────────────
 app.post('/api/auth/login', (req, res) => {
   const { email, password } = req.body;
+
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password required' });
   }
-  const user = users[email];
-  if (!user || user.password !== password) {
-    return res.status(401).json({ error: 'Invalid email or password' });
+
+  db.get('SELECT * FROM users WHERE email = ?', [email.toLowerCase()], (err, user) => {
+    if (err) return res.status(500).json({ error: 'Server error' });
+
+    // Generic message — prevents user enumeration
+    if (!user || !verifyPassword(password, user.password)) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+
+    res.json({ success: true, email: user.email });
+  });
+});
+
+// ── POST /api/auth/forgot-password ───────────────────────────────────────────
+app.post('/api/auth/forgot-password', (req, res) => {
+  const { email } = req.body;
+
+  // Always return the same response — prevents user enumeration
+  const genericResponse = {
+    success: true,
+    message: 'If an account with that email exists, a reset link has been sent.'
+  };
+
+  if (!email || !email.includes('@')) {
+    return res.status(400).json({ error: 'Valid email required' });
   }
-  res.json({ success: true, email: user.email });
+
+  db.get('SELECT id, email FROM users WHERE email = ?', [email.toLowerCase()], (err, user) => {
+    if (err) return res.status(500).json({ error: 'Server error' });
+
+    // No user — return success anyway (no enumeration)
+    if (!user) return res.json(genericResponse);
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = Date.now() + 60 * 60 * 1000; // 1 hour
+
+    db.run(
+      `INSERT OR REPLACE INTO password_reset_tokens (user_id, token, expires_at) VALUES (?, ?, ?)`,
+      [user.id, token, expiresAt],
+      (err) => {
+        if (err) return res.status(500).json({ error: 'Server error' });
+
+        // In production: send real email. In dev: log to console.
+        const resetLink = `${process.env.APP_URL || 'http://localhost:3000'}/reset-password?token=${token}`;
+        console.log(`\n[DEV] Password reset link for ${user.email}:\n${resetLink}\n`);
+
+        return res.json(genericResponse);
+      }
+    );
+  });
+});
+
+// ── POST /api/auth/reset-password ────────────────────────────────────────────
+app.post('/api/auth/reset-password', (req, res) => {
+  const { token, newPassword } = req.body;
+
+  if (!token || !newPassword) {
+    return res.status(400).json({ error: 'Token and new password are required' });
+  }
+
+  if (newPassword.length < 8 || !/[A-Z]/.test(newPassword) || !/[!@#$%^&*(),.?":{}|<>]/.test(newPassword)) {
+    return res.status(400).json({
+      error: 'Password must be at least 8 characters with 1 capital letter and 1 special character'
+    });
+  }
+
+  db.get(
+    `SELECT prt.user_id, prt.expires_at, u.email
+     FROM password_reset_tokens prt
+     JOIN users u ON u.id = prt.user_id
+     WHERE prt.token = ?`,
+    [token],
+    (err, record) => {
+      if (err) return res.status(500).json({ error: 'Server error' });
+      if (!record) return res.status(400).json({ error: 'Invalid or expired reset link. Please request a new one.' });
+      if (record.expires_at < Date.now()) {
+        db.run('DELETE FROM password_reset_tokens WHERE token = ?', [token]);
+        return res.status(400).json({ error: 'Reset link has expired. Please request a new one.' });
+      }
+
+      const hashedPassword = hashPassword(newPassword);
+
+      db.run('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, record.user_id], (err) => {
+        if (err) return res.status(500).json({ error: 'Could not update password' });
+
+        // Invalidate token — one-time use only
+        db.run('DELETE FROM password_reset_tokens WHERE token = ?', [token]);
+
+        return res.json({ success: true, message: 'Password updated. You can now log in.' });
+      });
+    }
+  );
+});
+
+// ── GET /reset-password ───────────────────────────────────────────────────────
+// Serve reset password page (token comes via query param)
+app.get('/reset-password', (req, res) => {
+  res.sendFile(path.join(__dirname, 'reset-password.html'));
 });
 
 // Intentional test route for verifying server error page behavior.

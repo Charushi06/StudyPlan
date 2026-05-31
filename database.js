@@ -40,6 +40,27 @@ function initDb() {
       }
     });
 
+    // ── Users Table (persistent auth — replaces in-memory store) ─────────────
+    db.run(`CREATE TABLE IF NOT EXISTS users (
+      id TEXT PRIMARY KEY,
+      email TEXT NOT NULL UNIQUE,
+      password TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`);
+
+    // ── Password Reset Tokens Table ───────────────────────────────────────────
+    db.run(`CREATE TABLE IF NOT EXISTS password_reset_tokens (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id TEXT NOT NULL,
+      token TEXT NOT NULL UNIQUE,
+      expires_at INTEGER NOT NULL,
+      created_at INTEGER DEFAULT (CAST(strftime('%s', 'now') AS INTEGER) * 1000),
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )`);
+
+    // Clean up expired tokens on startup
+    db.run(`DELETE FROM password_reset_tokens WHERE expires_at < ${Date.now()}`);
+
     // Pre-populate some subjects if empty
     db.get('SELECT COUNT(*) as count FROM subjects', (err, row) => {
       if (row && row.count === 0) {

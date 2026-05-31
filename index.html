@@ -10,66 +10,326 @@
 
   <link rel="icon" type="image/x-icon" href="/public/favicon.ico" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ── Auth Modal Fix ─────────────────────────────────────────────────────── */
+    #auth-modal {
+      display: flex;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      box-sizing: border-box;
+    }
+
+    .auth-card {
+      background: white;
+      border-radius: 16px;
+      padding: 32px;
+      width: 100%;
+      max-width: 380px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      box-sizing: border-box;
+    }
+
+    /* Views inside modal */
+    .auth-view { display: none; }
+    .auth-view.active { display: block; }
+
+    .auth-title {
+      margin: 0 0 6px;
+      font-size: 22px;
+      font-weight: 700;
+      color: #111;
+    }
+
+    .auth-subtitle {
+      margin: 0 0 24px;
+      color: #666;
+      font-size: 14px;
+    }
+
+    .auth-input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      margin-bottom: 12px;
+      box-sizing: border-box;
+      font-family: inherit;
+      transition: border-color 0.2s;
+      outline: none;
+    }
+
+    .auth-input:focus { border-color: #4f46e5; }
+
+    .auth-btn-primary {
+      width: 100%;
+      padding: 12px;
+      background: #4f46e5;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.2s, opacity 0.2s;
+    }
+
+    .auth-btn-primary:hover { background: #4338ca; }
+    .auth-btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .auth-error {
+      color: #dc2626;
+      font-size: 13px;
+      text-align: center;
+      margin: 10px 0 0;
+      display: none;
+      padding: 8px;
+      background: #fef2f2;
+      border-radius: 6px;
+    }
+
+    .auth-password-rules {
+      font-size: 12px;
+      color: #666;
+      margin-top: 10px;
+      line-height: 1.6;
+    }
+
+    .auth-password-rules ul {
+      padding-left: 18px;
+      margin: 6px 0 0;
+    }
+
+    .auth-footer-text {
+      text-align: center;
+      margin: 16px 0 0;
+      font-size: 13px;
+      color: #666;
+    }
+
+    .auth-link {
+      color: #4f46e5;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .auth-link:hover { text-decoration: underline; }
+
+    .forgot-link {
+      text-align: right;
+      margin: -4px 0 16px;
+      font-size: 13px;
+    }
+
+    /* Success icon */
+    .auth-success-icon {
+      width: 56px;
+      height: 56px;
+      background: #dcfce7;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin: 0 auto 16px;
+    }
+
+    .auth-success-title {
+      text-align: center;
+      font-size: 20px;
+      font-weight: 700;
+      margin: 0 0 8px;
+      color: #111;
+    }
+
+    .auth-success-msg {
+      text-align: center;
+      font-size: 14px;
+      color: #666;
+      margin: 0 0 24px;
+      line-height: 1.5;
+    }
+
+    /* ── Profile Dropdown ───────────────────────────────────────────────────── */
+    .profile-dropdown-wrapper {
+      position: relative;
+    }
+
+    .profile-dropdown-menu {
+      display: none;
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 6px;
+      min-width: 180px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+      z-index: 9998;
+    }
+
+    .profile-dropdown-menu.open { display: block; }
+
+    .profile-dropdown-email {
+      padding: 8px 10px 10px;
+      font-size: 12px;
+      color: #666;
+      border-bottom: 1px solid #f0f0f0;
+      margin-bottom: 4px;
+      word-break: break-all;
+    }
+
+    .profile-dropdown-item {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 8px 10px;
+      font-size: 14px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      border-radius: 6px;
+      font-family: inherit;
+      color: #333;
+      transition: background 0.15s;
+    }
+
+    .profile-dropdown-item:hover { background: #f5f5f5; }
+    .profile-dropdown-item.danger { color: #dc2626; }
+    .profile-dropdown-item.danger:hover { background: #fef2f2; }
+
+    /* ── Toast ──────────────────────────────────────────────────────────────── */
+    #auth-toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: #111;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      z-index: 99999;
+      transition: transform 0.3s ease;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    #auth-toast.show { transform: translateX(-50%) translateY(0); }
+    #auth-toast.success { background: #16a34a; }
+    #auth-toast.error { background: #dc2626; }
+  </style>
 </head>
 <body>
-  <!-- Auth Modal -->
-<div id="auth-modal" style="display:flex; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
-  <div style="background:white; border-radius:16px; padding:32px; width:360px; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
-    
-    <h2 id="auth-title" style="margin:0 0 8px; font-size:22px; font-weight:700;">Welcome back</h2>
-    <p id="auth-subtitle" style="margin:0 0 24px; color:#666; font-size:14px;">Sign in to your StudyPlan account</p>
 
-    <input id="auth-email" type="email" placeholder="Email address" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:12px; box-sizing:border-box;">
-    
-    <input id="auth-password" type="password" placeholder="Password" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:20px; box-sizing:border-box;">
+  <!-- ── Auth Modal ──────────────────────────────────────────────────────────── -->
+  <div id="auth-modal">
+    <div class="auth-card">
 
-    <button id="auth-submit-btn" style="width:100%; padding:12px; background:#4f46e5; color:white; border:none; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer;">
-    Sign In
-    </button>
+      <!-- VIEW 1: Login -->
+      <div id="auth-view-login" class="auth-view active">
+        <h2 class="auth-title">Welcome back</h2>
+        <p class="auth-subtitle">Sign in to your StudyPlan account</p>
 
-    <div style="font-size:12px; color:#666; margin-top:10px; line-height:1.6;">
-    Password must contain:
-     <ul style="padding-left:18px; margin-top:6px;">
-      <li>Minimum 8 characters</li>
-      <li>At least 1 capital letter</li>
-      <li>At least 1 special character</li>
-     </ul>
+        <input id="auth-email" type="email" class="auth-input" placeholder="Email address" autocomplete="email">
+        <input id="auth-password" type="password" class="auth-input" placeholder="Password" autocomplete="current-password">
+
+        <p class="forgot-link">
+          <a class="auth-link" id="show-forgot-btn">Forgot password?</a>
+        </p>
+
+        <button id="auth-submit-btn" class="auth-btn-primary">Sign In</button>
+
+        <div id="auth-password-rules" class="auth-password-rules" style="display:none;">
+          Password must contain:
+          <ul>
+            <li>Minimum 8 characters</li>
+            <li>At least 1 capital letter</li>
+            <li>At least 1 special character</li>
+          </ul>
+        </div>
+
+        <p id="auth-error" class="auth-error"></p>
+
+        <p class="auth-footer-text">
+          <span id="auth-toggle-text">Don't have an account?</span>
+          <a id="auth-toggle-btn" class="auth-link" style="margin-left:4px;">Sign Up</a>
+        </p>
+      </div>
+
+      <!-- VIEW 2: Forgot Password -->
+      <div id="auth-view-forgot" class="auth-view">
+        <h2 class="auth-title">Reset Password</h2>
+        <p class="auth-subtitle">Enter your email and we'll send you a reset link.</p>
+
+        <input id="forgot-email" type="email" class="auth-input" placeholder="Email address" autocomplete="email">
+
+        <button id="forgot-submit-btn" class="auth-btn-primary">Send Reset Link</button>
+
+        <p id="forgot-error" class="auth-error"></p>
+
+        <p class="auth-footer-text">
+          <a class="auth-link" id="show-login-btn">← Back to Sign In</a>
+        </p>
+      </div>
+
+      <!-- VIEW 3: Forgot Password Success -->
+      <div id="auth-view-forgot-success" class="auth-view">
+        <div class="auth-success-icon">✓</div>
+        <h2 class="auth-success-title">Check your email</h2>
+        <p class="auth-success-msg">
+          If an account exists for that email address, we've sent a password reset link.<br><br>
+          The link expires in 1 hour.
+        </p>
+        <button id="forgot-back-btn" class="auth-btn-primary">Back to Sign In</button>
+      </div>
+
     </div>
-
-    <p id="auth-error" style="color:red; font-size:13px; text-align:center; margin:8px 0 0; display:none;"></p>
-
-    <p style="text-align:center; margin:16px 0 0; font-size:13px; color:#666;">
-      <span id="auth-toggle-text">Don't have an account?</span>
-      <a id="auth-toggle-btn" href="#" style="color:#4f46e5; font-weight:600; margin-left:4px;">Sign Up</a>
-    </p>
-
-    <p id="auth-error" style="color:red; font-size:13px; text-align:center; margin:8px 0 0; display:none;"></p>
   </div>
-</div>
+
+  <!-- ── Toast Notification ─────────────────────────────────────────────────── -->
+  <div id="auth-toast"></div>
 
   <header class="site-header">
-  <div class="header-left">
-    <img src="/logo.png" alt="Logo" class="logo">
-    <h1 class="site-title">StudyPlan</h1>
-  </div>
+    <div class="header-left">
+      <img src="/logo.png" alt="Logo" class="logo">
+      <h1 class="site-title">StudyPlan</h1>
+    </div>
 
-  <nav class="header-nav">
-    <a href="#">Dashboard</a>
-    <a href="#">Tasks</a>
-    <a href="#">Calendar</a>
-    <a href="#" id="nav-settings">Settings</a>
-  </nav>
+    <nav class="header-nav">
+      <a href="#">Dashboard</a>
+      <a href="#">Tasks</a>
+      <a href="#">Calendar</a>
+      <a href="#" id="nav-settings">Settings</a>
+    </nav>
 
-  <div class="header-right">
-    <button class="profile-btn">Profile</button>
-    <button class="profile-btn" id="logout-btn">Logout</button>
-  </div>
-</header>
+    <div class="header-right">
+      <!-- Profile Dropdown -->
+      <div class="profile-dropdown-wrapper">
+        <button class="profile-btn" id="profile-btn">Profile ▾</button>
+        <div class="profile-dropdown-menu" id="profile-dropdown">
+          <div class="profile-dropdown-email" id="profile-dropdown-email">—</div>
+          <button class="profile-dropdown-item" id="dropdown-settings-btn">⚙️ Settings</button>
+          <button class="profile-dropdown-item danger" id="dropdown-logout-btn">Sign Out</button>
+        </div>
+      </div>
+    </div>
+  </header>
 
 
 <div class="wrapper">
-  <!-- <p class="label">StudyPlan</p> -->
-
   <div class="app">
     <!-- Sidebar -->
     <div class="sidebar">
@@ -86,7 +346,6 @@
       <div class="nav-item" id="focus-mode-btn">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         Focus Mode
-        
       </div>
       <div class="nav-item" id="archived-tasks-btn">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 3h12v2H2V3zm1 3h10v7H3V6zm2 2v3h2V8H5zm4 0v3h2V8H9z" fill="currentColor"/></svg>
@@ -118,22 +377,19 @@
           <option value="">All Labels</option>
         </select>
         <button class="btn">Week</button>
-        <button class="btn btn-primary"  id="add-task-btn">
+        <button class="btn btn-primary" id="add-task-btn">
           <svg width="12" height="12" fill="none" style="margin-right:2px"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> New task
         </button>
       </div>
 
-      <!-- Dashboard Greeting -->
-        <div class="dashboard-greeting" style="padding: 16px 24px 0; display: flex; justify-content: center;">
-          <div class="quote-widget">
-            <svg class="quote-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path d="M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <p id="motivational-quotes">
-              Small Progress is still Progress
-            </p>
-          </div>
+      <div class="dashboard-greeting" style="padding: 16px 24px 0; display: flex; justify-content: center;">
+        <div class="quote-widget">
+          <svg class="quote-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <p id="motivational-quotes">Small Progress is still Progress</p>
         </div>
+      </div>
 
       <!-- Calendar -->
       <div class="cal-section">
@@ -152,10 +408,7 @@
       </div>
 
       <!-- Tasks -->
-      <div id="tasks-section" class="tasks-section">
-        <!-- Javascript will inject tasks here -->
-        
-      </div>
+      <div id="tasks-section" class="tasks-section"></div>
 
       <!-- Focus Mode -->
       <div id="focus-section" class="focus-section hidden">
@@ -163,12 +416,7 @@
           <div class="timer-container">
             <svg class="timer-svg" viewBox="0 0 100 100">
               <circle class="timer-path-elapsed" cx="50" cy="50" r="45" />
-              <path id="timer-path-remaining" stroke-dasharray="283" class="timer-path-remaining" d="
-                M 50, 50
-                m -45, 0
-                a 45,45 0 1,0 90,0
-                a 45,45 0 1,0 -90,0
-              "></path>
+              <path id="timer-path-remaining" stroke-dasharray="283" class="timer-path-remaining" d="M 50, 50 m -45, 0 a 45,45 0 1,0 90,0 a 45,45 0 1,0 -90,0"></path>
             </svg>
             <div id="timer-text" class="timer-text">25:00</div>
           </div>
@@ -181,7 +429,6 @@
             <button id="timer-pause-btn" class="btn hidden">Pause</button>
             <button id="timer-reset-btn" class="btn">Reset</button>
           </div>
-          
           <div class="focus-task-container">
             <div class="focus-task-header">Current Focus Task</div>
             <div id="active-focus-task" class="active-focus-task">
@@ -189,12 +436,9 @@
             </div>
           </div>
         </div>
-
         <div class="focus-task-selector">
           <div class="focus-task-header">Select a task to focus on</div>
-          <div id="focus-task-list" class="focus-task-list">
-            <!-- JS will populate tasks -->
-          </div>
+          <div id="focus-task-list" class="focus-task-list"></div>
         </div>
       </div>
     </div>
@@ -228,16 +472,8 @@
         <button id="extract-btn" class="btn btn-primary" style="flex:2;" aria-label="Extract tasks with AI">Extract with AI →</button>
       </div>
 
-      <div id="extract-preview" class="extract-preview">
-        <!-- Javascript will inject extracted items here -->
-      </div>
+      <div id="extract-preview" class="extract-preview"></div>
       <div id="summary-box" class="summary-box"></div>
-
-  <button id="add-btn" class="add-btn" disabled>
-    Add items to planner
-  </button>
-</div>
-
 
       <button id="add-btn" class="add-btn" disabled>Add items to planner</button>
     </div>
@@ -260,7 +496,6 @@
       <h2 style="margin:0; font-size:20px; font-weight:700;">Settings</h2>
       <button id="settings-close" style="background:none; border:none; font-size:24px; cursor:pointer; color:var(--color-text-secondary);">&times;</button>
     </div>
-    
     <div style="margin-bottom: 24px;">
       <h3 style="font-size:12px; font-weight:700; text-transform:uppercase; color:var(--color-text-tertiary); margin-bottom:16px; letter-spacing:0.05em;">Appearance</h3>
       <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 16px;">
@@ -278,205 +513,24 @@
         </label>
       </div>
     </div>
-
     <div style="margin-bottom: 24px;">
       <h3 style="font-size:12px; font-weight:700; text-transform:uppercase; color:var(--color-text-tertiary); margin-bottom:16px; letter-spacing:0.05em;">Notifications</h3>
       <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 16px;">
         <span style="font-size:14px; font-weight:500;">Email Reminders</span>
-        <label class="toggle-switch">
-          <input type="checkbox" checked>
-          <span class="toggle-slider"></span>
-        </label>
+        <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
       </div>
       <div style="display:flex; align-items:center; justify-content:space-between;">
         <span style="font-size:14px; font-weight:500;">Browser Notifications</span>
-        <label class="toggle-switch">
-          <input type="checkbox">
-          <span class="toggle-slider"></span>
-        </label>
+        <label class="toggle-switch"><input type="checkbox"><span class="toggle-slider"></span></label>
       </div>
     </div>
-
     <button id="settings-save" style="width:100%; padding:12px; background:var(--color-text-primary); color:var(--color-background-primary); border:none; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; margin-top:8px;">
       Save Changes
     </button>
   </div>
 </div>
 
-  <script type="module" src="/js/app.js"></script>
-  <script>
-  let isLogin = true;
-
-  document.getElementById('auth-toggle-btn').addEventListener('click', (e) => {
-    e.preventDefault();
-    isLogin = !isLogin;
-    document.getElementById('auth-title').textContent = isLogin ? 'Welcome back' : 'Create account';
-    document.getElementById('auth-subtitle').textContent = isLogin ? 'Sign in to your StudyPlan account' : 'Start planning your studies';
-    document.getElementById('auth-submit-btn').textContent = isLogin ? 'Sign In' : 'Sign Up';
-    document.getElementById('auth-toggle-text').textContent = isLogin ? "Don't have an account?" : 'Already have an account?';
-    document.getElementById('auth-toggle-btn').textContent = isLogin ? 'Sign Up' : 'Sign In';
-    document.getElementById('auth-error').style.display = 'none';
-  });
-
-  // Password validation function
-function validatePassword(password) {
-
-  // Minimum 8 characters
-  const minLength = password.length >= 8;
-
-  // At least 1 capital letter
-  const hasCapital = /[A-Z]/.test(password);
-
-  // At least 1 special character
-  const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-
-  return minLength && hasCapital && hasSpecial;
-}
-
-document.getElementById('auth-submit-btn').addEventListener('click', async () => {
-
-  const email = document.getElementById('auth-email').value.trim();
-  const password = document.getElementById('auth-password').value.trim();
-  const errorEl = document.getElementById('auth-error');
-
-  errorEl.style.display = 'none';
-
-  // Empty fields check
-  if (!email || !password) {
-    errorEl.textContent = 'Please fill in all fields';
-    errorEl.style.display = 'block';
-    return;
-  }
-
-  // Password validation check
-  if (!validatePassword(password)) {
-    errorEl.textContent =
-      'Password must be at least 8 characters long, contain 1 capital letter and 1 special character.';
-    errorEl.style.display = 'block';
-    return;
-  }
-
-  const endpoint = isLogin ? '/api/auth/login' : '/api/auth/signup';
-
-  try {
-    const res = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    });
-      const data = await res.json();
-
-      if (!res.ok) {
-        errorEl.textContent = data.error || 'Something went wrong';
-        errorEl.style.display = 'block';
-        return;
-      }
-
-      localStorage.setItem('studyplan_user', JSON.stringify({ email: data.email }));
-      document.getElementById('auth-modal').style.display = 'none';
-
-    } catch (err) {
-      errorEl.textContent = 'Network error. Please try again.';
-      errorEl.style.display = 'block';
-    }
-  });
-
-  // Check if already logged in
-  if (localStorage.getItem('studyplan_user')) {
-    document.getElementById('auth-modal').style.display = 'none';
-  }
-
-  // Logout Button Functionality
-  const logoutBtn = document.getElementById('logout-btn');
-  logoutBtn.addEventListener('click', () => {
-    localStorage.removeItem('studyplan_user');
-
-    // Show login modal again
-    document.getElementById('auth-modal').style.display = 'flex';
-
-    // Refresh page state
-    window.location.reload();
-});
-
-  // Settings Modal Logic
-  const settingsModal = document.getElementById('settings-modal');
-  const navSettings = document.getElementById('nav-settings');
-  const settingsClose = document.getElementById('settings-close');
-  const settingsSave = document.getElementById('settings-save');
-
-  navSettings.addEventListener('click', (e) => {
-    e.preventDefault();
-    settingsModal.style.display = 'flex';
-  });
-
-  settingsClose.addEventListener('click', () => {
-    settingsModal.style.display = 'none';
-  });
-
-  settingsSave.addEventListener('click', () => {
-    settingsModal.style.display = 'none';
-  });
-
-  window.addEventListener('click', (e) => {
-    if (e.target === settingsModal) {
-      settingsModal.style.display = 'none';
-    }
-  });
-
-  // Settings Toggles State Management
-  const darkModeToggle = document.getElementById('dark-mode-toggle');
-  const compactViewToggle = document.getElementById('compact-view-toggle');
-
-  // Load preferences
-  const loadPreferences = () => {
-    const isDarkMode = localStorage.getItem('studyplan_dark_mode') === 'true';
-    const isCompactView = localStorage.getItem('studyplan_compact_view') === 'true';
-
-    darkModeToggle.checked = isDarkMode;
-    compactViewToggle.checked = isCompactView;
-
-    if (isDarkMode) {
-      document.documentElement.setAttribute('data-theme', 'dark');
-    } else {
-      document.documentElement.setAttribute('data-theme', 'light');
-    }
-
-    if (isCompactView) {
-      document.body.classList.add('compact-view');
-    } else {
-      document.body.classList.remove('compact-view');
-    }
-  };
-
-  // Run on load
-  loadPreferences();
-
-  // Save changes when user clicks "Save Changes"
-  settingsSave.addEventListener('click', () => {
-    localStorage.setItem('studyplan_dark_mode', darkModeToggle.checked);
-    localStorage.setItem('studyplan_compact_view', compactViewToggle.checked);
-    loadPreferences();
-    settingsModal.style.display = 'none';
-  });
-
-  // Also apply immediately on toggle for better UX
-  darkModeToggle.addEventListener('change', (e) => {
-    if (e.target.checked) {
-      document.documentElement.setAttribute('data-theme', 'dark');
-    } else {
-      document.documentElement.setAttribute('data-theme', 'light');
-    }
-  });
-
-  compactViewToggle.addEventListener('change', (e) => {
-    if (e.target.checked) {
-      document.body.classList.add('compact-view');
-    } else {
-      document.body.classList.remove('compact-view');
-    }
-  });
-</script>
-
+<!-- New Subject Modal -->
 <div id="new-subject-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0; z-index:9998; align-items:center; justify-content:center;">
   <div class="modal-card" style="border-radius:12px; padding:20px; width:320px; box-shadow:0 12px 40px rgba(0,0,0,0.25);">
     <h3 style="margin:0 0 12px; font-size:18px; font-weight:600;">New subject</h3>
@@ -491,27 +545,254 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
   </div>
 </div>
 
-<div id="new-task-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0;  z-index:9998; align-items:center; justify-content:center;">
-  <div class="modal-card" style=" border-radius:12px; padding:20px; width:320px; box-shadow:0 12px 40px rgba(0,0,0,0.25);">
+<!-- New Task Modal -->
+<div id="new-task-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0; z-index:9998; align-items:center; justify-content:center;">
+  <div class="modal-card" style="border-radius:12px; padding:20px; width:320px; box-shadow:0 12px 40px rgba(0,0,0,0.25);">
     <h3 style="margin:0 0 12px; font-size:18px; font-weight:600;">New task</h3>
-
     <label style="display:block; font-size:12px; margin-bottom:4px;">Subject</label>
-    <select id="new-task-subject" paceholder="Subject" style="width:100%; padding:6px; margin-bottom:10px;"></select>
-
+    <select id="new-task-subject" style="width:100%; padding:6px; margin-bottom:10px;"></select>
     <label style="display:block; font-size:12px; margin-bottom:4px;">Task name (Use #tag for labels)</label>
-    <input id="new-task-title" type="text" style="width:100%; padding:6px; margin-bottom:10px;"placeholder="e.g. Study for exam #urgent #school">
-
+    <input id="new-task-title" type="text" style="width:100%; padding:6px; margin-bottom:10px;" placeholder="e.g. Study for exam #urgent #school">
     <label style="display:block; font-size:12px; margin-bottom:4px;">Deadline</label>
-    <input id="new-task-date" type="datetime-local" style="width:100%; padding:6px; margin-bottom:10px;" placeholder="Deadline">
-
-    <!-- <label style="display:block; font-size:12px; margin-bottom:4px;">Notes</label> -->
+    <input id="new-task-date" type="datetime-local" style="width:100%; padding:6px; margin-bottom:10px;">
     <input id="new-task-notes" type="text" style="width:100%; padding:6px; margin-bottom:16px;" placeholder="Notes">
-
     <div style="display:flex; justify-content:flex-end; gap:8px;">
       <button id="new-task-cancel" class="btn" style="padding:6px 10px;">Cancel</button>
       <button id="new-task-save" class="btn btn-primary" style="padding:6px 12px;">Save</button>
     </div>
   </div>
 </div>
+
+<script type="module" src="/js/app.js"></script>
+<script>
+  // ── Helpers ──────────────────────────────────────────────────────────────────
+  function showToast(msg, type = 'default') {
+    const toast = document.getElementById('auth-toast');
+    toast.textContent = msg;
+    toast.className = `show ${type}`;
+    setTimeout(() => { toast.className = ''; }, 3500);
+  }
+
+  function showAuthView(view) {
+    document.querySelectorAll('.auth-view').forEach(el => el.classList.remove('active'));
+    document.getElementById(`auth-view-${view}`).classList.add('active');
+  }
+
+  function validatePassword(password) {
+    return password.length >= 8 && /[A-Z]/.test(password) && /[!@#$%^&*(),.?":{}|<>]/.test(password);
+  }
+
+  // ── Auth State ────────────────────────────────────────────────────────────────
+  let isLogin = true;
+
+  // Hide modal if already logged in
+  const storedUser = localStorage.getItem('studyplan_user');
+  if (storedUser) {
+    document.getElementById('auth-modal').style.display = 'none';
+    try {
+      const u = JSON.parse(storedUser);
+      document.getElementById('profile-dropdown-email').textContent = u.email || '—';
+    } catch(e) {}
+  }
+
+  // ── Login / Signup Toggle ────────────────────────────────────────────────────
+  document.getElementById('auth-toggle-btn').addEventListener('click', (e) => {
+    e.preventDefault();
+    isLogin = !isLogin;
+    document.getElementById('auth-modal').querySelector('.auth-title').textContent =
+      isLogin ? 'Welcome back' : 'Create account';
+    document.getElementById('auth-modal').querySelector('.auth-subtitle').textContent =
+      isLogin ? 'Sign in to your StudyPlan account' : 'Start planning your studies';
+    document.getElementById('auth-submit-btn').textContent = isLogin ? 'Sign In' : 'Sign Up';
+    document.getElementById('auth-toggle-text').textContent =
+      isLogin ? "Don't have an account?" : 'Already have an account?';
+    document.getElementById('auth-toggle-btn').textContent = isLogin ? 'Sign Up' : 'Sign In';
+    document.getElementById('auth-password-rules').style.display = isLogin ? 'none' : 'block';
+    document.getElementById('auth-error').style.display = 'none';
+  });
+
+  // ── Login / Signup Submit ────────────────────────────────────────────────────
+  document.getElementById('auth-submit-btn').addEventListener('click', async () => {
+    const email    = document.getElementById('auth-email').value.trim();
+    const password = document.getElementById('auth-password').value;
+    const errorEl  = document.getElementById('auth-error');
+    const btn      = document.getElementById('auth-submit-btn');
+
+    errorEl.style.display = 'none';
+
+    if (!email || !password) {
+      errorEl.textContent = 'Please fill in all fields.';
+      errorEl.style.display = 'block';
+      return;
+    }
+
+    if (!validatePassword(password)) {
+      errorEl.textContent = 'Password must be at least 8 characters, contain 1 capital letter and 1 special character.';
+      errorEl.style.display = 'block';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = isLogin ? 'Signing in…' : 'Creating account…';
+
+    try {
+      const endpoint = isLogin ? '/api/auth/login' : '/api/auth/signup';
+      const res  = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        errorEl.textContent = data.error || 'Something went wrong.';
+        errorEl.style.display = 'block';
+        return;
+      }
+
+      localStorage.setItem('studyplan_user', JSON.stringify({ email: data.email }));
+      document.getElementById('profile-dropdown-email').textContent = data.email;
+      document.getElementById('auth-modal').style.display = 'none';
+      showToast(isLogin ? 'Welcome back!' : 'Account created!', 'success');
+
+    } catch (err) {
+      errorEl.textContent = 'Network error. Please try again.';
+      errorEl.style.display = 'block';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = isLogin ? 'Sign In' : 'Sign Up';
+    }
+  });
+
+  // ── Forgot Password Flow ─────────────────────────────────────────────────────
+  document.getElementById('show-forgot-btn').addEventListener('click', (e) => {
+    e.preventDefault();
+    showAuthView('forgot');
+  });
+
+  document.getElementById('show-login-btn').addEventListener('click', (e) => {
+    e.preventDefault();
+    showAuthView('login');
+  });
+
+  document.getElementById('forgot-back-btn').addEventListener('click', () => {
+    showAuthView('login');
+  });
+
+  document.getElementById('forgot-submit-btn').addEventListener('click', async () => {
+    const email   = document.getElementById('forgot-email').value.trim();
+    const errorEl = document.getElementById('forgot-error');
+    const btn     = document.getElementById('forgot-submit-btn');
+
+    errorEl.style.display = 'none';
+
+    if (!email || !email.includes('@')) {
+      errorEl.textContent = 'Please enter a valid email address.';
+      errorEl.style.display = 'block';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+
+    try {
+      const res  = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        errorEl.textContent = data.error || 'Something went wrong.';
+        errorEl.style.display = 'block';
+        return;
+      }
+
+      // Always show success — no user enumeration
+      showAuthView('forgot-success');
+
+    } catch (err) {
+      errorEl.textContent = 'Network error. Please try again.';
+      errorEl.style.display = 'block';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Send Reset Link';
+    }
+  });
+
+  // ── Profile Dropdown ─────────────────────────────────────────────────────────
+  const profileBtn      = document.getElementById('profile-btn');
+  const profileDropdown = document.getElementById('profile-dropdown');
+
+  profileBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    profileDropdown.classList.toggle('open');
+  });
+
+  // Close dropdown when clicking anywhere else
+  document.addEventListener('click', () => {
+    profileDropdown.classList.remove('open');
+  });
+
+  document.getElementById('dropdown-settings-btn').addEventListener('click', () => {
+    profileDropdown.classList.remove('open');
+    document.getElementById('settings-modal').style.display = 'flex';
+  });
+
+  document.getElementById('dropdown-logout-btn').addEventListener('click', () => {
+    localStorage.removeItem('studyplan_user');
+    profileDropdown.classList.remove('open');
+    document.getElementById('auth-modal').style.display = 'flex';
+    showAuthView('login');
+    window.location.reload();
+  });
+
+  // ── Settings Modal ───────────────────────────────────────────────────────────
+  const settingsModal = document.getElementById('settings-modal');
+
+  document.getElementById('nav-settings').addEventListener('click', (e) => {
+    e.preventDefault();
+    settingsModal.style.display = 'flex';
+  });
+
+  document.getElementById('settings-close').addEventListener('click', () => {
+    settingsModal.style.display = 'none';
+  });
+
+  window.addEventListener('click', (e) => {
+    if (e.target === settingsModal) settingsModal.style.display = 'none';
+  });
+
+  const darkModeToggle    = document.getElementById('dark-mode-toggle');
+  const compactViewToggle = document.getElementById('compact-view-toggle');
+
+  function loadPreferences() {
+    const isDarkMode    = localStorage.getItem('studyplan_dark_mode') === 'true';
+    const isCompactView = localStorage.getItem('studyplan_compact_view') === 'true';
+    darkModeToggle.checked    = isDarkMode;
+    compactViewToggle.checked = isCompactView;
+    document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+    document.body.classList.toggle('compact-view', isCompactView);
+  }
+
+  loadPreferences();
+
+  document.getElementById('settings-save').addEventListener('click', () => {
+    localStorage.setItem('studyplan_dark_mode', darkModeToggle.checked);
+    localStorage.setItem('studyplan_compact_view', compactViewToggle.checked);
+    loadPreferences();
+    settingsModal.style.display = 'none';
+    showToast('Settings saved.', 'success');
+  });
+
+  darkModeToggle.addEventListener('change', (e) => {
+    document.documentElement.setAttribute('data-theme', e.target.checked ? 'dark' : 'light');
+  });
+
+  compactViewToggle.addEventListener('change', (e) => {
+    document.body.classList.toggle('compact-view', e.target.checked);
+  });
+</script>
 </body>
 </html>
