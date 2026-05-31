@@ -1317,6 +1317,21 @@ extractBtn.addEventListener('click', async () => {
   
   extractBtn.innerHTML = '<span class="loader-spinner"></span>';
   extractBtn.disabled = true;
+
+  // Show loading skeleton
+  extractPreview.innerHTML = `
+    <div class="extract-title">Extracting tasks...</div>
+    <div class="skeleton-card">
+      <div class="skeleton-line short"></div>
+      <div class="skeleton-line long"></div>
+      <div class="skeleton-line medium"></div>
+    </div>
+    <div class="skeleton-card">
+      <div class="skeleton-line short"></div>
+      <div class="skeleton-line long"></div>
+      <div class="skeleton-line medium"></div>
+    </div>
+  `;
   
   const items = await extractTasksFromText(text);
   
@@ -1468,3 +1483,4 @@ if (markdownDownloadBtn) {
     downloadMarkdown();
   });
 }
+
