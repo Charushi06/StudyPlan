@@ -160,11 +160,80 @@ function renderSidebarSubjects() {
   listEl.innerHTML = subjects.map(s => {
     const n = countBySubject[s.id] ?? 0;
     const safeColor = s.color ? escapeHtml(s.color) : 'var(--color-text-info)';
-    return `<div class="nav-item subject-sidebar-item" data-subject-id="${escapeHtml(s.id)}">
-      <span class="nav-dot" style="background:${safeColor}"></span>${escapeHtml(s.name)}<span class="badge">${n}</span>
-    </div>`;
+    return `
+      <div class="nav-item subject-sidebar-item" data-subject-id="${escapeHtml(s.id)}">
+        <span class="nav-dot" style="background:${safeColor}"></span>
+        <span class="subject-sidebar-name">${escapeHtml(s.name)}</span>
+        <span class="badge">${n}</span>
+        <span class="subject-actions">
+          <button class="subject-action-btn edit-subject-btn" data-id="${escapeHtml(s.id)}" title="Edit subject" aria-label="Edit ${escapeHtml(s.name)}">
+            <svg width="12" height="12" fill="none" viewBox="0 0 16 16"><path d="M11.5 2.5a2.121 2.121 0 013 3L5 15H1v-4L11.5 2.5z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <button class="subject-action-btn delete-subject-btn" data-id="${escapeHtml(s.id)}" title="Delete subject" aria-label="Delete ${escapeHtml(s.name)}">
+            <svg width="12" height="12" fill="none" viewBox="0 0 16 16"><path d="M2 4h12M5 4V2h6v2M6 7v5M10 7v5M3 4l1 10h8l1-10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </span>
+      </div>`;
   }).join('');
+
+  // Bind edit buttons
+  listEl.querySelectorAll('.edit-subject-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.id;
+      const subject = store.subjects.find(s => s.id === id);
+      if (subject) openEditSubjectModal(subject);
+    });
+  });
+
+  // Bind delete buttons
+  listEl.querySelectorAll('.delete-subject-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      store.deleteSubject(btn.dataset.id);
+    });
+  });
 }
+
+// ===== Edit Subject Modal =====
+let editingSubjectId = null;
+let selectedEditSubjectColor = null;
+
+function openEditSubjectModal(subject) {
+  const modal = document.getElementById('edit-subject-modal');
+  const nameInput = document.getElementById('edit-subject-name');
+  const colorsEl = document.getElementById('edit-subject-colors');
+  if (!modal || !nameInput || !colorsEl) return;
+
+  editingSubjectId = subject.id;
+  nameInput.value = subject.name;
+  selectedEditSubjectColor = subject.color;
+
+  // Build color swatches
+  colorsEl.innerHTML = '';
+  SUBJECT_COLORS.forEach(c => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'subject-color-swatch' + (c === selectedEditSubjectColor ? ' subject-color-swatch--selected' : '');
+    btn.dataset.color = c;
+    btn.style.background = c;
+    btn.setAttribute('aria-pressed', c === selectedEditSubjectColor ? 'true' : 'false');
+    btn.addEventListener('click', () => {
+      selectedEditSubjectColor = c;
+      colorsEl.querySelectorAll('.subject-color-swatch').forEach(b => {
+        const on = b.dataset.color === selectedEditSubjectColor;
+        b.classList.toggle('subject-color-swatch--selected', on);
+        b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+    });
+    colorsEl.appendChild(btn);
+  });
+
+  modal.style.display = 'flex';
+  nameInput.focus();
+}
+
+
 
 const newTaskModal = document.getElementById('new-task-modal');
 const newTaskSubject = document.getElementById('new-task-subject');
@@ -1082,7 +1151,47 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // ===== Edit Subject Modal event wiring =====
+  const editSubjectModal = document.getElementById('edit-subject-modal');
+  const editSubjectSave = document.getElementById('edit-subject-save');
+  const editSubjectCancel = document.getElementById('edit-subject-cancel');
+  const editSubjectNameInput = document.getElementById('edit-subject-name');
+
+  if (editSubjectCancel) {
+    editSubjectCancel.addEventListener('click', () => {
+      if (editSubjectModal) editSubjectModal.style.display = 'none';
+    });
+  }
+
+  if (editSubjectModal) {
+    editSubjectModal.addEventListener('click', (e) => {
+      if (e.target === editSubjectModal) editSubjectModal.style.display = 'none';
+    });
+  }
+
+  if (editSubjectSave) {
+    editSubjectSave.addEventListener('click', async () => {
+      if (!editingSubjectId) return;
+      const name = editSubjectNameInput?.value.trim();
+      if (!name) {
+        Toast.show('Subject name cannot be empty', 'warning');
+        return;
+      }
+      const ok = await store.updateSubject(editingSubjectId, { name, color: selectedEditSubjectColor });
+      if (ok && editSubjectModal) editSubjectModal.style.display = 'none';
+    });
+  }
+
+  if (editSubjectNameInput) {
+    editSubjectNameInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); editSubjectSave?.click(); }
+    });
+  }
+
   store.fetchInitialData();
+
+
+
   
   const calendarBtn = document.getElementById('calendar-btn');
   const allTasksBtn = document.getElementById('all-tasks-btn');
