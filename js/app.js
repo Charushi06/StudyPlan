@@ -414,6 +414,72 @@ async function downloadData() {
     }
 }
 
+function exportToMarkdown() {
+  const tasks = store.tasks.filter(t => !t.archived);
+  if (tasks.length === 0) {
+    Toast.show('No tasks to export', 'error');
+    return;
+  }
+
+  const subjects = store.subjects;
+  const subjectMap = {};
+  subjects.forEach(s => { subjectMap[s.id] = s.name; });
+
+  const grouped = {};
+  const uncategorized = [];
+
+  tasks.forEach(t => {
+    const name = t.subject_id ? subjectMap[t.subject_id] : null;
+    if (name) {
+      if (!grouped[name]) grouped[name] = [];
+      grouped[name].push(t);
+    } else {
+      uncategorized.push(t);
+    }
+  });
+
+  const sortedNames = Object.keys(grouped).sort();
+
+  let md = `# StudyPlan Export\n`;
+  md += `> Exported on ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}\n\n`;
+
+  sortedNames.forEach(name => {
+    const items = grouped[name].sort((a, b) => new Date(a.due_at) - new Date(b.due_at));
+    md += `## ${name}\n\n`;
+    items.forEach(t => {
+      const status = t.status === 'Done' ? 'x' : ' ';
+      const due = t.due_at ? new Date(t.due_at).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : 'No deadline';
+      md += `- [${status}] **${t.title}** — ${due}`;
+      if (t.notes) md += `  \n  _${t.notes}_`;
+      md += '\n';
+    });
+    md += '\n';
+  });
+
+  if (uncategorized.length > 0) {
+    md += `## Uncategorized\n\n`;
+    uncategorized.forEach(t => {
+      const status = t.status === 'Done' ? 'x' : ' ';
+      const due = t.due_at ? new Date(t.due_at).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : 'No deadline';
+      md += `- [${status}] **${t.title}** — ${due}`;
+      if (t.notes) md += `  \n  _${t.notes}_`;
+      md += '\n';
+    });
+    md += '\n';
+  }
+
+  const blob = new Blob([md], { type: 'text/markdown' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'StudyPlan_Export.md';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 100);
+  Toast.show('Markdown file downloaded!', 'success');
+}
+
 async function downloadCalendar() {
     try {
         const response = await fetch('/api/download/calendar');
@@ -623,6 +689,7 @@ function renderTasks() {
     const actionBar = `<div class="tasks-actions-bar">
            <button id="mark-all-pending-btn" class="task-action-btn" ${pending.length === 0 ? 'disabled' : ''}>Mark all pending completed (${pending.length})</button>
            <button id="mark-day-complete-btn" class="task-action-btn task-action-btn-secondary" ${pending.length === 0 ? 'disabled' : ''}>Mark selected day completed</button>
+           <button id="export-md-btn" class="task-action-btn task-action-btn-secondary" style="margin-left:auto;">Export to MD</button>
          </div>`;
 
     const emptyState = dueSoon.length === 0 && completed.length === 0
@@ -644,6 +711,7 @@ function renderTasks() {
   } else {
     const actionBar = currentView === 'archived' ? '' : `<div class="tasks-actions-bar">
            <button id="mark-all-pending-btn" class="task-action-btn" ${pending.length === 0 ? 'disabled' : ''}>Mark all pending completed (${pending.length})</button>
+           <button id="export-md-btn" class="task-action-btn task-action-btn-secondary" style="margin-left:auto;">Export to MD</button>
          </div>`;
 
     const titlePrefix = currentView === 'archived' ? 'Archived: ' : '';
@@ -774,6 +842,14 @@ function renderTasks() {
     markDayCompleteBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       store.markPendingTasksForDateCompleted(selectedDate);
+    });
+  }
+
+  const exportMdBtn = document.getElementById('export-md-btn');
+  if (exportMdBtn) {
+    exportMdBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      exportToMarkdown();
     });
   }
 }
