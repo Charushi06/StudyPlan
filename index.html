@@ -40,9 +40,9 @@
   </div>
 
   <nav class="header-nav">
-    <a href="#">Dashboard</a>
-    <a href="#">Tasks</a>
-    <a href="#">Calendar</a>
+    <a href="#" id="nav-dashboard">Dashboard</a>
+    <a href="#" id="nav-tasks">Tasks</a>
+    <a href="#" id="nav-calendar">Calendar</a>
     <a href="#" id="nav-settings">Settings</a>
   </nav>
 
@@ -202,9 +202,6 @@
     Add items to planner
   </button>
 </div>
-
-
-      <button id="add-btn" class="add-btn" disabled>Add items to planner</button>
     </div>
   </div>
 </div>
@@ -451,7 +448,21 @@
     </div>
   </div>
 </div>
+  <script>
+    document.getElementById("current-year").textContent = new Date().getFullYear();
+
+    document.getElementById('nav-dashboard').addEventListener('click', (e) => {
+      e.preventDefault();
+      document.getElementById('calendar-btn').click();
+    });
+    document.getElementById('nav-tasks').addEventListener('click', (e) => {
+      e.preventDefault();
+      document.getElementById('all-tasks-btn').click();
+    });
+    document.getElementById('nav-calendar').addEventListener('click', (e) => {
+      e.preventDefault();
+      document.getElementById('calendar-btn').click();
+    });
+  </script>
 </body>
 </html>
-// Dynamic Footer Year
-document.getElementById("current-year").textContent = new Date().getFullYear();
