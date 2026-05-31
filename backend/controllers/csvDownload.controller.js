@@ -74,6 +74,12 @@ function buildCalendarIcs(tasks = []) {
   ].join('\r\n');
 }
 
+function escapeCsvField(value = '') {
+  const stringValue = String(value ?? '');
+
+  return `"${stringValue.replace(/"/g, '""')}"`;
+}
+
 async function downloadData(req, res) {
   try {
     const data = await getAllTasksWithSubjects();
@@ -81,14 +87,14 @@ async function downloadData(req, res) {
     const rows = [
       ['Task ID', 'Subject', 'Title', 'Due At', 'Status', 'Priority', 'Confidence Score', 'Notes'],
       ...data.map(task => [
-        task.id,
-        task.subject_name,
-        task.title,
-        task.due_at,
-        task.status,
-        task.priority,
-        task.confidence_score,
-        `"${(task.notes || '').replace(/"/g, '""')}"`,
+        escapeCsvField(task.id),
+        escapeCsvField(task.subject_name),
+        escapeCsvField(task.title),
+        escapeCsvField(task.due_at),
+        escapeCsvField(task.status),
+        escapeCsvField(task.priority),
+        escapeCsvField(task.confidence_score),
+        escapeCsvField(task.notes),
       ]),
     ];
 
