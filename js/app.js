@@ -972,12 +972,17 @@ function renderExtraction() {
     } else {
       html += `
         <div class="extract-card" style="animation-delay: ${index * 0.1}s">
-          <div class="extract-subject" style="color:${sub.color}">${sub.name}</div>
-          <div class="extract-task-name">${item.title}</div>
-          <div class="extract-row"><span class="extract-icon">${item.icon || '📅'}</span> ${formatDate(item.due_at)}</div>
-          <div class="extract-row"><span class="extract-icon">📎</span> ${item.notes || 'No notes attached'}</div>
-          <div class="conf-bar"><div class="conf-fill" style="width:0%;background:${item.confidence_score > 75 ? 'var(--color-text-success)' : 'var(--color-text-warning)'}" data-width="${item.confidence_score}"></div></div>
-          <div class="conf-label">${item.confidence_score}% confidence <span class="conf-edit" data-index="${index}" tabindex="0">Edit</span></div>
+          <div class="extract-card-header" data-index="${index}">
+            <div class="extract-subject" style="color:${sub.color}">${sub.name}</div>
+            <div class="extract-task-name">${item.title}</div>
+            <span class="extract-chevron">▼</span>
+          </div>
+          <div class="extract-card-body">
+            <div class="extract-row"><span class="extract-icon">${item.icon || '📅'}</span> ${formatDate(item.due_at)}</div>
+            <div class="extract-row"><span class="extract-icon">📎</span> ${item.notes || 'No notes attached'}</div>
+            <div class="conf-bar"><div class="conf-fill" style="width:0%;background:${item.confidence_score > 75 ? 'var(--color-text-success)' : 'var(--color-text-warning)'}" data-width="${item.confidence_score}"></div></div>
+            <div class="conf-label">${item.confidence_score}% confidence <span class="conf-edit" data-index="${index}" tabindex="0">Edit</span></div>
+          </div>
         </div>
       `;
     }
@@ -991,8 +996,17 @@ function renderExtraction() {
     });
   }, 100);
   
+  document.querySelectorAll('.extract-card-header').forEach(header => {
+    header.addEventListener('click', (e) => {
+      if (e.target.closest('.conf-edit')) return;
+      const card = header.closest('.extract-card');
+      card.classList.toggle('expanded');
+    });
+  });
+
   document.querySelectorAll('.conf-edit').forEach(btn => {
     btn.addEventListener('click', (e) => {
+      e.stopPropagation();
       const idx = e.target.getAttribute('data-index');
       store.updateExtractedItem(idx, { _isEditing: true });
     });
