@@ -26,9 +26,19 @@ function initDb() {
       confidence_score REAL,
       notes TEXT,
       archived INTEGER DEFAULT 0,
+      labels TEXT DEFAULT '[]',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (subject_id) REFERENCES subjects(id)
     )`);
+
+    // Add labels column to existing tasks table if it doesn't exist
+    db.all("PRAGMA table_info(tasks)", (err, rows) => {
+      if (err) return;
+      const hasLabels = rows.some(r => r.name === 'labels');
+      if (!hasLabels) {
+        db.run("ALTER TABLE tasks ADD COLUMN labels TEXT DEFAULT '[]'");
+      }
+    });
 
     // Pre-populate some subjects if empty
     db.get('SELECT COUNT(*) as count FROM subjects', (err, row) => {

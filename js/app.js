@@ -2,8 +2,31 @@ import { store } from './store.js';
 import { extractTasksFromText } from './utils/api.js';
 import { initGlobalErrorBoundary } from './utils/errorBoundary.js';
 import { analyzeWorkload } from './utils/scheduler.js';
+import { Toast } from './utils/toast.js';
 
 initGlobalErrorBoundary();
+
+function getLabelColor(labelStr) {
+  const colors = ['#ef4444', '#f59e0b', '#3b82f6', '#8b5cf6', '#10b981', '#ec4899', '#14b8a6', '#f97316'];
+  let hash = 0;
+  for (let i = 0; i < labelStr.length; i++) {
+    hash = labelStr.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return colors[Math.abs(hash) % colors.length];
+}
+
+function extractLabels(title) {
+  const labelRegex = /#([\w-]+)/g;
+  let match;
+  const labels = [];
+  while ((match = labelRegex.exec(title)) !== null) {
+    labels.push(match[1]);
+  }
+  const cleanTitle = title.replace(labelRegex, '').trim();
+  return { cleanTitle, labels };
+}
+
+let activeLabelFilter = '';
 
 function generateSummary(tasks, subjects) {
   const now = new Date();
@@ -61,7 +84,9 @@ const extractBtn = document.getElementById('extract-btn');
 const clearBtn = document.getElementById('clear-btn');
 const addItemsBtn = document.getElementById('add-btn');
 const downloadBtn = document.getElementById('download-btn');
+const calendarDownloadBtn = document.getElementById('calendar-download-btn');
 const newTaskBtn = document.getElementById('add-task-btn');
+const labelFilterSelect = document.getElementById('label-filter');
 
 const SUBJECT_COLORS = [
   'var(--color-text-info)',
@@ -197,6 +222,56 @@ function setCircleDasharray() {
   timerPathRemaining.setAttribute("stroke-dasharray", circleDasharray);
 }
 
+function getTimerColor(timeLeft, totalTime) {
+  const fraction = timeLeft / totalTime;
+  if (fraction <= 0.1) return '#ef4444';
+  if (fraction <= 0.3) return '#f59e0b';
+  return '#166534';
+}
+
+function updateTimerColor() {
+  const color = getTimerColor(timeLeft, TIME_LIMIT);
+  timerPathRemaining.style.stroke = color;
+}
+
+function playCompletionSound() {
+  try {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.3);
+    
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.5);
+  } catch (e) {
+    console.log('Audio not supported');
+  }
+}
+
+function requestNotificationPermission() {
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+}
+
+function showBrowserNotification() {
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification('Focus Session Complete!', {
+      body: 'Great job! You completed your focus session.',
+      icon: '/logo.png'
+    });
+  }
+}
+
 function startTimer() {
   if (timerInterval) return;
   TIME_LIMIT = getTimerDuration();
@@ -204,17 +279,21 @@ function startTimer() {
   timerDurationInput.disabled = true;
   timerStartBtn.classList.add('hidden');
   timerPauseBtn.classList.remove('hidden');
+  requestNotificationPermission();
   
   timerInterval = setInterval(() => {
     timePassed += 1;
     timeLeft = TIME_LIMIT - timePassed;
     timerText.innerHTML = formatTimeLeft(timeLeft);
     setCircleDasharray();
+    updateTimerColor();
 
     if (timeLeft === 0) {
       clearInterval(timerInterval);
       timerInterval = null;
-      alert('Focus session complete!');
+      playCompletionSound();
+      showBrowserNotification();
+      Toast.show('Focus session complete!', 'success');
       resetTimer();
     }
   }, 1000);
@@ -236,6 +315,7 @@ function resetTimer() {
   timerDurationInput.disabled = false;
   timerText.innerHTML = formatTimeLeft(timeLeft);
   timerPathRemaining.setAttribute("stroke-dasharray", "283 283");
+  timerPathRemaining.style.stroke = 'var(--color-text-primary)';
   timerPauseBtn.classList.add('hidden');
   timerStartBtn.classList.remove('hidden');
 }
