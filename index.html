@@ -14,7 +14,11 @@
 <body>
   <!-- Auth Modal -->
 <div id="auth-modal" style="display:flex; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
-  <div style="background:white; border-radius:16px; padding:32px; width:360px; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+  <div style="position:relative; background:white; border-radius:16px; padding:32px; width:360px; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+    <button id="auth-close-btn"
+      style="position:absolute; top:12px; right:12px; background:none; border:none; font-size:24px; cursor:pointer;">
+      &times;
+    </button>
     
     <h2 id="auth-title" style="margin:0 0 8px; font-size:22px; font-weight:700;">Welcome back</h2>
     <p id="auth-subtitle" style="margin:0 0 24px; color:#666; font-size:14px;">Sign in to your StudyPlan account</p>
@@ -303,10 +307,34 @@
   </div>
 </div>
 
+ 
   <script type="module" src="/js/app.js"></script>
   <script>
-  let isLogin = true;
+    let isLogin = true;
 
+    const authModal = document.getElementById('auth-modal');
+
+    function closeAuthModal() {
+      authModal.style.display = 'none';
+    }
+
+    document.getElementById('auth-close-btn')
+      .addEventListener('click', closeAuthModal);
+
+      authModal.addEventListener('click', (e) => {
+        if (e.target === authModal) {
+          closeAuthModal();
+        }
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && authModal.style.display !== 'none') {
+          closeAuthModal();
+        }
+      });
+  </script>
+  <script>
+    
   document.getElementById('auth-toggle-btn').addEventListener('click', (e) => {
     e.preventDefault();
     isLogin = !isLogin;
