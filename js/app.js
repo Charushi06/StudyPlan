@@ -1132,6 +1132,34 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Header nav links
+  document.getElementById('nav-dashboard')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    currentView = 'all-tasks';
+    document.querySelector('.cal-section').classList.add('hidden');
+    document.getElementById('tasks-section').classList.remove('hidden');
+    document.getElementById('focus-section').classList.add('hidden');
+    renderTasks();
+  });
+
+  document.getElementById('nav-tasks')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    currentView = 'all-tasks';
+    document.querySelector('.cal-section').classList.add('hidden');
+    document.getElementById('tasks-section').classList.remove('hidden');
+    document.getElementById('focus-section').classList.add('hidden');
+    renderTasks();
+  });
+
+  document.getElementById('nav-calendar')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    currentView = 'calendar';
+    document.querySelector('.cal-section').classList.remove('hidden');
+    document.getElementById('tasks-section').classList.remove('hidden');
+    document.getElementById('focus-section').classList.add('hidden');
+    renderTasks();
+  });
+
   document.getElementById('cal-prev').addEventListener('click', () => {
     currentMonthDate.setMonth(currentMonthDate.getMonth() - 1);
     renderCalendar();
