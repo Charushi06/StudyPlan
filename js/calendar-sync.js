@@ -27,7 +27,16 @@ class CalendarSyncEngine {
 
     syncEventToExternal(eventData) {
         if (!this.providers.google.connected && !this.providers.apple.connected) return;
-        console.log("Syncing event out to external providers...");
+        const formattedEvent = this.formatEventForSync(eventData);
+        console.log("Syncing event out to external providers:", formattedEvent);
+    }
+
+    formatEventForSync(eventData) {
+        return {
+            ...eventData,
+            startTimeIso: new Date(eventData.startTime).toISOString(),
+            endTimeIso: new Date(eventData.endTime).toISOString()
+        };
     }
 }
 
