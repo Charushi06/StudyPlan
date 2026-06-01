@@ -3,6 +3,7 @@ import { extractTasksFromText } from './utils/api.js';
 import { initGlobalErrorBoundary } from './utils/errorBoundary.js';
 import { analyzeWorkload } from './utils/scheduler.js';
 import { Toast } from './utils/toast.js';
+import './profile.js?v=2';
 
 initGlobalErrorBoundary();
 

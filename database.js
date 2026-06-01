@@ -40,6 +40,32 @@ function initDb() {
       }
     });
 
+    // Users Table (for persistence)
+    db.run(`CREATE TABLE IF NOT EXISTS users (
+      email TEXT PRIMARY KEY,
+      password TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`);
+
+    // User Profiles Table
+    db.run(`CREATE TABLE IF NOT EXISTS user_profiles (
+      email TEXT PRIMARY KEY,
+      display_name TEXT,
+      bio TEXT,
+      academic_details TEXT,
+      social_links TEXT,
+      avatar_url TEXT,
+      banner_url TEXT,
+      banner_position_y TEXT DEFAULT '50%',
+      theme_mode TEXT DEFAULT 'dark',
+      accent_color TEXT,
+      font_family TEXT DEFAULT 'Inter',
+      dashboard_bg TEXT,
+      dashboard_layout TEXT DEFAULT '{"calendar":true,"tasks":true,"focus":true,"statistics":true,"order":["greeting","calendar","tasks","focus","statistics"]}',
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (email) REFERENCES users(email)
+    )`);
+
     // Pre-populate some subjects if empty
     db.get('SELECT COUNT(*) as count FROM subjects', (err, row) => {
       if (row && row.count === 0) {

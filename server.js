@@ -4,7 +4,10 @@ const cors = require('cors');
 const { db, initDb } = require('./database');
 const { GoogleGenAI } = require('@google/genai');
 const path = require('path');
+const multer = require('multer');
 const csvDownloadRouter = require('./backend/routers/csvDownload.router.js');
+
+const upload = multer({ dest: path.join(__dirname, 'public/uploads/') });
 
 const app = express();
 app.use(cors());
@@ -508,19 +511,23 @@ Text: "${text}"
   const tasks = nlpExtractTasksFromText(text);
   return res.json(tasks);
 });
-// ================= AUTH =================
-const users = {}; // Simple in-memory user store
-
+// ================= AUTH (SQLite) =================
 app.post('/api/auth/signup', (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password required' });
   }
-  if (users[email]) {
-    return res.status(400).json({ error: 'User already exists' });
-  }
-  users[email] = { email, password };
-  res.json({ success: true, message: 'Account created successfully' });
+  db.get('SELECT email FROM users WHERE email = ?', [email], (err, row) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (row) return res.status(400).json({ error: 'User already exists' });
+    
+    db.run('INSERT INTO users (email, password) VALUES (?, ?)', [email, password], function(err) {
+      if (err) return res.status(500).json({ error: err.message });
+      // Initialize an empty profile for the new user
+      db.run('INSERT INTO user_profiles (email) VALUES (?)', [email]);
+      res.json({ success: true, message: 'Account created successfully' });
+    });
+  });
 });
 
 app.post('/api/auth/login', (req, res) => {
@@ -528,11 +535,94 @@ app.post('/api/auth/login', (req, res) => {
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password required' });
   }
-  const user = users[email];
-  if (!user || user.password !== password) {
-    return res.status(401).json({ error: 'Invalid email or password' });
-  }
-  res.json({ success: true, email: user.email });
+  db.get('SELECT email, password FROM users WHERE email = ?', [email], (err, user) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!user || user.password !== password) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+    res.json({ success: true, email: user.email });
+  });
+});
+
+// ================= PROFILE API =================
+app.get('/api/profile', (req, res) => {
+  const { email } = req.query;
+  if (!email) return res.status(400).json({ error: 'Email required' });
+
+  db.get('SELECT * FROM user_profiles WHERE email = ?', [email], (err, profile) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!profile) {
+      // If profile doesn't exist for some reason, return a default one
+      return res.json({ 
+        email, 
+        theme_mode: 'dark', 
+        font_family: 'Inter', 
+        dashboard_layout: '{"calendar":true,"tasks":true,"focus":true,"statistics":true,"order":["greeting","calendar","tasks","focus","statistics"]}' 
+      });
+    }
+    res.json(profile);
+  });
+});
+
+app.put('/api/profile', (req, res) => {
+  const { email } = req.query;
+  if (!email) return res.status(400).json({ error: 'Email required' });
+
+  const {
+    display_name, bio, academic_details, social_links,
+    avatar_url, banner_url, banner_position_y,
+    theme_mode, accent_color, font_family, dashboard_bg,
+    dashboard_layout
+  } = req.body;
+
+  let query = 'UPDATE user_profiles SET updated_at = CURRENT_TIMESTAMP';
+  const params = [];
+  const updates = [];
+
+  if (display_name !== undefined) { updates.push('display_name = ?'); params.push(display_name); }
+  if (bio !== undefined) { updates.push('bio = ?'); params.push(bio); }
+  if (academic_details !== undefined) { updates.push('academic_details = ?'); params.push(academic_details); }
+  if (social_links !== undefined) { updates.push('social_links = ?'); params.push(social_links); }
+  if (avatar_url !== undefined) { updates.push('avatar_url = ?'); params.push(avatar_url); }
+  if (banner_url !== undefined) { updates.push('banner_url = ?'); params.push(banner_url); }
+  if (banner_position_y !== undefined) { updates.push('banner_position_y = ?'); params.push(banner_position_y); }
+  if (theme_mode !== undefined) { updates.push('theme_mode = ?'); params.push(theme_mode); }
+  if (accent_color !== undefined) { updates.push('accent_color = ?'); params.push(accent_color); }
+  if (font_family !== undefined) { updates.push('font_family = ?'); params.push(font_family); }
+  if (dashboard_bg !== undefined) { updates.push('dashboard_bg = ?'); params.push(dashboard_bg); }
+  if (dashboard_layout !== undefined) { updates.push('dashboard_layout = ?'); params.push(dashboard_layout); }
+
+  if (updates.length === 0) return res.json({ success: true, message: 'No changes' });
+
+  query += ', ' + updates.join(', ') + ' WHERE email = ?';
+  params.push(email);
+
+  db.run(query, params, function(err) {
+    if (err) return res.status(500).json({ error: err.message });
+    // If no changes, profile might not exist, insert it
+    if (this.changes === 0) {
+      db.run('INSERT INTO user_profiles (email) VALUES (?)', [email], (err2) => {
+        if (err2) return res.status(500).json({ error: err2.message });
+        db.run(query, params, (err3) => {
+          if (err3) return res.status(500).json({ error: err3.message });
+          res.json({ success: true });
+        });
+      });
+    } else {
+      res.json({ success: true });
+    }
+  });
+});
+
+app.post('/api/upload', upload.single('file'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+  // In production, we'd rename it with extension, but for simplicity we can serve the generic file or rename it here
+  const fs = require('fs');
+  const ext = path.extname(req.file.originalname) || '';
+  const newFilename = req.file.filename + ext;
+  const newPath = path.join(req.file.destination, newFilename);
+  fs.renameSync(req.file.path, newPath);
+  res.json({ success: true, url: '/public/uploads/' + newFilename });
 });
 
 // Intentional test route for verifying server error page behavior.

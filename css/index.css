@@ -53,7 +53,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --color-background-primary: #181816;
     --color-background-secondary: #20201e;
     --color-background-tertiary: #272725;
@@ -81,6 +81,42 @@
     --color-text-purple: #b9b5f5;
     --color-background-purple: rgba(185, 181, 245, 0.15);
   }
+}
+
+:root[data-theme="dark"] {
+  --color-background-primary: #181816;
+  --color-background-secondary: #20201e;
+  --color-background-tertiary: #272725;
+  --color-text-primary: #efede5;
+  --color-text-secondary: #a3a198;
+  --color-text-tertiary: #73726c;
+  --color-border-tertiary: rgba(255, 255, 255, 0.06);
+  --color-border-secondary: rgba(255, 255, 255, 0.12);
+  --color-border-primary: rgba(255, 255, 255, 0.22);
+}
+
+:root[data-theme="amoled"] {
+  --color-background-primary: #000000;
+  --color-background-secondary: #0a0a0a;
+  --color-background-tertiary: #111111;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #aaaaaa;
+  --color-text-tertiary: #777777;
+  --color-border-tertiary: rgba(255, 255, 255, 0.1);
+  --color-border-secondary: rgba(255, 255, 255, 0.15);
+  --color-border-primary: rgba(255, 255, 255, 0.25);
+}
+
+:root[data-theme="light"] {
+  --color-background-primary: #ffffff;
+  --color-background-secondary: #f7f7f5;
+  --color-background-tertiary: #efefec;
+  --color-text-primary: #1a1a18;
+  --color-text-secondary: #6b6b66;
+  --color-text-tertiary: #9c9a92;
+  --color-border-tertiary: rgba(0, 0, 0, 0.08);
+  --color-border-secondary: rgba(0, 0, 0, 0.15);
+  --color-border-primary: rgba(0, 0, 0, 0.30);
 }
 
 body {
@@ -5012,4 +5048,73 @@ body {
 
 @keyframes slideDown {
   to { opacity: 0; transform: translateY(10px); }
+}
+
+/* Profile Customization Styles */
+:root {
+  --accent-color: var(--color-text-primary);
+  --dashboard-bg-color: var(--color-background-primary);
+}
+
+.btn-primary {
+  background: var(--accent-color) !important;
+}
+
+.app {
+  background: var(--dashboard-bg-color) !important;
+}
+
+.profile-input::placeholder {
+  color: var(--color-text-tertiary);
+  opacity: 0.7;
+}
+
+.color-option {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: transform 0.2s, border-color 0.2s;
+}
+
+.color-option.active {
+  transform: scale(1.1);
+  border-color: var(--color-text-primary);
+}
+
+.preset-cover {
+  height: 80px;
+  border-radius: 8px;
+  background-size: cover;
+  background-position: center;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: 2px solid transparent;
+}
+
+.preset-cover:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-md);
+}
+
+.preset-cover.active {
+  border-color: var(--accent-color);
+}
+
+.theme-btn {
+  border: 1px solid var(--color-border-secondary);
+  background: var(--color-background-primary);
+  color: var(--color-text-primary);
+}
+
+.theme-btn.active {
+  border-color: var(--color-text-primary);
+  box-shadow: 0 0 0 1px var(--color-text-primary);
+}
+
+
+/* Profile Banner Transition */
+#profile-banner {
+  transition: object-position 0.15s ease-out;
 }

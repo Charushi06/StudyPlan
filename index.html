@@ -9,7 +9,7 @@
   <script src="/js/lib/confetti.browser.min.js"></script>
 
   <link rel="icon" type="image/x-icon" href="/public/favicon.ico" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto:wght@400;500;700&family=Playfair+Display:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
   <!-- Auth Modal -->
@@ -61,7 +61,7 @@
   </nav>
 
   <div class="header-right">
-    <button class="profile-btn">Profile</button>
+    <button class="profile-btn" id="nav-profile-btn">Profile</button>
     <button class="profile-btn" id="logout-btn">Logout</button>
   </div>
 </header>
@@ -197,6 +197,110 @@
           </div>
         </div>
       </div>
+
+      <!-- Statistics (Placeholder) -->
+      <div id="statistics-section" class="statistics-section" style="padding: 24px;">
+        <h3 style="font-size: 16px; margin-bottom: 16px;">Study Statistics</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div style="background: var(--color-background-secondary); padding: 16px; border-radius: var(--border-radius-md); border: 1px solid var(--color-border-tertiary);">
+            <div style="font-size: 24px; font-weight: 700;">0h</div>
+            <div style="font-size: 12px; color: var(--color-text-secondary);">Total Focus Time</div>
+          </div>
+          <div style="background: var(--color-background-secondary); padding: 16px; border-radius: var(--border-radius-md); border: 1px solid var(--color-border-tertiary);">
+            <div style="font-size: 24px; font-weight: 700;">0</div>
+            <div style="font-size: 12px; color: var(--color-text-secondary);">Tasks Completed</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profile Section -->
+      <div id="profile-section" class="profile-section hidden" style="display: none; padding: 0 0 40px; overflow-y: auto;">
+        <div class="profile-header">
+          <div class="profile-banner-container" style="position: relative; height: 250px; background: #e0e0e0; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+            <img id="profile-banner" src="" alt="Banner" style="width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; display: none;">
+            <div class="banner-controls" style="position: absolute; top: 16px; right: 16px; display: flex; gap: 8px;">
+              <button id="change-banner-btn" class="btn btn-primary" style="font-size: 12px; padding: 6px 12px; background: rgba(0,0,0,0.6); color: white; border: none;">Change Cover</button>
+              <button id="remove-banner-btn" class="btn" style="font-size: 12px; padding: 6px 12px; background: rgba(255,255,255,0.8); color: black; border: none; display: none;">Remove</button>
+            </div>
+            <input type="file" id="banner-upload-input" accept="image/*,video/*" style="display: none;">
+          </div>
+          
+          <div class="profile-info-container" style="max-width: 800px; margin: -50px auto 0; padding: 0 24px; position: relative; z-index: 10;">
+            <div class="avatar-wrapper" style="position: relative; width: 100px; height: 100px; border-radius: 50%; border: 4px solid var(--color-background-primary); background: var(--color-background-secondary); overflow: hidden; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+              <img id="profile-avatar" src="" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+              <div class="avatar-overlay" id="change-avatar-btn" style="position: absolute; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s;">
+                <svg width="24" height="24" fill="none" stroke="white" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+              </div>
+              <input type="file" id="avatar-upload-input" accept="image/*" style="display: none;">
+              <svg id="default-avatar-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-secondary)"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="7" r="4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            
+            <div class="profile-details-form" style="margin-top: 16px; display: flex; flex-direction: column; gap: 8px;">
+              <input type="text" id="profile-name-input" class="profile-input" placeholder="Display Name" style="font-size: 24px; font-weight: 700; border: none; background: transparent; color: var(--color-text-primary); outline: none;">
+              <input type="text" id="profile-bio-input" class="profile-input" placeholder="Bio (e.g., Comp Sci Major @ Univ)" style="font-size: 14px; border: none; background: transparent; color: var(--color-text-secondary); outline: none;">
+              <input type="text" id="profile-academic-input" class="profile-input" placeholder="Academic Details (e.g., Class of 2026)" style="font-size: 13px; border: none; background: transparent; color: var(--color-text-tertiary); outline: none;">
+              <input type="text" id="profile-social-input" class="profile-input" placeholder="Social Link (e.g., github.com/username)" style="font-size: 13px; border: none; background: transparent; color: var(--color-text-info); outline: none;">
+              <div style="margin-top: 8px;">
+                <button id="save-profile-info-btn" class="btn btn-primary btn-sm">Save Details</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="profile-customization" style="max-width: 800px; margin: 40px auto 0; padding: 0 24px;">
+          <h3 style="font-size: 18px; margin-bottom: 20px; font-weight: 600;">Workspace Customization</h3>
+          
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px;">
+            <!-- Theme -->
+            <div style="background: var(--color-background-secondary); padding: 16px; border-radius: var(--border-radius-md); border: 1px solid var(--color-border-tertiary);">
+              <h4 style="font-size: 14px; margin-bottom: 12px; color: var(--color-text-secondary);">Theme Mode</h4>
+              <div style="display: flex; gap: 8px;">
+                <button class="btn theme-btn" data-theme="light" style="flex: 1;">Light</button>
+                <button class="btn theme-btn" data-theme="dark" style="flex: 1;">Dark</button>
+                <button class="btn theme-btn" data-theme="amoled" style="flex: 1; background: #000; color: #fff;">AMOLED</button>
+              </div>
+            </div>
+
+            <!-- Accent Color -->
+            <div style="background: var(--color-background-secondary); padding: 16px; border-radius: var(--border-radius-md); border: 1px solid var(--color-border-tertiary);">
+              <h4 style="font-size: 14px; margin-bottom: 12px; color: var(--color-text-secondary);">Accent Color</h4>
+              <div id="accent-color-options" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <!-- JS will generate these -->
+              </div>
+            </div>
+
+            <!-- Font -->
+            <div style="background: var(--color-background-secondary); padding: 16px; border-radius: var(--border-radius-md); border: 1px solid var(--color-border-tertiary);">
+              <h4 style="font-size: 14px; margin-bottom: 12px; color: var(--color-text-secondary);">Font Family</h4>
+              <select id="font-select" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); outline: none;">
+                <option value="Inter">Inter (Default)</option>
+                <option value="Roboto">Roboto</option>
+                <option value="Playfair Display">Playfair Display</option>
+                <option value="JetBrains Mono">JetBrains Mono</option>
+              </select>
+            </div>
+
+            <!-- Dashboard Layout -->
+            <div style="background: var(--color-background-secondary); padding: 16px; border-radius: var(--border-radius-md); border: 1px solid var(--color-border-tertiary);">
+              <h4 style="font-size: 14px; margin-bottom: 12px; color: var(--color-text-secondary);">Dashboard Layout</h4>
+              <div style="display: flex; flex-direction: column; gap: 8px;">
+                <label style="font-size: 13px; display: flex; align-items: center; gap: 8px;"><input type="checkbox" id="layout-cal-toggle" checked> Calendar</label>
+                <label style="font-size: 13px; display: flex; align-items: center; gap: 8px;"><input type="checkbox" id="layout-tasks-toggle" checked> Tasks</label>
+                <label style="font-size: 13px; display: flex; align-items: center; gap: 8px;"><input type="checkbox" id="layout-focus-toggle" checked> Focus Mode</label>
+                <label style="font-size: 13px; display: flex; align-items: center; gap: 8px;"><input type="checkbox" id="layout-stats-toggle" checked> Statistics</label>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Preset Gallery -->
+        <div style="max-width: 800px; margin: 40px auto 0; padding: 0 24px;">
+          <h3 style="font-size: 18px; margin-bottom: 20px; font-weight: 600;">Preset Covers</h3>
+          <div id="preset-gallery" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px;">
+            <!-- JS populated -->
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Right Panel -->
@@ -303,7 +407,7 @@
   </div>
 </div>
 
-  <script type="module" src="/js/app.js"></script>
+  <script type="module" src="/js/app.js?v=2"></script>
   <script>
   let isLogin = true;
 
