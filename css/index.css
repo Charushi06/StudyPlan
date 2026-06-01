@@ -5013,3 +5013,176 @@ body {
 @keyframes slideDown {
   to { opacity: 0; transform: translateY(10px); }
 }
+.analytics-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px 24px 24px;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.analytics-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.analytics-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.analytics-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.analytics-description {
+  max-width: 620px;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+
+.analytics-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.analytics-card,
+.subject-analytics-card {
+  background: var(--color-background-secondary);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-md);
+  padding: 18px;
+  box-shadow: var(--shadow-sm);
+}
+
+.analytics-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-bottom: 10px;
+}
+
+.analytics-card-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.analytics-card-meta {
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--color-text-tertiary);
+}
+
+.analytics-subjects {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.analytics-section-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.analytics-section-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: var(--color-text-primary);
+}
+
+.analytics-section-header p {
+  margin: 4px 0 0;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+.subject-analytics-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.subject-analytics-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.subject-analytics-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.subject-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.subject-pill {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.subject-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.subject-subtitle {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.subject-percent {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.subject-progress {
+  width: 100%;
+  height: 10px;
+  background: var(--color-background-primary);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.subject-progress-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.analytics-empty-state {
+  padding: 24px;
+  text-align: center;
+  color: var(--color-text-secondary);
+  border: 1px dashed var(--color-border-secondary);
+  border-radius: var(--border-radius-md);
+}
+
+.analytics-empty-state strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 15px;
+  color: var(--color-text-primary);
+}

@@ -76,10 +76,10 @@ function generateSummary(tasks, subjects) {
 
 let currentMonthDate = new Date();
 let selectedDate = null;
-let currentView = 'calendar'; // 'calendar', 'all-tasks', 'archived'
+let currentView = 'calendar'; // 'calendar', 'all-tasks', 'archived', 'analytics', 'focus'
 
 const tasksSection = document.getElementById('tasks-section');
-const focusSection = document.getElementById('focus-section');
+const analyticsSection = document.getElementById('analytics-section');
 const extractPreview = document.getElementById('extract-preview');
 const pasteInput = document.getElementById('paste-input');
 const extractBtn = document.getElementById('extract-btn');
@@ -922,6 +922,76 @@ function renderCalendar() {
   });
 }
 
+function renderAnalytics() {
+  const overviewEl = document.getElementById('analytics-overview');
+  const subjectGrid = document.getElementById('subject-analytics-grid');
+  if (!overviewEl || !subjectGrid) return;
+
+  const tasks = store.tasks || [];
+  const subjects = store.subjects || [];
+  const now = new Date();
+
+  const totalTasks = tasks.length;
+  const completedTasks = tasks.filter(t => t.status === 'Done').length;
+  const pendingTasks = tasks.filter(t => !t.archived && t.status !== 'Done').length;
+  const overdueTasks = tasks.filter(t => !t.archived && t.status !== 'Done' && t.due_at && new Date(t.due_at) < now).length;
+  const overallCompletion = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
+
+  const overviewItems = [
+    { title: 'Total Tasks', value: totalTasks, description: 'All tasks in your planner' },
+    { title: 'Completed Tasks', value: completedTasks, description: 'Tasks marked done' },
+    { title: 'Pending Tasks', value: pendingTasks, description: 'Active tasks not completed' },
+    { title: 'Overdue Tasks', value: overdueTasks, description: 'Pending tasks past deadline' },
+    { title: 'Overall Completion', value: `${overallCompletion}%`, description: 'Completion ratio across tasks' }
+  ];
+
+  overviewEl.innerHTML = overviewItems.map(item => `
+    <article class="analytics-card">
+      <div class="analytics-card-title">${item.title}</div>
+      <div class="analytics-card-value">${item.value}</div>
+      <p class="analytics-card-meta">${item.description}</p>
+    </article>
+  `).join('');
+
+  if (subjects.length === 0) {
+    subjectGrid.innerHTML = `
+      <div class="analytics-empty-state">
+        <strong>No subjects yet</strong>
+        <p>Add a subject to see subject-level progress and completion breakdown.</p>
+      </div>
+    `;
+    return;
+  }
+
+  const analyticsRows = subjects.map(subject => {
+    const subjectTasks = tasks.filter(t => t.subject_id === subject.id);
+    const subjectTotal = subjectTasks.length;
+    const subjectCompleted = subjectTasks.filter(t => t.status === 'Done').length;
+    const completionPct = subjectTotal === 0 ? 0 : Math.round((subjectCompleted / subjectTotal) * 100);
+    const safeColor = subject.color || 'var(--color-text-info)';
+
+    return `
+      <article class="subject-analytics-card">
+        <div class="subject-analytics-heading">
+          <div class="subject-label">
+            <span class="subject-pill" style="background:${safeColor}"></span>
+            <div>
+              <div class="subject-name">${escapeHtml(subject.name)}</div>
+              <div class="subject-subtitle">${subjectTotal} task${subjectTotal === 1 ? '' : 's'} · ${subjectCompleted} completed</div>
+            </div>
+          </div>
+          <div class="subject-percent">${completionPct}%</div>
+        </div>
+        <div class="subject-progress" aria-hidden="true">
+          <span class="subject-progress-fill" style="width:${completionPct}%; background:${completionPct >= 66 ? 'var(--color-text-success)' : completionPct >= 33 ? 'var(--color-text-warning)' : 'var(--color-text-info)'}"></span>
+        </div>
+      </article>
+    `;
+  }).join('');
+
+  subjectGrid.innerHTML = analyticsRows;
+}
+
 function renderExtraction() {
   const pasteItems = store.currentPaste;
   if (!pasteItems || pasteItems.length === 0) {
@@ -1025,6 +1095,7 @@ store.subscribe(renderTasks);
 store.subscribe(renderExtraction);
 store.subscribe(renderCalendar);
 store.subscribe(renderFocusTasks);
+store.subscribe(renderAnalytics);
 store.subscribe(renderSidebarSubjects);
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -1099,6 +1170,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('.cal-section').classList.remove('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
+    document.getElementById('analytics-section')?.classList.add('hidden');
     updateSidebarActive('calendar-btn');
     renderTasks();
   });
@@ -1108,6 +1180,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('.cal-section').classList.add('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
+    document.getElementById('analytics-section')?.classList.add('hidden');
     updateSidebarActive('all-tasks-btn');
     renderTasks();
   });
@@ -1117,6 +1190,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('.cal-section').classList.add('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
+    document.getElementById('analytics-section')?.classList.add('hidden');
     updateSidebarActive('archived-tasks-btn');
     renderTasks();
   });
@@ -1127,8 +1201,22 @@ document.addEventListener('DOMContentLoaded', () => {
       document.querySelector('.cal-section').classList.add('hidden');
       document.getElementById('tasks-section').classList.add('hidden');
       document.getElementById('focus-section').classList.remove('hidden');
+      document.getElementById('analytics-section')?.classList.add('hidden');
       updateSidebarActive('focus-mode-btn');
       renderFocusTasks();
+    });
+  }
+
+  const analyticsBtn = document.getElementById('analytics-btn');
+  if (analyticsBtn) {
+    analyticsBtn.addEventListener('click', () => {
+      currentView = 'analytics';
+      document.querySelector('.cal-section').classList.add('hidden');
+      document.getElementById('tasks-section').classList.add('hidden');
+      document.getElementById('focus-section').classList.add('hidden');
+      document.getElementById('analytics-section')?.classList.remove('hidden');
+      updateSidebarActive('analytics-btn');
+      renderAnalytics();
     });
   }
 
