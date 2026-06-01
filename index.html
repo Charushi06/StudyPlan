@@ -55,7 +55,7 @@
 
   <nav class="header-nav">
     <a href="#">Dashboard</a>
-    <a href="#">Tasks</a>
+    <a href="#" id="nav-tasks">Tasks</a>
     <a href="#">Calendar</a>
     <a href="#" id="nav-settings">Settings</a>
   </nav>
@@ -401,6 +401,15 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
   // Settings Modal Logic
   const settingsModal = document.getElementById('settings-modal');
   const navSettings = document.getElementById('nav-settings');
+  const navTasks = document.getElementById('nav-tasks');
+const tasksSection = document.getElementById('tasks-section');
+
+navTasks.addEventListener('click', (e) => {
+    e.preventDefault();
+    tasksSection.scrollIntoView({
+        behavior: 'smooth'
+    });
+});
   const settingsClose = document.getElementById('settings-close');
   const settingsSave = document.getElementById('settings-save');
 
