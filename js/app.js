@@ -1247,21 +1247,39 @@ extractBtn.addEventListener('click', async () => {
   extractBtn.innerHTML = '<span class="loader-spinner"></span>';
   extractBtn.disabled = true;
 
-  try {
-    const items = await extractTasksFromText(text);
+try {
 
-    store.setExtracted(items);
+  // Show loading skeleton
+  extractPreview.innerHTML = `
+    <div class="extract-title">Extracting tasks...</div>
+    <div class="skeleton-card">
+      <div class="skeleton-line short"></div>
+      <div class="skeleton-line long"></div>
+      <div class="skeleton-line medium"></div>
+    </div>
+    <div class="skeleton-card">
+      <div class="skeleton-line short"></div>
+      <div class="skeleton-line long"></div>
+      <div class="skeleton-line medium"></div>
+    </div>
+  `;
 
-  } catch (error) {
-    console.error(error);
-    alert('Failed to generate study plan');
-  } finally {
+  const items = await extractTasksFromText(text);
 
-    loadingSpinner.style.display = 'none';
+  store.setExtracted(items);
 
-    extractBtn.innerHTML = 'Extract with AI →';
-    extractBtn.disabled = false;
-  }
+} catch (error) {
+
+  console.error(error);
+  alert('Failed to generate study plan');
+
+} finally {
+
+  loadingSpinner.style.display = 'none';
+
+  extractBtn.innerHTML = 'Extract with AI →';
+  extractBtn.disabled = false;
+}
 });
 
 // Wipes the text, clears the store, hides the button, and refocuses the cursor
@@ -1393,7 +1411,6 @@ if (quoteEl) {
 
   quoteEl.textContent = quotes[index];
 }
-
 
 if (calendarDownloadBtn) {
   calendarDownloadBtn.addEventListener('click', () => {
