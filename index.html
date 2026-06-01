@@ -93,6 +93,10 @@
         Archived Tasks
         <span class="badge">0</span>
       </div>
+      <div class="nav-item" id="analytics-btn" role="link" aria-label="View Analytics Dashboard">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 12h3v2H2v-2zm4-4h3v6H6V8zm4-3h3v9h-3V5zm4-3h3v12h-3V2z" fill="currentColor"/></svg>
+        Analytics
+      </div>
       <div class="nav-item" id="download-btn">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h9M2 12h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         Download Data
@@ -154,7 +158,27 @@
       <!-- Tasks -->
       <div id="tasks-section" class="tasks-section">
         <!-- Javascript will inject tasks here -->
-        
+      </div>
+
+      <!-- Analytics -->
+      <div id="analytics-section" class="analytics-section hidden" aria-live="polite">
+        <div class="analytics-header">
+          <div>
+            <p class="analytics-label">Analytics</p>
+            <h2 class="analytics-title">Study performance at a glance</h2>
+            <p class="analytics-description">Track total tasks, completion progress, and subject-level insights without switching context.</p>
+          </div>
+        </div>
+        <div id="analytics-overview" class="analytics-overview-grid" role="region" aria-label="Analytics overview cards"></div>
+        <section class="analytics-subjects" aria-labelledby="subject-analytics-title">
+          <div class="analytics-section-header">
+            <div>
+              <h3 id="subject-analytics-title">Subject analytics</h3>
+              <p>Measure progress across your subjects and identify where work is concentrated.</p>
+            </div>
+          </div>
+          <div id="subject-analytics-grid" class="subject-analytics-grid"></div>
+        </section>
       </div>
 
       <!-- Focus Mode -->
