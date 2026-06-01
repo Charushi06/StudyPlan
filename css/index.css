@@ -1177,7 +1177,7 @@ body {
   }
 }
 
-/* Skeleton Loading */
+/* Skeleton Loading (Resolves #815) */
 .skeleton-card {
   background: var(--color-background-primary);
   border: 1px solid var(--color-border-tertiary);
@@ -1196,7 +1196,7 @@ body {
   width: 100%;
   height: 100%;
   background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-  animation: skeleton-loading 1.5s infinite;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
 }
 
 @keyframes skeleton-loading {
