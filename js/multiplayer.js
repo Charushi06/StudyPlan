@@ -20,6 +20,11 @@ class StudyGroupManager {
         if (!this.socket) return;
         this.currentRoom = roomId;
         this.socket.emit('join-room', roomId);
+        
+        // Listen for new messages or updates from group
+        this.socket.on('group-update', (data) => {
+            console.log("Received group update:", data);
+        });
     }
 }
 
