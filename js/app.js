@@ -1395,4 +1395,17 @@ if (quoteEl) {
 
   quoteEl.textContent = quotes[index];
 }
+const exportCsvBtn = document.getElementById('export-csv-btn');
 
+exportCsvBtn.addEventListener('click', () => {
+  const csvContent = `Task,Subject,Status
+Sample Task,Computer Science,Pending`;
+
+  const blob = new Blob([csvContent], { type: 'text/csv' });
+
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'studyplan-tasks.csv';
+
+  link.click();
+});
