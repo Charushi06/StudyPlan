@@ -935,16 +935,30 @@ function renderExtraction() {
   addItemsBtn.textContent = `Add ${pasteItems.length} items to planner`;
   
   let html = `<div class="extract-title">Extracted — ${pasteItems.length} items</div>`;
+  const fallbackSubject = {
+    id: '',
+    name: 'General',
+    color: 'var(--color-text-secondary)'
+  };
+  const subjectsAvailable = Array.isArray(store.subjects) && store.subjects.length > 0;
+
   pasteItems.forEach((item, index) => {
-    // try to match subject name
-    const sub = store.subjects.find(s => s.name.toLowerCase().includes((item.subject_name || '').toLowerCase())) || store.subjects[3];
-    // Attach subject id to item so Add will work
-    item.subject_id = sub.id;
+    // try to match subject name safely even if subjects are still loading
+    const searchTerm = String(item.subject_name || '').toLowerCase().trim();
+    const matchedSubject = subjectsAvailable
+      ? store.subjects.find(s => s.name && s.name.toLowerCase().includes(searchTerm))
+      : null;
+    const sub = matchedSubject || (subjectsAvailable ? store.subjects[0] : fallbackSubject);
+
+    // Attach subject id to item so Add will work; allow empty string until subjects are available
+    item.subject_id = sub.id || '';
     
     if (item._isEditing) {
-      let subjectOptions = store.subjects.map(s => 
-        `<option value="${s.id}" ${s.id === sub.id ? 'selected' : ''}>${s.name}</option>`
-      ).join('');
+      const subjectOptions = subjectsAvailable
+        ? store.subjects.map(s => 
+            `<option value="${s.id}" ${s.id === sub.id ? 'selected' : ''}>${s.name}</option>`
+          ).join('')
+        : `<option value="" selected disabled>Loading subjects...</option>`;
       
       const localDate = item.due_at ? new Date(item.due_at).toISOString().substring(0, 16) : '';
       
@@ -1002,7 +1016,10 @@ function renderExtraction() {
     btn.addEventListener('click', (e) => {
       const idx = e.target.getAttribute('data-index');
       const card = e.target.closest('.extract-card');
-      const subjectId = card.querySelector('.edit-subject-input').value;
+      if (!card) return;
+
+      const subjectSelect = card.querySelector('.edit-subject-input');
+      const subjectId = subjectSelect ? subjectSelect.value : '';
       const title = card.querySelector('.edit-title-input').value;
       let dateVal = card.querySelector('.edit-date-input').value;
       const notes = card.querySelector('.edit-notes-input').value;
@@ -1010,7 +1027,7 @@ function renderExtraction() {
       const newSubject = store.subjects.find(s => s.id === subjectId);
       
       store.updateExtractedItem(idx, {
-        subject_id: subjectId,
+        subject_id: subjectId || '',
         subject_name: newSubject ? newSubject.name : 'General',
         title: title,
         due_at: dateVal ? new Date(dateVal).toISOString() : '',
