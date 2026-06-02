@@ -76,10 +76,12 @@ function generateSummary(tasks, subjects) {
 
 let currentMonthDate = new Date();
 let selectedDate = null;
-let currentView = 'calendar'; // 'calendar', 'all-tasks', 'archived'
+let currentView = 'calendar'; // 'calendar', 'all-tasks', 'archived', 'progress'
 
 const tasksSection = document.getElementById('tasks-section');
 const focusSection = document.getElementById('focus-section');
+const progressSection = document.getElementById('progress-section');
+const progressMetricsContainer = document.getElementById('progress-key-metrics');
 const extractPreview = document.getElementById('extract-preview');
 const pasteInput = document.getElementById('paste-input');
 const extractBtn = document.getElementById('extract-btn');
@@ -443,6 +445,186 @@ function formatDate(dateStr) {
   if (!dateStr) return 'No Date';
   const d = new Date(dateStr);
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' });
+}
+
+function normalizeDateKey(dateValue) {
+  const d = new Date(dateValue);
+  d.setHours(0, 0, 0, 0);
+  return d.toISOString();
+}
+
+function getLastNDays(n) {
+  const days = [];
+  const now = new Date();
+  for (let i = n - 1; i >= 0; i--) {
+    const day = new Date(now);
+    day.setDate(now.getDate() - i);
+    day.setHours(0, 0, 0, 0);
+    days.push(day);
+  }
+  return days;
+}
+
+function getDateLabel(date) {
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function getHeatmapLevel(count) {
+  if (count === 0) return 0;
+  if (count === 1) return 1;
+  if (count === 2) return 2;
+  if (count <= 4) return 3;
+  return 4;
+}
+
+function renderProgress() {
+  if (!progressSection || !progressMetricsContainer) return;
+  const tasks = store.tasks;
+  const subjects = store.subjects;
+  if (subjects.length === 0) return;
+
+  const visibleTasks = tasks.filter(t => !t.archived && t.due_at);
+  const doneTasks = visibleTasks.filter(t => t.status === 'Done');
+  const totalTasks = visibleTasks.length;
+  const completedCount = doneTasks.length;
+  const completionRate = totalTasks === 0 ? 0 : Math.round((completedCount / totalTasks) * 100);
+
+  const now = new Date();
+  const heatmapDays = getLastNDays(30);
+  const heatmapCounts = heatmapDays.reduce((acc, day) => {
+    acc[normalizeDateKey(day)] = 0;
+    return acc;
+  }, {});
+
+  doneTasks.forEach(task => {
+    if (!task.due_at) return;
+    const key = normalizeDateKey(task.due_at);
+    if (heatmapCounts[key] !== undefined) {
+      heatmapCounts[key] += 1;
+    }
+  });
+
+  const streakDays = getLastNDays(7).map(day => heatmapCounts[normalizeDateKey(day)] || 0);
+  let streak = 0;
+  for (let i = streakDays.length - 1; i >= 0; i--) {
+    if (streakDays[i] > 0) streak += 1;
+    else break;
+  }
+
+  const subjectStats = subjects.map(subject => {
+    const subjectTasks = visibleTasks.filter(t => t.subject_id === subject.id);
+    const doneSubject = subjectTasks.filter(t => t.status === 'Done').length;
+    return {
+      name: subject.name,
+      color: subject.color || 'var(--color-text-info)',
+      completed: doneSubject,
+      total: subjectTasks.length
+    };
+  }).filter(item => item.total > 0);
+
+  const monthlySlots = [];
+  for (let offset = 5; offset >= 0; offset--) {
+    const monthDate = new Date(now.getFullYear(), now.getMonth() - offset, 1);
+    const key = `${monthDate.getFullYear()}-${monthDate.getMonth()}`;
+    monthlySlots.push({
+      label: monthDate.toLocaleDateString('en-US', { month: 'short', year: '2-digit' }),
+      key,
+      total: 0,
+      done: 0
+    });
+  }
+
+  visibleTasks.forEach(task => {
+    if (!task.due_at) return;
+    const taskDate = new Date(task.due_at);
+    const monthKey = `${taskDate.getFullYear()}-${taskDate.getMonth()}`;
+    const slot = monthlySlots.find(item => item.key === monthKey);
+    if (slot) {
+      slot.total += 1;
+      if (task.status === 'Done') slot.done += 1;
+    }
+  });
+
+  const weeklyTrendDays = getLastNDays(7);
+  const weeklyTrend = weeklyTrendDays.map(day => {
+    const key = normalizeDateKey(day);
+    const count = doneTasks.reduce((sum, task) => {
+      if (!task.due_at) return sum;
+      return normalizeDateKey(task.due_at) === key ? sum + 1 : sum;
+    }, 0);
+    return { label: day.toLocaleDateString('en-US', { weekday: 'short' }), count };
+  });
+
+  const metricsHtml = `
+    <div class="metric">
+      <span class="metric-title">Completion rate</span>
+      <span class="metric-value">${completionRate}%</span>
+    </div>
+    <div class="metric">
+      <span class="metric-title">Tasks completed</span>
+      <span class="metric-value">${completedCount}</span>
+    </div>
+    <div class="metric">
+      <span class="metric-title">Current streak</span>
+      <span class="metric-value">${streak} days</span>
+    </div>
+  `;
+
+  progressMetricsContainer.innerHTML = metricsHtml;
+
+  const monthlyHtml = monthlySlots.map(slot => {
+    const fill = slot.total === 0 ? 0 : Math.round((slot.done / slot.total) * 100);
+    return `
+      <div class="monthly-bar">
+        <div class="monthly-bar-label"><span>${slot.label}</span><span>${fill}%</span></div>
+        <div class="monthly-bar-track">
+          <div class="monthly-bar-fill" style="width:${fill}%"></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+  document.getElementById('monthly-progress-chart').innerHTML = monthlyHtml;
+
+  const trendHtml = weeklyTrend.map(day => `
+    <div class="trend-item">
+      <span>${day.label}</span>
+      <span class="trend-value">${day.count} done</span>
+    </div>
+  `).join('');
+  document.getElementById('weekly-trend-list').innerHTML = trendHtml;
+
+  const subjectHtml = subjectStats.map(subject => {
+    const pct = subject.total === 0 ? 0 : Math.round((subject.completed / subject.total) * 100);
+    return `
+      <div class="subject-breakdown-item">
+        <div class="subject-breakdown-main">
+          <div>
+            <div class="subject-breakdown-name">${subject.name}</div>
+            <div class="subject-breakdown-meta">${subject.completed}/${subject.total} completed</div>
+          </div>
+          <div class="subject-breakdown-meta">${pct}%</div>
+        </div>
+        <div class="subject-breakdown-progress">
+          <div class="subject-breakdown-fill" style="width:${pct}%"></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+  document.getElementById('subject-breakdown-list').innerHTML = subjectHtml || '<div class="tasks-empty-state"><div class="empty-state-title">No subject activity yet</div><div class="empty-state-text">Complete tasks tagged by subject to populate this chart.</div></div>';
+
+  const heatmapHtml = heatmapDays.map(day => {
+    const key = normalizeDateKey(day);
+    const count = heatmapCounts[key] || 0;
+    const level = getHeatmapLevel(count);
+    return `<div class="heatmap-day ${level > 0 ? 'level-' + level : ''}" title="${getDateLabel(day)}: ${count} completed"></div>`;
+  }).join('');
+  document.getElementById('progress-heatmap').innerHTML = heatmapHtml;
+
+  progressSection.classList.toggle('hidden', currentView !== 'progress');
+  const topbarTitle = document.querySelector('.topbar-title');
+  if (topbarTitle && currentView === 'progress') {
+    topbarTitle.textContent = 'Progress Analytics';
+  }
 }
 
 async function downloadData() {
@@ -1024,6 +1206,7 @@ function renderExtraction() {
 store.subscribe(renderTasks);
 store.subscribe(renderExtraction);
 store.subscribe(renderCalendar);
+store.subscribe(renderProgress);
 store.subscribe(renderFocusTasks);
 store.subscribe(renderSidebarSubjects);
 
@@ -1088,44 +1271,67 @@ document.addEventListener('DOMContentLoaded', () => {
   const allTasksBtn = document.getElementById('all-tasks-btn');
   const archivedTasksBtn = document.getElementById('archived-tasks-btn');
   const focusModeBtn = document.getElementById('focus-mode-btn');
+  const progressBtn = document.getElementById('progress-btn');
 
   function updateSidebarActive(id) {
     document.querySelectorAll('.sidebar .nav-item').forEach(el => el.classList.remove('active'));
     document.getElementById(id).classList.add('active');
   }
 
-  calendarBtn.addEventListener('click', () => {
-    currentView = 'calendar';
+  function showTaskViews() {
     document.querySelector('.cal-section').classList.remove('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
+    if (progressSection) progressSection.classList.add('hidden');
+  }
+
+  function hideTaskViews() {
+    document.querySelector('.cal-section').classList.add('hidden');
+    document.getElementById('tasks-section').classList.add('hidden');
+    document.getElementById('focus-section').classList.add('hidden');
+    if (progressSection) progressSection.classList.add('hidden');
+  }
+
+  calendarBtn.addEventListener('click', () => {
+    currentView = 'calendar';
+    showTaskViews();
     updateSidebarActive('calendar-btn');
     renderTasks();
   });
 
   allTasksBtn.addEventListener('click', () => {
     currentView = 'all-tasks';
-    document.querySelector('.cal-section').classList.add('hidden');
+    hideTaskViews();
+    document.querySelector('.cal-section').classList.remove('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
-    document.getElementById('focus-section').classList.add('hidden');
     updateSidebarActive('all-tasks-btn');
     renderTasks();
   });
 
   archivedTasksBtn.addEventListener('click', () => {
     currentView = 'archived';
-    document.querySelector('.cal-section').classList.add('hidden');
+    hideTaskViews();
     document.getElementById('tasks-section').classList.remove('hidden');
-    document.getElementById('focus-section').classList.add('hidden');
     updateSidebarActive('archived-tasks-btn');
     renderTasks();
   });
 
+  if (progressBtn) {
+    progressBtn.addEventListener('click', () => {
+      currentView = 'progress';
+      document.querySelector('.cal-section').classList.add('hidden');
+      document.getElementById('tasks-section').classList.add('hidden');
+      document.getElementById('focus-section').classList.add('hidden');
+      if (progressSection) progressSection.classList.remove('hidden');
+      updateSidebarActive('progress-btn');
+      renderProgress();
+    });
+  }
+
   if(focusModeBtn) {
     focusModeBtn.addEventListener('click', () => {
       currentView = 'focus';
-      document.querySelector('.cal-section').classList.add('hidden');
-      document.getElementById('tasks-section').classList.add('hidden');
+      hideTaskViews();
       document.getElementById('focus-section').classList.remove('hidden');
       updateSidebarActive('focus-mode-btn');
       renderFocusTasks();
