@@ -83,6 +83,10 @@
         All Tasks
         <span class="badge" aria-label="9 pending tasks">9</span>
       </div>
+      <div class="nav-item" id="progress-btn" role="link" aria-label="View Progress Analytics">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 12h2V6H3v6Zm4 0h2V3H7v9Zm4 0h2V8h-2v4Z" fill="currentColor"/></svg>
+        Progress
+      </div>
       <div class="nav-item" id="focus-mode-btn">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         Focus Mode
@@ -148,6 +152,61 @@
         <div class="cal-legend">
           <span><span class="legend-dot" style="background:var(--color-text-info)"></span>Study session</span>
           <span><span class="legend-dot" style="background:var(--color-text-danger)"></span>Deadline</span>
+        </div>
+      </div>
+
+      <!-- Progress Analytics -->
+      <div id="progress-section" class="progress-section hidden">
+        <div class="progress-welcome-card">
+          <div>
+            <div class="progress-card-label">Study Progress</div>
+            <h2 class="progress-card-title">Track your consistency and productivity</h2>
+            <p class="progress-card-copy">Monthly completion, subject breakdown, streaks, and activity trends all in one place.</p>
+          </div>
+          <div class="progress-key-metrics" id="progress-key-metrics"></div>
+        </div>
+
+        <div class="progress-grid">
+          <section class="progress-card" id="monthly-progress-card">
+            <div class="progress-card-header">
+              <div>
+                <div class="progress-card-label">Monthly Progress</div>
+                <h3>Completion rate by month</h3>
+              </div>
+            </div>
+            <div class="progress-bar-chart" id="monthly-progress-chart"></div>
+          </section>
+
+          <section class="progress-card" id="daily-trend-card">
+            <div class="progress-card-header">
+              <div>
+                <div class="progress-card-label">Daily / Weekly Trend</div>
+                <h3>Recent task completion</h3>
+              </div>
+            </div>
+            <div class="trend-list" id="weekly-trend-list"></div>
+          </section>
+
+          <section class="progress-card" id="subject-breakdown-card">
+            <div class="progress-card-header">
+              <div>
+                <div class="progress-card-label">Subject Progress</div>
+                <h3>Completed vs assigned</h3>
+              </div>
+            </div>
+            <div class="subject-breakdown-list" id="subject-breakdown-list"></div>
+          </section>
+
+          <section class="progress-card" id="heatmap-card">
+            <div class="progress-card-header">
+              <div>
+                <div class="progress-card-label">Activity Heatmap</div>
+                <h3>GitHub-style streak view</h3>
+              </div>
+            </div>
+            <div class="heatmap-grid" id="progress-heatmap"></div>
+            <div class="heatmap-legend"><span>Less</span><div class="heatmap-scale"><span></span><span></span><span></span><span></span></div><span>More</span></div>
+          </section>
         </div>
       </div>
 
