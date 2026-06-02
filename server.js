@@ -14,9 +14,7 @@ const page404Path = path.join(__dirname, '404.html');
 const page500Path = path.join(__dirname, 'error.html');
 
 // Static
-app.use('/css', express.static(path.join(__dirname, 'css')));
-app.use('/js', express.static(path.join(__dirname, 'js')));
-app.use(express.static(__dirname));
+app.use(express.static(path.join(__dirname, 'public')));
 
 initDb();
 
