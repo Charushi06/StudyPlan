@@ -149,9 +149,18 @@ GEMINI_API_KEY=your_gen_ai_key_here
 ## ▶️ Run Locally
 
 ```bash
-node server.js
+npm run dev
 ```
 Open → http://localhost:3000
+
+`npm run dev` starts the backend with Nodemon, so changes to `server.js`,
+controllers, routers, and other backend files automatically restart the server.
+
+For a production-style run without file watching:
+
+```bash
+npm start
+```
 
 ---
  
