@@ -162,6 +162,12 @@
         <div class="focus-dashboard">
           <div class="timer-container">
             <svg class="timer-svg" viewBox="0 0 100 100">
+              <defs>
+                <linearGradient id="timerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#ec4899;stop-opacity:1" />
+                </linearGradient>
+              </defs>
               <circle class="timer-path-elapsed" cx="50" cy="50" r="45" />
               <path id="timer-path-remaining" stroke-dasharray="283" class="timer-path-remaining" d="
                 M 50, 50
@@ -254,15 +260,15 @@
 </footer>
 
 <!-- Settings Modal -->
-<div id="settings-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
-  <div style="background:var(--color-background-primary); border:1px solid var(--color-border-tertiary); border-radius:16px; padding:32px; width:400px; box-shadow:var(--shadow-lg); color:var(--color-text-primary);">
+<div id="settings-modal">
+  <div class="modal-content">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
-      <h2 style="margin:0; font-size:20px; font-weight:700;">Settings</h2>
+      <h2>Settings</h2>
       <button id="settings-close" style="background:none; border:none; font-size:24px; cursor:pointer; color:var(--color-text-secondary);">&times;</button>
     </div>
     
     <div style="margin-bottom: 24px;">
-      <h3 style="font-size:12px; font-weight:700; text-transform:uppercase; color:var(--color-text-tertiary); margin-bottom:16px; letter-spacing:0.05em;">Appearance</h3>
+      <h3>Appearance</h3>
       <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 16px;">
         <span style="font-size:14px; font-weight:500;">Dark Mode</span>
         <label class="toggle-switch">
@@ -280,7 +286,7 @@
     </div>
 
     <div style="margin-bottom: 24px;">
-      <h3 style="font-size:12px; font-weight:700; text-transform:uppercase; color:var(--color-text-tertiary); margin-bottom:16px; letter-spacing:0.05em;">Notifications</h3>
+      <h3>Notifications</h3>
       <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 16px;">
         <span style="font-size:14px; font-weight:500;">Email Reminders</span>
         <label class="toggle-switch">
@@ -297,7 +303,7 @@
       </div>
     </div>
 
-    <button id="settings-save" style="width:100%; padding:12px; background:var(--color-text-primary); color:var(--color-background-primary); border:none; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; margin-top:8px;">
+    <button id="settings-save" class="btn btn-primary" style="width: 100%;">
       Save Changes
     </button>
   </div>
