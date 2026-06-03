@@ -387,7 +387,23 @@ body {
   transform: scale(1.1);
   z-index: 1;
 }
-
+#setting{
+  display: flex;
+  padding: 2px 5px;
+  align-items: center;
+  flex-direction: row;
+  gap:5px;
+  width: 100%;
+}
+#setting h1{
+  font-size: 16px;
+  padding-top: 5px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+#setting:hover{
+  cursor: pointer;
+}
 .cal-day.today {
   background: var(--color-text-primary);
   color: var(--color-background-primary);
@@ -1435,15 +1451,37 @@ body {
 .header-nav a:hover {
   color: var(--color-text-primary);
 }
+.header-right{
+  display: flex;
+  gap:8px;
+  
+}
 
-.profile-btn {
-  padding: 8px 16px;
+#profile-btn {
+  padding: 8px 8px;
   border: none;
   border-radius: var(--border-radius-md);
   background: var(--color-text-primary);
   color: var(--color-background-primary);
   cursor: pointer;
-  font-weight: 600;
+  font-weight: 500;
+  font-size: 14px;
+  display: flex;
+  gap:3px;
+  align-items: center;
+}
+#logout-btn {
+  padding: 8px 8px;
+  border: none;
+  border-radius: var(--border-radius-md);
+  background: red;
+  color: var(--color-background-primary);
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+  display: flex;
+  gap:3px;
+  align-items: center;
 }
 
 /* Footer */
