@@ -1,5 +1,6 @@
 import { Toast } from './utils/toast.js';
 import { triggerConfetti } from './utils/confetti.js';
+import { findScheduleConflict } from './utils/scheduler.js';
 
 export const store = {
   subjects: [],
@@ -67,6 +68,23 @@ export const store = {
 
   // ================= UPDATED FUNCTION =================
   async addTasks(newTasks) {
+    const acceptedTasks = [];
+    let conflictDetails = null;
+    const conflict = newTasks.find(task => {
+      const overlap = findScheduleConflict(task, [...this.tasks, ...acceptedTasks]);
+      if (!overlap) {
+        acceptedTasks.push(task);
+        return false;
+      }
+      conflictDetails = overlap;
+      return true;
+    });
+
+    if (conflict) {
+      Toast.show(`Schedule conflict with "${conflictDetails.title}"`, 'warning');
+      return;
+    }
+
     try {
       const res = await fetch('/api/tasks', {
         method: 'POST',
@@ -126,9 +144,15 @@ export const store = {
     
     // Store original in case of failure
     const originalTask = { ...this.tasks[taskIndex] };
+    const candidateTask = { ...originalTask, ...updatedFields };
+    const conflict = findScheduleConflict(candidateTask, this.tasks, taskId);
+    if (conflict) {
+      Toast.show(`Schedule conflict with "${conflict.title}"`, 'warning');
+      return;
+    }
     
     // Optimistic update
-    this.tasks[taskIndex] = { ...this.tasks[taskIndex], ...updatedFields, _isEditing: false };
+    this.tasks[taskIndex] = { ...candidateTask, _isEditing: false };
     this.notify();
 
     try {
@@ -139,11 +163,12 @@ export const store = {
       });
       
       if (!res.ok) {
-        throw new Error('Update failed');
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Update failed');
       }
     } catch (e) {
       console.error('Failed to update task', e);
-      Toast.show("❌ Failed to save task changes. Please try again.", 'error');
+      Toast.show(`❌ ${e.message || 'Failed to save task changes. Please try again.'}`, 'error');
       // Revert
       this.tasks[taskIndex] = originalTask;
       this.notify();

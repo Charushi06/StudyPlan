@@ -10,6 +10,38 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+const TASK_BLOCK_MS = 60 * 60 * 1000;
+
+function getTaskWindow(task) {
+  const start = new Date(task?.due_at).getTime();
+  if (!Number.isFinite(start)) return null;
+  return {
+    start,
+    end: start + TASK_BLOCK_MS,
+  };
+}
+
+function isActiveScheduleTask(task) {
+  return !Number(task?.archived || 0) && task?.status !== 'Done';
+}
+
+function findScheduleConflict(candidate, existingTasks, ignoreId = null) {
+  if (!isActiveScheduleTask(candidate)) return null;
+
+  const candidateWindow = getTaskWindow(candidate);
+  if (!candidateWindow) return null;
+
+  return existingTasks.find(task => {
+    if (ignoreId && String(task.id) === String(ignoreId)) return false;
+    if (!isActiveScheduleTask(task)) return false;
+
+    const taskWindow = getTaskWindow(task);
+    if (!taskWindow) return false;
+
+    return candidateWindow.start < taskWindow.end && candidateWindow.end > taskWindow.start;
+  }) || null;
+}
+
 const page404Path = path.join(__dirname, '404.html');
 const page500Path = path.join(__dirname, 'error.html');
 
@@ -338,7 +370,40 @@ app.post('/api/tasks', (req, res) => {
 
     let pending = tasks.length;
 
-    tasks.forEach(t => {
+    const finishRequest = () => {
+      stmt.finalize((finalErr) => {
+        if (finalErr) {
+          return res.status(500).json({ success: false, message: "Database error", error: finalErr.message });
+        }
+
+        if (inserted === 0 && errors.length > 0 && duplicates.length === 0) {
+          return res.status(400).json({
+            success: false,
+            inserted,
+            duplicates,
+            errors,
+            message: errors.length === tasks.length ? errors[0].error : "Some tasks are invalid"
+          });
+        }
+
+        return res.json({
+          success: errors.length === 0,
+          inserted,
+          duplicates,
+          errors,
+          message:
+            errors.length > 0 && duplicates.length > 0
+              ? "Some tasks failed and some duplicates were skipped"
+              : errors.length > 0
+                ? "Some tasks failed to add"
+                : duplicates.length > 0
+                  ? "Duplicate tasks were skipped"
+                  : "All tasks added successfully"
+        });
+      });
+    };
+
+    tasks.forEach((t, index) => {
       let validationError = null;
   if (!t.title && !t.subject_id && !t.due_at) {
     validationError = "Missing title, subject, and deadline";
@@ -353,20 +418,23 @@ app.post('/api/tasks', (req, res) => {
   if (validationError) {
     errors.push({ task: t, error: validationError });
     pending--;
-    if (pending === 0) {
-      if (inserted === 0) {
-        return res.status(400).json({ 
-          success: false, inserted, duplicates, errors, 
-          message: errors.length === tasks.length ? errors[0].error : "Some tasks are invalid"
-        });
-      }
-      stmt.finalize(() => res.status(400).json({ 
-        success: false, inserted, duplicates, errors, 
-        message: "Some tasks are invalid"
-      }));
-    }
+    if (pending === 0) finishRequest();
     return;
   }
+
+      const earlierValidTasks = tasks
+        .slice(0, index)
+        .filter(prevTask => prevTask?.title && prevTask?.subject_id && prevTask?.due_at);
+      const batchConflict = findScheduleConflict(t, earlierValidTasks);
+      if (batchConflict) {
+        errors.push({
+          task: t,
+          error: `Schedule conflict with "${batchConflict.title}" at ${batchConflict.due_at}`
+        });
+        pending--;
+        if (pending === 0) finishRequest();
+        return;
+      }
 
       db.get(
         `SELECT * FROM tasks WHERE LOWER(title) = LOWER(?) AND subject_id = ? AND DATE(due_at) = DATE(?)`,
@@ -374,54 +442,67 @@ app.post('/api/tasks', (req, res) => {
         (err, existing) => {
           if (err) {
             errors.push({ task: t, error: err.message });
-          } else if (existing) {
+            pending--;
+            if (pending === 0) finishRequest();
+            return;
+          }
+
+          if (existing) {
             duplicates.push({
               title: t.title,
               due_at: t.due_at,
               subject_id: t.subject_id
             });
-          } else {
-            const id = 'task_' + Date.now() + Math.random().toString(36).substr(2, 5);
-            stmt.run(
-              id,
-              t.subject_id,
-              t.title,
-              t.due_at,
-              t.status || 'Not Started',
-              t.priority || 'medium',
-              t.confidence_score || 100,
-              t.notes || '',
-              typeof t.labels === 'string' ? t.labels : JSON.stringify(t.labels || []),
-              function (insertErr) {
-                if (insertErr) {
-                  errors.push({ task: t, error: insertErr.message });
-                } else {
-                  inserted++;
-                }
-              }
-            );
+            pending--;
+            if (pending === 0) finishRequest();
+            return;
           }
 
-          pending--;
-          if (pending === 0) {
-            stmt.finalize((finalErr) => {
-              if (finalErr) return res.status(500).json({ success: false, message: "Database error", error: finalErr.message });
-              return res.json({
-                success: true,
-                inserted,
-                duplicates,
-                errors,
-                message:
-                  errors.length > 0 && duplicates.length > 0
-                    ? "Some tasks failed and some duplicates were skipped"
-                    : errors.length > 0
-                      ? "Some tasks failed to add"
-                      : duplicates.length > 0
-                        ? "Duplicate tasks were skipped"
-                        : "All tasks added successfully"
-              });
-            });
-          }
+          db.all(
+            `SELECT id, title, due_at, status, archived FROM tasks WHERE archived = 0 AND status != 'Done'`,
+            (conflictErr, rows = []) => {
+              if (conflictErr) {
+                errors.push({ task: t, error: conflictErr.message });
+                pending--;
+                if (pending === 0) finishRequest();
+                return;
+              }
+
+              const conflict = findScheduleConflict(t, rows);
+              if (conflict) {
+                errors.push({
+                  task: t,
+                  error: `Schedule conflict with "${conflict.title}" at ${conflict.due_at}`
+                });
+                pending--;
+                if (pending === 0) finishRequest();
+                return;
+              }
+
+              const id = 'task_' + Date.now() + Math.random().toString(36).substr(2, 5);
+              stmt.run(
+                id,
+                t.subject_id,
+                t.title,
+                t.due_at,
+                t.status || 'Not Started',
+                t.priority || 'medium',
+                t.confidence_score || 100,
+                t.notes || '',
+                typeof t.labels === 'string' ? t.labels : JSON.stringify(t.labels || []),
+                function (insertErr) {
+                  if (insertErr) {
+                    errors.push({ task: t, error: insertErr.message });
+                  } else {
+                    inserted++;
+                  }
+
+                  pending--;
+                  if (pending === 0) finishRequest();
+                }
+              );
+            }
+          );
         }
       );
     });
@@ -452,12 +533,39 @@ app.put('/api/tasks/:id', (req, res) => {
     return res.status(400).json({ error: 'No fields to update' });
   }
 
-  query += updates.join(', ') + ' WHERE id = ?';
-  params.push(req.params.id);
+  db.get('SELECT * FROM tasks WHERE id = ?', [req.params.id], (findErr, currentTask) => {
+    if (findErr) return res.status(500).json({ error: findErr.message });
+    if (!currentTask) return res.status(404).json({ error: 'Task not found' });
 
-  db.run(query, params, function (err) {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ success: true, changes: this.changes });
+    const candidateTask = {
+      ...currentTask,
+      status: status !== undefined ? status : currentTask.status,
+      archived: archived !== undefined ? archived : currentTask.archived,
+      due_at: due_at !== undefined ? due_at : currentTask.due_at,
+    };
+
+    db.all(
+      `SELECT id, title, due_at, status, archived FROM tasks WHERE archived = 0 AND status != 'Done' AND id != ?`,
+      [req.params.id],
+      (conflictErr, rows = []) => {
+        if (conflictErr) return res.status(500).json({ error: conflictErr.message });
+
+        const conflict = findScheduleConflict(candidateTask, rows, req.params.id);
+        if (conflict) {
+          return res.status(409).json({
+            error: `Schedule conflict with "${conflict.title}" at ${conflict.due_at}`
+          });
+        }
+
+        query += updates.join(', ') + ' WHERE id = ?';
+        params.push(req.params.id);
+
+        db.run(query, params, function (err) {
+          if (err) return res.status(500).json({ error: err.message });
+          res.json({ success: true, changes: this.changes });
+        });
+      }
+    );
   });
 });
 
