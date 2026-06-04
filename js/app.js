@@ -1132,6 +1132,33 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Header navigation wiring (fix for issue #636)
+  // Delegate to sidebar buttons so all view-switching logic stays DRY
+  const navDashboard = document.getElementById('nav-dashboard');
+  const navTasks = document.getElementById('nav-tasks');
+  const navCalendar = document.getElementById('nav-calendar');
+
+  if (navDashboard) {
+    navDashboard.addEventListener('click', (e) => {
+      e.preventDefault();
+      calendarBtn.click();
+    });
+  }
+
+  if (navTasks) {
+    navTasks.addEventListener('click', (e) => {
+      e.preventDefault();
+      allTasksBtn.click();
+    });
+  }
+
+  if (navCalendar) {
+    navCalendar.addEventListener('click', (e) => {
+      e.preventDefault();
+      calendarBtn.click();
+    });
+  }
+
   document.getElementById('cal-prev').addEventListener('click', () => {
     currentMonthDate.setMonth(currentMonthDate.getMonth() - 1);
     renderCalendar();
