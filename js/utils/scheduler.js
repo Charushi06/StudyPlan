@@ -1,3 +1,35 @@
+const TASK_BLOCK_MS = 60 * 60 * 1000;
+
+function getTaskWindow(task) {
+  const start = new Date(task?.due_at).getTime();
+  if (!Number.isFinite(start)) return null;
+  return {
+    start,
+    end: start + TASK_BLOCK_MS,
+  };
+}
+
+function isActiveScheduleTask(task) {
+  return !Number(task?.archived || 0) && task?.status !== 'Done';
+}
+
+export function findScheduleConflict(candidate, existingTasks, ignoreId = null) {
+  if (!isActiveScheduleTask(candidate)) return null;
+
+  const candidateWindow = getTaskWindow(candidate);
+  if (!candidateWindow) return null;
+
+  return existingTasks.find(task => {
+    if (ignoreId && String(task.id) === String(ignoreId)) return false;
+    if (!isActiveScheduleTask(task)) return false;
+
+    const taskWindow = getTaskWindow(task);
+    if (!taskWindow) return false;
+
+    return candidateWindow.start < taskWindow.end && candidateWindow.end > taskWindow.start;
+  }) || null;
+}
+
 export function analyzeWorkload(tasks) {
   const workloadMap = {};
 
