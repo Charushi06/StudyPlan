@@ -1,0 +1,1 @@
+console.log("Support page loaded");

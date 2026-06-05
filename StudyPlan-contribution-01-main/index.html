@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyPlan</title>
+  <link rel="stylesheet" href="/css/index.css">
+
+  <script src="/js/lib/confetti.browser.min.js"></script>
+
+  <link rel="icon" type="image/x-icon" href="/public/favicon.ico" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Auth Modal -->
+<div id="auth-modal" style="display:flex; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+  <div style="background:white; border-radius:16px; padding:32px; width:360px; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+    
+    <h2 id="auth-title" style="margin:0 0 8px; font-size:22px; font-weight:700;">Welcome back</h2>
+    <p id="auth-subtitle" style="margin:0 0 24px; color:#666; font-size:14px;">Sign in to your StudyPlan account</p>
+
+    <input id="auth-email" type="email" placeholder="Email address" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:12px; box-sizing:border-box;">
+    
+    <input id="auth-password" type="password" placeholder="Password" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:20px; box-sizing:border-box;">
+
+    <button id="auth-submit-btn" style="width:100%; padding:12px; background:#4f46e5; color:white; border:none; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer;">
+    Sign In
+    </button>
+
+    <div style="font-size:12px; color:#666; margin-top:10px; line-height:1.6;">
+    Password must contain:
+     <ul style="padding-left:18px; margin-top:6px;">
+      <li>Minimum 8 characters</li>
+      <li>At least 1 capital letter</li>
+      <li>At least 1 special character</li>
+     </ul>
+    </div>
+
+    <p id="auth-error" style="color:red; font-size:13px; text-align:center; margin:8px 0 0; display:none;"></p>
+
+    <p style="text-align:center; margin:16px 0 0; font-size:13px; color:#666;">
+      <span id="auth-toggle-text">Don't have an account?</span>
+      <a id="auth-toggle-btn" href="#" style="color:#4f46e5; font-weight:600; margin-left:4px;">Sign Up</a>
+    </p>
+
+    <p id="auth-error" style="color:red; font-size:13px; text-align:center; margin:8px 0 0; display:none;"></p>
+  </div>
+</div>
+
+  <header class="site-header">
+  <div class="header-left">
+    <img src="/logo.png" alt="Logo" class="logo">
+    <h1 class="site-title">StudyPlan</h1>
+  </div>
+
+  <nav class="header-nav">
+    <a href="#">Dashboard</a>
+    <a href="#">Tasks</a>
+    <a href="#">Calendar</a>
+    <a href="#" id="nav-settings">Settings</a>
+  </nav>
+
+  <div class="header-right">
+    <button class="profile-btn">Profile</button>
+    <button class="profile-btn" id="logout-btn">Logout</button>
+  </div>
+</header>
+
+
+<div class="wrapper">
+  <!-- <p class="label">StudyPlan</p> -->
+
+  <div class="app">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-header">Study Planner</div>
+      <div class="nav-item active" id="calendar-btn" role="link" aria-label="View Calendar">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="1" y="2" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M1 6h14" stroke="currentColor" stroke-width="1.5"/><path d="M5 1v2M11 1v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Calendar
+      </div>
+      <div class="nav-item" id="all-tasks-btn" role="link" aria-label="View All Tasks">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 4h12M2 8h9M2 12h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        All Tasks
+        <span class="badge" aria-label="9 pending tasks">9</span>
+      </div>
+      <div class="nav-item" id="focus-mode-btn">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Focus Mode
+        
+      </div>
+      <div class="nav-item" id="archived-tasks-btn">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 3h12v2H2V3zm1 3h10v7H3V6zm2 2v3h2V8H5zm4 0v3h2V8H9z" fill="currentColor"/></svg>
+        Archived Tasks
+        <span class="badge">0</span>
+      </div>
+      <div class="nav-item" id="download-btn">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h9M2 12h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Download Data
+        <span class="badge">7</span>
+      </div>
+      <div class="nav-item" id="calendar-download-btn">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M1 6h14" stroke="currentColor" stroke-width="1.5"/><path d="M5 1v2M11 1v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Export to Calendar
+      </div>
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-header">Subjects</div>
+      <div id="subjects-sidebar-list"></div>
+      <div class="add-subject" id="add-subject-btn" role="button" tabindex="0">
+        <svg width="14" height="14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Add subject
+      </div>
+    </div>
+
+    <!-- Main -->
+    <div class="main">
+      <div class="topbar">
+        <div class="topbar-title">April 2026</div>
+        <div class="topbar-actions" style="display: flex; align-items: center; gap: 10px; margin-left: auto; flex-wrap: wrap; justify-content: flex-end;">
+          <select id="label-filter" style="padding: 6px; border-radius: 6px; border: 1px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); outline: none; cursor: pointer;">
+            <option value="">All Labels</option>
+          </select>
+          <select id="categorise-filter" style="padding: 6px; border-radius: 6px; border: 1px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); outline: none; cursor: pointer; display:none;">
+            <option value="">Categorise</option>
+            <option value="late">Late</option>
+            <option value="due-today">Due Today</option>
+          </select>
+          <button id="categorise-btn" class="btn">Categorise</button>
+          <button class="btn">Week</button>
+          <button class="btn btn-primary" id="add-task-btn">
+            <svg width="12" height="12" fill="none" style="margin-right:2px"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> New task
+          </button>
+        </div>
+      </div>
+
+      <!-- Dashboard Greeting -->
+        <div class="dashboard-greeting" style="padding: 16px 24px 0; display: flex; justify-content: center;">
+          <div class="quote-widget">
+            <svg class="quote-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <p id="motivational-quotes">
+              Small Progress is still Progress
+            </p>
+          </div>
+        </div>
+
+      <!-- Calendar -->
+      <div class="cal-section">
+        <div class="cal-header">
+          <div id="cal-month-title" class="cal-title">April 2026</div>
+          <span id="cal-prev" class="cal-nav" role="button" aria-label="Previous Month">‹</span>
+          <span id="cal-next" class="cal-nav" role="button" aria-label="Next Month">›</span>
+        </div>
+        <div id="cal-grid" class="cal-grid">
+          <div class="cal-day-label">Su</div><div class="cal-day-label">Mo</div><div class="cal-day-label">Tu</div><div class="cal-day-label">We</div><div class="cal-day-label">Th</div><div class="cal-day-label">Fr</div><div class="cal-day-label">Sa</div>
+        </div>
+      </div>
+
+      <!-- Tasks -->
+      <div id="tasks-section" class="tasks-section">
+        <!-- Javascript will inject tasks here -->
+        
+      </div>
+
+      <!-- Focus Mode -->
+      <div id="focus-section" class="focus-section hidden">
+        <div class="focus-dashboard">
+          <div class="timer-container">
+            <svg class="timer-svg" viewBox="0 0 100 100">
+              <circle class="timer-path-elapsed" cx="50" cy="50" r="45" />
+              <path id="timer-path-remaining" stroke-dasharray="283" class="timer-path-remaining" d="
+                M 50, 50
+                m -45, 0
+                a 45,45 0 1,0 90,0
+                a 45,45 0 1,0 -90,0
+              "></path>
+            </svg>
+            <div id="timer-text" class="timer-text">25:00</div>
+          </div>
+          <div class="timer-duration-row">
+            <label for="timer-duration-input" class="timer-duration-label">Duration (min)</label>
+            <input id="timer-duration-input" type="number" class="timer-duration-input" value="25" min="1" max="120">
+          </div>
+          <div class="timer-controls">
+            <button id="timer-start-btn" class="btn btn-primary">Start Focus</button>
+            <button id="timer-pause-btn" class="btn hidden">Pause</button>
+            <button id="timer-reset-btn" class="btn">Reset</button>
+          </div>
+          
+          <div class="focus-task-container">
+            <div class="focus-task-header">Current Focus Task</div>
+            <div id="active-focus-task" class="active-focus-task">
+              <div class="no-task-selected">No task selected. Choose one below.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="focus-task-selector">
+          <div class="focus-task-header">Select a task to focus on</div>
+          <div id="focus-task-list" class="focus-task-list">
+            <!-- JS will populate tasks -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel -->
+    <div class="panel">
+      <div class="panel-header">
+        <button id="panel-toggle-btn" class="panel-toggle-btn" title="Toggle Smart Paste">
+          <svg id="panel-toggle-icon" width="16" height="16" fill="none" viewBox="0 0 16 16"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+        </button>
+        <div>
+          <div class="panel-title">
+            <svg width="18" height="18" fill="none"><path d="M9 13V5M9 5L5 9M9 5l4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Smart Paste
+          </div>
+          <div class="panel-subtitle">Drop any text — email, brief, message</div>
+        </div>
+      </div>
+
+      <div class="paste-zone" id = "drop-zone">
+        <div class="paste-icon">⌘ V</div>
+        <div class="paste-label">Paste text or drop a file here</div>
+        <div class="paste-hint">Supports .txt, .md, or .json files (e.g. "Your OS assignment is due this Friday by 11pm…)"</div>
+        <textarea id="paste-input" class="paste-input" placeholder="Paste your syllabus or notes..."></textarea>
+        <div class="file-upload-wrapper" style="margin-top: 10px; font-size: 13px; text-align: center;">
+          </div>
+      </div>
+
+      <div class="paste-actions">
+        <button id="clear-btn" class="btn" style="flex:1;" aria-label="Clear paste area">Clear</button>
+        <button id="extract-btn" class="btn btn-primary" style="flex:2;" aria-label="Extract tasks with AI">Extract with AI →</button>
+      </div>
+
+      <div id="extract-preview" class="extract-preview">
+        <!-- Javascript will inject extracted items here -->
+      </div>
+      <div id="summary-box" class="summary-box"></div>
+
+  <button id="add-btn" class="add-btn" disabled>
+    Add items to planner
+  </button>
+</div>
+
+
+      <button id="add-btn" class="add-btn" disabled>Add items to planner</button>
+    </div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <p>© 2026 StudyPlan. All rights reserved.</p>
+  <div class="footer-links">
+    <a href="/support-page/privacy.html">Privacy</a>
+    <a href="/support-page/terms.html">Terms</a>
+    <a href="/support-page/support.html">Support</a>
+  </div>
+</footer>
+
+<!-- Settings Modal -->
+<div id="settings-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
+  <div style="background:var(--color-background-primary); border:1px solid var(--color-border-tertiary); border-radius:16px; padding:32px; width:400px; box-shadow:var(--shadow-lg); color:var(--color-text-primary);">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+      <h2 style="margin:0; font-size:20px; font-weight:700;">Settings</h2>
+      <button id="settings-close" style="background:none; border:none; font-size:24px; cursor:pointer; color:var(--color-text-secondary);">&times;</button>
+    </div>
+    
+    <div style="margin-bottom: 24px;">
+      <h3 style="font-size:12px; font-weight:700; text-transform:uppercase; color:var(--color-text-tertiary); margin-bottom:16px; letter-spacing:0.05em;">Appearance</h3>
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 16px;">
+        <span style="font-size:14px; font-weight:500;">Dark Mode</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="dark-mode-toggle">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div style="display:flex; align-items:center; justify-content:space-between;">
+        <span style="font-size:14px; font-weight:500;">Compact View</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="compact-view-toggle">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div style="margin-bottom: 24px;">
+      <h3 style="font-size:12px; font-weight:700; text-transform:uppercase; color:var(--color-text-tertiary); margin-bottom:16px; letter-spacing:0.05em;">Notifications</h3>
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 16px;">
+        <span style="font-size:14px; font-weight:500;">Email Reminders</span>
+        <label class="toggle-switch">
+          <input type="checkbox" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div style="display:flex; align-items:center; justify-content:space-between;">
+        <span style="font-size:14px; font-weight:500;">Browser Notifications</span>
+        <label class="toggle-switch">
+          <input type="checkbox">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <button id="settings-save" style="width:100%; padding:12px; background:var(--color-text-primary); color:var(--color-background-primary); border:none; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; margin-top:8px;">
+      Save Changes
+    </button>
+  </div>
+</div>
+
+  <script type="module" src="/js/app.js"></script>
+  <script>
+  let isLogin = true;
+
+  document.getElementById('auth-toggle-btn').addEventListener('click', (e) => {
+    e.preventDefault();
+    isLogin = !isLogin;
+    document.getElementById('auth-title').textContent = isLogin ? 'Welcome back' : 'Create account';
+    document.getElementById('auth-subtitle').textContent = isLogin ? 'Sign in to your StudyPlan account' : 'Start planning your studies';
+    document.getElementById('auth-submit-btn').textContent = isLogin ? 'Sign In' : 'Sign Up';
+    document.getElementById('auth-toggle-text').textContent = isLogin ? "Don't have an account?" : 'Already have an account?';
+    document.getElementById('auth-toggle-btn').textContent = isLogin ? 'Sign Up' : 'Sign In';
+    document.getElementById('auth-error').style.display = 'none';
+  });
+
+  // Password validation function
+function validatePassword(password) {
+
+  // Minimum 8 characters
+  const minLength = password.length >= 8;
+
+  // At least 1 capital letter
+  const hasCapital = /[A-Z]/.test(password);
+
+  // At least 1 special character
+  const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+  return minLength && hasCapital && hasSpecial;
+}
+
+document.getElementById('auth-submit-btn').addEventListener('click', async () => {
+
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value.trim();
+  const errorEl = document.getElementById('auth-error');
+
+  errorEl.style.display = 'none';
+
+  // Empty fields check
+  if (!email || !password) {
+    errorEl.textContent = 'Please fill in all fields';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  // Password validation check
+  if (!validatePassword(password)) {
+    errorEl.textContent =
+      'Password must be at least 8 characters long, contain 1 capital letter and 1 special character.';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  const endpoint = isLogin ? '/api/auth/login' : '/api/auth/signup';
+
+  try {
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+      const data = await res.json();
+
+      if (!res.ok) {
+        errorEl.textContent = data.error || 'Something went wrong';
+        errorEl.style.display = 'block';
+        return;
+      }
+
+      localStorage.setItem('studyplan_user', JSON.stringify({ email: data.email }));
+      document.getElementById('auth-modal').style.display = 'none';
+
+    } catch (err) {
+      errorEl.textContent = 'Network error. Please try again.';
+      errorEl.style.display = 'block';
+    }
+  });
+
+  // Check if already logged in
+  if (localStorage.getItem('studyplan_user')) {
+    document.getElementById('auth-modal').style.display = 'none';
+  }
+
+  // Logout Button Functionality
+  const logoutBtn = document.getElementById('logout-btn');
+  logoutBtn.addEventListener('click', () => {
+    localStorage.removeItem('studyplan_user');
+
+    // Show login modal again
+    document.getElementById('auth-modal').style.display = 'flex';
+
+    // Refresh page state
+    window.location.reload();
+});
+
+  // Settings Modal Logic
+  const settingsModal = document.getElementById('settings-modal');
+  const navSettings = document.getElementById('nav-settings');
+  const settingsClose = document.getElementById('settings-close');
+  const settingsSave = document.getElementById('settings-save');
+
+  navSettings.addEventListener('click', (e) => {
+    e.preventDefault();
+    settingsModal.style.display = 'flex';
+  });
+
+  settingsClose.addEventListener('click', () => {
+    settingsModal.style.display = 'none';
+  });
+
+  settingsSave.addEventListener('click', () => {
+    settingsModal.style.display = 'none';
+  });
+
+  window.addEventListener('click', (e) => {
+    if (e.target === settingsModal) {
+      settingsModal.style.display = 'none';
+    }
+  });
+
+  // Settings Toggles State Management
+  const darkModeToggle = document.getElementById('dark-mode-toggle');
+  const compactViewToggle = document.getElementById('compact-view-toggle');
+
+  // Load preferences
+  const loadPreferences = () => {
+    const isDarkMode = localStorage.getItem('studyplan_dark_mode') === 'true';
+    const isCompactView = localStorage.getItem('studyplan_compact_view') === 'true';
+
+    darkModeToggle.checked = isDarkMode;
+    compactViewToggle.checked = isCompactView;
+
+    if (isDarkMode) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    } else {
+      document.documentElement.setAttribute('data-theme', 'light');
+    }
+
+    if (isCompactView) {
+      document.body.classList.add('compact-view');
+    } else {
+      document.body.classList.remove('compact-view');
+    }
+  };
+
+  // Run on load
+  loadPreferences();
+
+  // Save changes when user clicks "Save Changes"
+  settingsSave.addEventListener('click', () => {
+    localStorage.setItem('studyplan_dark_mode', darkModeToggle.checked);
+    localStorage.setItem('studyplan_compact_view', compactViewToggle.checked);
+    loadPreferences();
+    settingsModal.style.display = 'none';
+  });
+
+  // Also apply immediately on toggle for better UX
+  darkModeToggle.addEventListener('change', (e) => {
+    if (e.target.checked) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    } else {
+      document.documentElement.setAttribute('data-theme', 'light');
+    }
+  });
+
+  compactViewToggle.addEventListener('change', (e) => {
+    if (e.target.checked) {
+      document.body.classList.add('compact-view');
+    } else {
+      document.body.classList.remove('compact-view');
+    }
+  });
+</script>
+
+<div id="new-subject-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0; z-index:9998; align-items:center; justify-content:center;">
+  <div class="modal-card" style="border-radius:12px; padding:20px; width:320px; box-shadow:0 12px 40px rgba(0,0,0,0.25);">
+    <h3 style="margin:0 0 12px; font-size:18px; font-weight:600;">New subject</h3>
+    <label style="display:block; font-size:12px; margin-bottom:4px;">Subject name</label>
+    <input id="new-subject-name" type="text" style="width:100%; padding:6px; margin-bottom:12px;" placeholder="e.g. History">
+    <label style="display:block; font-size:12px; margin-bottom:6px;">Color</label>
+    <div id="new-subject-colors" class="subject-color-swatches"></div>
+    <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
+      <button id="new-subject-cancel" class="btn" style="padding:6px 10px;">Cancel</button>
+      <button id="new-subject-save" class="btn btn-primary" style="padding:6px 12px;">Save</button>
+    </div>
+  </div>
+</div>
+
+<div id="new-task-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0; z-index:9998; align-items:center; justify-content:center;">
+  <div class="modal-card" style="border-radius:12px; padding:24px; width:340px; box-shadow:0 12px 40px rgba(0,0,0,0.25);">
+    <h3 style="margin:0 0 16px; font-size:18px; font-weight:700;">New task</h3>
+
+    <label class="modal-field-label">Subject</label>
+    <select id="new-task-subject" class="modal-input" style="margin-bottom:12px;"></select>
+
+    <label class="modal-field-label">Task name</label>
+    <input id="new-task-title" type="text" class="modal-input" style="margin-bottom:12px;" placeholder="e.g. Study for exam">
+
+    <label class="modal-field-label">Deadline</label>
+    <input id="new-task-date" type="datetime-local" class="modal-input" style="margin-bottom:16px;" placeholder="Deadline">
+    <script>
+      // Set minimum date to today to prevent past date selection
+      document.addEventListener('DOMContentLoaded', () => {
+        const dateInput = document.getElementById('new-task-date');
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const minDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
+        dateInput.min = minDateTime;
+      });
+    </script>
+
+    <label class="modal-field-label">Labels</label>
+    <p class="modal-field-hint">Pick a preset or type your own below</p>
+    <div class="label-suggestions-grid" id="label-suggestions">
+      <button type="button" class="label-tag-btn" data-label="important">🔴 important</button>
+      <button type="button" class="label-tag-btn" data-label="urgent">⚡ urgent</button>
+      <button type="button" class="label-tag-btn" data-label="review">📖 review</button>
+      <button type="button" class="label-tag-btn" data-label="exam">📝 exam</button>
+      <button type="button" class="label-tag-btn" data-label="homework">📚 homework</button>
+      <button type="button" class="label-tag-btn" data-label="reading">🔖 reading</button>
+      <button type="button" class="label-tag-btn" data-label="project">🗂 project</button>
+    </div>
+    <input id="new-task-labels" type="text" class="modal-input" style="margin-bottom:20px;" placeholder="Custom labels — separate by space (e.g. quiz midterm)">
+
+    <div style="display:flex; justify-content:flex-end; gap:8px;">
+      <button id="new-task-cancel" class="btn" style="padding:6px 14px;">Cancel</button>
+      <button id="new-task-save" class="btn btn-primary" style="padding:6px 16px;">Save task</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>
