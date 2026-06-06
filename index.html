@@ -88,6 +88,10 @@
         Focus Mode
         
       </div>
+      <div class="nav-item" id="analytics-btn">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 14h12M4 10v4M8 6v8M12 2v12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Analytics
+      </div>
       <div class="nav-item" id="archived-tasks-btn">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 3h12v2H2V3zm1 3h10v7H3V6zm2 2v3h2V8H5zm4 0v3h2V8H9z" fill="currentColor"/></svg>
         Archived Tasks
@@ -195,6 +199,12 @@
           <div id="focus-task-list" class="focus-task-list">
             <!-- JS will populate tasks -->
           </div>
+        </div>
+      <!-- Analytics Mode -->
+      <div id="analytics-section" class="analytics-section hidden" style="padding: 24px;">
+        <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 24px;">Study Analytics Dashboard</h2>
+        <div id="analytics-container" style="display: grid; gap: 20px;">
+          <!-- JavaScript will populate this area with progress bars -->
         </div>
       </div>
     </div>
