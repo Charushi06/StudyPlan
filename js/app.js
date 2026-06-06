@@ -1082,7 +1082,23 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  store.fetchInitialData();
+  store.fetchInitialData().then(() => {
+    // Smart Reminders "Due Today" Alert System
+    const now = new Date();
+    const todayStr = now.toDateString();
+    
+    const tasksDueToday = store.tasks.filter(t => {
+      if (t.status === 'Done' || t.archived || !t.due_at) return false;
+      const d = new Date(t.due_at);
+      return d.toDateString() === todayStr;
+    });
+
+    if (tasksDueToday.length > 0) {
+      setTimeout(() => {
+        Toast.show(`You have ${tasksDueToday.length} task${tasksDueToday.length > 1 ? 's' : ''} due today! 🎯`, 'info', 6000);
+      }, 500); // Small delay so it pops up after render
+    }
+  });
   
   const calendarBtn = document.getElementById('calendar-btn');
   const allTasksBtn = document.getElementById('all-tasks-btn');
