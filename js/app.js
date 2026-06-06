@@ -88,12 +88,52 @@ const addItemsBtn = document.getElementById('add-btn');
 const downloadBtn = document.getElementById('download-btn');
 const calendarDownloadBtn = document.getElementById('calendar-download-btn');
 const newTaskBtn = document.getElementById('add-task-btn');
+// Declared here (before first use) to avoid temporal-dead-zone ReferenceError
 const labelFilterSelect = document.getElementById('label-filter');
+const categoriseFilterSelect = document.getElementById('categorise-filter');
 
 if (labelFilterSelect) {
   labelFilterSelect.addEventListener('change', (e) => {
     activeLabelFilter = e.target.value;
     renderTasks();
+  });
+}
+
+if (categoriseFilterSelect) {
+  categoriseFilterSelect.addEventListener('change', (e) => {
+    activeCategoriseFilter = e.target.value;
+    // Update button text & active state to reflect chosen filter
+    const btn = document.getElementById('categorise-btn');
+    if (btn) {
+      btn.classList.toggle('btn-filter-active', !!activeCategoriseFilter);
+      if (activeCategoriseFilter === 'late') btn.innerHTML = '⚠ Late &times;';
+      else if (activeCategoriseFilter === 'due-today') btn.innerHTML = '📅 Due Today &times;';
+      else btn.textContent = 'Categorise';
+    }
+    renderCalendar();
+    renderTasks();
+  });
+}
+
+// Categorise button: toggle dropdown visibility or clear active filter
+const categoriseBtnEl = document.getElementById('categorise-btn');
+if (categoriseBtnEl) {
+  categoriseBtnEl.addEventListener('click', () => {
+    if (!categoriseFilterSelect) return;
+    const isVisible = categoriseFilterSelect.style.display === 'inline-block';
+    if (activeCategoriseFilter) {
+      // Clear the active filter on click when one is selected
+      activeCategoriseFilter = '';
+      categoriseFilterSelect.value = '';
+      categoriseFilterSelect.style.display = 'none';
+      categoriseBtnEl.classList.remove('btn-filter-active');
+      categoriseBtnEl.textContent = 'Categorise';
+      renderCalendar();
+      renderTasks();
+    } else {
+      // Toggle dropdown visibility
+      categoriseFilterSelect.style.display = isVisible ? 'none' : 'inline-block';
+    }
   });
 }
 
@@ -170,9 +210,12 @@ const newTaskModal = document.getElementById('new-task-modal');
 const newTaskSubject = document.getElementById('new-task-subject');
 const newTaskTitle = document.getElementById('new-task-title');
 const newTaskDate = document.getElementById('new-task-date');
-const newTaskNotes = document.getElementById('new-task-notes');
+const newTaskLabels = document.getElementById('new-task-labels');
 const newTaskCancel = document.getElementById('new-task-cancel');
 const newTaskSave = document.getElementById('new-task-save');
+// labelFilterSelect & categoriseFilterSelect are declared near top of file (before first use)
+
+let activeCategoriseFilter = '';
 
 // Timer elements
 const timerText = document.getElementById('timer-text');
@@ -530,9 +573,14 @@ function renderTasks() {
     // Store current selection to restore it
     const currentSel = labelFilterSelect.value;
     let optionsHtml = '<option value="">All Labels</option>';
-    Array.from(uniqueLabels).sort().forEach(lbl => {
-      optionsHtml += `<option value="${lbl}" ${lbl === currentSel ? 'selected' : ''}>${lbl}</option>`;
-    });
+    
+    if (uniqueLabels.size === 0) {
+      optionsHtml += '<option value="no-labels">No labels</option>';
+    } else {
+      Array.from(uniqueLabels).sort().forEach(lbl => {
+        optionsHtml += `<option value="${lbl}" ${lbl === currentSel ? 'selected' : ''}>${lbl}</option>`;
+      });
+    }
     labelFilterSelect.innerHTML = optionsHtml;
   }
 
@@ -651,6 +699,12 @@ function renderTasks() {
           labelsHtml = t.labels.map(l => `<span class="task-pill" style="background:${getLabelColor(l)}; color:white;">${l}</span>`).join(' ');
         }
 
+        // Add "Late" badge for incomplete overdue tasks
+        let lateTagHtml = '';
+        if (!isDone && isOverdue) {
+          lateTagHtml = `<span class="task-pill" style="background:#ef4444; color:white;">Late</span>`;
+        }
+
         html += `
           <div class="task-item ${isUrgent ? 'urgent' : ''} ${isHighPriority ? 'high-priority' : ''} ${isOverdue ? 'overdue' : ''} ${isDone ? 'done' : ''}" data-id="${t.id}">
             <div class="task-check ${isDone ? 'done' : ''}"></div>
@@ -659,6 +713,7 @@ function renderTasks() {
               <div class="task-meta">
                 <span class="task-pill ${isDone ? 'pill-green' : (isOverdue || isHighPriority ? 'pill-red' : 'pill-amber')}">${isDone ? 'Done' : 'Due ' + formatDate(t.due_at)}</span>
                 <span class="task-pill ${pillClass}">${sub.short_code}</span>
+                ${lateTagHtml}
                 ${labelsHtml}
               </div>
             </div>
@@ -675,22 +730,42 @@ function renderTasks() {
   
   if (currentView === 'calendar' && selectedDate) {
     const selStr = selectedDate.toLocaleDateString('en-US', {month:'short', day:'numeric'});
+    
+    // Check if selectedDate is in the past
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selectedDateAtMidnight = new Date(selectedDate);
+    selectedDateAtMidnight.setHours(0, 0, 0, 0);
+    const isPastDate = selectedDateAtMidnight < today;
+    
     const actionBar = `<div class="tasks-actions-bar">
            <button id="mark-all-pending-btn" class="task-action-btn" ${pending.length === 0 ? 'disabled' : ''}>Mark all pending completed (${pending.length})</button>
            <button id="mark-day-complete-btn" class="task-action-btn task-action-btn-secondary" ${pending.length === 0 ? 'disabled' : ''}>Mark selected day completed</button>
          </div>`;
 
-    const emptyState = dueSoon.length === 0 && completed.length === 0
-      ? `<div class="tasks-empty-state">
-           <div class="empty-state-icon">📅</div>
-           <div class="empty-state-title">No tasks for today</div>
-           <div class="empty-state-text">Your schedule is looking clear! Use this time to rest or start planning ahead.</div>
-           <button class="empty-state-cta" id="empty-state-add-btn">
-             <svg width="14" height="14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-             Add your first task
-           </button>
-         </div>`
-      : '';
+    let emptyState = '';
+    
+    if (dueSoon.length === 0 && completed.length === 0) {
+      if (isPastDate) {
+        // For past dates, show a different empty state without "add task" button
+        emptyState = `<div class="tasks-empty-state">
+             <div class="empty-state-icon">📅</div>
+             <div class="empty-state-title">No tasks for this date</div>
+             <div class="empty-state-text">All tasks for this date have been completed or removed.</div>
+           </div>`;
+      } else {
+        // For future dates, show empty state with "add task" button
+        emptyState = `<div class="tasks-empty-state">
+             <div class="empty-state-icon">📅</div>
+             <div class="empty-state-title">No tasks for today</div>
+             <div class="empty-state-text">Your schedule is looking clear! Use this time to rest or start planning ahead.</div>
+             <button class="empty-state-cta" id="empty-state-add-btn">
+               <svg width="14" height="14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+               Add your first task
+             </button>
+           </div>`;
+      }
+    }
 
     tasksSection.innerHTML = actionBar +
                              renderGroup(`Tasks for ${selStr}`, dueSoon, 'var(--color-text-primary)') +
@@ -869,13 +944,23 @@ function renderCalendar() {
     const isToday = i === today.getDate() && month === today.getMonth() && year === today.getFullYear();
     const isSelected = selectedDate && i === selectedDate.getDate() && month === selectedDate.getMonth() && year === selectedDate.getFullYear();
     
-    // Find tasks for this day
-    const dayTasks = store.tasks.filter(t => {
+    // Find tasks for this day based on categorise filter
+    let dayTasks = store.tasks.filter(t => {
       if (t.archived) return false;
       if (t.status === 'Done') return false;
       if (!t.due_at) return false;
       const d = new Date(t.due_at);
-      return d.getDate() === i && d.getMonth() === month && d.getFullYear() === year;
+      const dueDate = d.toDateString();
+      const checkDate = new Date(year, month, i).toDateString();
+      if (dueDate !== checkDate) return false;
+
+      // Apply categorise filter
+      if (activeCategoriseFilter === 'late') {
+        return d < today;
+      } else if (activeCategoriseFilter === 'due-today') {
+        return d.toDateString() === today.toDateString();
+      }
+      return true;
     });
 
     let indicatorHtml = '';
@@ -1151,6 +1236,19 @@ newTaskBtn.addEventListener('click', () => {
     return;
   }
 
+  // Prevent adding tasks to past dates
+  if (selectedDate) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selectedDateAtMidnight = new Date(selectedDate);
+    selectedDateAtMidnight.setHours(0, 0, 0, 0);
+    
+    if (selectedDateAtMidnight < today) {
+      Toast.show('Cannot add tasks to past dates. Please select today or a future date.', 'warning');
+      return;
+    }
+  }
+
   newTaskSubject.innerHTML = store.subjects
     .map(s => `<option value="${s.id}">${s.name}</option>`)
     .join('');
@@ -1165,9 +1263,23 @@ newTaskBtn.addEventListener('click', () => {
   }
 
   newTaskTitle.value = '';
-  newTaskNotes.value = '';
+  newTaskLabels.value = '';
 
   newTaskModal.style.display = 'flex';
+  
+  // Bind label suggestion buttons
+  const labelSuggestionBtns = document.querySelectorAll('.label-tag-btn');
+  labelSuggestionBtns.forEach(btn => {
+    btn.onclick = (e) => {
+      e.preventDefault();
+      const label = btn.dataset.label;
+      const currentLabels = newTaskLabels.value.trim().split(/\s+/).filter(l => l.length > 0);
+      if (!currentLabels.includes(label)) {
+        currentLabels.push(label);
+        newTaskLabels.value = currentLabels.join(' ');
+      }
+    };
+  });
 });
 
 newTaskCancel.addEventListener('click', () => {
@@ -1183,7 +1295,7 @@ newTaskModal.addEventListener('click', (e) => {
 newTaskSave.addEventListener('click', async () => {
   const rawTitle = newTaskTitle.value.trim();
   const subject_id = newTaskSubject.value;
-  const notes = newTaskNotes.value.trim();
+  const labelsInput = newTaskLabels.value.trim();
   const dateVal = newTaskDate.value;
 
   if (!rawTitle) {
@@ -1200,14 +1312,19 @@ if (!subject_id) {
   alert('Please select a subject');
   return;
 }
-  const { cleanTitle, labels } = extractLabels(rawTitle);
+  
+  // Parse labels from the input field
+  let labels = [];
+  if (labelsInput) {
+    labels = labelsInput.split(/\s+/).filter(l => l.length > 0);
+  }
+  
   const due_at = dateVal ? new Date(dateVal).toISOString() : '';
 
   const newTask = {
-    title: cleanTitle || rawTitle,
+    title: rawTitle,
     subject_id,
     due_at,
-    notes,
     priority: 'medium',
     status: 'Not Started',
     archived: 0,

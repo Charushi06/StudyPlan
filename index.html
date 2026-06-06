@@ -114,13 +114,21 @@
     <div class="main">
       <div class="topbar">
         <div class="topbar-title">April 2026</div>
-        <select id="label-filter" style="margin-left:auto; margin-right: 12px; padding: 6px; border-radius: 6px; border: 1px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); outline: none; cursor: pointer;">
-          <option value="">All Labels</option>
-        </select>
-        <button class="btn">Week</button>
-        <button class="btn btn-primary"  id="add-task-btn">
-          <svg width="12" height="12" fill="none" style="margin-right:2px"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> New task
-        </button>
+        <div class="topbar-actions" style="display: flex; align-items: center; gap: 10px; margin-left: auto; flex-wrap: wrap; justify-content: flex-end;">
+          <select id="label-filter" style="padding: 6px; border-radius: 6px; border: 1px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); outline: none; cursor: pointer;">
+            <option value="">All Labels</option>
+          </select>
+          <select id="categorise-filter" style="padding: 6px; border-radius: 6px; border: 1px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); outline: none; cursor: pointer; display:none;">
+            <option value="">Categorise</option>
+            <option value="late">Late</option>
+            <option value="due-today">Due Today</option>
+          </select>
+          <button id="categorise-btn" class="btn">Categorise</button>
+          <button class="btn">Week</button>
+          <button class="btn btn-primary" id="add-task-btn">
+            <svg width="12" height="12" fill="none" style="margin-right:2px"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> New task
+          </button>
+        </div>
       </div>
 
       <!-- Dashboard Greeting -->
@@ -144,10 +152,6 @@
         </div>
         <div id="cal-grid" class="cal-grid">
           <div class="cal-day-label">Su</div><div class="cal-day-label">Mo</div><div class="cal-day-label">Tu</div><div class="cal-day-label">We</div><div class="cal-day-label">Th</div><div class="cal-day-label">Fr</div><div class="cal-day-label">Sa</div>
-        </div>
-        <div class="cal-legend">
-          <span><span class="legend-dot" style="background:var(--color-text-info)"></span>Study session</span>
-          <span><span class="legend-dot" style="background:var(--color-text-danger)"></span>Deadline</span>
         </div>
       </div>
 
@@ -203,7 +207,8 @@
     <div class="panel">
       <div class="panel-header">
         <button id="panel-toggle-btn" class="panel-toggle-btn" title="Toggle Smart Paste">
-          <svg id="panel-toggle-icon" width="16" height="16" fill="none" viewBox="0 0 16 16"><path d="M10 4l-4 4 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <svg id="panel-toggle-icon" width="16" height="16" fill="none" viewBox="0 0 16 16"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
         </button>
         <div>
           <div class="panel-title">
@@ -491,25 +496,49 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
   </div>
 </div>
 
-<div id="new-task-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0;  z-index:9998; align-items:center; justify-content:center;">
-  <div class="modal-card" style=" border-radius:12px; padding:20px; width:320px; box-shadow:0 12px 40px rgba(0,0,0,0.25);">
-    <h3 style="margin:0 0 12px; font-size:18px; font-weight:600;">New task</h3>
+<div id="new-task-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0; z-index:9998; align-items:center; justify-content:center;">
+  <div class="modal-card" style="border-radius:12px; padding:24px; width:340px; box-shadow:0 12px 40px rgba(0,0,0,0.25);">
+    <h3 style="margin:0 0 16px; font-size:18px; font-weight:700;">New task</h3>
 
-    <label style="display:block; font-size:12px; margin-bottom:4px;">Subject</label>
-    <select id="new-task-subject" paceholder="Subject" style="width:100%; padding:6px; margin-bottom:10px;"></select>
+    <label class="modal-field-label">Subject</label>
+    <select id="new-task-subject" class="modal-input" style="margin-bottom:12px;"></select>
 
-    <label style="display:block; font-size:12px; margin-bottom:4px;">Task name (Use #tag for labels)</label>
-    <input id="new-task-title" type="text" style="width:100%; padding:6px; margin-bottom:10px;"placeholder="e.g. Study for exam #urgent #school">
+    <label class="modal-field-label">Task name</label>
+    <input id="new-task-title" type="text" class="modal-input" style="margin-bottom:12px;" placeholder="e.g. Study for exam">
 
-    <label style="display:block; font-size:12px; margin-bottom:4px;">Deadline</label>
-    <input id="new-task-date" type="datetime-local" style="width:100%; padding:6px; margin-bottom:10px;" placeholder="Deadline">
+    <label class="modal-field-label">Deadline</label>
+    <input id="new-task-date" type="datetime-local" class="modal-input" style="margin-bottom:16px;" placeholder="Deadline">
+    <script>
+      // Set minimum date to today to prevent past date selection
+      document.addEventListener('DOMContentLoaded', () => {
+        const dateInput = document.getElementById('new-task-date');
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const minDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
+        dateInput.min = minDateTime;
+      });
+    </script>
 
-    <!-- <label style="display:block; font-size:12px; margin-bottom:4px;">Notes</label> -->
-    <input id="new-task-notes" type="text" style="width:100%; padding:6px; margin-bottom:16px;" placeholder="Notes">
+    <label class="modal-field-label">Labels</label>
+    <p class="modal-field-hint">Pick a preset or type your own below</p>
+    <div class="label-suggestions-grid" id="label-suggestions">
+      <button type="button" class="label-tag-btn" data-label="important">🔴 important</button>
+      <button type="button" class="label-tag-btn" data-label="urgent">⚡ urgent</button>
+      <button type="button" class="label-tag-btn" data-label="review">📖 review</button>
+      <button type="button" class="label-tag-btn" data-label="exam">📝 exam</button>
+      <button type="button" class="label-tag-btn" data-label="homework">📚 homework</button>
+      <button type="button" class="label-tag-btn" data-label="reading">🔖 reading</button>
+      <button type="button" class="label-tag-btn" data-label="project">🗂 project</button>
+    </div>
+    <input id="new-task-labels" type="text" class="modal-input" style="margin-bottom:20px;" placeholder="Custom labels — separate by space (e.g. quiz midterm)">
 
     <div style="display:flex; justify-content:flex-end; gap:8px;">
-      <button id="new-task-cancel" class="btn" style="padding:6px 10px;">Cancel</button>
-      <button id="new-task-save" class="btn btn-primary" style="padding:6px 12px;">Save</button>
+      <button id="new-task-cancel" class="btn" style="padding:6px 14px;">Cancel</button>
+      <button id="new-task-save" class="btn btn-primary" style="padding:6px 16px;">Save task</button>
     </div>
   </div>
 </div>

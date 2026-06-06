@@ -294,6 +294,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 6px;
+  white-space: nowrap;
 }
 
 .btn:hover {
@@ -315,6 +316,35 @@ body {
 
 .btn-primary:hover {
   background: var(--color-text-secondary);
+}
+
+/* Active filter state — used when Categorise filter is selected */
+.btn-filter-active {
+  background: var(--color-background-danger);
+  color: var(--color-text-danger);
+  border-color: var(--color-border-danger);
+  font-weight: 700;
+  white-space: nowrap;
+  min-width: max-content;
+  box-shadow: 0 0 0 2px rgba(var(--color-danger-rgb), 0.15);
+  transition: all 0.2s ease;
+}
+
+.btn-filter-active:hover {
+  background: var(--color-text-danger);
+  color: var(--color-background-primary);
+  border-color: transparent;
+  transform: translateY(-1px);
+}
+
+/* Categorise dropdown slide-in animation */
+#categorise-filter {
+  animation: slideDown 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 /* Calendar */
@@ -860,6 +890,7 @@ body {
 .panel.panel-collapsed .paste-zone,
 .panel.panel-collapsed .paste-actions,
 .panel.panel-collapsed .extract-preview,
+.panel.panel-collapsed .summary-box,
 .panel.panel-collapsed .add-btn {
   display: none;
 }
@@ -3841,6 +3872,7 @@ body {
 .panel.panel-collapsed .paste-zone,
 .panel.panel-collapsed .paste-actions,
 .panel.panel-collapsed .extract-preview,
+.panel.panel-collapsed .summary-box,
 .panel.panel-collapsed .add-btn {
   display: none;
 }
@@ -5012,4 +5044,70 @@ body {
 
 @keyframes slideDown {
   to { opacity: 0; transform: translateY(10px); }
+}
+
+/* ==========================================================================
+   Modal Field & Label Styles
+   ========================================================================== */
+.modal-field-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-tertiary);
+  margin-bottom: 6px;
+}
+
+.modal-field-hint {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin-bottom: 8px;
+  margin-top: -4px;
+}
+
+.modal-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-sm);
+  background: var(--color-background-primary);
+  color: var(--color-text-primary);
+  font-family: inherit;
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+
+.modal-input:focus {
+  outline: none;
+  border-color: var(--color-text-primary);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.05);
+}
+
+.label-suggestions-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.label-tag-btn {
+  padding: 4px 10px;
+  border: 1px solid var(--color-border-secondary);
+  border-radius: 16px;
+  background: var(--color-background-secondary);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.label-tag-btn:hover {
+  background: var(--color-background-primary);
+  color: var(--color-text-primary);
+  border-color: var(--color-text-primary);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
 }
