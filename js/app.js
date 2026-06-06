@@ -1082,23 +1082,82 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  store.fetchInitialData();
+  store.fetchInitialData().then(() => {
+    // Smart Reminders "Due Today" Alert System
+    const now = new Date();
+    const todayStr = now.toDateString();
+    
+    const tasksDueToday = store.tasks.filter(t => {
+      if (t.status === 'Done' || t.archived || !t.due_at) return false;
+      const d = new Date(t.due_at);
+      return d.toDateString() === todayStr;
+    });
+
+    if (tasksDueToday.length > 0) {
+      setTimeout(() => {
+        Toast.show(`You have ${tasksDueToday.length} task${tasksDueToday.length > 1 ? 's' : ''} due today! 🎯`, 'info', 6000);
+      }, 500); // Small delay so it pops up after render
+    }
+  });
   
   const calendarBtn = document.getElementById('calendar-btn');
   const allTasksBtn = document.getElementById('all-tasks-btn');
   const archivedTasksBtn = document.getElementById('archived-tasks-btn');
   const focusModeBtn = document.getElementById('focus-mode-btn');
+  const analyticsBtn = document.getElementById('analytics-btn');
+  const analyticsSection = document.getElementById('analytics-section');
+  const analyticsContainer = document.getElementById('analytics-container');
 
   function updateSidebarActive(id) {
     document.querySelectorAll('.sidebar .nav-item').forEach(el => el.classList.remove('active'));
     document.getElementById(id).classList.add('active');
   }
 
+  function renderAnalytics() {
+    if (!analyticsContainer) return;
+    const subjects = store.subjects;
+    const tasks = store.tasks;
+
+    if (subjects.length === 0) {
+      analyticsContainer.innerHTML = '<p>No subjects found.</p>';
+      return;
+    }
+
+    let html = '';
+    subjects.forEach(sub => {
+      const subTasks = tasks.filter(t => t.subject_id === sub.id && !t.archived);
+      const total = subTasks.length;
+      const completed = subTasks.filter(t => t.status === 'Done').length;
+      const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
+
+      html += `
+        <div style="background: var(--color-background-primary); border: 1px solid var(--color-border-secondary); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-weight: 600; color: ${sub.color || 'var(--color-text-primary)'};">${sub.name}</span>
+            <span style="font-size: 14px; font-weight: 600; color: var(--color-text-secondary);">${percent}% (${completed}/${total})</span>
+          </div>
+          <div style="width: 100%; height: 10px; background: var(--color-background-secondary); border-radius: 5px; overflow: hidden;">
+            <div style="height: 100%; width: ${percent}%; background: ${sub.color || 'var(--color-text-info)'}; transition: width 0.5s ease;"></div>
+          </div>
+        </div>
+      `;
+    });
+
+    analyticsContainer.innerHTML = html;
+  }
+
+  store.subscribe(() => {
+    if (currentView === 'analytics') {
+      renderAnalytics();
+    }
+  });
+
   calendarBtn.addEventListener('click', () => {
     currentView = 'calendar';
     document.querySelector('.cal-section').classList.remove('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
+    if (analyticsSection) analyticsSection.classList.add('hidden');
     updateSidebarActive('calendar-btn');
     renderTasks();
   });
@@ -1108,6 +1167,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('.cal-section').classList.add('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
+    if (analyticsSection) analyticsSection.classList.add('hidden');
     updateSidebarActive('all-tasks-btn');
     renderTasks();
   });
@@ -1117,6 +1177,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('.cal-section').classList.add('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
+    if (analyticsSection) analyticsSection.classList.add('hidden');
     updateSidebarActive('archived-tasks-btn');
     renderTasks();
   });
@@ -1127,8 +1188,21 @@ document.addEventListener('DOMContentLoaded', () => {
       document.querySelector('.cal-section').classList.add('hidden');
       document.getElementById('tasks-section').classList.add('hidden');
       document.getElementById('focus-section').classList.remove('hidden');
+      if (analyticsSection) analyticsSection.classList.add('hidden');
       updateSidebarActive('focus-mode-btn');
       renderFocusTasks();
+    });
+  }
+
+  if (analyticsBtn) {
+    analyticsBtn.addEventListener('click', () => {
+      currentView = 'analytics';
+      document.querySelector('.cal-section').classList.add('hidden');
+      document.getElementById('tasks-section').classList.add('hidden');
+      document.getElementById('focus-section').classList.add('hidden');
+      if (analyticsSection) analyticsSection.classList.remove('hidden');
+      updateSidebarActive('analytics-btn');
+      renderAnalytics();
     });
   }
 
