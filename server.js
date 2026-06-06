@@ -509,30 +509,47 @@ Text: "${text}"
   return res.json(tasks);
 });
 // ================= AUTH =================
+const { z } = require('zod');
+
+const authSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(8, 'Password must be at least 8 characters')
+    .regex(/[A-Z]/, 'Password must contain at least 1 uppercase letter')
+    .regex(/[!@#$%^&*(),.?":{}|<>]/, 'Password must contain at least 1 special character')
+});
+
 const users = {}; // Simple in-memory user store
 
 app.post('/api/auth/signup', (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
-    return res.status(400).json({ error: 'Email and password required' });
+  try {
+    const { email, password } = authSchema.parse(req.body);
+    if (users[email]) {
+      return res.status(400).json({ error: 'User already exists' });
+    }
+    users[email] = { email, password };
+    res.json({ success: true, message: 'Account created successfully' });
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      return res.status(400).json({ error: err.errors[0].message });
+    }
+    res.status(500).json({ error: 'Internal server error' });
   }
-  if (users[email]) {
-    return res.status(400).json({ error: 'User already exists' });
-  }
-  users[email] = { email, password };
-  res.json({ success: true, message: 'Account created successfully' });
 });
 
 app.post('/api/auth/login', (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
-    return res.status(400).json({ error: 'Email and password required' });
+  try {
+    const { email, password } = authSchema.parse(req.body);
+    const user = users[email];
+    if (!user || user.password !== password) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+    res.json({ success: true, email: user.email });
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      return res.status(400).json({ error: err.errors[0].message });
+    }
+    res.status(500).json({ error: 'Internal server error' });
   }
-  const user = users[email];
-  if (!user || user.password !== password) {
-    return res.status(401).json({ error: 'Invalid email or password' });
-  }
-  res.json({ success: true, email: user.email });
 });
 
 // Intentional test route for verifying server error page behavior.
