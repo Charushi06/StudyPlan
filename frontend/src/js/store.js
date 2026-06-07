@@ -1,5 +1,5 @@
-import { Toast } from './utils/toast.js';
-import { triggerConfetti } from './utils/confetti.js';
+import { Toast } from '../utils/toast.js';
+import { triggerConfetti } from '../utils/confetti.js';
 
 export const store = {
   subjects: [],
