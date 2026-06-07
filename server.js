@@ -250,6 +250,98 @@ function nlpExtractTasksFromText(text) {
 
 // ============================================================
 
+// ================= NOTES =================
+app.get('/api/notes', (req, res) => {
+  db.all('SELECT * FROM notes ORDER BY updated_at DESC', (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows || []);
+  });
+});
+
+app.post('/api/notes', (req, res) => {
+  const title = String(req.body?.title || '').trim();
+  const content = String(req.body?.content || '').trim();
+
+  if (!title) {
+    return res.status(400).json({ error: 'Note title is required' });
+  }
+
+  const id = `note_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+
+  db.run(
+    'INSERT INTO notes (id, title, content, created_at, updated_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)',
+    [id, title, content || null],
+    function (err) {
+      if (err) return res.status(500).json({ error: err.message });
+      res.status(201).json({
+        id,
+        title,
+        content: content || null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      });
+    }
+  );
+});
+
+app.get('/api/notes/:id', (req, res) => {
+  const { id } = req.params;
+
+  db.get('SELECT * FROM notes WHERE id = ?', [id], (err, row) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!row) return res.status(404).json({ error: 'Note not found' });
+    res.json(row);
+  });
+});
+
+app.put('/api/notes/:id', (req, res) => {
+  const { id } = req.params;
+  const { title, content } = req.body;
+
+  db.get('SELECT * FROM notes WHERE id = ?', [id], (err, note) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!note) return res.status(404).json({ error: 'Note not found' });
+
+    const newTitle = title !== undefined ? String(title).trim() : note.title;
+    const newContent = content !== undefined ? String(content).trim() : note.content;
+
+    if (!newTitle) {
+      return res.status(400).json({ error: 'Note title is required' });
+    }
+
+    db.run(
+      'UPDATE notes SET title = ?, content = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+      [newTitle, newContent || null, id],
+      function (err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({
+          success: true,
+          message: 'Note updated successfully',
+          changes: this.changes
+        });
+      }
+    );
+  });
+});
+
+app.delete('/api/notes/:id', (req, res) => {
+  const { id } = req.params;
+
+  db.run('DELETE FROM notes WHERE id = ?', [id], function (err) {
+    if (err) return res.status(500).json({ error: err.message });
+    if (this.changes === 0) {
+      return res.status(404).json({ error: 'Note not found' });
+    }
+    res.json({
+      success: true,
+      message: 'Note deleted successfully',
+      changes: this.changes
+    });
+  });
+});
+
+// ============================================================
+
 // ================= SUBJECTS =================
 app.get('/api/subjects', (req, res) => {
   db.all('SELECT * FROM subjects', (err, rows) => {
@@ -304,43 +396,6 @@ app.post('/api/subjects', (req, res) => {
   )
 });
 
-// ================= DELETE SUBJECT =================
-app.delete('/api/subjects/:id', (req, res) => {
-
-  const { id } = req.params;
-
-  db.run(
-    'DELETE FROM tasks WHERE subject_id = ?',
-    [id],
-    function(taskErr) {
-
-      if (taskErr) {
-        return res.status(500).json({
-          error: taskErr.message
-        });
-      }
-
-      db.run(
-        'DELETE FROM subjects WHERE id = ?',
-        [id],
-        function(subjectErr) {
-
-          if (subjectErr) {
-            return res.status(500).json({
-              error: subjectErr.message
-            });
-          }
-
-          res.json({
-            success: true,
-            deleted: this.changes
-          });
-        }
-      );
-    }
-  );
-});
-
 // ================= TASKS =================
 app.get('/api/tasks', (req, res) => {
   db.all('SELECT * FROM tasks ORDER BY due_at ASC', (err, rows) => {
@@ -370,9 +425,8 @@ app.post('/api/tasks', (req, res) => {
     let errors = [];
 
     const stmt = db.prepare(`INSERT INTO tasks 
-      (id, subject_id, title, due_at, status, priority, confidence_score, notes, estimated_duration, is_estimated_duration_min, labels) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
-
+      (id, subject_id, title, due_at, status, priority, confidence_score, notes, labels) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`);
 
     let pending = tasks.length;
 
@@ -429,8 +483,6 @@ app.post('/api/tasks', (req, res) => {
               t.priority || 'medium',
               t.confidence_score || 100,
               t.notes || '',
-              Number.isFinite(Number(t.estimated_duration)) ? Number(t.estimated_duration) : null,
-              t.is_estimated_duration_min === 0 ? 0 : 1,
               typeof t.labels === 'string' ? t.labels : JSON.stringify(t.labels || []),
               function (insertErr) {
                 if (insertErr) {
@@ -473,9 +525,7 @@ app.post('/api/tasks', (req, res) => {
 
 // ================= UPDATE =================
 app.put('/api/tasks/:id', (req, res) => {
-
-  const { status, archived, title, subject_id, due_at, notes, priority, estimated_duration, is_estimated_duration_min,labels } = req.body;
-
+  const { status, archived, title, subject_id, due_at, notes, priority, labels } = req.body;
 
   let query = 'UPDATE tasks SET ';
   const params = [];
@@ -488,8 +538,6 @@ app.put('/api/tasks/:id', (req, res) => {
   if (due_at !== undefined) { updates.push('due_at = ?'); params.push(due_at); }
   if (notes !== undefined) { updates.push('notes = ?'); params.push(notes); }
   if (priority !== undefined) { updates.push('priority = ?'); params.push(priority); }
-  if (estimated_duration !== undefined) { updates.push('estimated_duration = ?'); params.push(Number.isFinite(Number(estimated_duration)) ? Number(estimated_duration) : null); }
-  if (is_estimated_duration_min !== undefined) { updates.push('is_estimated_duration_min = ?'); params.push(is_estimated_duration_min === 0 ? 0 : 1); }
   if (labels !== undefined) { updates.push('labels = ?'); params.push(typeof labels === 'string' ? labels : JSON.stringify(labels)); }
 
   if (updates.length === 0) {
@@ -553,87 +601,163 @@ Text: "${text}"
   return res.json(tasks);
 });
 // ================= AUTH =================
+const crypto = require('crypto');
 
-// SIGNUP
+function hashPassword(password) {
+  return crypto.createHash('sha256').update(password + 'salt').digest('hex');
+}
+
 app.post('/api/auth/signup', (req, res) => {
+  console.log('DEBUG: signup endpoint reached');
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res.status(400).json({
-      error: 'Email and password required'
-    });
+    return res.status(400).json({ error: 'Email and password required' });
   }
 
-  const id = 'user_' + Date.now();
+  // Validate password requirements
+  if (password.length < 8 || !/[A-Z]/.test(password) || !/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+    return res.status(400).json({ error: 'Password must be at least 8 characters with 1 capital letter and 1 special character' });
+  }
+
+  const id = `user_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+  const hashedPassword = hashPassword(password);
 
   db.run(
-    `INSERT INTO users (id, email, password)
-     VALUES (?, ?, ?)`,
-    [id, email, password],
-    function(err) {
-
+    'INSERT INTO users (id, email, password) VALUES (?, ?, ?)',
+    [id, email.toLowerCase(), hashedPassword],
+    function (err) {
       if (err) {
-
         if (err.message.includes('UNIQUE')) {
-          return res.status(400).json({
-            error: 'User already exists'
-          });
+          return res.status(400).json({ error: 'Email already registered' });
         }
-
-        return res.status(500).json({
-          error: err.message
-        });
+        return res.status(500).json({ error: 'Failed to create account' });
       }
-
-      res.json({
-        success: true,
-        message: 'Account created successfully'
-      });
+      res.json({ success: true, message: 'Account created successfully', email: email.toLowerCase() });
     }
   );
 });
 
-// LOGIN
 app.post('/api/auth/login', (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res.status(400).json({
-      error: 'Email and password required'
-    });
+    return res.status(400).json({ error: 'Email and password required' });
   }
 
+  const hashedPassword = hashPassword(password);
+
   db.get(
-    `SELECT * FROM users WHERE email = ?`,
-    [email],
+    'SELECT * FROM users WHERE email = ?',
+    [email.toLowerCase()],
     (err, user) => {
-
       if (err) {
-        return res.status(500).json({
-          error: err.message
-        });
+        return res.status(500).json({ error: 'Database error' });
       }
 
-      if (!user || user.password !== password) {
-        return res.status(401).json({
-          error: 'Invalid email or password'
-        });
+      if (!user) {
+        return res.status(401).json({ error: 'Invalid email or password' });
       }
 
-      res.json({
-        success: true,
-        email: user.email
-      });
+      if (user.password !== hashedPassword) {
+        return res.status(401).json({ error: 'Invalid email or password' });
+      }
+
+      res.json({ success: true, email: user.email, id: user.id });
     }
   );
 });
 
-// LOGOUT
-app.post('/api/auth/logout', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Logged out successfully'
-  });
+app.get('/api/auth/test', (req, res) => {
+  res.json({ success: true, message: 'Auth routes working' });
+});
+
+app.post('/api/auth/forgot-password', (req, res) => {
+  console.log('DEBUG: forgot-password endpoint reached');
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ error: 'Email is required' });
+  }
+
+  const resetToken = crypto.randomBytes(32).toString('hex');
+  const resetTokenExpiry = new Date(Date.now() + 3600000).toISOString();
+
+  db.run(
+    'UPDATE users SET reset_token = ?, reset_token_expiry = ? WHERE email = ?',
+    [resetToken, resetTokenExpiry, email.toLowerCase()],
+    function (err) {
+      if (err) {
+        return res.status(500).json({ error: 'Failed to process request' });
+      }
+
+      if (this.changes === 0) {
+        return res.json({ success: true, message: 'If email exists, password reset link sent' });
+      }
+
+      console.log(`Reset token for ${email}: ${resetToken}`);
+      res.json({ success: true, message: 'If email exists, password reset link sent', token: resetToken });
+    }
+  );
+});
+
+app.post('/api/auth/reset-password', (req, res) => {
+  const { token, newPassword } = req.body;
+
+  if (!token || !newPassword) {
+    return res.status(400).json({ error: 'Token and new password required' });
+  }
+
+  if (newPassword.length < 8 || !/[A-Z]/.test(newPassword) || !/[!@#$%^&*(),.?":{}|<>]/.test(newPassword)) {
+    return res.status(400).json({ error: 'Password must be at least 8 characters with 1 capital letter and 1 special character' });
+  }
+
+  db.get(
+    'SELECT * FROM users WHERE reset_token = ? AND reset_token_expiry > datetime("now")',
+    [token],
+    (err, user) => {
+      if (err) {
+        return res.status(500).json({ error: 'Database error' });
+      }
+
+      if (!user) {
+        return res.status(401).json({ error: 'Invalid or expired reset token' });
+      }
+
+      const hashedPassword = hashPassword(newPassword);
+
+      db.run(
+        'UPDATE users SET password = ?, reset_token = NULL, reset_token_expiry = NULL WHERE id = ?',
+        [hashedPassword, user.id],
+        (err) => {
+          if (err) {
+            return res.status(500).json({ error: 'Failed to reset password' });
+          }
+          res.json({ success: true, message: 'Password reset successfully' });
+        }
+      );
+    }
+  );
+});
+
+app.get('/api/auth/validate-token/:token', (req, res) => {
+  const { token } = req.params;
+
+  db.get(
+    'SELECT email FROM users WHERE reset_token = ? AND reset_token_expiry > datetime("now")',
+    [token],
+    (err, user) => {
+      if (err) {
+        return res.status(500).json({ error: 'Database error' });
+      }
+
+      if (!user) {
+        return res.status(401).json({ error: 'Invalid or expired token' });
+      }
+
+      res.json({ success: true, email: user.email });
+    }
+  );
 });
 
 // Intentional test route for verifying server error page behavior.

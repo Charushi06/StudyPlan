@@ -4,6 +4,7 @@ import { triggerConfetti } from './utils/confetti.js';
 export const store = {
   subjects: [],
   tasks: [],
+  notes: [],
   currentPaste: null,
   listeners: [],
 
@@ -25,12 +26,14 @@ export const store = {
   
   async fetchInitialData() {
     try {
-      const [subsRes, tasksRes] = await Promise.all([
+      const [subsRes, tasksRes, notesRes] = await Promise.all([
         fetch('/api/subjects'),
-        fetch('/api/tasks')
+        fetch('/api/tasks'),
+        fetch('/api/notes')
       ]);
       this.subjects = await subsRes.json();
       this.tasks = await tasksRes.json();
+      this.notes = await notesRes.json();
       this.notify();
     } catch (e) {
       console.error('Failed to load initial data', e);
@@ -361,5 +364,94 @@ export const store = {
   clearExtracted() {
     this.currentPaste = null;
     this.notify();
+  },
+
+  async fetchNotes() {
+    try {
+      const res = await fetch('/api/notes');
+      if (!res.ok) throw new Error('Failed to fetch notes');
+      this.notes = await res.json();
+      this.notify();
+    } catch (e) {
+      console.error('Failed to fetch notes', e);
+      Toast.show('Failed to load notes', 'error');
+    }
+  },
+
+  async addNote({ title, content }) {
+    const trimmed = String(title || '').trim();
+    if (!trimmed) {
+      Toast.show('Please enter a note title', 'warning');
+      return false;
+    }
+    try {
+      const res = await fetch('/api/notes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: trimmed, content: content || '' })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        Toast.show(data.error || 'Failed to create note', 'error');
+        return false;
+      }
+      Toast.show('Note created successfully', 'success');
+      await this.fetchNotes();
+      return true;
+    } catch (e) {
+      console.error('Failed to add note', e);
+      Toast.show('Network error. Please try again.', 'error');
+      return false;
+    }
+  },
+
+  async updateNote(noteId, updatedFields) {
+    const noteIndex = this.notes.findIndex(n => String(n.id) === String(noteId));
+    if (noteIndex === -1) return;
+
+    const originalNote = { ...this.notes[noteIndex] };
+
+    this.notes[noteIndex] = { ...this.notes[noteIndex], ...updatedFields };
+    this.notify();
+
+    try {
+      const res = await fetch(`/api/notes/${noteId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedFields)
+      });
+
+      if (!res.ok) {
+        throw new Error('Update failed');
+      }
+      Toast.show('Note updated successfully', 'success');
+    } catch (e) {
+      console.error('Failed to update note', e);
+      Toast.show('Failed to save note changes', 'error');
+      this.notes[noteIndex] = originalNote;
+      this.notify();
+    }
+  },
+
+  async deleteNote(noteId) {
+    const confirmed = await Toast.confirm('Are you sure you want to delete this note?');
+    if (!confirmed) return;
+
+    const noteIndex = this.notes.findIndex(n => String(n.id) === String(noteId));
+    if (noteIndex !== -1) {
+      const removedNote = this.notes.splice(noteIndex, 1)[0];
+      this.notify();
+      try {
+        await fetch(`/api/notes/${noteId}`, {
+          method: 'DELETE'
+        });
+        Toast.show('Note deleted successfully', 'success');
+      } catch (e) {
+        this.notes.splice(noteIndex, 0, removedNote);
+        this.notify();
+        console.error('Failed to delete note', e);
+        Toast.show('Failed to delete note', 'error');
+      }
+    }
   }
 };

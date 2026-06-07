@@ -1,0 +1,10 @@
+
+> study-plan@1.0.0 start
+> node server.js
+
+◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+[33m⚠️  WARNING: GEMINI_API_KEY is not defined in .env[0m
+[33m   AI extraction features will fall back to local heuristic NLP.[0m
+[33m   Get a key at: https://aistudio.google.com/app/apikey
+[0m
+Server running on port 3000
