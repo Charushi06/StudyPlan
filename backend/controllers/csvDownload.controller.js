@@ -1,4 +1,4 @@
-const { db } = require('../../database.js');
+const { db } = require('../config/database');
 
 function getAllTasksWithSubjects() {
   const query = `

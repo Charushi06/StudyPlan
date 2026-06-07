@@ -5,7 +5,7 @@ const {
   buildCalendarIcs,
   formatIcsDate,
   escapeIcsText,
-} = require('../backend/controllers/csvDownload.controller.js');
+} = require('../controllers/csvDownload.controller.js');
 
 test('formatIcsDate returns UTC RFC5545 timestamp', () => {
   assert.equal(

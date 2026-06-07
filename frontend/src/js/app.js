@@ -1,8 +1,8 @@
 import { store } from './store.js';
-import { extractTasksFromText } from './utils/api.js';
-import { initGlobalErrorBoundary } from './utils/errorBoundary.js';
-import { analyzeWorkload } from './utils/scheduler.js';
-import { Toast } from './utils/toast.js';
+import { extractTasksFromText } from '../utils/api.js';
+import { initGlobalErrorBoundary } from '../utils/errorBoundary.js';
+import { analyzeWorkload } from '../utils/scheduler.js';
+import { Toast } from '../utils/toast.js';
 
 initGlobalErrorBoundary();
 

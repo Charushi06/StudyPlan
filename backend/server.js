@@ -1,10 +1,10 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const { db, initDb } = require('./database');
+const { db, initDb } = require('./config/database');
 const { GoogleGenAI } = require('@google/genai');
 const path = require('path');
-const csvDownloadRouter = require('./backend/routers/csvDownload.router.js');
+const csvDownloadRouter = require('./routes/csvDownload.router.js');
 
 const app = express();
 app.use(cors());
