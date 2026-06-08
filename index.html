@@ -15,12 +15,12 @@
   <!-- Auth Modal -->
 <div id="auth-modal" style="display:flex; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
   <div style="background:white; border-radius:16px; padding:32px; width:360px; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
-    
+
     <h2 id="auth-title" style="margin:0 0 8px; font-size:22px; font-weight:700;">Welcome back</h2>
     <p id="auth-subtitle" style="margin:0 0 24px; color:#666; font-size:14px;">Sign in to your StudyPlan account</p>
 
     <input id="auth-email" type="email" placeholder="Email address" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:12px; box-sizing:border-box;">
-    
+
     <input id="auth-password" type="password" placeholder="Password" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:20px; box-sizing:border-box;">
 
     <button id="auth-submit-btn" style="width:100%; padding:12px; background:#4f46e5; color:white; border:none; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer;">
@@ -35,8 +35,6 @@
       <li>At least 1 special character</li>
      </ul>
     </div>
-
-    <p id="auth-error" style="color:red; font-size:13px; text-align:center; margin:8px 0 0; display:none;"></p>
 
     <p style="text-align:center; margin:16px 0 0; font-size:13px; color:#666;">
       <span id="auth-toggle-text">Don't have an account?</span>
@@ -61,11 +59,40 @@
   </nav>
 
   <div class="header-right">
-    <button class="profile-btn">Profile</button>
+    <button class="profile-btn" id="profile-btn">Profile</button>
     <button class="profile-btn" id="logout-btn">Logout</button>
   </div>
 </header>
 
+  <div id="profile-modal" class="profile-modal" style="display:none;">
+      <div class="profile-content">
+
+          <div class="profile-header">
+              <div class="profile-avatar">
+                  M
+              </div>
+
+              <div>
+                  <h2>My Profile</h2>
+                  <p class="profile-subtitle">
+                      StudyPlan Account
+                  </p>
+              </div>
+          </div>
+
+          <div class="profile-info">
+              <label>Email</label>
+              <div id="profile-email" class="profile-value"></div>
+          </div>
+
+          <div class="profile-actions">
+              <button id="close-profile" class="profile-close-btn">
+                  Close
+              </button>
+          </div>
+
+      </div>
+  </div>
 
 <div class="wrapper">
   <!-- <p class="label">StudyPlan</p> -->
@@ -233,12 +260,6 @@
       </div>
       <div id="summary-box" class="summary-box"></div>
 
-  <button id="add-btn" class="add-btn" disabled>
-    Add items to planner
-  </button>
-</div>
-
-
       <button id="add-btn" class="add-btn" disabled>Add items to planner</button>
     </div>
   </div>
@@ -388,15 +409,33 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
 
   // Logout Button Functionality
   const logoutBtn = document.getElementById('logout-btn');
-  logoutBtn.addEventListener('click', () => {
-    localStorage.removeItem('studyplan_user');
+  if(logoutBtn) {
+      logoutBtn.addEventListener('click', () => {
+          localStorage.removeItem('studyplan_user');
+          window.location.reload();
+      });
+  }
 
-    // Show login modal again
-    document.getElementById('auth-modal').style.display = 'flex';
-
-    // Refresh page state
-    window.location.reload();
-});
+  const profileBtn = document.getElementById("profile-btn");
+  const profileModal = document.getElementById("profile-modal");
+  const closeProfile = document.getElementById("close-profile");
+  if(profileBtn && profileModal && closeProfile) {
+      profileBtn.addEventListener("click", () => {
+          const user = JSON.parse(localStorage.getItem("studyplan_user"));
+          document.getElementById("profile-email").textContent = user?.email || "Unknown";
+          const avatar = document.querySelector(".profile-avatar");
+          avatar.textContent = (user?.email?.charAt(0) || "U").toUpperCase();
+          profileModal.style.display = "flex";
+      });
+      closeProfile.addEventListener("click", () => {
+          profileModal.style.display = "none";
+      });
+      window.addEventListener("click", (e) => {
+          if (e.target === profileModal) {
+              profileModal.style.display = "none";
+          }
+      });
+  }
 
   // Settings Modal Logic
   const settingsModal = document.getElementById('settings-modal');
