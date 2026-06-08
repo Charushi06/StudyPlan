@@ -522,6 +522,28 @@ app.post('/api/auth/signup', (req, res) => {
   users[email] = { email, password };
   res.json({ success: true, message: 'Account created successfully' });
 });
+app.post("/api/auth/reset-password", (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({
+      error: "Email and password required",
+    });
+  }
+
+  if (!users[email]) {
+    return res.status(404).json({
+      error: "User not found",
+    });
+  }
+
+  users[email].password = password;
+
+  res.json({
+    success: true,
+    message: "Password reset successful",
+  });
+});
 
 app.post('/api/auth/login', (req, res) => {
   const { email, password } = req.body;
