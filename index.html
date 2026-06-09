@@ -62,7 +62,7 @@
   </nav>
 
   <div class="header-right">
-    <button class="profile-btn">Profile</button>
+    <button class="profile-btn" id="profile-btn">Profile</button>
     <button class="profile-btn" id="logout-btn">Logout</button>
   </div>
 </header>
@@ -204,6 +204,62 @@
           <div class="focus-task-header">Select a task to focus on</div>
           <div id="focus-task-list" class="focus-task-list">
             <!-- JS will populate tasks -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Profile Page -->
+      <div id="profile-section" class="profile-section hidden" style="padding: 32px 40px; color: var(--color-text-primary);">
+        <h2 style="font-size: 28px; font-weight: 700; margin-bottom: 8px;">User Profile</h2>
+        <p style="color: var(--color-text-secondary); font-size: 14px; margin-bottom: 32px;">Manage your account details and view study statistics.</p>
+        
+        <div style="display: grid; grid-template-columns: 280px 1fr; gap: 40px; align-items: start;">
+          <!-- Left side: Avatar & Info -->
+          <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--color-border-secondary); border-radius: 16px; padding: 32px 24px; text-align: center; box-shadow: var(--shadow-sm);">
+            <div id="desktop-profile-avatar" style="width: 110px; height: 110px; border-radius: 50%; background: var(--color-text-info); color: white; display: flex; align-items: center; justify-content: center; font-size: 44px; font-weight: 700; margin: 0 auto 20px; text-transform: uppercase; box-shadow: var(--shadow-md);">
+              U
+            </div>
+            <h3 id="desktop-profile-email" style="font-size: 18px; font-weight: 600; margin: 0 0 6px; word-break: break-all;">user@example.com</h3>
+            <p style="color: var(--color-text-secondary); font-size: 13px; margin: 0 0 24px;">Student Account</p>
+            <div style="border-top: 1px solid var(--color-border-secondary); padding-top: 20px;">
+              <span style="font-size: 12px; color: var(--color-text-tertiary); font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 8px;">Theme Mode</span>
+              <span id="desktop-profile-theme" style="font-size: 14px; font-weight: 600; color: var(--color-text-primary); text-transform: capitalize;">Light Mode</span>
+            </div>
+          </div>
+
+          <!-- Right side: Statistics & Performance -->
+          <div style="display: flex; flex-direction: column; gap: 32px;">
+            <div>
+              <h3 style="font-size: 16px; font-weight: 600; margin: 0 0 16px; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-chart-line" style="color: var(--color-text-info);"></i>
+                Academic Performance & Stats
+              </h3>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--color-border-secondary); border-radius: 12px; padding: 24px 20px;">
+                  <div style="font-size: 13px; color: var(--color-text-secondary); margin-bottom: 8px;">Completed Tasks</div>
+                  <div id="desktop-profile-completed" style="font-size: 32px; font-weight: 700; color: var(--color-text-success);">0</div>
+                </div>
+                <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--color-border-secondary); border-radius: 12px; padding: 24px 20px;">
+                  <div style="font-size: 13px; color: var(--color-text-secondary); margin-bottom: 8px;">Pending Tasks</div>
+                  <div id="desktop-profile-pending" style="font-size: 32px; font-weight: 700; color: var(--color-text-warning);">0</div>
+                </div>
+                <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--color-border-secondary); border-radius: 12px; padding: 24px 20px;">
+                  <div style="font-size: 13px; color: var(--color-text-secondary); margin-bottom: 8px;">Estimated Study Time</div>
+                  <div id="desktop-profile-duration" style="font-size: 24px; font-weight: 700; color: var(--color-text-info); margin-top: 8px;">0 mins</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Subject-wise Task Breakdown -->
+            <div>
+              <h3 style="font-size: 16px; font-weight: 600; margin: 0 0 16px; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-book-open" style="color: var(--color-text-purple);"></i>
+                Subject Workload Breakdown
+              </h3>
+              <div id="desktop-profile-subjects-list" style="display: flex; flex-direction: column; gap: 12px;">
+                <!-- Dynamically populated subject stats -->
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -382,8 +438,9 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
         return;
       }
 
-      localStorage.setItem('studyplan_user', JSON.stringify({ email: data.email }));
+      localStorage.setItem('studyplan_user', JSON.stringify({ email: data.email || email }));
       document.getElementById('auth-modal').style.display = 'none';
+      window.location.reload();
 
     } catch (err) {
       errorEl.textContent = 'Network error. Please try again.';
@@ -392,8 +449,18 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
   });
 
   // Check if already logged in
-  if (localStorage.getItem('studyplan_user')) {
-    document.getElementById('auth-modal').style.display = 'none';
+  const loggedInUser = localStorage.getItem('studyplan_user');
+  if (loggedInUser) {
+    try {
+      const parsed = JSON.parse(loggedInUser);
+      if (parsed && parsed.email) {
+        document.getElementById('auth-modal').style.display = 'none';
+      } else {
+        localStorage.removeItem('studyplan_user');
+      }
+    } catch (e) {
+      localStorage.removeItem('studyplan_user');
+    }
   }
 
   // Logout Button Functionality
