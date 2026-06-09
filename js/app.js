@@ -99,6 +99,8 @@ const downloadBtn = document.getElementById('download-btn');
 const calendarDownloadBtn = document.getElementById('calendar-download-btn');
 const newTaskBtn = document.getElementById('add-task-btn');
 const labelFilterSelect = document.getElementById('label-filter');
+const subjectFilterChips = document.getElementById('subject-filter-chips');
+let selectedSubjectFilter = '';
 
 if (labelFilterSelect) {
   labelFilterSelect.addEventListener('change', (e) => {
@@ -185,6 +187,34 @@ const newTaskCancel = document.getElementById('new-task-cancel');
 const newTaskSave = document.getElementById('new-task-save');
 const newTaskEstimatedDuration = document.getElementById('new-task-estimated-duration');
 const newTaskDurationSwitch = document.getElementById('new-task-duration-switch');
+
+function renderSubjectFilterBar(tasks, subjects) {
+  if (!subjectFilterChips) return;
+
+  const subjectMap = new Map();
+  tasks.forEach(t => {
+    const id = t.subject_id || '';
+    if (!subjectMap.has(id)) {
+      const subject = subjects.find(s => s.id === id);
+      subjectMap.set(id, { id, name: subject ? subject.name : id ? 'General' : 'General' });
+    }
+  });
+
+  const chips = [{ id: '', name: 'All' }, ...Array.from(subjectMap.values()).sort((a, b) => a.name.localeCompare(b.name))];
+
+  subjectFilterChips.innerHTML = chips.map(subject => `
+    <button type="button" class="subject-filter-chip${String(selectedSubjectFilter) === String(subject.id) ? ' active' : ''}" data-subject-id="${escapeHtml(subject.id)}">
+      ${escapeHtml(subject.name)}
+    </button>
+  `).join('');
+
+  subjectFilterChips.querySelectorAll('.subject-filter-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedSubjectFilter = btn.dataset.subjectId || '';
+      renderTasks();
+    });
+  });
+}
 const newTaskDurationMin = document.getElementById('new-task-duration-min');
 const newTaskDurationHr = document.getElementById('new-task-duration-hr');
 let selectedTaskDurationUnit = 'minutes';
@@ -612,9 +642,14 @@ function renderTasks() {
   }
   
   const displayTasksRaw = currentView === 'archived' ? archivedTasks : activeTasks;
-  const displayTasks = activeLabelFilter
+  const displayTasksLabelFiltered = activeLabelFilter
     ? displayTasksRaw.filter(t => t.labels && t.labels.includes(activeLabelFilter))
     : displayTasksRaw;
+  const displayTasks = selectedSubjectFilter
+    ? displayTasksLabelFiltered.filter(t => String(t.subject_id) === String(selectedSubjectFilter))
+    : displayTasksLabelFiltered;
+
+  renderSubjectFilterBar(displayTasksRaw, subjects);
 
   // Extract unique labels to populate the filter dropdown
   if (labelFilterSelect) {
