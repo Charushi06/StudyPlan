@@ -1097,6 +1097,100 @@ store.subscribe(renderCalendar);
 store.subscribe(renderFocusTasks);
 store.subscribe(renderSidebarSubjects);
 
+function updateDesktopProfilePage() {
+  const userStr = localStorage.getItem('studyplan_user');
+  let email = 'guest@example.com';
+  if (userStr) {
+    try {
+      const user = JSON.parse(userStr);
+      email = user.email || email;
+    } catch (e) {
+      console.error(e);
+    }
+  }
+  
+  const avatarEl = document.getElementById('desktop-profile-avatar');
+  const emailEl = document.getElementById('desktop-profile-email');
+  if (emailEl) emailEl.textContent = email;
+  if (avatarEl && email) {
+    avatarEl.textContent = email.charAt(0).toUpperCase();
+  }
+
+  // Theme
+  const themeEl = document.getElementById('desktop-profile-theme');
+  if (themeEl) {
+    const isDarkMode = localStorage.getItem('studyplan_dark_mode') === 'true';
+    themeEl.textContent = isDarkMode ? 'Dark Mode' : 'Light Mode';
+  }
+
+  // Stats
+  const completedCount = store.tasks.filter(t => t.status === 'Done').length;
+  const pendingCount = store.tasks.filter(t => t.status !== 'Done' && !t.archived).length;
+  const totalMins = store.tasks.reduce((acc, t) => acc + (Number(t.estimated_duration) || 0), 0);
+  
+  const completedEl = document.getElementById('desktop-profile-completed');
+  const pendingEl = document.getElementById('desktop-profile-pending');
+  const durationEl = document.getElementById('desktop-profile-duration');
+  
+  if (completedEl) completedEl.textContent = completedCount;
+  if (pendingEl) pendingEl.textContent = pendingCount;
+  if (durationEl) durationEl.textContent = formatDuration(totalMins);
+
+  // Subject-wise breakdown
+  const subjectsListEl = document.getElementById('desktop-profile-subjects-list');
+  if (subjectsListEl) {
+    const subjects = store.subjects;
+    const tasks = store.tasks;
+    
+    if (subjects.length === 0) {
+      subjectsListEl.innerHTML = '<div style="color: var(--color-text-secondary); font-size: 13px;">No subjects defined yet.</div>';
+      return;
+    }
+
+    const html = subjects.map(sub => {
+      const subTasks = tasks.filter(t => t.subject_id === sub.id && !t.archived);
+      const subCompleted = subTasks.filter(t => t.status === 'Done').length;
+      const subTotal = subTasks.length;
+      const percent = subTotal > 0 ? Math.round((subCompleted / subTotal) * 100) : 0;
+      
+      return `
+        <div style="background: rgba(255, 255, 255, 0.01); border: 1px solid var(--color-border-secondary); border-radius: 8px; padding: 14px 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="width: 10px; height: 10px; border-radius: 50%; background: ${sub.color || 'var(--color-text-info)'};"></span>
+              <span style="font-size: 14px; font-weight: 600;">${sub.name}</span>
+            </div>
+            <span style="font-size: 12px; color: var(--color-text-secondary); font-weight: 500;">
+              ${subCompleted}/${subTotal} completed (${percent}%)
+            </span>
+          </div>
+          <div style="height: 6px; background: rgba(255, 255, 255, 0.05); border-radius: 3px; overflow: hidden;">
+            <div style="height: 100%; width: ${percent}%; background: ${sub.color || 'var(--color-text-info)'}; border-radius: 3px;"></div>
+          </div>
+        </div>
+      `;
+    }).join('');
+    
+    subjectsListEl.innerHTML = html;
+  }
+}
+
+store.subscribe(updateDesktopProfilePage);
+
+function hideProfileSection() {
+  const profileSection = document.getElementById('profile-section');
+  if (profileSection) profileSection.classList.add('hidden');
+  
+  const topbar = document.querySelector('.topbar');
+  if (topbar) topbar.style.display = '';
+  
+  const greeting = document.querySelector('.dashboard-greeting');
+  if (greeting) greeting.style.display = '';
+  
+  const studyTime = document.getElementById('daily-study-time');
+  if (studyTime) studyTime.style.display = '';
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   if (newSubjectColorsEl) {
     SUBJECT_COLORS.forEach(c => {
@@ -1166,6 +1260,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   calendarBtn.addEventListener('click', () => {
     currentView = 'calendar';
+    hideProfileSection();
     document.querySelector('.cal-section').classList.remove('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
@@ -1175,6 +1270,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   allTasksBtn.addEventListener('click', () => {
     currentView = 'all-tasks';
+    hideProfileSection();
     document.querySelector('.cal-section').classList.add('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
@@ -1184,6 +1280,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   archivedTasksBtn.addEventListener('click', () => {
     currentView = 'archived';
+    hideProfileSection();
     document.querySelector('.cal-section').classList.add('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
@@ -1194,6 +1291,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if(focusModeBtn) {
     focusModeBtn.addEventListener('click', () => {
       currentView = 'focus';
+      hideProfileSection();
       document.querySelector('.cal-section').classList.add('hidden');
       document.getElementById('tasks-section').classList.add('hidden');
       document.getElementById('focus-section').classList.remove('hidden');
@@ -1317,6 +1415,39 @@ addItemsBtn.addEventListener('click', () => {
     pasteInput.value = '';
   }
 });
+
+  // Profile Section Logic
+  const profileSection = document.getElementById('profile-section');
+  const profileBtn = document.getElementById('profile-btn');
+
+  if (profileBtn && profileSection) {
+    profileBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      currentView = 'profile';
+      
+      // Hide other views
+      document.querySelector('.cal-section')?.classList.add('hidden');
+      document.getElementById('tasks-section')?.classList.add('hidden');
+      document.getElementById('focus-section')?.classList.add('hidden');
+      
+      const topbar = document.querySelector('.topbar');
+      if (topbar) topbar.style.setProperty('display', 'none', 'important');
+      
+      const greeting = document.querySelector('.dashboard-greeting');
+      if (greeting) greeting.style.setProperty('display', 'none', 'important');
+      
+      const studyTime = document.getElementById('daily-study-time');
+      if (studyTime) studyTime.style.setProperty('display', 'none', 'important');
+      
+      // Show profile section
+      profileSection.classList.remove('hidden');
+      
+      // Update sidebar active status to none
+      document.querySelectorAll('.sidebar .nav-item').forEach(el => el.classList.remove('active'));
+      
+      updateDesktopProfilePage();
+    });
+  }
 });
 
 // Ensures the button is hidden on initial page load if the textarea is empty
