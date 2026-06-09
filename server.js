@@ -319,6 +319,45 @@ app.get('/api/tasks', (req, res) => {
   });
 });
 
+app.get('/api/focus-sessions', (req, res) => {
+  const query = `
+    SELECT fs.*, t.title AS task_title
+    FROM focus_sessions fs
+    LEFT JOIN tasks t ON t.id = fs.task_id
+    ORDER BY datetime(fs.completed_at) DESC
+  `;
+  db.all(query, (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
+  });
+});
+
+app.get('/api/focus-stats', (req, res) => {
+  db.all('SELECT duration_seconds, completed_at FROM focus_sessions ORDER BY datetime(completed_at) ASC', (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+
+    const totalSessions = rows.length;
+    const totalSeconds = rows.reduce((sum, row) => sum + Number(row.duration_seconds || 0), 0);
+    const daySet = new Set(rows.map(row => new Date(row.completed_at).toISOString().substring(0, 10)));
+
+    let streak = 0;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    let cursor = new Date(today);
+
+    while (daySet.has(cursor.toISOString().substring(0, 10))) {
+      streak += 1;
+      cursor.setDate(cursor.getDate() - 1);
+    }
+
+    res.json({
+      totalSessions,
+      totalSeconds,
+      currentStreakDays: streak,
+    });
+  });
+});
+
 // ================= ADD TASKS =================
 app.post('/api/tasks', (req, res) => {
   try {
@@ -432,6 +471,25 @@ app.post('/api/tasks', (req, res) => {
   } catch (e) {
     return res.status(500).json({ success: false, message: "Unexpected server error", error: e.message });
   }
+});
+
+app.post('/api/focus-sessions', (req, res) => {
+  const { task_id, duration_seconds, completed_at } = req.body;
+  if (!Number.isFinite(Number(duration_seconds)) || Number(duration_seconds) <= 0) {
+    return res.status(400).json({ error: 'duration_seconds must be a positive number' });
+  }
+
+  const id = `focus_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  const timestamp = completed_at ? completed_at : new Date().toISOString();
+
+  db.run(
+    'INSERT INTO focus_sessions (id, task_id, duration_seconds, completed_at) VALUES (?, ?, ?, ?)',
+    [id, task_id || null, Number(duration_seconds), timestamp],
+    function (err) {
+      if (err) return res.status(500).json({ error: err.message });
+      res.status(201).json({ success: true, id, task_id: task_id || null, duration_seconds: Number(duration_seconds), completed_at: timestamp });
+    }
+  );
 });
 
 // ================= UPDATE =================

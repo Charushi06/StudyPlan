@@ -99,6 +99,10 @@ const downloadBtn = document.getElementById('download-btn');
 const calendarDownloadBtn = document.getElementById('calendar-download-btn');
 const newTaskBtn = document.getElementById('add-task-btn');
 const labelFilterSelect = document.getElementById('label-filter');
+const focusStatsPanel = document.getElementById('focus-stats-panel');
+const focusTotalSessions = document.getElementById('focus-total-sessions');
+const focusTotalTime = document.getElementById('focus-total-time');
+const focusCurrentStreak = document.getElementById('focus-current-streak');
 
 if (labelFilterSelect) {
   labelFilterSelect.addEventListener('change', (e) => {
@@ -286,6 +290,53 @@ function showBrowserNotification() {
   }
 }
 
+async function recordCompletedFocusSession(durationSeconds) {
+  await store.addFocusSession({
+    task_id: activeFocusTaskId || null,
+    duration_seconds: durationSeconds,
+    completed_at: new Date().toISOString()
+  });
+}
+
+function formatSessionDuration(seconds) {
+  const mins = Math.floor(seconds / 60);
+  const hrs = Math.floor(mins / 60);
+  const remainder = mins % 60;
+  if (hrs > 0) {
+    return `${hrs}h ${remainder}m`;
+  }
+  return `${remainder}m`;
+}
+
+function calculateFocusStreak(sessions) {
+  const daySet = new Set(
+    (sessions || []).map(s => new Date(s.completed_at).toISOString().substring(0, 10))
+  );
+  let streak = 0;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  let cursor = new Date(today);
+
+  while (daySet.has(cursor.toISOString().substring(0, 10))) {
+    streak += 1;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+
+  return streak;
+}
+
+function renderFocusStats() {
+  if (!focusStatsPanel) return;
+  const sessions = store.focusSessions || [];
+  const totalSessions = sessions.length;
+  const totalSeconds = sessions.reduce((acc, session) => acc + Number(session.duration_seconds || 0), 0);
+  const streak = calculateFocusStreak(sessions);
+
+  focusTotalSessions.textContent = totalSessions;
+  focusTotalTime.textContent = formatSessionDuration(totalSeconds);
+  focusCurrentStreak.textContent = `${streak} day${streak === 1 ? '' : 's'}`;
+}
+
 function startTimer() {
   if (timerInterval) return;
   TIME_LIMIT = getTimerDuration();
@@ -308,6 +359,7 @@ function startTimer() {
       playCompletionSound();
       showBrowserNotification();
       Toast.show('Focus session complete!', 'success');
+      recordCompletedFocusSession(TIME_LIMIT).then(() => renderFocusStats());
       resetTimer();
     }
   }, 1000);
@@ -1178,6 +1230,7 @@ store.subscribe(renderTasks);
 store.subscribe(renderExtraction);
 store.subscribe(renderCalendar);
 store.subscribe(renderFocusTasks);
+store.subscribe(renderFocusStats);
 store.subscribe(renderProfileSection);
 store.subscribe(renderSidebarSubjects);
 
@@ -1237,6 +1290,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   store.fetchInitialData();
+  store.fetchFocusSessions();
   
   const calendarBtn = document.getElementById('calendar-btn');
   const allTasksBtn = document.getElementById('all-tasks-btn');

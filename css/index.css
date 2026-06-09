@@ -1276,6 +1276,44 @@ body {
   gap: 24px;
 }
 
+.focus-stats-panel {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.focus-stat-card {
+  background: var(--color-background-secondary);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-md);
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.focus-stat-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.focus-stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+@media (max-width: 820px) {
+  .focus-stats-panel {
+    grid-template-columns: 1fr;
+  }
+}
+
 .timer-container {
   position: relative;
   width: 240px;
@@ -5074,3 +5112,5 @@ body {
 @keyframes slideDown {
   to { opacity: 0; transform: translateY(10px); }
 }
+
+
