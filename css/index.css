@@ -4101,6 +4101,19 @@ body {
 .tasks-section { flex: 1; overflow-y: auto; padding: 0 24px 24px; scroll-behavior: smooth; }
 .tasks-section::-webkit-scrollbar { width: 6px; }
 .tasks-section::-webkit-scrollbar-thumb { background: var(--color-border-secondary); border-radius: 10px; }
+.profile-section { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 24px; }
+.profile-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
+.profile-page-title { font-size: 24px; font-weight: 700; color: var(--color-text-primary); }
+.profile-page-subtitle { margin: 8px 0 0; color: var(--color-text-secondary); max-width: 640px; line-height: 1.6; }
+.profile-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.profile-card { background: var(--color-background-primary); border: 1px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 24px; box-shadow: var(--shadow-sm); }
+.profile-card h2 { margin: 0 0 16px; font-size: 16px; font-weight: 700; color: var(--color-text-primary); }
+.profile-field { display: flex; justify-content: space-between; gap: 16px; margin-bottom: 14px; font-size: 14px; color: var(--color-text-secondary); }
+.profile-field-label { color: var(--color-text-tertiary); font-weight: 600; }
+.profile-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.profile-stat-value { display: block; font-size: 22px; font-weight: 700; color: var(--color-text-primary); margin-bottom: 4px; }
+.profile-summary-card p { margin: 0; color: var(--color-text-secondary); line-height: 1.8; }
+@media (max-width: 900px) { .profile-grid { grid-template-columns: 1fr; } }
 .tasks-actions-bar {
   margin-top: 18px;
   display: flex;
