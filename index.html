@@ -328,7 +328,16 @@
     document.getElementById('auth-error').style.display = 'none';
   });
 
-  // Password validation function
+  // Email validation function
+function validateEmail(email) {
+
+  // xxxx@xxx.xx format of email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  return emailRegex.test(email);
+}
+
+// Password validation function
 function validatePassword(password) {
 
   // Minimum 8 characters
@@ -354,6 +363,13 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
   // Empty fields check
   if (!email || !password) {
     errorEl.textContent = 'Please fill in all fields';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  // Email format validation
+  if (!validateEmail(email)) {
+    errorEl.textContent = 'Please enter a valid email address.';
     errorEl.style.display = 'block';
     return;
   }
