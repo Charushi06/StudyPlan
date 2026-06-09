@@ -553,18 +553,22 @@ Text: "${text}"
   return res.json(tasks);
 });
 // ================= AUTH =================
-const users = {}; // Simple in-memory user store
+// Users are now stored in SQLite so they persist across server restarts
 
 app.post('/api/auth/signup', (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password required' });
   }
-  if (users[email]) {
-    return res.status(400).json({ error: 'User already exists' });
-  }
-  users[email] = { email, password };
-  res.json({ success: true, message: 'Account created successfully' });
+  db.get('SELECT * FROM users WHERE LOWER(email) = LOWER(?)', [email], (err, row) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (row) return res.status(400).json({ error: 'User already exists' });
+    const id = 'user_' + Date.now() + Math.random().toString(36).slice(2, 7);
+    db.run('INSERT INTO users (id, email, password) VALUES (?, ?, ?)', [id, email, password], function (insertErr) {
+      if (insertErr) return res.status(500).json({ error: insertErr.message });
+      res.json({ success: true, message: 'Account created successfully' });
+    });
+  });
 });
 
 app.post('/api/auth/login', (req, res) => {
@@ -572,11 +576,13 @@ app.post('/api/auth/login', (req, res) => {
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password required' });
   }
-  const user = users[email];
-  if (!user || user.password !== password) {
-    return res.status(401).json({ error: 'Invalid email or password' });
-  }
-  res.json({ success: true, email: user.email });
+  db.get('SELECT * FROM users WHERE LOWER(email) = LOWER(?)', [email], (err, user) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!user || user.password !== password) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+    res.json({ success: true, email: user.email });
+  });
 });
 
 // Intentional test route for verifying server error page behavior.

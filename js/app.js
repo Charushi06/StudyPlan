@@ -199,12 +199,21 @@ return `
 
   document.querySelectorAll('.delete-subject-btn')
   .forEach(btn => {
-    btn.addEventListener('click', (e) => {
+    btn.addEventListener('click', async (e) => {
       e.stopPropagation();
 
       const subjectId = btn.dataset.subjectId;
+      const subject = store.subjects.find(s => s.id === subjectId);
+      const subjectName = subject ? subject.name : 'this subject';
 
-      store.deleteSubject(subjectId);
+      const confirmed = await Toast.confirm(
+        `Are you sure you want to delete "${subjectName}"? All associated tasks will also be permanently removed. This action cannot be undone.`
+      );
+
+      if (confirmed) {
+        store.deleteSubject(subjectId);
+        Toast.show(`"${subjectName}" has been deleted.`, 'success');
+      }
     });
   });
 }
