@@ -20,6 +20,13 @@ app.use(express.static(__dirname));
 
 initDb();
 
+// Environment Validation
+if (!process.env.GEMINI_API_KEY) {
+  console.warn('\x1b[33m%s\x1b[0m', '⚠️  WARNING: GEMINI_API_KEY is not defined in .env');
+  console.warn('\x1b[33m%s\x1b[0m', '   AI extraction features will fall back to local heuristic NLP.');
+  console.warn('\x1b[33m%s\x1b[0m', '   Get a key at: https://aistudio.google.com/app/apikey\n');
+}
+
 const ai = process.env.GEMINI_API_KEY
   ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
   : null;
@@ -269,16 +276,32 @@ app.post('/api/subjects', (req, res) => {
   if (!ALLOWED_SUBJECT_COLORS.has(color)) {
     color = 'var(--color-text-info)';
   }
-  const shortCode = name.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 4) || 'SUB';
-  const id = `sub_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
-  db.run(
-    'INSERT INTO subjects (id, name, short_code, color) VALUES (?, ?, ?, ?)',
-    [id, name, shortCode, color],
-    function (err) {
-      if (err) return res.status(500).json({ error: err.message });
-      res.status(201).json({ id, name, short_code: shortCode, color });
+  db.get(
+    'SELECT * FROM subjects WHERE LOWER(name) = LOWER(?)',
+    [name],
+    (err, row) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+
+      if (row) {
+        return res.status(400).json({
+          error: 'Subject already exists',
+        });
+      }
+
+      const shortCode = name.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 4) || 'SUB';
+      const id = `sub_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+      db.run(
+        'INSERT INTO subjects (id, name, short_code, color) VALUES (?, ?, ?, ?)',
+        [id, name, shortCode, color],
+        function (err) {
+          if (err) return res.status(500).json({ error: err.message });
+          res.status(201).json({ id, name, short_code: shortCode, color });
+        }
+      );
     }
-  );
+  )
 });
 
 // ================= TASKS =================
@@ -310,20 +333,41 @@ app.post('/api/tasks', (req, res) => {
     let errors = [];
 
     const stmt = db.prepare(`INSERT INTO tasks 
-      (id, subject_id, title, due_at, status, priority, confidence_score, notes, labels) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+      (id, subject_id, title, due_at, status, priority, confidence_score, notes, estimated_duration, is_estimated_duration_min, labels) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+
 
     let pending = tasks.length;
 
     tasks.forEach(t => {
-      if (!t.title || !t.due_at || !t.subject_id) {
-        errors.push({ task: t, error: "Missing title, subject or due date" });
-        pending--;
-        if (pending === 0) {
-          stmt.finalize(() => res.status(400).json({ success: false, inserted, duplicates, errors, message: "All tasks invalid" }));
-        }
-        return;
+      let validationError = null;
+  if (!t.title && !t.subject_id && !t.due_at) {
+    validationError = "Missing title, subject, and deadline";
+  } else if (!t.title) {
+    validationError = "Task name is required";
+  } else if (!t.subject_id) {
+    validationError = "Subject is required";
+  } else if (!t.due_at) {
+    validationError = "Deadline is required";
+  }
+
+  if (validationError) {
+    errors.push({ task: t, error: validationError });
+    pending--;
+    if (pending === 0) {
+      if (inserted === 0) {
+        return res.status(400).json({ 
+          success: false, inserted, duplicates, errors, 
+          message: errors.length === tasks.length ? errors[0].error : "Some tasks are invalid"
+        });
       }
+      stmt.finalize(() => res.status(400).json({ 
+        success: false, inserted, duplicates, errors, 
+        message: "Some tasks are invalid"
+      }));
+    }
+    return;
+  }
 
       db.get(
         `SELECT * FROM tasks WHERE LOWER(title) = LOWER(?) AND subject_id = ? AND DATE(due_at) = DATE(?)`,
@@ -348,6 +392,8 @@ app.post('/api/tasks', (req, res) => {
               t.priority || 'medium',
               t.confidence_score || 100,
               t.notes || '',
+              Number.isFinite(Number(t.estimated_duration)) ? Number(t.estimated_duration) : null,
+              t.is_estimated_duration_min === 0 ? 0 : 1,
               typeof t.labels === 'string' ? t.labels : JSON.stringify(t.labels || []),
               function (insertErr) {
                 if (insertErr) {
@@ -390,7 +436,9 @@ app.post('/api/tasks', (req, res) => {
 
 // ================= UPDATE =================
 app.put('/api/tasks/:id', (req, res) => {
-  const { status, archived, title, subject_id, due_at, notes, priority, labels } = req.body;
+
+  const { status, archived, title, subject_id, due_at, notes, priority, estimated_duration, is_estimated_duration_min,labels } = req.body;
+
 
   let query = 'UPDATE tasks SET ';
   const params = [];
@@ -403,6 +451,8 @@ app.put('/api/tasks/:id', (req, res) => {
   if (due_at !== undefined) { updates.push('due_at = ?'); params.push(due_at); }
   if (notes !== undefined) { updates.push('notes = ?'); params.push(notes); }
   if (priority !== undefined) { updates.push('priority = ?'); params.push(priority); }
+  if (estimated_duration !== undefined) { updates.push('estimated_duration = ?'); params.push(Number.isFinite(Number(estimated_duration)) ? Number(estimated_duration) : null); }
+  if (is_estimated_duration_min !== undefined) { updates.push('is_estimated_duration_min = ?'); params.push(is_estimated_duration_min === 0 ? 0 : 1); }
   if (labels !== undefined) { updates.push('labels = ?'); params.push(typeof labels === 'string' ? labels : JSON.stringify(labels)); }
 
   if (updates.length === 0) {
