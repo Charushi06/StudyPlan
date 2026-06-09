@@ -438,8 +438,9 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
         return;
       }
 
-      localStorage.setItem('studyplan_user', JSON.stringify({ email: data.email }));
+      localStorage.setItem('studyplan_user', JSON.stringify({ email: data.email || email }));
       document.getElementById('auth-modal').style.display = 'none';
+      window.location.reload();
 
     } catch (err) {
       errorEl.textContent = 'Network error. Please try again.';
@@ -448,8 +449,18 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
   });
 
   // Check if already logged in
-  if (localStorage.getItem('studyplan_user')) {
-    document.getElementById('auth-modal').style.display = 'none';
+  const loggedInUser = localStorage.getItem('studyplan_user');
+  if (loggedInUser) {
+    try {
+      const parsed = JSON.parse(loggedInUser);
+      if (parsed && parsed.email) {
+        document.getElementById('auth-modal').style.display = 'none';
+      } else {
+        localStorage.removeItem('studyplan_user');
+      }
+    } catch (e) {
+      localStorage.removeItem('studyplan_user');
+    }
   }
 
   // Logout Button Functionality
