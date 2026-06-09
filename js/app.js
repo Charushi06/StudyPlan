@@ -190,6 +190,18 @@ function renderTasks() {
     });
   });
 
+  document.querySelectorAll('.board-edit-duration-unit').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const switchEl = el.closest('.board-edit-duration-switch');
+      const unit = el.dataset.unit;
+      switchEl.dataset.unit = unit;
+      switchEl.querySelectorAll('.board-edit-duration-unit').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.unit === unit);
+      });
+    });
+  });
+
   document.querySelectorAll('.save-board-edit-btn').forEach(el => {
     el.addEventListener('click', (e) => {
       e.stopPropagation();
