@@ -511,10 +511,16 @@ Text: "${text}"
 // ================= AUTH =================
 const users = {}; // Simple in-memory user store
 
+// Email format validator (RFC 5321-compatible)
+const EMAIL_REGEX = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
+
 app.post('/api/auth/signup', (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password required' });
+  }
+  if (!EMAIL_REGEX.test(email)) {
+      return res.status(400).json({ error: 'Invalid email address format' });
   }
   if (users[email]) {
     return res.status(400).json({ error: 'User already exists' });
@@ -527,6 +533,9 @@ app.post('/api/auth/login', (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password required' });
+  }
+  if (!EMAIL_REGEX.test(email)) {
+      return res.status(400).json({ error: 'Invalid email address format' });
   }
   const user = users[email];
   if (!user || user.password !== password) {

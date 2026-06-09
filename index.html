@@ -339,6 +339,11 @@
     document.getElementById('auth-error').style.display = 'none';
   });
 
+function validateEmail(email) {
+    const emailRegex = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
+    return emailRegex.test(email);
+}
+
   // Password validation function
 function validatePassword(password) {
 
@@ -375,6 +380,12 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
       'Password must be at least 8 characters long, contain 1 capital letter and 1 special character.';
     errorEl.style.display = 'block';
     return;
+  }
+
+  if(!validateEmail(email)) {
+      errorEl.textContent = 'Please enter a valid email address';
+      errorEl.style.display = 'block';
+      return;
   }
 
   const endpoint = isLogin ? '/api/auth/login' : '/api/auth/signup';
