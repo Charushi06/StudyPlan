@@ -541,7 +541,9 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
 
   // Also apply immediately on toggle for better UX
   darkModeToggle.addEventListener('change', (e) => {
-    if (e.target.checked) {
+    const isDark = e.target.checked;
+    localStorage.setItem('studyplan_dark_mode', isDark);
+    if (isDark) {
       document.documentElement.setAttribute('data-theme', 'dark');
     } else {
       document.documentElement.setAttribute('data-theme', 'light');
@@ -549,7 +551,9 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
   });
 
   compactViewToggle.addEventListener('change', (e) => {
-    if (e.target.checked) {
+    const isCompact = e.target.checked;
+    localStorage.setItem('studyplan_compact_view', isCompact);
+    if (isCompact) {
       document.body.classList.add('compact-view');
     } else {
       document.body.classList.remove('compact-view');
