@@ -10,6 +10,7 @@
 
   <link rel="icon" type="image/x-icon" href="/public/favicon.ico" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
   <!-- Auth Modal -->
@@ -149,6 +150,15 @@
           <span><span class="legend-dot" style="background:var(--color-text-info)"></span>Study session</span>
           <span><span class="legend-dot" style="background:var(--color-text-danger)"></span>Deadline</span>
         </div>
+      </div>
+
+      <!-- Daily Study Time Summary -->
+      <div id="daily-study-time" class="daily-study-time-banner" style=" margin: 16px 24px; padding: 12px 16px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--color-border-secondary); border-radius: var(--border-radius-md); align-items: center; justify-content: space-between; gap: 12px; box-shadow: var(--shadow-sm); backdrop-filter: blur(5px);">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <i class="fas fa-clock" style="font-size: 18px;"></i>
+          <span style="font-size: 14px; font-weight: 500; color: var(--color-text-secondary);">Total Estimated Study Time</span>
+        </div>
+        <strong id="daily-study-time-value" style="font-size: 16px; font-weight: 700; color: var(--color-text-primary);">0 mins</strong>
       </div>
 
       <!-- Tasks -->
@@ -505,6 +515,16 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
 
     <label style="display:block; font-size:12px; margin-bottom:4px;">Deadline</label>
     <input id="new-task-date" type="datetime-local" style="width:100%; padding:6px; margin-bottom:10px;" placeholder="Deadline">
+
+    <label style="display:block; font-size:12px; margin-bottom:4px;">Estimated Completion Time</label>
+    <div style="display:flex; gap:8px; margin-bottom:10px;">
+      <input id="new-task-estimated-duration" type="number" min="1" step="1" style="flex:1; padding:6px;" placeholder="Duration">
+      <div id="new-task-duration-switch" class="duration-switch" data-unit="minutes">
+        <span class="duration-switch-thumb"></span>
+        <button id="new-task-duration-min" type="button" class="duration-switch-option active" data-unit="minutes">Min</button>
+        <button id="new-task-duration-hr" type="button" class="duration-switch-option" data-unit="hours">Hr</button>
+      </div>
+    </div>
 
     <!-- <label style="display:block; font-size:12px; margin-bottom:4px;">Notes</label> -->
     <input id="new-task-notes" type="text" style="width:100%; padding:6px; margin-bottom:16px;" placeholder="Notes">
