@@ -99,6 +99,9 @@ const downloadBtn = document.getElementById('download-btn');
 const calendarDownloadBtn = document.getElementById('calendar-download-btn');
 const newTaskBtn = document.getElementById('add-task-btn');
 const labelFilterSelect = document.getElementById('label-filter');
+const profileSection = document.getElementById('profile-section');
+const profileBtn = document.getElementById('profile-btn');
+const topbar = document.querySelector('.topbar');
 
 if (labelFilterSelect) {
   labelFilterSelect.addEventListener('change', (e) => {
