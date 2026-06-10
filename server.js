@@ -304,6 +304,43 @@ app.post('/api/subjects', (req, res) => {
   )
 });
 
+// ================= DELETE SUBJECT =================
+app.delete('/api/subjects/:id', (req, res) => {
+
+  const { id } = req.params;
+
+  db.run(
+    'DELETE FROM tasks WHERE subject_id = ?',
+    [id],
+    function(taskErr) {
+
+      if (taskErr) {
+        return res.status(500).json({
+          error: taskErr.message
+        });
+      }
+
+      db.run(
+        'DELETE FROM subjects WHERE id = ?',
+        [id],
+        function(subjectErr) {
+
+          if (subjectErr) {
+            return res.status(500).json({
+              error: subjectErr.message
+            });
+          }
+
+          res.json({
+            success: true,
+            deleted: this.changes
+          });
+        }
+      );
+    }
+  );
+});
+
 // ================= TASKS =================
 app.get('/api/tasks', (req, res) => {
   db.all('SELECT * FROM tasks ORDER BY due_at ASC', (err, rows) => {

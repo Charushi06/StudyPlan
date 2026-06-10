@@ -621,6 +621,66 @@ body {
 .task-check:hover { border-color: var(--color-text-primary); }
 .task-check.done { background: var(--color-text-success); border-color: var(--color-text-success); }
 .task-check.done::after { content: ''; position: absolute; left: 4px; top: 1px; width: 4px; height: 8px; border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+
+/* Completion animations: subtle pop for the checkbox and a gentle bloom for the whole task */
+@keyframes check-pop {
+  0% { transform: scale(0.6); opacity: 0; }
+  60% { transform: scale(1.12); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+@keyframes checkmark-draw {
+  0% { transform: rotate(45deg) scaleY(0); opacity: 0; }
+  60% { transform: rotate(45deg) scaleY(1.05); opacity: 1; }
+  100% { transform: rotate(45deg) scaleY(1); opacity: 1; }
+}
+
+@keyframes completed-bloom {
+  0% {
+    box-shadow: 0 0 0 0 rgba(22, 101, 52, 0.18);
+    transform: translateY(0);
+  }
+  60% {
+    box-shadow: 0 8px 30px 6px rgba(22, 101, 52, 0.06);
+    transform: translateY(-2px);
+  }
+  100% {
+    box-shadow: none;
+    transform: translateY(0);
+  }
+}
+
+/* Apply the animations when a task is rendered as done. These are subtle and short. */
+.task-check.done {
+  animation: check-pop 360ms cubic-bezier(0.2, 0.9, 0.29, 1) both;
+}
+.task-check.done::after {
+  animation: checkmark-draw 260ms ease-out 90ms both;
+  transform-origin: center center;
+}
+
+.task-item.done {
+  /* stronger border & clearer muted text to distinguish from pending tasks */
+  background: linear-gradient(135deg, rgba(var(--color-success-rgb), 0.08) 0%, var(--color-background-primary) 100%);
+  border-color: var(--color-border-success);
+  color: var(--color-text-tertiary);
+  animation: completed-bloom 520ms cubic-bezier(0.2, 0.9, 0.29, 1) both;
+}
+
+/* Make completed tasks slightly more visually distinct: lighter name color, reduced weight */
+.task-item.done .task-name {
+  color: var(--color-text-tertiary);
+  font-weight: 500;
+  opacity: 0.95;
+}
+
+/* Respect users who prefer reduced motion: disable the animations and rely on transitions */
+@media (prefers-reduced-motion: reduce) {
+  .task-check, .task-check.done, .task-check.done::after, .task-item.done {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+  }
+}
 .task-info { flex: 1; min-width: 0; }
 .task-name { font-size: 14px; font-weight: 500; color: var(--color-text-primary); line-height: 1.4; transition: color 0.2s; margin-bottom: 6px; }
 .task-item.done .task-name { text-decoration: line-through; color: var(--color-text-tertiary); }
@@ -4931,133 +4991,34 @@ body {
   font-weight: 600;
 }
 
-.paste-zone {
-  transition: border-color 0.2s ease, background-color 0.2s ease;
-}
-
-.paste-zone--dragover {
-  border-color: #4f46e5 !important;
-  background-color: rgba(79, 70, 229, 0.05) !important;
-  box-shadow: inset 0 0 8px rgba(79, 70, 229, 0.1);
-}
-/* ==========================================================================
-   Modern Toast Notifications
-   ========================================================================== */
-
-.toast-container {
-  position: fixed;
-  top: 24px;
-  right: 24px;
-  z-index: 10000;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  pointer-events: none;
-}
-
-.toast-notification {
-  pointer-events: auto;
+.subject-sidebar-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  background: var(--color-background-primary);
-  color: var(--color-text-primary);
-  padding: 12px 16px;
-  border-radius: 12px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
-  border: 1px solid var(--color-border-secondary);
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  font-weight: 500;
-  animation: toastSlideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-  max-width: 350px;
-  transform-origin: top right;
+  justify-content: space-between;
 }
 
-.toast-notification.toast-hiding {
-  animation: toastSlideOut 0.2s ease-in forwards;
+.subject-sidebar-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.toast-icon {
-  font-size: 18px;
-  flex-shrink: 0;
+.subject-sidebar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.toast-message {
-  flex-grow: 1;
-  line-height: 1.4;
-}
-
-.toast-close {
-  background: none;
+.delete-subject-btn {
+  opacity: 0;
   border: none;
-  color: var(--color-text-tertiary);
-  font-size: 18px;
+  background: transparent;
+  color: var(--color-text-danger);
   cursor: pointer;
-  padding: 0;
-  margin-left: 8px;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: color 0.2s;
+  font-size: 14px;
+  transition: opacity 0.2s ease;
 }
 
-.toast-close:hover {
-  color: var(--color-text-primary);
-}
-
-/* Toast Themes */
-.toast-success { border-left: 4px solid var(--color-text-success); }
-.toast-error { border-left: 4px solid var(--color-text-danger); }
-.toast-warning { border-left: 4px solid var(--color-text-warning); }
-.toast-info { border-left: 4px solid var(--color-text-info); }
-
-@keyframes toastSlideIn {
-  from { opacity: 0; transform: translateY(-20px) scale(0.95); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-@keyframes toastSlideOut {
-  from { opacity: 1; transform: scale(1); }
-  to { opacity: 0; transform: scale(0.9); }
-}
-
-/* ==========================================================================
-   Modern Confirm Modal
-   ========================================================================== */
-.custom-confirm-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
-  z-index: 10001;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  backdrop-filter: blur(4px);
-  opacity: 0;
-}
-
-.custom-confirm-modal {
-  background: var(--color-background-primary);
-  border: 1px solid var(--color-border-tertiary);
-  color: var(--color-text-primary);
-  opacity: 0;
-  transform: translateY(10px);
-}
-
-@keyframes fadeIn {
-  to { opacity: 1; }
-}
-
-@keyframes fadeOut {
-  to { opacity: 0; }
-}
-
-@keyframes slideUp {
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes slideDown {
-  to { opacity: 0; transform: translateY(10px); }
+.subject-sidebar-item:hover .delete-subject-btn {
+  opacity: 1;
 }
