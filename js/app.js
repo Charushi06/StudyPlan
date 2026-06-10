@@ -99,6 +99,9 @@ const downloadBtn = document.getElementById('download-btn');
 const calendarDownloadBtn = document.getElementById('calendar-download-btn');
 const newTaskBtn = document.getElementById('add-task-btn');
 const labelFilterSelect = document.getElementById('label-filter');
+const profileSection = document.getElementById('profile-section');
+const profileBtn = document.getElementById('profile-btn');
+const topbar = document.querySelector('.topbar');
 
 if (labelFilterSelect) {
   labelFilterSelect.addEventListener('change', (e) => {
@@ -1415,24 +1418,27 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-<<<<<<< HEAD
   if (profileBtn) {
     profileBtn.addEventListener('click', () => {
       showProfileSection();
     });
   }
 
-  document.getElementById('cal-prev').addEventListener('click', () => {
-    currentMonthDate.setMonth(currentMonthDate.getMonth() - 1);
-    renderCalendar();
-  });
+  const calPrev = document.getElementById('cal-prev');
+  if (calPrev) {
+    calPrev.addEventListener('click', () => {
+      currentMonthDate.setMonth(currentMonthDate.getMonth() - 1);
+      renderCalendar();
+    });
+  }
 
-=======
->>>>>>> upstream/main
-  document.getElementById('cal-next').addEventListener('click', () => {
-    currentMonthDate.setMonth(currentMonthDate.getMonth() + 1);
-    renderCalendar();
-  });
+  const calNext = document.getElementById('cal-next');
+  if (calNext) {
+    calNext.addEventListener('click', () => {
+      currentMonthDate.setMonth(currentMonthDate.getMonth() + 1);
+      renderCalendar();
+    });
+  }
 
 
 //NEw Task addition event listeners
