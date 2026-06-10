@@ -65,6 +65,50 @@ export const store = {
     }
   },
 
+    // ================= DELETE SUBJECT FUNCTION =================
+
+    async deleteSubject(subjectId) {
+  const subject = this.subjects.find(
+    s => String(s.id) === String(subjectId)
+  );
+
+  if (!subject) return;
+
+  const confirmed = confirm(
+    `Are you sure you want to delete "${subject.name}"?\n\nThis will also remove related tasks.`
+  );
+
+  if (!confirmed) return;
+
+  const originalSubjects = [...this.subjects];
+  const originalTasks = [...this.tasks];
+
+  // optimistic update
+  this.subjects = this.subjects.filter(
+    s => String(s.id) !== String(subjectId)
+  );
+
+  this.tasks = this.tasks.filter(
+    t => String(t.subject_id) !== String(subjectId)
+  );
+
+  this.notify();
+
+  try {
+    await fetch(`/api/subjects/${subjectId}`, {
+      method: 'DELETE'
+    });
+  } catch (e) {
+    this.subjects = originalSubjects;
+    this.tasks = originalTasks;
+    this.notify();
+
+    console.error('Failed to delete subject', e);
+    alert('❌ Failed to delete subject');
+  }
+},
+
+
   // ================= UPDATED FUNCTION =================
   async addTasks(newTasks) {
     try {
