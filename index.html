@@ -55,13 +55,14 @@
   </div>
 
   <nav class="header-nav">
-    <a href="#">Dashboard</a>
-    <a href="#">Tasks</a>
-    <a href="#">Calendar</a>
+    <a href="#dashboard-section" id="nav-dashboard">Dashboard</a>
+    <a href="#tasks-section" id="nav-tasks">Tasks</a>
+    <a href="#cal-section" id="nav-calendar">Calendar</a>
     <a href="#" id="nav-settings">Settings</a>
   </nav>
 
   <div class="header-right">
+    <button class="profile-btn" id="profile-btn" type="button">Profile</button>
     <button class="profile-btn">Profile</button>
     <button class="profile-btn" id="logout-btn">Logout</button>
   </div>
@@ -113,7 +114,7 @@
 
     <!-- Main -->
     <div class="main">
-      <div class="topbar">
+      <div class="topbar" id="dashboard-section">
         <div class="topbar-title">April 2026</div>
         <select id="label-filter" style="margin-left:auto; margin-right: 12px; padding: 6px; border-radius: 6px; border: 1px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); outline: none; cursor: pointer;">
           <option value="">All Labels</option>
@@ -137,7 +138,7 @@
         </div>
 
       <!-- Calendar -->
-      <div class="cal-section">
+      <div class="cal-section" id="cal-section">
         <div class="cal-header">
           <div id="cal-month-title" class="cal-title">April 2026</div>
           <span id="cal-prev" class="cal-nav" role="button" aria-label="Previous Month">‹</span>
@@ -310,6 +311,40 @@
     <button id="settings-save" style="width:100%; padding:12px; background:var(--color-text-primary); color:var(--color-background-primary); border:none; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; margin-top:8px;">
       Save Changes
     </button>
+  </div>
+</div>
+
+<!-- Profile Modal -->
+<div id="profile-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
+  <div style="background:var(--color-background-primary); border:1px solid var(--color-border-tertiary); border-radius:16px; padding:32px; width:420px; box-shadow:var(--shadow-lg); color:var(--color-text-primary);">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+      <h2 style="margin:0; font-size:20px; font-weight:700;">Profile</h2>
+      <button id="profile-close" style="background:none; border:none; font-size:24px; cursor:pointer; color:var(--color-text-secondary);">&times;</button>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:16px; margin-bottom:24px;">
+      <div id="profile-avatar" style="width:56px; height:56px; border-radius:50%; background:var(--color-background-info); color:var(--color-text-info); display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:700;">SP</div>
+      <div>
+        <div style="font-size:16px; font-weight:700; margin-bottom:4px;">StudyPlan user</div>
+        <div id="profile-email" style="font-size:13px; color:var(--color-text-secondary);">Not signed in</div>
+      </div>
+    </div>
+
+    <div style="display:grid; gap:12px; margin-bottom:24px;">
+      <div style="padding:14px 16px; border:1px solid var(--color-border-tertiary); border-radius:12px; background:var(--color-background-secondary);">
+        <div style="font-size:12px; font-weight:700; text-transform:uppercase; color:var(--color-text-tertiary); margin-bottom:6px; letter-spacing:0.05em;">Account status</div>
+        <div id="profile-status" style="font-size:14px; font-weight:600;">Active</div>
+      </div>
+      <div style="padding:14px 16px; border:1px solid var(--color-border-tertiary); border-radius:12px; background:var(--color-background-secondary);">
+        <div style="font-size:12px; font-weight:700; text-transform:uppercase; color:var(--color-text-tertiary); margin-bottom:6px; letter-spacing:0.05em;">Quick action</div>
+        <div style="font-size:14px; color:var(--color-text-secondary);">Use the navigation bar to jump between Dashboard, Tasks, and Calendar.</div>
+      </div>
+    </div>
+
+    <div style="display:flex; justify-content:flex-end; gap:8px;">
+      <button id="profile-signout" class="btn" style="padding:10px 14px;">Sign out</button>
+      <button id="profile-close-secondary" class="btn btn-primary" style="padding:10px 14px;">Close</button>
+    </div>
   </div>
 </div>
 
