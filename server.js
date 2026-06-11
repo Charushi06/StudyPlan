@@ -304,6 +304,30 @@ app.post('/api/subjects', (req, res) => {
   )
 });
 
+// ================= UPDATE SUBJECT =================
+app.put('/api/subjects/:id', (req, res) => {
+  const { name, color, difficulty } = req.body;
+  let query = 'UPDATE subjects SET ';
+  const params = [];
+  const updates = [];
+
+  if (name !== undefined) { updates.push('name = ?'); params.push(name); }
+  if (color !== undefined) { updates.push('color = ?'); params.push(color); }
+  if (difficulty !== undefined) { updates.push('difficulty = ?'); params.push(difficulty); }
+
+  if (updates.length === 0) {
+    return res.status(400).json({ error: 'No fields to update' });
+  }
+
+  query += updates.join(', ') + ' WHERE id = ?';
+  params.push(req.params.id);
+
+  db.run(query, params, function (err) {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ success: true, changes: this.changes });
+  });
+});
+
 // ================= DELETE SUBJECT =================
 app.delete('/api/subjects/:id', (req, res) => {
 

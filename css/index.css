@@ -5022,3 +5022,42 @@ body {
 .subject-sidebar-item:hover .delete-subject-btn {
   opacity: 1;
 }
+
+/* Subject Difficulty Buttons */
+.diff-btn {
+  font-family: inherit;
+  background: var(--color-background-primary);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: 4px;
+  padding: 4px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.diff-btn:hover {
+  background: var(--color-background-secondary);
+  color: var(--color-text-primary);
+}
+
+.diff-btn.active.easy {
+  background: var(--color-background-success) !important;
+  color: var(--color-text-success) !important;
+  border-color: var(--color-border-success) !important;
+  font-weight: 600;
+}
+
+.diff-btn.active.medium {
+  background: var(--color-background-warning) !important;
+  color: var(--color-text-warning) !important;
+  border-color: rgba(133, 79, 11, 0.3) !important;
+  font-weight: 600;
+}
+
+.diff-btn.active.hard {
+  background: var(--color-background-danger) !important;
+  color: var(--color-text-danger) !important;
+  border-color: var(--color-border-danger) !important;
+  font-weight: 600;
+}

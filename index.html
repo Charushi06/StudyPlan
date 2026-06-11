@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="/css/index.css">
 
   <script src="/js/lib/confetti.browser.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <link rel="icon" type="image/x-icon" href="/public/favicon.ico" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -102,6 +103,10 @@
       <div class="nav-item" id="calendar-download-btn">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M1 6h14" stroke="currentColor" stroke-width="1.5"/><path d="M5 1v2M11 1v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         Export to Calendar
+      </div>
+      <div class="nav-item" id="difficulty-dashboard-btn" role="link" aria-label="View Difficulty Analytics">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="11" width="12" height="3" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="2" y="7" width="12" height="3" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="2" y="3" width="12" height="3" rx="1" stroke="currentColor" stroke-width="1.5"/></svg>
+        Difficulty Analytics
       </div>
       <div class="sidebar-divider"></div>
       <div class="sidebar-header">Subjects</div>
@@ -204,6 +209,42 @@
           <div class="focus-task-header">Select a task to focus on</div>
           <div id="focus-task-list" class="focus-task-list">
             <!-- JS will populate tasks -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Difficulty Analytics Section -->
+      <div id="difficulty-section" class="difficulty-section hidden" style="padding: 24px; display: flex; flex-direction: column; gap: 24px; max-height: calc(100vh - 180px); overflow-y: auto;">
+        <div class="analytics-row" style="display: flex; gap: 24px; flex-wrap: wrap;">
+          <div class="analytics-card" style="flex: 1; min-width: 280px; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--color-border-secondary); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm); backdrop-filter: blur(5px);">
+            <h3 style="margin: 0 0 16px; font-size: 16px; font-weight: 600; color: var(--color-text-primary);">Subject Difficulty Distribution</h3>
+            <div style="height: 220px; display: flex; align-items: center; justify-content: center; position: relative;">
+              <canvas id="difficulty-pie-chart" style="max-height: 100%; max-width: 100%;"></canvas>
+            </div>
+          </div>
+          <div class="analytics-card" style="flex: 1; min-width: 280px; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--color-border-secondary); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm); backdrop-filter: blur(5px);">
+            <h3 style="margin: 0 0 16px; font-size: 16px; font-weight: 600; color: var(--color-text-primary);">Time Allocation by Subject (Hours)</h3>
+            <div style="height: 220px; display: flex; align-items: center; justify-content: center; position: relative;">
+              <canvas id="time-bar-chart" style="max-height: 100%; max-width: 100%;"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interactive Subject List & Difficulty Selector -->
+        <div class="analytics-card" style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--color-border-secondary); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm); backdrop-filter: blur(5px);">
+          <h3 style="margin: 0 0 16px; font-size: 16px; font-weight: 600; color: var(--color-text-primary);">Configure Subject Difficulty</h3>
+          <div id="analytics-subjects-list" style="display: flex; flex-direction: column; gap: 12px;">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <!-- Smart Insights Card -->
+        <div id="analytics-insights-card" class="analytics-card" style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--color-border-secondary); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm); backdrop-filter: blur(5px);">
+          <h3 style="margin: 0 0 12px; font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; color: var(--color-text-primary);">
+            <i class="fas fa-lightbulb" style="color: var(--color-text-warning);"></i> Smart Study Insights
+          </h3>
+          <div id="analytics-insights-content" style="font-size: 14px; line-height: 1.6; color: var(--color-text-secondary);">
+            <!-- Dynamic insights -->
           </div>
         </div>
       </div>

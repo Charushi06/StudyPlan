@@ -108,6 +108,34 @@ export const store = {
   }
 },
 
+  async updateSubjectDifficulty(subjectId, difficulty) {
+    const subjectIndex = this.subjects.findIndex(s => String(s.id) === String(subjectId));
+    if (subjectIndex === -1) return;
+
+    const originalSubject = { ...this.subjects[subjectIndex] };
+    
+    // Optimistic update
+    this.subjects[subjectIndex].difficulty = difficulty;
+    this.notify();
+
+    try {
+      const res = await fetch(`/api/subjects/${subjectId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ difficulty })
+      });
+      if (!res.ok) {
+        throw new Error('Update failed');
+      }
+    } catch (e) {
+      console.error('Failed to update subject difficulty', e);
+      Toast.show('❌ Failed to update subject difficulty', 'error');
+      // Revert
+      this.subjects[subjectIndex] = originalSubject;
+      this.notify();
+    }
+  },
+
 
   // ================= UPDATED FUNCTION =================
   async addTasks(newTasks) {

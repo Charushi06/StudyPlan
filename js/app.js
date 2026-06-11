@@ -99,6 +99,11 @@ const downloadBtn = document.getElementById('download-btn');
 const calendarDownloadBtn = document.getElementById('calendar-download-btn');
 const newTaskBtn = document.getElementById('add-task-btn');
 const labelFilterSelect = document.getElementById('label-filter');
+const difficultySection = document.getElementById('difficulty-section');
+const difficultyDashboardBtn = document.getElementById('difficulty-dashboard-btn');
+
+let difficultyPieChartInstance = null;
+let timeBarChartInstance = null;
 
 if (labelFilterSelect) {
   labelFilterSelect.addEventListener('change', (e) => {
@@ -1220,6 +1225,7 @@ store.subscribe(renderExtraction);
 store.subscribe(renderCalendar);
 store.subscribe(renderFocusTasks);
 store.subscribe(renderSidebarSubjects);
+store.subscribe(renderDifficultyAnalytics);
 
 document.addEventListener('DOMContentLoaded', () => {
   if (newSubjectColorsEl) {
@@ -1294,6 +1300,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('.cal-section').classList.remove('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
+    if (difficultySection) difficultySection.classList.add('hidden');
     updateSidebarActive('calendar-btn');
     renderTasks();
   });
@@ -1303,6 +1310,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('.cal-section').classList.add('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
+    if (difficultySection) difficultySection.classList.add('hidden');
     updateSidebarActive('all-tasks-btn');
     renderTasks();
   });
@@ -1312,6 +1320,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('.cal-section').classList.add('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
+    if (difficultySection) difficultySection.classList.add('hidden');
     updateSidebarActive('archived-tasks-btn');
     renderTasks();
   });
@@ -1322,8 +1331,21 @@ document.addEventListener('DOMContentLoaded', () => {
       document.querySelector('.cal-section').classList.add('hidden');
       document.getElementById('tasks-section').classList.add('hidden');
       document.getElementById('focus-section').classList.remove('hidden');
+      if (difficultySection) difficultySection.classList.add('hidden');
       updateSidebarActive('focus-mode-btn');
       renderFocusTasks();
+    });
+  }
+
+  if (difficultyDashboardBtn) {
+    difficultyDashboardBtn.addEventListener('click', () => {
+      currentView = 'difficulty';
+      document.querySelector('.cal-section').classList.add('hidden');
+      document.getElementById('tasks-section').classList.add('hidden');
+      document.getElementById('focus-section').classList.add('hidden');
+      if (difficultySection) difficultySection.classList.remove('hidden');
+      updateSidebarActive('difficulty-dashboard-btn');
+      renderDifficultyAnalytics();
     });
   }
 
@@ -1594,4 +1616,205 @@ if (calendarDownloadBtn) {
   calendarDownloadBtn.addEventListener('click', () => {
     downloadCalendar();
   });
+}
+
+function renderDifficultyAnalytics() {
+  const diffSection = document.getElementById('difficulty-section');
+  if (!diffSection || diffSection.classList.contains('hidden')) return;
+
+  const subjects = store.subjects;
+  const tasks = store.tasks;
+
+  // Calculate difficulty counts for the pie chart
+  let easyCount = 0;
+  let mediumCount = 0;
+  let hardCount = 0;
+
+  subjects.forEach(s => {
+    const diff = (s.difficulty || 'medium').toLowerCase();
+    if (diff === 'easy') easyCount++;
+    else if (diff === 'hard') hardCount++;
+    else mediumCount++;
+  });
+
+  // Calculate estimated time spent/needed per subject (in hours)
+  const timeBySubject = {};
+  subjects.forEach(s => {
+    timeBySubject[s.name] = 0;
+  });
+
+  tasks.forEach(t => {
+    if (t.archived) return;
+    const sub = subjects.find(s => s.id === t.subject_id);
+    if (sub) {
+      const mins = Number(t.estimated_duration) || 0;
+      timeBySubject[sub.name] += mins / 60; // convert to hours
+    }
+  });
+
+  // Render Charts
+  const pieCtx = document.getElementById('difficulty-pie-chart');
+  if (pieCtx) {
+    if (difficultyPieChartInstance) {
+      difficultyPieChartInstance.destroy();
+    }
+    difficultyPieChartInstance = new Chart(pieCtx, {
+      type: 'pie',
+      data: {
+        labels: ['Easy', 'Medium', 'Hard'],
+        datasets: [{
+          data: [easyCount, mediumCount, hardCount],
+          backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              color: 'var(--color-text-primary)',
+              font: { family: 'Inter', size: 12 }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  const barCtx = document.getElementById('time-bar-chart');
+  if (barCtx) {
+    if (timeBarChartInstance) {
+      timeBarChartInstance.destroy();
+    }
+    const subjectNames = Object.keys(timeBySubject);
+    const subjectTimes = Object.values(timeBySubject);
+
+    const subjectColors = subjectNames.map(name => {
+      const sub = subjects.find(s => s.name === name);
+      if (sub && sub.color) {
+        if (sub.color.startsWith('var(')) {
+          return getComputedStyle(document.documentElement).getPropertyValue(sub.color.replace('var(', '').replace(')', '')).trim() || '#3b82f6';
+        }
+        return sub.color;
+      }
+      return '#3b82f6';
+    });
+
+    timeBarChartInstance = new Chart(barCtx, {
+      type: 'bar',
+      data: {
+        labels: subjectNames,
+        datasets: [{
+          label: 'Estimated Hours',
+          data: subjectTimes,
+          backgroundColor: subjectColors.length ? subjectColors : '#3b82f6',
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { color: 'var(--color-text-secondary)' },
+            grid: { color: 'rgba(255,255,255,0.05)' }
+          },
+          x: {
+            ticks: { color: 'var(--color-text-secondary)' },
+            grid: { display: false }
+          }
+        },
+        plugins: {
+          legend: { display: false }
+        }
+      }
+    });
+  }
+
+  // Render Subject Configuration List
+  const listEl = document.getElementById('analytics-subjects-list');
+  if (listEl) {
+    listEl.innerHTML = subjects.map(s => {
+      const difficulty = (s.difficulty || 'medium').toLowerCase();
+      const color = s.color || 'var(--color-text-info)';
+      return `
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--color-border-secondary); border-radius: 8px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: ${color}"></span>
+            <span style="font-weight: 500; color: var(--color-text-primary);">${escapeHtml(s.name)}</span>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button class="diff-btn ${difficulty === 'easy' ? 'active easy' : ''}" data-subject-id="${s.id}" data-level="easy">Easy</button>
+            <button class="diff-btn ${difficulty === 'medium' ? 'active medium' : ''}" data-subject-id="${s.id}" data-level="medium">Medium</button>
+            <button class="diff-btn ${difficulty === 'hard' ? 'active hard' : ''}" data-subject-id="${s.id}" data-level="hard">Hard</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    listEl.querySelectorAll('.diff-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const subjectId = e.currentTarget.dataset.subjectId;
+        const level = e.currentTarget.dataset.level;
+        await store.updateSubjectDifficulty(subjectId, level);
+      });
+    });
+  }
+
+  // Generate Smart Study Insights
+  const insightsEl = document.getElementById('analytics-insights-content');
+  if (insightsEl) {
+    let insightsHtml = '';
+    const insights = [];
+
+    const totalAllocatedTime = Object.values(timeBySubject).reduce((a, b) => a + b, 0);
+    subjects.forEach(s => {
+      const diff = (s.difficulty || 'medium').toLowerCase();
+      const time = timeBySubject[s.name] || 0;
+      if (diff === 'hard') {
+        const percentage = totalAllocatedTime > 0 ? (time / totalAllocatedTime) * 100 : 0;
+        if (percentage < 15 && totalAllocatedTime > 0) {
+          insights.push({
+            type: 'warning',
+            icon: '⚠️',
+            message: `<strong>${escapeHtml(s.name)}</strong> is marked as <strong>Hard</strong>, but has less than 15% of your total study time allocated (${formatDuration(Math.round(time * 60))}). Consider scheduling more focus sessions for it.`
+          });
+        } else if (percentage >= 35) {
+          insights.push({
+            type: 'success',
+            icon: '✅',
+            message: `Great alignment! <strong>${escapeHtml(s.name)}</strong> is marked as <strong>Hard</strong> and you have allocated ${Math.round(percentage)}% of your study time to it.`
+          });
+        }
+      }
+    });
+
+    const hardSubjectIds = new Set(subjects.filter(s => (s.difficulty || 'medium').toLowerCase() === 'hard').map(s => s.id));
+    const now = new Date();
+    const overdueHardTasks = tasks.filter(t => !t.archived && t.status !== 'Done' && t.due_at && new Date(t.due_at) < now && hardSubjectIds.has(t.subject_id));
+    if (overdueHardTasks.length > 0) {
+      insights.push({
+        type: 'danger',
+        icon: '🚨',
+        message: `You have <strong>${overdueHardTasks.length} overdue task(s)</strong> in subjects marked as <strong>Hard</strong>. We recommend prioritizing these tasks immediately.`
+      });
+    }
+
+    if (insights.length === 0) {
+      insightsHtml = `<div>Everything looks balanced! Keep adding tasks and setting difficulty levels to get personalized study insights.</div>`;
+    } else {
+      insightsHtml = insights.map(ins => `
+        <div style="display: flex; gap: 10px; align-items: flex-start; margin-bottom: 12px; padding: 10px; background: rgba(255,255,255,0.01); border-left: 3px solid ${ins.type === 'warning' ? 'var(--color-text-warning)' : (ins.type === 'danger' ? 'var(--color-text-danger)' : 'var(--color-text-success)')}; border-radius: 0 6px 6px 0;">
+          <span style="font-size: 16px;">${ins.icon}</span>
+          <div>${ins.message}</div>
+        </div>
+      `).join('');
+    }
+
+    insightsEl.innerHTML = insightsHtml;
+  }
 }

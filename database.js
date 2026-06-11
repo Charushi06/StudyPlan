@@ -14,6 +14,14 @@ function initDb() {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
 
+    db.all("PRAGMA table_info(subjects)", (err, rows) => {
+      if (err) return;
+      const columnNames = rows.map((row) => row.name);
+      if (!columnNames.includes("difficulty")) {
+        db.run("ALTER TABLE subjects ADD COLUMN difficulty TEXT DEFAULT 'medium'");
+      }
+    });
+
     // Tasks Table
     db.run(`CREATE TABLE IF NOT EXISTS tasks (
       id TEXT PRIMARY KEY,
