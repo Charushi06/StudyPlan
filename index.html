@@ -15,6 +15,106 @@
 <body>
   <!-- Auth Modal -->
 <div id="auth-modal" style="display:flex; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+  <div id="reset-password-modal" style="
+    display:none;
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.5);
+    justify-content:center;
+    align-items:center;
+    z-index:1001;
+  ">
+    <div style="
+      box-shadow:0 10px 25px rgba(0,0,0,0.15);
+    ">
+    <div style="
+      background:white;
+      border-radius:16px;
+      padding:32px;
+      width:420px;
+      box-shadow:0 10px 25px rgba(0,0,0,0.15);
+    ">
+    
+      <button id="close-reset-modal" style="
+          float:right;
+          border:none;
+          background:none;
+          font-size:22px;
+          cursor:pointer;
+          color:#666;
+        ">
+        ×
+      </button>
+    
+      <h2 style="
+        margin:0 0 10px 0;
+        font-size:32px;
+        font-weight:700;
+      ">
+        Reset Password
+      </h2>
+    
+      <p style="
+        color:#666;
+        margin:0 0 24px 0;
+        font-size:14px;
+      ">
+        Enter your email and create a new password
+      </p>
+    
+      <input id="reset-email" type="email" placeholder="Email address" style="
+          width:100%;
+          padding:12px;
+          border:1px solid #ddd;
+          border-radius:8px;
+          font-size:14px;
+          margin-bottom:16px;
+          box-sizing:border-box;
+        ">
+    
+      <input id="new-password" type="password" placeholder="New Password" style="
+          width:100%;
+          padding:12px;
+          border:1px solid #ddd;
+          border-radius:8px;
+          font-size:14px;
+          margin-bottom:16px;
+          box-sizing:border-box;
+        ">
+    
+      <input id="confirm-password" type="password" placeholder="Confirm Password" style="
+          width:100%;
+          padding:12px;
+          border:1px solid #ddd;
+          border-radius:8px;
+          font-size:14px;
+          margin-bottom:24px;
+          box-sizing:border-box;
+        ">
+    
+      <button id="reset-password-btn" style="
+          width:100%;
+          padding:14px;
+          background:#4f46e5;
+          color:white;
+          border:none;
+          border-radius:10px;
+          font-size:16px;
+          font-weight:600;
+          cursor:pointer;
+        ">
+        Reset Password
+      </button>
+    
+    </div>
+      
+      
+     
+    </div>
+  </div>
   <div style="background:white; border-radius:16px; padding:32px; width:360px; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
     
     <h2 id="auth-title" style="margin:0 0 8px; font-size:22px; font-weight:700;">Welcome back</h2>
@@ -23,6 +123,12 @@
     <input id="auth-email" type="email" placeholder="Email address" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:12px; box-sizing:border-box;">
     
     <input id="auth-password" type="password" placeholder="Password" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:20px; box-sizing:border-box;">
+
+    <p style="text-align:right; margin:6px 0 12px;">
+      <a href="#" id="forgot-password-link" style="color:#4f46e5; font-size:13px;">
+        Forgot Password?
+      </a>
+    </p>
 
     <button id="auth-submit-btn" style="width:100%; padding:12px; background:#4f46e5; color:white; border:none; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer;">
     Sign In
@@ -316,6 +422,67 @@
   <script type="module" src="/js/app.js"></script>
   <script>
   let isLogin = true;
+  document.getElementById('close-reset-modal')
+      .addEventListener('click', () => {
+        document.getElementById('reset-password-modal')
+          .style.display = 'none';
+      });
+  document.getElementById('forgot-password-link')
+      .addEventListener('click', (e) => {
+        e.preventDefault();
+
+        document.getElementById('reset-password-modal')
+          .style.display = 'flex';
+      });
+      document.getElementById('reset-password-btn')
+          .addEventListener('click', async () => {
+
+            const email =
+              document.getElementById('reset-email').value;
+
+            const password =
+              document.getElementById('new-password').value;
+
+            const confirm =
+              document.getElementById('confirm-password').value;
+
+            if (password !== confirm) {
+              alert('Passwords do not match');
+              return;
+            }
+
+            const response = await fetch('/api/auth/reset-password', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                email,
+                password
+              })
+            });
+
+            const data = await response.json();
+
+           if (response.ok) {
+
+              document.getElementById('reset-email').value = '';
+              document.getElementById('new-password').value = '';
+              document.getElementById('confirm-password').value = '';
+
+              document.getElementById('reset-password-modal')
+                .style.display = 'none';
+
+              const errorEl = document.getElementById('auth-error');
+              errorEl.style.color = 'green';
+              errorEl.textContent =
+                '✓ Password reset successfully. Please sign in with your new password.';
+              errorEl.style.display = 'block';
+
+            } else {
+              alert(data.error);
+            }
+          });
 
   document.getElementById('auth-toggle-btn').addEventListener('click', (e) => {
     e.preventDefault();
@@ -350,6 +517,7 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
   const errorEl = document.getElementById('auth-error');
 
   errorEl.style.display = 'none';
+  errorEl.style.color = 'red';
 
   // Empty fields check
   if (!email || !password) {
@@ -532,6 +700,7 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
       <button id="new-task-save" class="btn btn-primary" style="padding:6px 12px;">Save</button>
     </div>
   </div>
+  
 </div>
 </body>
 </html>
