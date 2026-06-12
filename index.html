@@ -22,7 +22,21 @@
 
     <input id="auth-email" type="email" placeholder="Email address" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:12px; box-sizing:border-box;">
     
-    <input id="auth-password" type="password" placeholder="Password" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:20px; box-sizing:border-box;">
+    <div class="password-input-wrapper " style="position:relative; margin-bottom: 20px">
+      <input id="auth-password" type="password" placeholder="Password" 
+              style="width:100%; 
+              padding:12px 40px 12px 12px; 
+              border:1px solid #ddd; 
+              border-radius:8px; 
+              font-size:14px;
+              box-sizing:border-box;">
+      <i class="fas fa-eye" id="toggle-password-visibility" 
+              style="position:absolute; 
+              right:12px; top:50%; 
+              transform:translateY(-50%); 
+              cursor:pointer; color:#888;"
+      ></i>
+    </div>
 
     <button id="auth-submit-btn" style="width:100%; padding:12px; background:#4f46e5; color:white; border:none; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer;">
     Sign In
