@@ -14,7 +14,7 @@ const SUBJECT_KEYWORDS = {
     'problem set', 'pset', 'worksheet'
   ],
   'English Lit': [
-    'english', 'literature', 'essay', 'essay', 'novel', 'poem', 'poetry',
+    'english', 'literature', 'essay', 'novel', 'poem', 'poetry',
     'shakespeare', 'writing', 'prose', 'narrative', 'analysis', 'literary',
     'book report', 'reading', 'chapter', 'author', 'character', 'plot',
     'thesis', 'draft', 'revision', 'bibliography'
@@ -25,6 +25,18 @@ const SUBJECT_KEYWORDS = {
     'momentum', 'lab', 'experiment', 'wave', 'particle', 'newton',
     'circuit', 'resistance', 'voltage', 'current'
   ],
+  'Chemistry': [
+    'chemistry', 'chemical', 'reaction', 'organic', 'periodic table', 'molecule',
+    'atom', 'compound', 'acid', 'base', 'lab experiment', 'stoichiometry'
+  ],
+  'Biology': [
+    'biology', 'biological', 'cell', 'genetics', 'dna', 'rna', 'evolution',
+    'organism', 'anatomy', 'photosynthesis', 'ecology', 'dissection'
+  ],
+  'History': [
+    'history', 'historical', 'revolution', 'war', 'timeline', 'century',
+    'civilization', 'source analysis', 'documentary', 'treaty', 'empire'
+  ]
 };
 
 /**
