@@ -1284,6 +1284,111 @@ document.addEventListener('DOMContentLoaded', () => {
   const archivedTasksBtn = document.getElementById('archived-tasks-btn');
   const focusModeBtn = document.getElementById('focus-mode-btn');
 
+  // Top Navbar Navigation Listeners
+  const navDashboard = document.getElementById('nav-dashboard');
+  const navTasks = document.getElementById('nav-tasks');
+  const navCalendar = document.getElementById('nav-calendar');
+
+  if (navDashboard) {
+    navDashboard.addEventListener('click', (e) => {
+      e.preventDefault();
+      calendarBtn?.click();
+    });
+  }
+
+  if (navCalendar) {
+    navCalendar.addEventListener('click', (e) => {
+      e.preventDefault();
+      calendarBtn?.click();
+    });
+  }
+
+  if (navTasks) {
+    navTasks.addEventListener('click', (e) => {
+      e.preventDefault();
+      allTasksBtn?.click();
+    });
+  }
+
+  // Profile Modal Listeners and Rendering Logic
+  const profileBtn = document.getElementById('profile-btn');
+  const profileModal = document.getElementById('profile-modal');
+  const profileClose = document.getElementById('profile-close');
+  const profileOk = document.getElementById('profile-ok');
+
+  function openProfileModal() {
+    if (!profileModal) return;
+
+    // Load user details from localStorage
+    const userStr = localStorage.getItem('studyplan_user');
+    let email = 'student@studyplan.com';
+    let name = 'StudyPlan Student';
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        if (user && user.email) {
+          email = user.email;
+          const firstPart = email.split('@')[0];
+          name = firstPart.split(/[._-]/).map(part => part.charAt(0).toUpperCase() + part.slice(1)).join(' ');
+        }
+      } catch (e) {
+        console.error('Error parsing user data:', e);
+      }
+    }
+
+    // Populate profile details
+    const nameEl = document.getElementById('profile-name');
+    const emailEl = document.getElementById('profile-email');
+    if (nameEl) nameEl.textContent = name;
+    if (emailEl) emailEl.textContent = email;
+
+    // Set Avatar Initials
+    const avatarEl = document.getElementById('profile-avatar');
+    if (avatarEl) {
+      const initials = name.split(' ').map(n => n.charAt(0)).join('').substring(0, 2).toUpperCase();
+      avatarEl.textContent = initials || 'U';
+    }
+
+    // Populate dynamic study statistics
+    const subjectsCount = store.subjects.length;
+    const pendingCount = store.tasks.filter(t => !t.archived && t.status !== 'Done').length;
+    const completedCount = store.tasks.filter(t => !t.archived && t.status === 'Done').length;
+
+    const statSubjects = document.getElementById('profile-stat-subjects');
+    const statPending = document.getElementById('profile-stat-pending');
+    const statCompleted = document.getElementById('profile-stat-completed');
+    if (statSubjects) statSubjects.textContent = subjectsCount;
+    if (statPending) statPending.textContent = pendingCount;
+    if (statCompleted) statCompleted.textContent = completedCount;
+
+    // Show modal
+    profileModal.style.display = 'flex';
+  }
+
+  if (profileBtn) {
+    profileBtn.addEventListener('click', openProfileModal);
+  }
+
+  if (profileClose) {
+    profileClose.addEventListener('click', () => {
+      profileModal.style.display = 'none';
+    });
+  }
+
+  if (profileOk) {
+    profileOk.addEventListener('click', () => {
+      profileModal.style.display = 'none';
+    });
+  }
+
+  if (profileModal) {
+    profileModal.addEventListener('click', (e) => {
+      if (e.target === profileModal) {
+        profileModal.style.display = 'none';
+      }
+    });
+  }
+
   function updateSidebarActive(id) {
     document.querySelectorAll('.sidebar .nav-item').forEach(el => el.classList.remove('active'));
     document.getElementById(id).classList.add('active');

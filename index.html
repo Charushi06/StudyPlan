@@ -55,14 +55,14 @@
   </div>
 
   <nav class="header-nav">
-    <a href="#">Dashboard</a>
-    <a href="#">Tasks</a>
-    <a href="#">Calendar</a>
+    <a href="#" id="nav-dashboard">Dashboard</a>
+    <a href="#" id="nav-tasks">Tasks</a>
+    <a href="#" id="nav-calendar">Calendar</a>
     <a href="#" id="nav-settings">Settings</a>
   </nav>
 
   <div class="header-right">
-    <button class="profile-btn">Profile</button>
+    <button class="profile-btn" id="profile-btn">Profile</button>
     <button class="profile-btn" id="logout-btn">Logout</button>
   </div>
 </header>
@@ -309,6 +309,47 @@
 
     <button id="settings-save" style="width:100%; padding:12px; background:var(--color-text-primary); color:var(--color-background-primary); border:none; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; margin-top:8px;">
       Save Changes
+    </button>
+  </div>
+</div>
+
+<!-- Profile Modal -->
+<div id="profile-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
+  <div style="background:var(--color-background-primary); border:1px solid var(--color-border-tertiary); border-radius:16px; padding:32px; width:360px; box-shadow:var(--shadow-lg); color:var(--color-text-primary); text-align:center;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+      <h2 style="margin:0; font-size:20px; font-weight:700; text-align:left;">My Profile</h2>
+      <button id="profile-close" style="background:none; border:none; font-size:24px; cursor:pointer; color:var(--color-text-secondary);">&times;</button>
+    </div>
+    
+    <div style="display:flex; flex-direction:column; align-items:center; margin-bottom:24px;">
+      <!-- Avatar -->
+      <div id="profile-avatar" style="width:72px; height:72px; border-radius:50%; background:linear-gradient(135deg, #6366f1, #4f46e5); color:white; font-size:28px; font-weight:700; display:flex; align-items:center; justify-content:center; margin-bottom:16px; box-shadow:0 8px 16px rgba(99, 102, 241, 0.3);">
+        U
+      </div>
+      <h3 id="profile-name" style="margin:0 0 4px; font-size:18px; font-weight:700;">User Name</h3>
+      <p id="profile-email" style="margin:0; font-size:14px; color:var(--color-text-tertiary);">user@example.com</p>
+    </div>
+
+    <div style="background:var(--color-background-secondary); border-radius:12px; padding:16px; margin-bottom:24px; border:1px solid var(--color-border-secondary);">
+      <h4 style="margin:0 0 12px; font-size:12px; font-weight:700; text-transform:uppercase; color:var(--color-text-tertiary); letter-spacing:0.05em; text-align:left;">Study Statistics</h4>
+      <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;">
+        <div style="text-align:center;">
+          <div id="profile-stat-subjects" style="font-size:18px; font-weight:700; color:var(--color-text-primary);">0</div>
+          <div style="font-size:11px; color:var(--color-text-tertiary); margin-top:2px;">Subjects</div>
+        </div>
+        <div style="text-align:center; border-left:1px solid var(--color-border-secondary); border-right:1px solid var(--color-border-secondary);">
+          <div id="profile-stat-pending" style="font-size:18px; font-weight:700; color:var(--color-text-primary);">0</div>
+          <div style="font-size:11px; color:var(--color-text-tertiary); margin-top:2px;">Pending</div>
+        </div>
+        <div style="text-align:center;">
+          <div id="profile-stat-completed" style="font-size:18px; font-weight:700; color:var(--color-text-primary);">0</div>
+          <div style="font-size:11px; color:var(--color-text-tertiary); margin-top:2px;">Completed</div>
+        </div>
+      </div>
+    </div>
+
+    <button id="profile-ok" style="width:100%; padding:12px; background:var(--color-text-primary); color:var(--color-background-primary); border:none; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer;">
+      Close
     </button>
   </div>
 </div>
