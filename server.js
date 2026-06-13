@@ -5,6 +5,7 @@ const { db, initDb } = require('./database');
 const { GoogleGenAI } = require('@google/genai');
 const path = require('path');
 const csvDownloadRouter = require('./backend/routers/csvDownload.router.js');
+const roomsRouter = require('./backend/routers/rooms.router.js');
 
 const app = express();
 app.use(cors());
@@ -585,6 +586,7 @@ app.get('/debug/force-error', (req, res, next) => {
 });
 
 app.use('/api', csvDownloadRouter);
+app.use('/api', roomsRouter);
 
 app.use('/api', (req, res) => {
   return res.status(404).json({ error: 'API route not found' });

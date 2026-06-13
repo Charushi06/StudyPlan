@@ -55,6 +55,23 @@ db.all("PRAGMA table_info(tasks)", (err, rows) => {
   }
 });
 
+    db.run(`CREATE TABLE IF NOT EXISTS rooms (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      code TEXT UNIQUE NOT NULL,
+      created_by TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`);
+
+    db.run(`CREATE TABLE IF NOT EXISTS room_members (
+      id TEXT PRIMARY KEY,
+      room_id TEXT NOT NULL,
+      member_name TEXT NOT NULL,
+      joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      is_active INTEGER DEFAULT 1,
+      FOREIGN KEY (room_id) REFERENCES rooms(id)
+    )`);
+
     // Pre-populate some subjects if empty
     db.get('SELECT COUNT(*) as count FROM subjects', (err, row) => {
       if (row && row.count === 0) {

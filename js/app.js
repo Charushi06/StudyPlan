@@ -1294,6 +1294,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('.cal-section').classList.remove('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
+    document.getElementById('study-rooms-view')?.classList.add('hidden');
     updateSidebarActive('calendar-btn');
     renderTasks();
   });
@@ -1303,6 +1304,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('.cal-section').classList.add('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
+    document.getElementById('study-rooms-view')?.classList.add('hidden');
     updateSidebarActive('all-tasks-btn');
     renderTasks();
   });
@@ -1312,6 +1314,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('.cal-section').classList.add('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
+    document.getElementById('study-rooms-view')?.classList.add('hidden');
     updateSidebarActive('archived-tasks-btn');
     renderTasks();
   });
