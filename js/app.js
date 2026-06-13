@@ -74,6 +74,16 @@ function generateSummary(tasks, subjects) {
   `;
 }
 
+function formatDuration(mins) {
+  if (!mins) return '0 mins';
+  const hrs = Math.floor(mins / 60);
+  const m = mins % 60;
+  if (hrs > 0) {
+    return `${hrs}h ${m > 0 ? m + 'm' : ''}`;
+  }
+  return `${mins} mins`;
+}
+
 let currentMonthDate = new Date();
 let selectedDate = null;
 let currentView = 'calendar'; // 'calendar', 'all-tasks', 'archived'
@@ -160,10 +170,43 @@ function renderSidebarSubjects() {
   listEl.innerHTML = subjects.map(s => {
     const n = countBySubject[s.id] ?? 0;
     const safeColor = s.color ? escapeHtml(s.color) : 'var(--color-text-info)';
-    return `<div class="nav-item subject-sidebar-item" data-subject-id="${escapeHtml(s.id)}">
-      <span class="nav-dot" style="background:${safeColor}"></span>${escapeHtml(s.name)}<span class="badge">${n}</span>
-    </div>`;
+return `
+  <div class="nav-item subject-sidebar-item" data-subject-id="${escapeHtml(s.id)}">
+
+    <div class="subject-sidebar-content">
+      <span class="nav-dot" style="background:${safeColor}"></span>
+
+      <span class="subject-name">
+        ${escapeHtml(s.name)}
+      </span>
+    </div>
+
+    <div class="subject-sidebar-actions">
+      <span class="badge">${n}</span>
+
+      <button
+        class="delete-subject-btn"
+        data-subject-id="${escapeHtml(s.id)}"
+        title="Delete subject"
+      >
+        ✕
+      </button>
+    </div>
+
+  </div>
+`;
   }).join('');
+
+  document.querySelectorAll('.delete-subject-btn')
+  .forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+
+      const subjectId = btn.dataset.subjectId;
+
+      store.deleteSubject(subjectId);
+    });
+  });
 }
 
 const newTaskModal = document.getElementById('new-task-modal');
@@ -173,6 +216,11 @@ const newTaskDate = document.getElementById('new-task-date');
 const newTaskNotes = document.getElementById('new-task-notes');
 const newTaskCancel = document.getElementById('new-task-cancel');
 const newTaskSave = document.getElementById('new-task-save');
+const newTaskEstimatedDuration = document.getElementById('new-task-estimated-duration');
+const newTaskDurationSwitch = document.getElementById('new-task-duration-switch');
+const newTaskDurationMin = document.getElementById('new-task-duration-min');
+const newTaskDurationHr = document.getElementById('new-task-duration-hr');
+let selectedTaskDurationUnit = 'minutes';
 
 // Timer elements
 const timerText = document.getElementById('timer-text');
@@ -221,32 +269,172 @@ function setCircleDasharray() {
   timerPathRemaining.setAttribute("stroke-dasharray", circleDasharray);
 }
 
-function startTimer() {
-  if (timerInterval) return;
-  TIME_LIMIT = getTimerDuration();
-  if (timePassed === 0) timeLeft = TIME_LIMIT;
-  timerDurationInput.disabled = true;
-  timerStartBtn.classList.add('hidden');
-  timerPauseBtn.classList.remove('hidden');
-  
-  timerInterval = setInterval(() => {
-    timePassed += 1;
+let startTime;
+
+function saveTimerState() {
+  localStorage.setItem('focusTimerState', JSON.stringify({
+    TIME_LIMIT,
+    timePassed,
+    isRunning: !!timerInterval,
+    startTime: timerInterval ? startTime : null,
+    durationInput: timerDurationInput.value
+  }));
+}
+
+function loadTimerState() {
+  const saved = localStorage.getItem('focusTimerState');
+  if (!saved) return;
+
+  try {
+    const state = JSON.parse(saved);
+
+    TIME_LIMIT = state.TIME_LIMIT || (25 * 60);
+
+    if (state.isRunning && state.startTime) {
+      const elapsed = Math.floor((Date.now() - state.startTime) / 1000);
+      timePassed = elapsed;
+    } else {
+      timePassed = state.timePassed || 0;
+    }
+
     timeLeft = TIME_LIMIT - timePassed;
+
+    if (timeLeft < 0) timeLeft = 0;
+
+    if (state.durationInput) {
+      timerDurationInput.value = state.durationInput;
+    }
+
     timerText.innerHTML = formatTimeLeft(timeLeft);
     setCircleDasharray();
+    updateTimerColor();
 
-    if (timeLeft === 0) {
+    if (state.isRunning && timeLeft > 0) {
+      startTime = Date.now() - (timePassed * 1000);
+
+      timerInterval = setInterval(() => {
+        timePassed = Math.floor((Date.now() - startTime) / 1000);
+        timeLeft = TIME_LIMIT - timePassed;
+
+        timerText.innerHTML = formatTimeLeft(timeLeft);
+        setCircleDasharray();
+        updateTimerColor();
+
+        saveTimerState();
+
+        if (timeLeft <= 0) {
+  clearInterval(timerInterval);
+  timerInterval = null;
+  localStorage.removeItem('focusTimerState');
+
+  playCompletionSound();
+  showBrowserNotification();
+  Toast.show('Focus session complete!', 'success');
+
+  resetTimer();
+}
+      }, 250);
+
+      timerPauseBtn.classList.remove('hidden');
+      timerStartBtn.classList.add('hidden');
+      timerDurationInput.disabled = true;
+    }
+  } catch (err) {
+    console.error('Failed to load timer state', err);
+  }
+}
+function getTimerColor(timeLeft, totalTime) {
+  const fraction = timeLeft / totalTime;
+  if (fraction <= 0.1) return '#ef4444';
+  if (fraction <= 0.3) return '#f59e0b';
+  return '#166534';
+}
+
+function updateTimerColor() {
+  const color = getTimerColor(timeLeft, TIME_LIMIT);
+  timerPathRemaining.style.stroke = color;
+}
+
+function playCompletionSound() {
+  try {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.3);
+    
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.5);
+  } catch (e) {
+    console.log('Audio not supported');
+  }
+}
+
+function requestNotificationPermission() {
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+}
+
+function showBrowserNotification() {
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification('Focus Session Complete!', {
+      body: 'Great job! You completed your focus session.',
+      icon: '/logo.png'
+    });
+  }
+}
+
+function startTimer() {
+  if (timerInterval) return;
+
+  TIME_LIMIT = getTimerDuration();
+  timerDurationInput.disabled = true;
+
+  timerStartBtn.classList.add('hidden');
+  timerPauseBtn.classList.remove('hidden');
+  requestNotificationPermission();
+
+  startTime = Date.now() - (timePassed * 1000);
+  saveTimerState();
+   timerInterval = setInterval(() => {
+    timePassed = Math.floor((Date.now() - startTime) / 1000);
+    timeLeft = TIME_LIMIT - timePassed;
+
+    timerText.innerHTML = formatTimeLeft(timeLeft);
+    setCircleDasharray();
+    updateTimerColor();
+    saveTimerState();
+
+    if (timeLeft <= 0) {
       clearInterval(timerInterval);
       timerInterval = null;
+      localStorage.removeItem('focusTimerState');
+      playCompletionSound();
+      showBrowserNotification();
       Toast.show('Focus session complete!', 'success');
       resetTimer();
     }
   }, 1000);
+
+  timerPauseBtn.classList.remove('hidden');
+  timerStartBtn.classList.add('hidden');
 }
 
 function pauseTimer() {
   clearInterval(timerInterval);
   timerInterval = null;
+
+  saveTimerState();
+
   timerPauseBtn.classList.add('hidden');
   timerStartBtn.classList.remove('hidden');
 }
@@ -254,12 +442,18 @@ function pauseTimer() {
 function resetTimer() {
   clearInterval(timerInterval);
   timerInterval = null;
+
+  localStorage.removeItem('focusTimerState');
+
   timePassed = 0;
   TIME_LIMIT = getTimerDuration();
   timeLeft = TIME_LIMIT;
+
   timerDurationInput.disabled = false;
+
   timerText.innerHTML = formatTimeLeft(timeLeft);
   timerPathRemaining.setAttribute("stroke-dasharray", "283 283");
+  updateTimerColor();
   timerPauseBtn.classList.add('hidden');
   timerStartBtn.classList.remove('hidden');
 }
@@ -662,6 +856,11 @@ function renderTasks() {
         ).join('');
         
         const localDate = t.due_at ? new Date(t.due_at).toISOString().substring(0, 16) : '';
+        const isHighPriority = t.priority === 'high';
+        const editDurationUnit = t.is_estimated_duration_min === 0 ? 'hours' : 'minutes';
+        const editDurationValue = t.estimated_duration
+          ? (editDurationUnit === 'hours' ? Math.round(Number(t.estimated_duration) / 60) : Number(t.estimated_duration))
+          : '';
         
         html += `
           <div class="task-item editing" style="display:block; padding:12px; cursor:default;" data-id="${t.id}">
@@ -675,6 +874,16 @@ function renderTasks() {
 
             <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Deadline</label>
             <input class="board-edit-date edit-field" type="datetime-local" value="${localDate}" style="width:100%; margin-bottom: 12px; font-size:12px; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
+
+            <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Estimated Completion Time</label>
+            <div style="display:flex; gap:8px; margin-bottom:12px;">
+              <input class="board-edit-estimated-duration edit-field" type="number" min="1" step="1" value="${editDurationValue}" style="flex:1; min-width:0; font-size:12px; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);" placeholder="Duration">
+              <div class="duration-switch board-edit-duration-switch" data-unit="${editDurationUnit}">
+                <span class="duration-switch-thumb"></span>
+                <button type="button" class="duration-switch-option board-edit-duration-unit ${editDurationUnit === 'minutes' ? 'active' : ''}" data-unit="minutes">Min</button>
+                <button type="button" class="duration-switch-option board-edit-duration-unit ${editDurationUnit === 'hours' ? 'active' : ''}" data-unit="hours">Hr</button>
+              </div>
+            </div>
 
             <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Notes</label>
             <input class="board-edit-notes edit-field" type="text" value="${t.notes || ''}" placeholder="Notes..." style="width:100%; margin-bottom: 12px; font-size:12px; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
@@ -746,11 +955,32 @@ function renderTasks() {
          </div>`
       : '';
 
+    const totalMinutes = [...dueSoon, ...completed].reduce((acc, t) => acc + (Number(t.estimated_duration) || 0), 0);
+    console.log('[Daily Study Time] Calendar view with selected date:', selectedDate);
+    console.log('[Daily Study Time] Pending tasks:', dueSoon.length, 'Completed tasks:', completed.length);
+    console.log('[Daily Study Time] Task durations:', [...dueSoon, ...completed].map(t => ({ title: t.title, estimated_duration: t.estimated_duration })));
+    console.log('[Daily Study Time] Total minutes calculated:', totalMinutes);
+    const studyTimeEl = document.getElementById('daily-study-time');
+    const studyTimeValueEl = document.getElementById('daily-study-time-value');
+    if (studyTimeEl && studyTimeValueEl) {
+      studyTimeEl.style.display = 'flex';
+      studyTimeValueEl.textContent = formatDuration(totalMinutes);
+      console.log('[Daily Study Time] Banner shown with value:', formatDuration(totalMinutes));
+    } else {
+      console.log('[Daily Study Time] Banner elements not found');
+    }
+
     tasksSection.innerHTML = actionBar +
                              renderGroup(`Tasks for ${selStr}`, dueSoon, 'var(--color-text-primary)') +
                              renderGroup('Completed', completed, 'var(--color-text-tertiary)') +
                              emptyState;
   } else {
+    console.log('[Daily Study Time] Hiding banner - currentView:', currentView, 'selectedDate:', selectedDate);
+    const studyTimeEl = document.getElementById('daily-study-time');
+    if (studyTimeEl) {
+      studyTimeEl.style.display = 'none';
+    }
+
     const actionBar = currentView === 'archived' ? '' : `<div class="tasks-actions-bar">
            <button id="mark-all-pending-btn" class="task-action-btn" ${pending.length === 0 ? 'disabled' : ''}>Mark all pending completed (${pending.length})</button>
          </div>`;
@@ -816,6 +1046,18 @@ function renderTasks() {
     });
   });
 
+  document.querySelectorAll('.board-edit-duration-unit').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const switchEl = el.closest('.board-edit-duration-switch');
+      const unit = el.dataset.unit;
+      switchEl.dataset.unit = unit;
+      switchEl.querySelectorAll('.board-edit-duration-unit').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.unit === unit);
+      });
+    });
+  });
+
   document.querySelectorAll('.save-board-edit-btn').forEach(el => {
     el.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -827,6 +1069,11 @@ function renderTasks() {
       let dateVal = itemEl.querySelector('.board-edit-date').value;
       const notes = itemEl.querySelector('.board-edit-notes').value;
       const priority = itemEl.querySelector('.board-edit-priority').value;
+      const durationValue = Number(itemEl.querySelector('.board-edit-estimated-duration').value);
+      const durationUnit = itemEl.querySelector('.board-edit-duration-switch')?.dataset.unit || 'minutes';
+      const estimated_duration = durationValue > 0
+        ? Math.round(durationUnit === 'hours' ? durationValue * 60 : durationValue)
+        : null;
       
       const { cleanTitle, labels } = extractLabels(rawTitle);
       
@@ -836,6 +1083,8 @@ function renderTasks() {
         due_at: dateVal ? new Date(dateVal).toISOString() : '',
         notes,
         priority,
+        estimated_duration,
+        is_estimated_duration_min: durationUnit === 'minutes' ? 1 : 0,
         labels
       });
     });
@@ -1142,6 +1391,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   store.fetchInitialData();
+  loadTimerState();
   
   const calendarBtn = document.getElementById('calendar-btn');
   const allTasksBtn = document.getElementById('all-tasks-btn');
@@ -1229,6 +1479,8 @@ newTaskBtn.addEventListener('click', () => {
 
   newTaskTitle.value = '';
   newTaskNotes.value = '';
+  if (newTaskEstimatedDuration) newTaskEstimatedDuration.value = '';
+  setNewTaskDurationUnit('minutes');
 
   newTaskModal.style.display = 'flex';
 });
@@ -1243,11 +1495,25 @@ newTaskModal.addEventListener('click', (e) => {
   }
 });
 
+function setNewTaskDurationUnit(unit) {
+  selectedTaskDurationUnit = unit;
+  newTaskDurationSwitch?.setAttribute('data-unit', unit);
+  newTaskDurationMin?.classList.toggle('active', unit === 'minutes');
+  newTaskDurationHr?.classList.toggle('active', unit === 'hours');
+}
+
+newTaskDurationMin?.addEventListener('click', () => setNewTaskDurationUnit('minutes'));
+newTaskDurationHr?.addEventListener('click', () => setNewTaskDurationUnit('hours'));
+
 newTaskSave.addEventListener('click', async () => {
   const rawTitle = newTaskTitle.value.trim();
   const subject_id = newTaskSubject.value;
   const notes = newTaskNotes.value.trim();
   const dateVal = newTaskDate.value;
+  const durationValue = newTaskEstimatedDuration ? Number(newTaskEstimatedDuration.value) : 0;
+  const estimated_duration = durationValue > 0
+    ? Math.round(selectedTaskDurationUnit === 'hours' ? durationValue * 60 : durationValue)
+    : null;
 
   if (!rawTitle) {
     alert('Please enter a task name');
@@ -1274,6 +1540,8 @@ if (!subject_id) {
     priority: 'medium',
     status: 'Not Started',
     archived: 0,
+    estimated_duration,
+    is_estimated_duration_min: selectedTaskDurationUnit === 'minutes' ? 1 : 0,
     labels
   };
 
@@ -1349,15 +1617,20 @@ const quotes = [
 ];
 
 const quoteEl = document.getElementById('motivational-quotes');
+
 if (quoteEl) {
   const today = new Date();
   const seed = today.toDateString();
+
   let hash = 0;
+
   for (let i = 0; i < seed.length; i++) {
     hash = seed.charCodeAt(i) + ((hash << 5) - hash);
   }
+
   const index = Math.abs(hash % quotes.length);
-  quoteEl.textContent = `${quotes[index]}`;
+
+  quoteEl.textContent = quotes[index];
 }
 calendarDownloadBtn.addEventListener('click', () => {
   downloadCalendar();
