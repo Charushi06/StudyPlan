@@ -96,7 +96,6 @@ const extractBtn = document.getElementById('extract-btn');
 const clearBtn = document.getElementById('clear-btn');
 const addItemsBtn = document.getElementById('add-btn');
 const downloadBtn = document.getElementById('download-btn');
-const calendarDownloadBtn = document.getElementById('calendar-download-btn');
 const newTaskBtn = document.getElementById('add-task-btn');
 const labelFilterSelect = document.getElementById('label-filter');
 
