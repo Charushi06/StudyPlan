@@ -72,6 +72,24 @@ db.all("PRAGMA table_info(tasks)", (err, rows) => {
       FOREIGN KEY (room_id) REFERENCES rooms(id)
     )`);
 
+    // Ensure rooms has a timer_state column to store JSON timer state
+    db.all("PRAGMA table_info(rooms)", (err, rows) => {
+      if (err) return;
+      const columnNames = rows.map(r => r.name);
+      if (!columnNames.includes('timer_state')) {
+        db.run("ALTER TABLE rooms ADD COLUMN timer_state TEXT DEFAULT '{\"status\":\"idle\", \"duration\":1500, \"remaining\":1500, \"started_at\":null}'");
+      }
+    });
+
+    // Study sessions table for leaderboard/streaks
+    db.run(`CREATE TABLE IF NOT EXISTS study_sessions (
+      id TEXT PRIMARY KEY,
+      room_id TEXT,
+      member_name TEXT NOT NULL,
+      duration_minutes INTEGER,
+      completed_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`);
+
     // Pre-populate some subjects if empty
     db.get('SELECT COUNT(*) as count FROM subjects', (err, row) => {
       if (row && row.count === 0) {

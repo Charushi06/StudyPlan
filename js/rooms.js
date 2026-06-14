@@ -7,6 +7,7 @@ let pomodoroInterval = null;
 let pomodoroSeconds = 25 * 60;
 let pomodoroRunning = false;
 let roomMessageTimeout = null;
+let socket = null;
 
 function ensureUsername() {
   username = username && username.trim() ? username.trim() : '';
@@ -130,7 +131,13 @@ function startPomodoro() {
   document.getElementById('pomodoro-pause-btn')?.classList.remove('hidden');
   pomodoroInterval = setInterval(() => {
     if (pomodoroSeconds <= 0) {
-      resetPomodoro();
+      clearInterval(pomodoroInterval);
+      pomodoroInterval = null;
+      pomodoroRunning = false;
+      updatePomodoroDisplay();
+      showRoomMessage('Session complete!', 'success');
+      document.getElementById('pomodoro-start-btn')?.classList.remove('hidden');
+      document.getElementById('pomodoro-pause-btn')?.classList.add('hidden');
       return;
     }
     pomodoroSeconds -= 1;
@@ -171,7 +178,14 @@ function renderMemberList(members) {
 function updateRoomData(room) {
   const roomName = room?.name ?? room?.room_name ?? room?.title ?? 'Untitled room';
   const roomCode = room?.code ?? room?.room_code ?? 'XXXXXX';
-  document.getElementById('active-room-name').textContent = String(roomName);
+  const activeRoomName = document.getElementById('active-room-name');
+  if (activeRoomName) {
+    const streakBadge = activeRoomName.querySelector('#streak-badge');
+    activeRoomName.textContent = String(roomName);
+    if (streakBadge) {
+      activeRoomName.appendChild(streakBadge);
+    }
+  }
   document.getElementById('active-room-code').textContent = String(roomCode);
   renderMemberList(room.members || []);
 }
@@ -184,12 +198,7 @@ function stopRoomPolling() {
 }
 
 function startRoomPolling() {
-  stopRoomPolling();
-  roomPollInterval = setInterval(() => {
-    if (activeRoomId) {
-      renderRoom(activeRoomId);
-    }
-  }, 5000);
+  // polling disabled when using sockets; kept for fallback
 }
 
 async function fetchJson(url, options = {}) {
@@ -213,7 +222,13 @@ async function renderRoom(roomId) {
     setActiveSection();
     updateRoomData(room);
     showActiveRoom();
-    startRoomPolling();
+    fetchLeaderboard();
+    fetchStreak();
+
+    // ensure socket connected and join room for real-time updates
+    if (socket && socket.connected) {
+      socket.emit('join_room', { roomId: activeRoomId, memberName: username });
+    }
   } catch (err) {
     console.error(err);
     localStorage.removeItem(STUDYPLAN_ACTIVE_ROOM_KEY);
@@ -225,6 +240,7 @@ async function renderRoom(roomId) {
 
 function showStudyRoomsSection() {
   setActiveSection();
+  document.getElementById('mood-check-view')?.classList.add('hidden');
   if (activeRoomId) {
     renderRoom(activeRoomId);
   } else {
@@ -301,21 +317,55 @@ function attachListeners() {
     }
   });
 
-  document.getElementById('pomodoro-start-btn')?.addEventListener('click', () => {
-    startPomodoro();
-  });
+  const pomodoroStartBtn = document.getElementById('pomodoro-start-btn');
+  if (pomodoroStartBtn) {
+    pomodoroStartBtn.addEventListener('click', () => {
+      console.log('socket connected:', socket?.connected);
+      console.log('pomodoro start clicked', { activeRoomId, pomodoroSeconds });
+      if (!activeRoomId) {
+        showRoomMessage('Join a room before starting the timer.', 'error');
+        return;
+      }
+
+      if (socket?.connected) {
+        socket.emit('timer_start', { roomId: activeRoomId, duration: pomodoroSeconds });
+        setTimeout(() => {
+          if (!pomodoroRunning) {
+            startPomodoro();
+          }
+        }, 500);
+      } else {
+        startPomodoro();
+      }
+    });
+  } else {
+    console.warn('pomodoro start button not found in DOM');
+  }
 
   document.getElementById('pomodoro-pause-btn')?.addEventListener('click', () => {
-    pausePomodoro();
+    if (socket?.connected && activeRoomId) {
+      socket.emit('timer_pause', { roomId: activeRoomId });
+    } else {
+      pausePomodoro();
+    }
   });
 
   document.getElementById('pomodoro-reset-btn')?.addEventListener('click', () => {
-    resetPomodoro();
+    if (socket && activeRoomId) {
+      socket.emit('timer_reset', { roomId: activeRoomId, duration: 25 * 60 });
+    } else {
+      resetPomodoro();
+    }
   });
 
   document.getElementById('leave-room-btn')?.addEventListener('click', async () => {
     if (!activeRoomId) return;
     try {
+      // notify via socket first
+      if (socket && socket.connected) {
+        socket.emit('leave_room', { roomId: activeRoomId, memberName: username });
+      }
+
       await fetchJson(`/api/rooms/${encodeURIComponent(activeRoomId)}/leave`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -323,6 +373,7 @@ function attachListeners() {
       });
       localStorage.removeItem(STUDYPLAN_ACTIVE_ROOM_KEY);
       activeRoomId = '';
+      if (socket && socket.connected) socket.disconnect();
       stopRoomPolling();
       resetPomodoro();
       showRoomMessage('You have left the room.', 'info');
@@ -332,6 +383,76 @@ function attachListeners() {
       showRoomMessage('Could not leave the room. Please try again.', 'error');
     }
   });
+
+  // Mood buttons
+  document.getElementById('mood-tired')?.addEventListener('click', () => fetchMoodSuggestion('tired'));
+  document.getElementById('mood-energetic')?.addEventListener('click', () => fetchMoodSuggestion('energetic'));
+  document.getElementById('mood-stressed')?.addEventListener('click', () => fetchMoodSuggestion('stressed'));
+}
+
+// Mood buttons and leaderboard
+async function fetchMoodSuggestion(mood) {
+  const roomId = localStorage.getItem(STUDYPLAN_ACTIVE_ROOM_KEY) || activeRoomId;
+  try {
+    const body = { mood };
+    if (roomId) body.room_id = roomId;
+    const res = await fetchJson('/api/mood', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const el = document.getElementById('mood-suggestion');
+    if (!el) return;
+    el.classList.remove('hidden');
+    el.innerHTML = `
+      <div><strong>Study:</strong> ${res.study_duration_minutes} min</div>
+      <div><strong>Break:</strong> ${res.break_duration_minutes} min</div>
+      <div><strong>Difficulty:</strong> ${res.task_difficulty}</div>
+      <div style="margin-top:8px;">${res.message}</div>
+    `;
+    pomodoroSeconds = Number(res.study_duration_minutes) * 60;
+    updatePomodoroDisplay();
+    if (roomId && socket?.connected) {
+      socket.emit('timer_reset', { roomId, duration: pomodoroSeconds });
+    } else {
+      pausePomodoro();
+    }
+  } catch (err) {
+    console.error(err);
+    showRoomMessage('Failed to get mood suggestion', 'error');
+  }
+}
+
+async function fetchLeaderboard() {
+  try {
+    const data = await fetchJson('/api/leaderboard');
+    renderLeaderboard(data || []);
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+function renderLeaderboard(items) {
+  const el = document.getElementById('leaderboard-list');
+  if (!el) return;
+  if (!items || items.length === 0) {
+    el.innerHTML = '<div>No data yet.</div>';
+    return;
+  }
+  el.innerHTML = items.map((it, idx) => `
+    <div class="leaderboard-item"><div>${idx+1}. ${it.member_name} <span style="color:var(--color-text-tertiary); font-size:13px;">(${it.sessions_completed} sessions)</span></div><div>${it.total_minutes} min</div></div>
+  `).join('');
+}
+
+async function fetchStreak() {
+  try {
+    if (!username) return;
+    const data = await fetchJson(`/api/streak?member_name=${encodeURIComponent(username)}`);
+    const el = document.getElementById('streak-badge');
+    if (el) el.textContent = data && data.current_streak ? `🔥 ${data.current_streak} day streak` : '';
+  } catch (e) {
+    console.error(e);
+  }
 }
 
 function initStudyRooms() {
@@ -339,9 +460,53 @@ function initStudyRooms() {
   syncNameInputs();
   updatePomodoroDisplay();
   attachListeners();
+
+  // initialize socket.io client
+  try {
+    socket = io();
+    socket.on('connect', () => {
+      console.log('Socket connected');
+    });
+
+    socket.on('member_joined', ({ memberName, members }) => {
+      renderMemberList(members || []);
+      showRoomMessage(`${memberName} joined`, 'info');
+    });
+
+    socket.on('member_left', ({ memberName, members }) => {
+      renderMemberList(members || []);
+      showRoomMessage(`${memberName} left`, 'info');
+    });
+
+    socket.on('timer_update', (timerState) => {
+      // timerState: {status,duration,remaining,started_at}
+      if (!timerState) return;
+      // update local timer to reflect state
+      pomodoroSeconds = timerState.remaining || timerState.duration || 25 * 60;
+      updatePomodoroDisplay();
+      if (timerState.status === 'running') {
+        // adjust running state
+        pausePomodoro();
+        startPomodoro();
+      } else if (timerState.status === 'paused') {
+        pausePomodoro();
+      } else {
+        resetPomodoro();
+      }
+    });
+
+    socket.on('session_completed', ({ roomId, duration_minutes }) => {
+      showRoomMessage(`Session completed: ${duration_minutes} min`, 'success');
+      fetchLeaderboard();
+    });
+  } catch (e) {
+    console.warn('Socket.IO client failed to initialize', e);
+  }
   if (activeRoomId) {
     showStudyRoomsSection();
     renderRoom(activeRoomId);
+    fetchLeaderboard();
+    fetchStreak();
   }
 }
 

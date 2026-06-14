@@ -1284,6 +1284,35 @@ body {
   padding: 24px;
 }
 
+.mood-check-view {
+  padding: 24px;
+}
+
+.mood-check-card {
+  max-width: 860px;
+  margin: 0 auto;
+  background: var(--color-background-secondary);
+  border: 1px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-lg);
+  padding: 28px;
+  box-shadow: var(--shadow-sm);
+}
+
+.mood-button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.mood-check-view .section-header {
+  margin-bottom: 20px;
+}
+
+.mood-check-view .mood-suggestion {
+  margin-top: 12px;
+}
+
 .section-header {
   margin-bottom: 20px;
 }
@@ -1313,6 +1342,11 @@ body {
   border-radius: var(--border-radius-lg);
   padding: 22px;
   box-shadow: var(--shadow-sm);
+}
+
+.room-info {
+  overflow-y: auto;
+  max-height: calc(100vh - 120px);
 }
 
 .room-card h3 {
@@ -1424,6 +1458,34 @@ body {
   font-size: 13px;
   color: var(--color-text-tertiary);
 }
+
+.mood-row {
+  margin-top: 10px;
+}
+
+.mood-row .btn {
+  padding: 8px 12px;
+  font-size: 14px;
+}
+
+.mood-suggestion {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: var(--border-radius-md);
+  background: var(--color-background-primary);
+  border: 1px solid var(--color-border-secondary);
+  color: var(--color-text-primary);
+}
+
+.leaderboard-card {
+  background: var(--color-background-secondary);
+  border: 1px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-md);
+  padding: 14px;
+}
+
+.leaderboard-item { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--color-border-tertiary); }
+.streak-badge { background: transparent; color: var(--color-text-warning); font-weight:700; margin-left:8px; }
 
 .pomodoro-card {
   margin-top: 24px;

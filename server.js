@@ -6,6 +6,11 @@ const { GoogleGenAI } = require('@google/genai');
 const path = require('path');
 const csvDownloadRouter = require('./backend/routers/csvDownload.router.js');
 const roomsRouter = require('./backend/routers/rooms.router.js');
+const moodRouter = require('./backend/routers/mood.router.js');
+const leaderboardRouter = require('./backend/routers/leaderboard.router.js');
+const initRoomsSocket = require('./backend/sockets/rooms.socket.js');
+const http = require('http');
+const { Server } = require('socket.io');
 
 const app = express();
 app.use(cors());
@@ -587,6 +592,8 @@ app.get('/debug/force-error', (req, res, next) => {
 
 app.use('/api', csvDownloadRouter);
 app.use('/api', roomsRouter);
+app.use('/api', moodRouter);
+app.use('/api', leaderboardRouter);
 
 app.use('/api', (req, res) => {
   return res.status(404).json({ error: 'API route not found' });
@@ -616,6 +623,12 @@ app.use((err, req, res, next) => {
 
 // ================= SERVER =================
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+const server = http.createServer(app);
+const io = new Server(server, { cors: { origin: '*' } });
+
+// initialize socket handlers
+initRoomsSocket(io, db);
+
+server.listen(PORT, () => {
   console.log('Server running on port ' + PORT);
 });
