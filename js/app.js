@@ -170,10 +170,43 @@ function renderSidebarSubjects() {
   listEl.innerHTML = subjects.map(s => {
     const n = countBySubject[s.id] ?? 0;
     const safeColor = s.color ? escapeHtml(s.color) : 'var(--color-text-info)';
-    return `<div class="nav-item subject-sidebar-item" data-subject-id="${escapeHtml(s.id)}">
-      <span class="nav-dot" style="background:${safeColor}"></span>${escapeHtml(s.name)}<span class="badge">${n}</span>
-    </div>`;
+return `
+  <div class="nav-item subject-sidebar-item" data-subject-id="${escapeHtml(s.id)}">
+
+    <div class="subject-sidebar-content">
+      <span class="nav-dot" style="background:${safeColor}"></span>
+
+      <span class="subject-name">
+        ${escapeHtml(s.name)}
+      </span>
+    </div>
+
+    <div class="subject-sidebar-actions">
+      <span class="badge">${n}</span>
+
+      <button
+        class="delete-subject-btn"
+        data-subject-id="${escapeHtml(s.id)}"
+        title="Delete subject"
+      >
+        ✕
+      </button>
+    </div>
+
+  </div>
+`;
   }).join('');
+
+  document.querySelectorAll('.delete-subject-btn')
+  .forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+
+      const subjectId = btn.dataset.subjectId;
+
+      store.deleteSubject(subjectId);
+    });
+  });
 }
 
 const newTaskModal = document.getElementById('new-task-modal');
@@ -236,6 +269,80 @@ function setCircleDasharray() {
   timerPathRemaining.setAttribute("stroke-dasharray", circleDasharray);
 }
 
+let startTime;
+
+function saveTimerState() {
+  localStorage.setItem('focusTimerState', JSON.stringify({
+    TIME_LIMIT,
+    timePassed,
+    isRunning: !!timerInterval,
+    startTime: timerInterval ? startTime : null,
+    durationInput: timerDurationInput.value
+  }));
+}
+
+function loadTimerState() {
+  const saved = localStorage.getItem('focusTimerState');
+  if (!saved) return;
+
+  try {
+    const state = JSON.parse(saved);
+
+    TIME_LIMIT = state.TIME_LIMIT || (25 * 60);
+
+    if (state.isRunning && state.startTime) {
+      const elapsed = Math.floor((Date.now() - state.startTime) / 1000);
+      timePassed = elapsed;
+    } else {
+      timePassed = state.timePassed || 0;
+    }
+
+    timeLeft = TIME_LIMIT - timePassed;
+
+    if (timeLeft < 0) timeLeft = 0;
+
+    if (state.durationInput) {
+      timerDurationInput.value = state.durationInput;
+    }
+
+    timerText.innerHTML = formatTimeLeft(timeLeft);
+    setCircleDasharray();
+    updateTimerColor();
+
+    if (state.isRunning && timeLeft > 0) {
+      startTime = Date.now() - (timePassed * 1000);
+
+      timerInterval = setInterval(() => {
+        timePassed = Math.floor((Date.now() - startTime) / 1000);
+        timeLeft = TIME_LIMIT - timePassed;
+
+        timerText.innerHTML = formatTimeLeft(timeLeft);
+        setCircleDasharray();
+        updateTimerColor();
+
+        saveTimerState();
+
+        if (timeLeft <= 0) {
+  clearInterval(timerInterval);
+  timerInterval = null;
+  localStorage.removeItem('focusTimerState');
+
+  playCompletionSound();
+  showBrowserNotification();
+  Toast.show('Focus session complete!', 'success');
+
+  resetTimer();
+}
+      }, 250);
+
+      timerPauseBtn.classList.remove('hidden');
+      timerStartBtn.classList.add('hidden');
+      timerDurationInput.disabled = true;
+    }
+  } catch (err) {
+    console.error('Failed to load timer state', err);
+  }
+}
 function getTimerColor(timeLeft, totalTime) {
   const fraction = timeLeft / totalTime;
   if (fraction <= 0.1) return '#ef4444';
@@ -288,34 +395,46 @@ function showBrowserNotification() {
 
 function startTimer() {
   if (timerInterval) return;
+
   TIME_LIMIT = getTimerDuration();
-  if (timePassed === 0) timeLeft = TIME_LIMIT;
   timerDurationInput.disabled = true;
+
   timerStartBtn.classList.add('hidden');
   timerPauseBtn.classList.remove('hidden');
   requestNotificationPermission();
-  
-  timerInterval = setInterval(() => {
-    timePassed += 1;
+
+  startTime = Date.now() - (timePassed * 1000);
+  saveTimerState();
+   timerInterval = setInterval(() => {
+    timePassed = Math.floor((Date.now() - startTime) / 1000);
     timeLeft = TIME_LIMIT - timePassed;
+
     timerText.innerHTML = formatTimeLeft(timeLeft);
     setCircleDasharray();
     updateTimerColor();
+    saveTimerState();
 
-    if (timeLeft === 0) {
+    if (timeLeft <= 0) {
       clearInterval(timerInterval);
       timerInterval = null;
+      localStorage.removeItem('focusTimerState');
       playCompletionSound();
       showBrowserNotification();
       Toast.show('Focus session complete!', 'success');
       resetTimer();
     }
   }, 1000);
+
+  timerPauseBtn.classList.remove('hidden');
+  timerStartBtn.classList.add('hidden');
 }
 
 function pauseTimer() {
   clearInterval(timerInterval);
   timerInterval = null;
+
+  saveTimerState();
+
   timerPauseBtn.classList.add('hidden');
   timerStartBtn.classList.remove('hidden');
 }
@@ -323,13 +442,18 @@ function pauseTimer() {
 function resetTimer() {
   clearInterval(timerInterval);
   timerInterval = null;
+
+  localStorage.removeItem('focusTimerState');
+
   timePassed = 0;
   TIME_LIMIT = getTimerDuration();
   timeLeft = TIME_LIMIT;
+
   timerDurationInput.disabled = false;
+
   timerText.innerHTML = formatTimeLeft(timeLeft);
   timerPathRemaining.setAttribute("stroke-dasharray", "283 283");
-  timerPathRemaining.style.stroke = 'var(--color-text-primary)';
+  updateTimerColor();
   timerPauseBtn.classList.add('hidden');
   timerStartBtn.classList.remove('hidden');
 }
@@ -1237,6 +1361,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   store.fetchInitialData();
+  loadTimerState();
   
   const calendarBtn = document.getElementById('calendar-btn');
   const allTasksBtn = document.getElementById('all-tasks-btn');
@@ -1290,17 +1415,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  if (profileBtn) {
-    profileBtn.addEventListener('click', () => {
-      showProfileSection();
-    });
-  }
-
-  document.getElementById('cal-prev').addEventListener('click', () => {
-    currentMonthDate.setMonth(currentMonthDate.getMonth() - 1);
-    renderCalendar();
+<if (profileBtn) {
+  profileBtn.addEventListener('click', () => {
+    showProfileSection();
   });
+}
 
+document.getElementById('cal-prev').addEventListener('click', () => {
+  currentMonthDate.setMonth(currentMonthDate.getMonth() - 1);
+  renderCalendar();
+});
   document.getElementById('cal-next').addEventListener('click', () => {
     currentMonthDate.setMonth(currentMonthDate.getMonth() + 1);
     renderCalendar();
@@ -1424,21 +1548,6 @@ extractBtn.addEventListener('click', async () => {
   
   extractBtn.innerHTML = '<span class="loader-spinner"></span>';
   extractBtn.disabled = true;
-
-  // Show loading skeleton
-  extractPreview.innerHTML = `
-    <div class="extract-title">Extracting tasks...</div>
-    <div class="skeleton-card">
-      <div class="skeleton-line short"></div>
-      <div class="skeleton-line long"></div>
-      <div class="skeleton-line medium"></div>
-    </div>
-    <div class="skeleton-card">
-      <div class="skeleton-line short"></div>
-      <div class="skeleton-line long"></div>
-      <div class="skeleton-line medium"></div>
-    </div>
-  `;
   
   const items = await extractTasksFromText(text);
   
@@ -1578,3 +1687,9 @@ if (quoteEl) {
   quoteEl.textContent = quotes[index];
 }
 
+
+if (calendarDownloadBtn) {
+  calendarDownloadBtn.addEventListener('click', () => {
+    downloadCalendar();
+  });
+}
