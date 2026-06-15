@@ -22,7 +22,12 @@
 
     <input id="auth-email" type="email" placeholder="Email address" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:12px; box-sizing:border-box;">
     
-    <input id="auth-password" type="password" placeholder="Password" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:20px; box-sizing:border-box;">
+    <div style="position:relative; margin-bottom:20px;">
+      <input id="auth-password" type="password" placeholder="Password" style="width:100%; padding:12px 44px 12px 12px; border:1px solid #ddd; border-radius:8px; font-size:14px; box-sizing:border-box;">
+      <button type="button" id="password-toggle-btn" aria-label="Show password" aria-pressed="false" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); border:none; background:transparent; cursor:pointer; color:#4b5563; font-size:16px; display:flex; align-items:center; justify-content:center; padding:4px;">
+        <i class="fa-regular fa-eye" aria-hidden="true"></i>
+      </button>
+    </div>
 
     <button id="auth-submit-btn" style="width:100%; padding:12px; background:#4f46e5; color:white; border:none; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer;">
     Sign In
@@ -62,7 +67,7 @@
   </nav>
 
   <div class="header-right">
-    <button class="profile-btn">Profile</button>
+    <button class="profile-btn" id="profile-btn">Profile</button>
     <button class="profile-btn" id="logout-btn">Logout</button>
   </div>
 </header>
@@ -207,6 +212,61 @@
           </div>
         </div>
       </div>
+
+      <div id="profile-section" class="profile-section hidden">
+        <div class="profile-header">
+          <div>
+            <div class="profile-page-title">Profile</div>
+            <p class="profile-page-subtitle">View your account summary, study stats, and future account settings in one place.</p>
+          </div>
+        </div>
+
+        <div class="profile-grid">
+          <section class="profile-card">
+            <h2>Account details</h2>
+            <div class="profile-field">
+              <span class="profile-field-label">Username</span>
+              <span id="profile-username">StudyPlan User</span>
+            </div>
+            <div class="profile-field">
+              <span class="profile-field-label">Email</span>
+              <span id="profile-email">user@studyplan.app</span>
+            </div>
+            <div class="profile-field">
+              <span class="profile-field-label">Member since</span>
+              <span id="profile-joined">June 2026</span>
+            </div>
+          </section>
+
+          <section class="profile-card">
+            <h2>Study statistics</h2>
+            <div class="profile-stats">
+              <div>
+                <span class="profile-stat-value" id="profile-completed-count">0</span>
+                <span>Completed</span>
+              </div>
+              <div>
+                <span class="profile-stat-value" id="profile-pending-count">0</span>
+                <span>Pending</span>
+              </div>
+              <div>
+                <span class="profile-stat-value" id="profile-archived-count">0</span>
+                <span>Archived</span>
+              </div>
+              <div>
+                <span class="profile-stat-value" id="profile-subjects-count">0</span>
+                <span>Subjects</span>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <section class="profile-card profile-summary-card">
+          <h2>Account overview</h2>
+          <p id="profile-summary-text">Your profile information and study statistics will update automatically as you use StudyPlan.</p>
+        </section>
+      </div>
+
     </div>
 
     <!-- Right Panel -->
@@ -316,6 +376,22 @@
   <script type="module" src="/js/app.js"></script>
   <script>
   let isLogin = true;
+
+  const passwordToggleBtn = document.getElementById('password-toggle-btn');
+  const authPasswordInput = document.getElementById('auth-password');
+
+  if (passwordToggleBtn && authPasswordInput) {
+    passwordToggleBtn.addEventListener('click', () => {
+      const isVisible = authPasswordInput.type === 'text';
+      authPasswordInput.type = isVisible ? 'password' : 'text';
+      const icon = passwordToggleBtn.querySelector('i');
+      if (icon) {
+        icon.className = isVisible ? 'fa-regular fa-eye' : 'fa-regular fa-eye-slash';
+      }
+      passwordToggleBtn.setAttribute('aria-label', isVisible ? 'Show password' : 'Hide password');
+      passwordToggleBtn.setAttribute('aria-pressed', (!isVisible).toString());
+    });
+  }
 
   document.getElementById('auth-toggle-btn').addEventListener('click', (e) => {
     e.preventDefault();
