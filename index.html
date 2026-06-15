@@ -22,29 +22,27 @@
 
     <input id="auth-email" type="email" placeholder="Email address" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:12px; box-sizing:border-box;">
     
-    <input id="auth-password" type="password" placeholder="Password" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:20px; box-sizing:border-box;">
+    <input id="auth-password" type="password" placeholder="Password" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:12px; box-sizing:border-box;">
 
-    <button id="auth-submit-btn" style="width:100%; padding:12px; background:#4f46e5; color:white; border:none; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer;">
-    Sign In
-    </button>
-
-    <div style="font-size:12px; color:#666; margin-top:10px; line-height:1.6;">
-    Password must contain:
-     <ul style="padding-left:18px; margin-top:6px;">
-      <li>Minimum 8 characters</li>
-      <li>At least 1 capital letter</li>
-      <li>At least 1 special character</li>
-     </ul>
+    <div id="auth-validation" style="display:none; font-size:12px; color:#666; margin-top:10px; line-height:1.6;">
+      <div style="font-weight:600; margin-bottom:8px;">Password must contain:</div>
+      <ul style="padding-left:18px; margin:0; list-style:none; display:grid; gap:6px;">
+        <li id="req-min-length" style="display:flex; gap:8px; align-items:flex-start; color:#b91c1c;"><span class="requirement-status" aria-hidden="true">✗</span> Minimum 8 characters</li>
+        <li id="req-capital" style="display:flex; gap:8px; align-items:flex-start; color:#b91c1c;"><span class="requirement-status" aria-hidden="true">✗</span> At least 1 capital letter</li>
+        <li id="req-special" style="display:flex; gap:8px; align-items:flex-start; color:#b91c1c;"><span class="requirement-status" aria-hidden="true">✗</span> At least 1 special character</li>
+      </ul>
     </div>
 
-    <p id="auth-error" style="color:red; font-size:13px; text-align:center; margin:8px 0 0; display:none;"></p>
+    <button id="auth-submit-btn" disabled style="width:100%; padding:12px; background:#4f46e5; color:white; border:none; border-radius:8px; font-size:15px; font-weight:600; cursor:not-allowed;">
+      Sign In
+    </button>
+
+    <p id="auth-error" aria-live="polite" style="color:red; font-size:13px; text-align:center; margin:8px 0 0; display:none;"></p>
 
     <p style="text-align:center; margin:16px 0 0; font-size:13px; color:#666;">
       <span id="auth-toggle-text">Don't have an account?</span>
       <a id="auth-toggle-btn" href="#" style="color:#4f46e5; font-weight:600; margin-left:4px;">Sign Up</a>
     </p>
-
-    <p id="auth-error" style="color:red; font-size:13px; text-align:center; margin:8px 0 0; display:none;"></p>
   </div>
 </div>
 
@@ -62,7 +60,7 @@
   </nav>
 
   <div class="header-right">
-    <button class="profile-btn">Profile</button>
+    <button class="profile-btn" id="profile-btn">Profile</button>
     <button class="profile-btn" id="logout-btn">Logout</button>
   </div>
 </header>
@@ -207,6 +205,61 @@
           </div>
         </div>
       </div>
+
+      <div id="profile-section" class="profile-section hidden">
+        <div class="profile-header">
+          <div>
+            <div class="profile-page-title">Profile</div>
+            <p class="profile-page-subtitle">View your account summary, study stats, and future account settings in one place.</p>
+          </div>
+        </div>
+
+        <div class="profile-grid">
+          <section class="profile-card">
+            <h2>Account details</h2>
+            <div class="profile-field">
+              <span class="profile-field-label">Username</span>
+              <span id="profile-username">StudyPlan User</span>
+            </div>
+            <div class="profile-field">
+              <span class="profile-field-label">Email</span>
+              <span id="profile-email">user@studyplan.app</span>
+            </div>
+            <div class="profile-field">
+              <span class="profile-field-label">Member since</span>
+              <span id="profile-joined">June 2026</span>
+            </div>
+          </section>
+
+          <section class="profile-card">
+            <h2>Study statistics</h2>
+            <div class="profile-stats">
+              <div>
+                <span class="profile-stat-value" id="profile-completed-count">0</span>
+                <span>Completed</span>
+              </div>
+              <div>
+                <span class="profile-stat-value" id="profile-pending-count">0</span>
+                <span>Pending</span>
+              </div>
+              <div>
+                <span class="profile-stat-value" id="profile-archived-count">0</span>
+                <span>Archived</span>
+              </div>
+              <div>
+                <span class="profile-stat-value" id="profile-subjects-count">0</span>
+                <span>Subjects</span>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <section class="profile-card profile-summary-card">
+          <h2>Account overview</h2>
+          <p id="profile-summary-text">Your profile information and study statistics will update automatically as you use StudyPlan.</p>
+        </section>
+      </div>
+
     </div>
 
     <!-- Right Panel -->
@@ -317,6 +370,61 @@
   <script>
   let isLogin = true;
 
+  const authEmailInput = document.getElementById('auth-email');
+  const authPasswordInput = document.getElementById('auth-password');
+  const authSubmitBtn = document.getElementById('auth-submit-btn');
+  const authValidationWrapper = document.getElementById('auth-validation');
+  const authError = document.getElementById('auth-error');
+  const reqMinLength = document.getElementById('req-min-length');
+  const reqCapital = document.getElementById('req-capital');
+  const reqSpecial = document.getElementById('req-special');
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  function isValidEmail(email) {
+    return emailRegex.test(email);
+  }
+
+  function setRequirementState(element, passed) {
+    element.style.color = passed ? '#0f766e' : '#b91c1c';
+    const status = element.querySelector('.requirement-status');
+    if (status) {
+      status.textContent = passed ? '✓' : '✗';
+    }
+  }
+
+  function updateAuthFormState() {
+    const email = authEmailInput.value.trim();
+    const password = authPasswordInput.value;
+
+    const minLength = password.length >= 8;
+    const hasCapital = /[A-Z]/.test(password);
+    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    const passwordValid = minLength && hasCapital && hasSpecial;
+    const emailValid = isValidEmail(email);
+    const loginReady = emailValid && password.length > 0;
+
+    setRequirementState(reqMinLength, minLength);
+    setRequirementState(reqCapital, hasCapital);
+    setRequirementState(reqSpecial, hasSpecial);
+
+    if (!isLogin) {
+      authValidationWrapper.style.display = 'block';
+      authSubmitBtn.disabled = !(emailValid && passwordValid);
+    } else {
+      authValidationWrapper.style.display = 'none';
+      authSubmitBtn.disabled = !loginReady;
+    }
+
+    authSubmitBtn.style.cursor = authSubmitBtn.disabled ? 'not-allowed' : 'pointer';
+    if (!authSubmitBtn.disabled) {
+      authError.style.display = 'none';
+    }
+  }
+
+  authEmailInput.addEventListener('input', updateAuthFormState);
+  authPasswordInput.addEventListener('input', updateAuthFormState);
+
   document.getElementById('auth-toggle-btn').addEventListener('click', (e) => {
     e.preventDefault();
     isLogin = !isLogin;
@@ -325,8 +433,11 @@
     document.getElementById('auth-submit-btn').textContent = isLogin ? 'Sign In' : 'Sign Up';
     document.getElementById('auth-toggle-text').textContent = isLogin ? "Don't have an account?" : 'Already have an account?';
     document.getElementById('auth-toggle-btn').textContent = isLogin ? 'Sign Up' : 'Sign In';
-    document.getElementById('auth-error').style.display = 'none';
+    authError.style.display = 'none';
+    updateAuthFormState();
   });
+
+  updateAuthFormState();
 
   // Password validation function
 function validatePassword(password) {
@@ -343,26 +454,30 @@ function validatePassword(password) {
   return minLength && hasCapital && hasSpecial;
 }
 
-document.getElementById('auth-submit-btn').addEventListener('click', async () => {
+  authSubmitBtn.addEventListener('click', async () => {
 
-  const email = document.getElementById('auth-email').value.trim();
-  const password = document.getElementById('auth-password').value.trim();
-  const errorEl = document.getElementById('auth-error');
+  const email = authEmailInput.value.trim();
+  const password = authPasswordInput.value.trim();
 
-  errorEl.style.display = 'none';
+  authError.style.display = 'none';
 
   // Empty fields check
   if (!email || !password) {
-    errorEl.textContent = 'Please fill in all fields';
-    errorEl.style.display = 'block';
+    authError.textContent = 'Please fill in all fields';
+    authError.style.display = 'block';
     return;
   }
 
-  // Password validation check
-  if (!validatePassword(password)) {
-    errorEl.textContent =
+  if (!isValidEmail(email)) {
+    authError.textContent = 'Please enter a valid email address.';
+    authError.style.display = 'block';
+    return;
+  }
+
+  if (!isLogin && !validatePassword(password)) {
+    authError.textContent =
       'Password must be at least 8 characters long, contain 1 capital letter and 1 special character.';
-    errorEl.style.display = 'block';
+    authError.style.display = 'block';
     return;
   }
 
@@ -377,8 +492,8 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
       const data = await res.json();
 
       if (!res.ok) {
-        errorEl.textContent = data.error || 'Something went wrong';
-        errorEl.style.display = 'block';
+        authError.textContent = data.error || 'Something went wrong';
+        authError.style.display = 'block';
         return;
       }
 
@@ -386,8 +501,8 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
       document.getElementById('auth-modal').style.display = 'none';
 
     } catch (err) {
-      errorEl.textContent = 'Network error. Please try again.';
-      errorEl.style.display = 'block';
+      authError.textContent = 'Network error. Please try again.';
+      authError.style.display = 'block';
     }
   });
 
