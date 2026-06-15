@@ -99,6 +99,10 @@ const downloadBtn = document.getElementById('download-btn');
 const calendarDownloadBtn = document.getElementById('calendar-download-btn');
 const newTaskBtn = document.getElementById('add-task-btn');
 const labelFilterSelect = document.getElementById('label-filter');
+const focusStatsPanel = document.getElementById('focus-stats-panel');
+const focusTotalSessions = document.getElementById('focus-total-sessions');
+const focusTotalTime = document.getElementById('focus-total-time');
+const focusCurrentStreak = document.getElementById('focus-current-streak');
 
 if (labelFilterSelect) {
   labelFilterSelect.addEventListener('change', (e) => {
@@ -323,16 +327,16 @@ function loadTimerState() {
         saveTimerState();
 
         if (timeLeft <= 0) {
-  clearInterval(timerInterval);
-  timerInterval = null;
-  localStorage.removeItem('focusTimerState');
+          clearInterval(timerInterval);
+          timerInterval = null;
+          localStorage.removeItem('focusTimerState');
 
-  playCompletionSound();
-  showBrowserNotification();
-  Toast.show('Focus session complete!', 'success');
+          playCompletionSound();
+          showBrowserNotification();
+          Toast.show('Focus session complete!', 'success');
 
-  resetTimer();
-}
+          resetTimer();
+        }
       }, 250);
 
       timerPauseBtn.classList.remove('hidden');
@@ -343,6 +347,7 @@ function loadTimerState() {
     console.error('Failed to load timer state', err);
   }
 }
+
 function getTimerColor(timeLeft, totalTime) {
   const fraction = timeLeft / totalTime;
   if (fraction <= 0.1) return '#ef4444';
@@ -393,6 +398,53 @@ function showBrowserNotification() {
   }
 }
 
+async function recordCompletedFocusSession(durationSeconds) {
+  await store.addFocusSession({
+    task_id: activeFocusTaskId || null,
+    duration_seconds: durationSeconds,
+    completed_at: new Date().toISOString()
+  });
+}
+
+function formatSessionDuration(seconds) {
+  const mins = Math.floor(seconds / 60);
+  const hrs = Math.floor(mins / 60);
+  const remainder = mins % 60;
+  if (hrs > 0) {
+    return `${hrs}h ${remainder}m`;
+  }
+  return `${remainder}m`;
+}
+
+function calculateFocusStreak(sessions) {
+  const daySet = new Set(
+    (sessions || []).map(s => new Date(s.completed_at).toISOString().substring(0, 10))
+  );
+  let streak = 0;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  let cursor = new Date(today);
+
+  while (daySet.has(cursor.toISOString().substring(0, 10))) {
+    streak += 1;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+
+  return streak;
+}
+
+function renderFocusStats() {
+  if (!focusStatsPanel) return;
+  const sessions = store.focusSessions || [];
+  const totalSessions = sessions.length;
+  const totalSeconds = sessions.reduce((acc, session) => acc + Number(session.duration_seconds || 0), 0);
+  const streak = calculateFocusStreak(sessions);
+
+  focusTotalSessions.textContent = totalSessions;
+  focusTotalTime.textContent = formatSessionDuration(totalSeconds);
+  focusCurrentStreak.textContent = `${streak} day${streak === 1 ? '' : 's'}`;
+}
+
 function startTimer() {
   if (timerInterval) return;
 
@@ -405,7 +457,7 @@ function startTimer() {
 
   startTime = Date.now() - (timePassed * 1000);
   saveTimerState();
-   timerInterval = setInterval(() => {
+  timerInterval = setInterval(() => {
     timePassed = Math.floor((Date.now() - startTime) / 1000);
     timeLeft = TIME_LIMIT - timePassed;
 
@@ -421,6 +473,7 @@ function startTimer() {
       playCompletionSound();
       showBrowserNotification();
       Toast.show('Focus session complete!', 'success');
+      recordCompletedFocusSession(TIME_LIMIT).then(() => renderFocusStats());
       resetTimer();
     }
   }, 1000);
@@ -576,6 +629,89 @@ function renderFocusTasks() {
   } else {
     activeFocusTask.innerHTML = '<div class="no-task-selected">No task selected. Choose one below.</div>';
   }
+}
+
+function renderProfileSection() {
+  if (!profileSection) return;
+
+  const tasks = store.tasks || [];
+  const subjects = store.subjects || [];
+  const completedCount = tasks.filter(t => t.status === 'Done').length;
+  const pendingCount = tasks.filter(t => t.status !== 'Done' && !t.archived).length;
+  const archivedCount = tasks.filter(t => t.archived).length;
+  const subjectsCount = subjects.length;
+  const username = localStorage.getItem('studyplan_username') || 'StudyPlan User';
+  const email = localStorage.getItem('studyplan_email') || 'user@studyplan.app';
+  const joinedDate = localStorage.getItem('studyplan_joined') || 'June 2026';
+
+  profileSection.innerHTML = `
+    <div class="profile-header">
+      <div>
+        <div class="profile-page-title">Profile</div>
+        <p class="profile-page-subtitle">View your account summary, study stats, and future account settings in one place.</p>
+      </div>
+    </div>
+
+    <div class="profile-grid">
+      <section class="profile-card">
+        <h2>Account details</h2>
+        <div class="profile-field">
+          <span class="profile-field-label">Username</span>
+          <span>${escapeHtml(username)}</span>
+        </div>
+        <div class="profile-field">
+          <span class="profile-field-label">Email</span>
+          <span>${escapeHtml(email)}</span>
+        </div>
+        <div class="profile-field">
+          <span class="profile-field-label">Member since</span>
+          <span>${escapeHtml(joinedDate)}</span>
+        </div>
+      </section>
+
+      <section class="profile-card">
+        <h2>Study statistics</h2>
+        <div class="profile-stats">
+          <div>
+            <span class="profile-stat-value">${completedCount}</span>
+            <span>Completed</span>
+          </div>
+          <div>
+            <span class="profile-stat-value">${pendingCount}</span>
+            <span>Pending</span>
+          </div>
+          <div>
+            <span class="profile-stat-value">${archivedCount}</span>
+            <span>Archived</span>
+          </div>
+          <div>
+            <span class="profile-stat-value">${subjectsCount}</span>
+            <span>Subjects</span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <section class="profile-card profile-summary-card">
+      <h2>Account overview</h2>
+      <p>Your profile information and study statistics will update automatically as you use StudyPlan.</p>
+    </section>
+  `;
+}
+
+function showProfileSection() {
+  currentView = 'profile';
+  document.querySelector('.cal-section')?.classList.add('hidden');
+  document.getElementById('tasks-section')?.classList.add('hidden');
+  document.getElementById('focus-section')?.classList.add('hidden');
+  profileSection?.classList.remove('hidden');
+  topbar?.classList.add('hidden');
+  renderProfileSection();
+}
+
+function hideProfileSection() {
+  profileSection?.classList.add('hidden');
+  topbar?.classList.remove('hidden');
 }
 
 function formatDate(dateStr) {
@@ -1219,6 +1355,8 @@ store.subscribe(renderTasks);
 store.subscribe(renderExtraction);
 store.subscribe(renderCalendar);
 store.subscribe(renderFocusTasks);
+store.subscribe(renderFocusStats);
+store.subscribe(renderProfileSection);
 store.subscribe(renderSidebarSubjects);
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -1277,8 +1415,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   store.fetchInitialData();
+  store.fetchFocusSessions();
   loadTimerState();
-  
+
   const calendarBtn = document.getElementById('calendar-btn');
   const allTasksBtn = document.getElementById('all-tasks-btn');
   const archivedTasksBtn = document.getElementById('archived-tasks-btn');
@@ -1291,6 +1430,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   calendarBtn.addEventListener('click', () => {
     currentView = 'calendar';
+    hideProfileSection();
     document.querySelector('.cal-section').classList.remove('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
@@ -1300,6 +1440,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   allTasksBtn.addEventListener('click', () => {
     currentView = 'all-tasks';
+    hideProfileSection();
     document.querySelector('.cal-section').classList.add('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
@@ -1309,6 +1450,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   archivedTasksBtn.addEventListener('click', () => {
     currentView = 'archived';
+    hideProfileSection();
     document.querySelector('.cal-section').classList.add('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
@@ -1316,9 +1458,10 @@ document.addEventListener('DOMContentLoaded', () => {
     renderTasks();
   });
 
-  if(focusModeBtn) {
+  if (focusModeBtn) {
     focusModeBtn.addEventListener('click', () => {
       currentView = 'focus';
+      hideProfileSection();
       document.querySelector('.cal-section').classList.add('hidden');
       document.getElementById('tasks-section').classList.add('hidden');
       document.getElementById('focus-section').classList.remove('hidden');
@@ -1327,121 +1470,130 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  if (profileBtn) {
+    profileBtn.addEventListener('click', () => {
+      showProfileSection();
+    });
+  }
+
+  document.getElementById('cal-prev').addEventListener('click', () => {
+    currentMonthDate.setMonth(currentMonthDate.getMonth() - 1);
+    renderCalendar();
+  });
+
   document.getElementById('cal-next').addEventListener('click', () => {
     currentMonthDate.setMonth(currentMonthDate.getMonth() + 1);
     renderCalendar();
   });
 
+  // New Task addition event listeners
+  newTaskBtn.addEventListener('click', () => {
+    if (!store.subjects || store.subjects.length === 0) {
+      Toast.show('Subjects are still loading. Please try again in a moment.', 'warning');
+      return;
+    }
 
-//NEw Task addition event listeners
-newTaskBtn.addEventListener('click', () => {
-  
-  if (!store.subjects || store.subjects.length === 0) {
-    Toast.show('Subjects are still loading. Please try again in a moment.', 'warning');
-    return;
-  }
+    newTaskSubject.innerHTML = store.subjects
+      .map(s => `<option value="${s.id}">${s.name}</option>`)
+      .join('');
 
-  newTaskSubject.innerHTML = store.subjects
-    .map(s => `<option value="${s.id}">${s.name}</option>`)
-    .join('');
+    if (selectedDate) {
+      const d = new Date(selectedDate);
+      d.setHours(18, 0, 0, 0);
+      newTaskDate.value = d.toISOString().substring(0, 16);
+    } else {
+      newTaskDate.value = '';
+    }
 
+    newTaskTitle.value = '';
+    newTaskNotes.value = '';
+    if (newTaskEstimatedDuration) newTaskEstimatedDuration.value = '';
+    setNewTaskDurationUnit('minutes');
 
-  if (selectedDate) {
-    const d = new Date(selectedDate);
-    d.setHours(18, 0, 0, 0); 
-    newTaskDate.value = d.toISOString().substring(0, 16);
-  } else {
-    newTaskDate.value = '';
-  }
+    newTaskModal.style.display = 'flex';
+  });
 
-  newTaskTitle.value = '';
-  newTaskNotes.value = '';
-  if (newTaskEstimatedDuration) newTaskEstimatedDuration.value = '';
-  setNewTaskDurationUnit('minutes');
-
-  newTaskModal.style.display = 'flex';
-});
-
-newTaskCancel.addEventListener('click', () => {
-  newTaskModal.style.display = 'none';
-});
-
-newTaskModal.addEventListener('click', (e) => {
-  if (e.target === newTaskModal) {
+  newTaskCancel.addEventListener('click', () => {
     newTaskModal.style.display = 'none';
-  }
-});
+  });
 
-function setNewTaskDurationUnit(unit) {
-  selectedTaskDurationUnit = unit;
-  newTaskDurationSwitch?.setAttribute('data-unit', unit);
-  newTaskDurationMin?.classList.toggle('active', unit === 'minutes');
-  newTaskDurationHr?.classList.toggle('active', unit === 'hours');
-}
+  newTaskModal.addEventListener('click', (e) => {
+    if (e.target === newTaskModal) {
+      newTaskModal.style.display = 'none';
+    }
+  });
 
-newTaskDurationMin?.addEventListener('click', () => setNewTaskDurationUnit('minutes'));
-newTaskDurationHr?.addEventListener('click', () => setNewTaskDurationUnit('hours'));
-
-newTaskSave.addEventListener('click', async () => {
-  const rawTitle = newTaskTitle.value.trim();
-  const subject_id = newTaskSubject.value;
-  const notes = newTaskNotes.value.trim();
-  const dateVal = newTaskDate.value;
-  const durationValue = newTaskEstimatedDuration ? Number(newTaskEstimatedDuration.value) : 0;
-  const estimated_duration = durationValue > 0
-    ? Math.round(selectedTaskDurationUnit === 'hours' ? durationValue * 60 : durationValue)
-    : null;
-
-  if (!rawTitle) {
-    alert('Please enter a task name');
-    return;
+  function setNewTaskDurationUnit(unit) {
+    selectedTaskDurationUnit = unit;
+    newTaskDurationSwitch?.setAttribute('data-unit', unit);
+    newTaskDurationMin?.classList.toggle('active', unit === 'minutes');
+    newTaskDurationHr?.classList.toggle('active', unit === 'hours');
   }
 
-  if (!dateVal) {
-  alert('Please enter a deadline');
-  return;
-}
+  newTaskDurationMin?.addEventListener('click', () => setNewTaskDurationUnit('minutes'));
+  newTaskDurationHr?.addEventListener('click', () => setNewTaskDurationUnit('hours'));
 
-if (!subject_id) {
-  alert('Please select a subject');
-  return;
-}
-  const { cleanTitle, labels } = extractLabels(rawTitle);
-  const due_at = dateVal ? new Date(dateVal).toISOString() : '';
+  newTaskSave.addEventListener('click', async () => {
+    const rawTitle = newTaskTitle.value.trim();
+    const subject_id = newTaskSubject.value;
+    const notes = newTaskNotes.value.trim();
+    const dateVal = newTaskDate.value;
+    const durationValue = newTaskEstimatedDuration ? Number(newTaskEstimatedDuration.value) : 0;
+    const estimated_duration = durationValue > 0
+      ? Math.round(selectedTaskDurationUnit === 'hours' ? durationValue * 60 : durationValue)
+      : null;
 
-  const newTask = {
-    title: cleanTitle || rawTitle,
-    subject_id,
-    due_at,
-    notes,
-    priority: 'medium',
-    status: 'Not Started',
-    archived: 0,
-    estimated_duration,
-    is_estimated_duration_min: selectedTaskDurationUnit === 'minutes' ? 1 : 0,
-    labels
-  };
+    if (!rawTitle) {
+      alert('Please enter a task name');
+      return;
+    }
 
-  await store.addTasks([newTask]);
-  newTaskModal.style.display = 'none';
-});
+    if (!dateVal) {
+      alert('Please enter a deadline');
+      return;
+    }
 
-addItemsBtn.addEventListener('click', () => {
-  if (store.currentPaste) {
-    const pasteWithLabels = store.currentPaste.map(t => {
-      const { cleanTitle, labels } = extractLabels(t.title);
-      return { ...t, title: cleanTitle || t.title, labels };
-    });
-    store.addTasks(pasteWithLabels);
-    store.clearExtracted();
-    pasteInput.value = '';
-  }
-});
+    if (!subject_id) {
+      alert('Please select a subject');
+      return;
+    }
+
+    const { cleanTitle, labels } = extractLabels(rawTitle);
+    const due_at = dateVal ? new Date(dateVal).toISOString() : '';
+
+    const newTask = {
+      title: cleanTitle || rawTitle,
+      subject_id,
+      due_at,
+      notes,
+      priority: 'medium',
+      status: 'Not Started',
+      archived: 0,
+      estimated_duration,
+      is_estimated_duration_min: selectedTaskDurationUnit === 'minutes' ? 1 : 0,
+      labels
+    };
+
+    await store.addTasks([newTask]);
+    newTaskModal.style.display = 'none';
+  });
+
+  addItemsBtn.addEventListener('click', () => {
+    if (store.currentPaste) {
+      const pasteWithLabels = store.currentPaste.map(t => {
+        const { cleanTitle, labels } = extractLabels(t.title);
+        return { ...t, title: cleanTitle || t.title, labels };
+      });
+      store.addTasks(pasteWithLabels);
+      store.clearExtracted();
+      pasteInput.value = '';
+    }
+  });
 });
 
 // Ensures the button is hidden on initial page load if the textarea is empty
 if (pasteInput.value.trim() === "") {
-    clearBtn.style.display = 'none';
+  clearBtn.style.display = 'none';
 }
 
 extractBtn.addEventListener('click', async () => {
@@ -1461,19 +1613,19 @@ extractBtn.addEventListener('click', async () => {
 
 // Wipes the text, clears the store, hides the button, and refocuses the cursor
 clearBtn.addEventListener('click', () => {
-    pasteInput.value = '';
-    store.clearExtracted();
-    clearBtn.style.display = 'none'; // Hides the clear button instantly
-    pasteInput.focus();              // Puts the typing cursor back in the box
+  pasteInput.value = '';
+  store.clearExtracted();
+  clearBtn.style.display = 'none';
+  pasteInput.focus();
 });
 
 // Listens to typing/pasting to show or hide the button dynamically
 pasteInput.addEventListener('input', () => {
-    if (pasteInput.value.trim().length > 0) {
-        clearBtn.style.display = 'block'; 
-    } else {
-        clearBtn.style.display = 'none';
-    }
+  if (pasteInput.value.trim().length > 0) {
+    clearBtn.style.display = 'block';
+  } else {
+    clearBtn.style.display = 'none';
+  }
 });
 
 downloadBtn.addEventListener('click', () => {

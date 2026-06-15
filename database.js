@@ -33,6 +33,15 @@ function initDb() {
       FOREIGN KEY (subject_id) REFERENCES subjects(id)
     )`);
 
+    // Focus Sessions Table
+    db.run(`CREATE TABLE IF NOT EXISTS focus_sessions (
+      id TEXT PRIMARY KEY,
+      task_id TEXT,
+      duration_seconds INTEGER NOT NULL,
+      completed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (task_id) REFERENCES tasks(id)
+    )`);
+
 db.all("PRAGMA table_info(tasks)", (err, rows) => {
   if (err) return;
 

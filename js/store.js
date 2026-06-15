@@ -5,6 +5,7 @@ export const store = {
   subjects: [],
   tasks: [],
   currentPaste: null,
+  focusSessions: [],
   listeners: [],
 
   isSameCalendarDate(dateA, dateB) {
@@ -355,6 +356,36 @@ export const store = {
     if (this.currentPaste && this.currentPaste[index]) {
       this.currentPaste[index] = { ...this.currentPaste[index], ...updatedFields };
       this.notify();
+    }
+  },
+
+  async fetchFocusSessions() {
+    try {
+      const res = await fetch('/api/focus-sessions');
+      if (!res.ok) throw new Error('Failed to fetch focus sessions');
+      this.focusSessions = await res.json();
+      this.notify();
+    } catch (e) {
+      console.error('Failed to load focus sessions', e);
+    }
+  },
+
+  async addFocusSession(sessionData) {
+    try {
+      const res = await fetch('/api/focus-sessions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(sessionData)
+      });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || 'Failed to record focus session');
+      }
+
+      await this.fetchFocusSessions();
+    } catch (e) {
+      console.error('Failed to save focus session', e);
     }
   },
 
