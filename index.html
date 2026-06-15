@@ -14,7 +14,7 @@
 </head>
 <body>
   <!-- Auth Modal -->
-<div id="auth-modal" style="display:flex; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+<div id="auth-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
   <div style="background:white; border-radius:16px; padding:32px; width:360px; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
     
     <h2 id="auth-title" style="margin:0 0 8px; font-size:22px; font-weight:700;">Welcome back</h2>
@@ -391,9 +391,9 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
     }
   });
 
-  // Check if already logged in
-  if (localStorage.getItem('studyplan_user')) {
-    document.getElementById('auth-modal').style.display = 'none';
+  // Show login modal if not logged in
+  if (!localStorage.getItem('studyplan_user')) {
+    document.getElementById('auth-modal').style.display = 'flex';
   }
 
   // Logout Button Functionality
