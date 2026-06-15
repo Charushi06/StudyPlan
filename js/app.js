@@ -99,6 +99,8 @@ const downloadBtn = document.getElementById('download-btn');
 const calendarDownloadBtn = document.getElementById('calendar-download-btn');
 const newTaskBtn = document.getElementById('add-task-btn');
 const labelFilterSelect = document.getElementById('label-filter');
+const subjectFilterChips = document.getElementById('subject-filter-chips');
+let selectedSubjectFilter = '';
 
 if (labelFilterSelect) {
   labelFilterSelect.addEventListener('change', (e) => {
@@ -218,6 +220,34 @@ const newTaskCancel = document.getElementById('new-task-cancel');
 const newTaskSave = document.getElementById('new-task-save');
 const newTaskEstimatedDuration = document.getElementById('new-task-estimated-duration');
 const newTaskDurationSwitch = document.getElementById('new-task-duration-switch');
+
+function renderSubjectFilterBar(tasks, subjects) {
+  if (!subjectFilterChips) return;
+
+  const subjectMap = new Map();
+  tasks.forEach(t => {
+    const id = t.subject_id || '';
+    if (!subjectMap.has(id)) {
+      const subject = subjects.find(s => s.id === id);
+      subjectMap.set(id, { id, name: subject ? subject.name : id ? 'General' : 'General' });
+    }
+  });
+
+  const chips = [{ id: '', name: 'All' }, ...Array.from(subjectMap.values()).sort((a, b) => a.name.localeCompare(b.name))];
+
+  subjectFilterChips.innerHTML = chips.map(subject => `
+    <button type="button" class="subject-filter-chip${String(selectedSubjectFilter) === String(subject.id) ? ' active' : ''}" data-subject-id="${escapeHtml(subject.id)}">
+      ${escapeHtml(subject.name)}
+    </button>
+  `).join('');
+
+  subjectFilterChips.querySelectorAll('.subject-filter-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedSubjectFilter = btn.dataset.subjectId || '';
+      renderTasks();
+    });
+  });
+}
 const newTaskDurationMin = document.getElementById('new-task-duration-min');
 const newTaskDurationHr = document.getElementById('new-task-duration-hr');
 let selectedTaskDurationUnit = 'minutes';
@@ -578,6 +608,89 @@ function renderFocusTasks() {
   }
 }
 
+function renderProfileSection() {
+  if (!profileSection) return;
+
+  const tasks = store.tasks || [];
+  const subjects = store.subjects || [];
+  const completedCount = tasks.filter(t => t.status === 'Done').length;
+  const pendingCount = tasks.filter(t => t.status !== 'Done' && !t.archived).length;
+  const archivedCount = tasks.filter(t => t.archived).length;
+  const subjectsCount = subjects.length;
+  const username = localStorage.getItem('studyplan_username') || 'StudyPlan User';
+  const email = localStorage.getItem('studyplan_email') || 'user@studyplan.app';
+  const joinedDate = localStorage.getItem('studyplan_joined') || 'June 2026';
+
+  profileSection.innerHTML = `
+    <div class="profile-header">
+      <div>
+        <div class="profile-page-title">Profile</div>
+        <p class="profile-page-subtitle">View your account summary, study stats, and future account settings in one place.</p>
+      </div>
+    </div>
+
+    <div class="profile-grid">
+      <section class="profile-card">
+        <h2>Account details</h2>
+        <div class="profile-field">
+          <span class="profile-field-label">Username</span>
+          <span>${escapeHtml(username)}</span>
+        </div>
+        <div class="profile-field">
+          <span class="profile-field-label">Email</span>
+          <span>${escapeHtml(email)}</span>
+        </div>
+        <div class="profile-field">
+          <span class="profile-field-label">Member since</span>
+          <span>${escapeHtml(joinedDate)}</span>
+        </div>
+      </section>
+
+      <section class="profile-card">
+        <h2>Study statistics</h2>
+        <div class="profile-stats">
+          <div>
+            <span class="profile-stat-value">${completedCount}</span>
+            <span>Completed</span>
+          </div>
+          <div>
+            <span class="profile-stat-value">${pendingCount}</span>
+            <span>Pending</span>
+          </div>
+          <div>
+            <span class="profile-stat-value">${archivedCount}</span>
+            <span>Archived</span>
+          </div>
+          <div>
+            <span class="profile-stat-value">${subjectsCount}</span>
+            <span>Subjects</span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <section class="profile-card profile-summary-card">
+      <h2>Account overview</h2>
+      <p>Your profile information and study statistics will update automatically as you use StudyPlan.</p>
+    </section>
+  `;
+}
+
+function showProfileSection() {
+  currentView = 'profile';
+  document.querySelector('.cal-section')?.classList.add('hidden');
+  document.getElementById('tasks-section')?.classList.add('hidden');
+  document.getElementById('focus-section')?.classList.add('hidden');
+  profileSection?.classList.remove('hidden');
+  topbar?.classList.add('hidden');
+  renderProfileSection();
+}
+
+function hideProfileSection() {
+  profileSection?.classList.add('hidden');
+  topbar?.classList.remove('hidden');
+}
+
 function formatDate(dateStr) {
   if (!dateStr) return 'No Date';
   const d = new Date(dateStr);
@@ -653,9 +766,14 @@ function renderTasks() {
   }
   
   const displayTasksRaw = currentView === 'archived' ? archivedTasks : activeTasks;
-  const displayTasks = activeLabelFilter
+  const displayTasksLabelFiltered = activeLabelFilter
     ? displayTasksRaw.filter(t => t.labels && t.labels.includes(activeLabelFilter))
     : displayTasksRaw;
+  const displayTasks = selectedSubjectFilter
+    ? displayTasksLabelFiltered.filter(t => String(t.subject_id) === String(selectedSubjectFilter))
+    : displayTasksLabelFiltered;
+
+  renderSubjectFilterBar(displayTasksRaw, subjects);
 
   // Extract unique labels to populate the filter dropdown
   if (labelFilterSelect) {
@@ -1219,6 +1337,7 @@ store.subscribe(renderTasks);
 store.subscribe(renderExtraction);
 store.subscribe(renderCalendar);
 store.subscribe(renderFocusTasks);
+store.subscribe(renderProfileSection);
 store.subscribe(renderSidebarSubjects);
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -1291,6 +1410,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   calendarBtn.addEventListener('click', () => {
     currentView = 'calendar';
+    hideProfileSection();
     document.querySelector('.cal-section').classList.remove('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
@@ -1300,6 +1420,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   allTasksBtn.addEventListener('click', () => {
     currentView = 'all-tasks';
+    hideProfileSection();
     document.querySelector('.cal-section').classList.add('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
@@ -1309,6 +1430,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   archivedTasksBtn.addEventListener('click', () => {
     currentView = 'archived';
+    hideProfileSection();
     document.querySelector('.cal-section').classList.add('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
@@ -1319,6 +1441,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if(focusModeBtn) {
     focusModeBtn.addEventListener('click', () => {
       currentView = 'focus';
+      hideProfileSection();
       document.querySelector('.cal-section').classList.add('hidden');
       document.getElementById('tasks-section').classList.add('hidden');
       document.getElementById('focus-section').classList.remove('hidden');
@@ -1326,12 +1449,21 @@ document.addEventListener('DOMContentLoaded', () => {
       renderFocusTasks();
     });
   }
-
-  document.getElementById('cal-next').addEventListener('click', () => {
-    currentMonthDate.setMonth(currentMonthDate.getMonth() + 1);
-    renderCalendar();
+if (profileBtn) {
+  profileBtn.addEventListener('click', () => {
+    showProfileSection();
   });
+}
 
+document.getElementById('cal-prev').addEventListener('click', () => {
+  currentMonthDate.setMonth(currentMonthDate.getMonth() - 1);
+  renderCalendar();
+});
+
+document.getElementById('cal-next').addEventListener('click', () => {
+  currentMonthDate.setMonth(currentMonthDate.getMonth() + 1);
+  renderCalendar();
+});
 
 //NEw Task addition event listeners
 newTaskBtn.addEventListener('click', () => {
