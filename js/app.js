@@ -327,16 +327,16 @@ function loadTimerState() {
         saveTimerState();
 
         if (timeLeft <= 0) {
-  clearInterval(timerInterval);
-  timerInterval = null;
-  localStorage.removeItem('focusTimerState');
+          clearInterval(timerInterval);
+          timerInterval = null;
+          localStorage.removeItem('focusTimerState');
 
-  playCompletionSound();
-  showBrowserNotification();
-  Toast.show('Focus session complete!', 'success');
+          playCompletionSound();
+          showBrowserNotification();
+          Toast.show('Focus session complete!', 'success');
 
-  resetTimer();
-}
+          resetTimer();
+        }
       }, 250);
 
       timerPauseBtn.classList.remove('hidden');
@@ -347,6 +347,7 @@ function loadTimerState() {
     console.error('Failed to load timer state', err);
   }
 }
+
 function getTimerColor(timeLeft, totalTime) {
   const fraction = timeLeft / totalTime;
   if (fraction <= 0.1) return '#ef4444';
@@ -456,7 +457,7 @@ function startTimer() {
 
   startTime = Date.now() - (timePassed * 1000);
   saveTimerState();
-   timerInterval = setInterval(() => {
+  timerInterval = setInterval(() => {
     timePassed = Math.floor((Date.now() - startTime) / 1000);
     timeLeft = TIME_LIMIT - timePassed;
 
@@ -1414,12 +1415,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   store.fetchInitialData();
-<<<<<<< HEAD
   store.fetchFocusSessions();
-=======
   loadTimerState();
->>>>>>> upstream/main
-  
+
   const calendarBtn = document.getElementById('calendar-btn');
   const allTasksBtn = document.getElementById('all-tasks-btn');
   const archivedTasksBtn = document.getElementById('archived-tasks-btn');
@@ -1460,7 +1458,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderTasks();
   });
 
-  if(focusModeBtn) {
+  if (focusModeBtn) {
     focusModeBtn.addEventListener('click', () => {
       currentView = 'focus';
       hideProfileSection();
@@ -1472,7 +1470,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-<<<<<<< HEAD
   if (profileBtn) {
     profileBtn.addEventListener('click', () => {
       showProfileSection();
@@ -1484,123 +1481,119 @@ document.addEventListener('DOMContentLoaded', () => {
     renderCalendar();
   });
 
-=======
->>>>>>> upstream/main
   document.getElementById('cal-next').addEventListener('click', () => {
     currentMonthDate.setMonth(currentMonthDate.getMonth() + 1);
     renderCalendar();
   });
 
+  // New Task addition event listeners
+  newTaskBtn.addEventListener('click', () => {
+    if (!store.subjects || store.subjects.length === 0) {
+      Toast.show('Subjects are still loading. Please try again in a moment.', 'warning');
+      return;
+    }
 
-//NEw Task addition event listeners
-newTaskBtn.addEventListener('click', () => {
-  
-  if (!store.subjects || store.subjects.length === 0) {
-    Toast.show('Subjects are still loading. Please try again in a moment.', 'warning');
-    return;
-  }
+    newTaskSubject.innerHTML = store.subjects
+      .map(s => `<option value="${s.id}">${s.name}</option>`)
+      .join('');
 
-  newTaskSubject.innerHTML = store.subjects
-    .map(s => `<option value="${s.id}">${s.name}</option>`)
-    .join('');
+    if (selectedDate) {
+      const d = new Date(selectedDate);
+      d.setHours(18, 0, 0, 0);
+      newTaskDate.value = d.toISOString().substring(0, 16);
+    } else {
+      newTaskDate.value = '';
+    }
 
+    newTaskTitle.value = '';
+    newTaskNotes.value = '';
+    if (newTaskEstimatedDuration) newTaskEstimatedDuration.value = '';
+    setNewTaskDurationUnit('minutes');
 
-  if (selectedDate) {
-    const d = new Date(selectedDate);
-    d.setHours(18, 0, 0, 0); 
-    newTaskDate.value = d.toISOString().substring(0, 16);
-  } else {
-    newTaskDate.value = '';
-  }
+    newTaskModal.style.display = 'flex';
+  });
 
-  newTaskTitle.value = '';
-  newTaskNotes.value = '';
-  if (newTaskEstimatedDuration) newTaskEstimatedDuration.value = '';
-  setNewTaskDurationUnit('minutes');
-
-  newTaskModal.style.display = 'flex';
-});
-
-newTaskCancel.addEventListener('click', () => {
-  newTaskModal.style.display = 'none';
-});
-
-newTaskModal.addEventListener('click', (e) => {
-  if (e.target === newTaskModal) {
+  newTaskCancel.addEventListener('click', () => {
     newTaskModal.style.display = 'none';
-  }
-});
+  });
 
-function setNewTaskDurationUnit(unit) {
-  selectedTaskDurationUnit = unit;
-  newTaskDurationSwitch?.setAttribute('data-unit', unit);
-  newTaskDurationMin?.classList.toggle('active', unit === 'minutes');
-  newTaskDurationHr?.classList.toggle('active', unit === 'hours');
-}
+  newTaskModal.addEventListener('click', (e) => {
+    if (e.target === newTaskModal) {
+      newTaskModal.style.display = 'none';
+    }
+  });
 
-newTaskDurationMin?.addEventListener('click', () => setNewTaskDurationUnit('minutes'));
-newTaskDurationHr?.addEventListener('click', () => setNewTaskDurationUnit('hours'));
-
-newTaskSave.addEventListener('click', async () => {
-  const rawTitle = newTaskTitle.value.trim();
-  const subject_id = newTaskSubject.value;
-  const notes = newTaskNotes.value.trim();
-  const dateVal = newTaskDate.value;
-  const durationValue = newTaskEstimatedDuration ? Number(newTaskEstimatedDuration.value) : 0;
-  const estimated_duration = durationValue > 0
-    ? Math.round(selectedTaskDurationUnit === 'hours' ? durationValue * 60 : durationValue)
-    : null;
-
-  if (!rawTitle) {
-    alert('Please enter a task name');
-    return;
+  function setNewTaskDurationUnit(unit) {
+    selectedTaskDurationUnit = unit;
+    newTaskDurationSwitch?.setAttribute('data-unit', unit);
+    newTaskDurationMin?.classList.toggle('active', unit === 'minutes');
+    newTaskDurationHr?.classList.toggle('active', unit === 'hours');
   }
 
-  if (!dateVal) {
-  alert('Please enter a deadline');
-  return;
-}
+  newTaskDurationMin?.addEventListener('click', () => setNewTaskDurationUnit('minutes'));
+  newTaskDurationHr?.addEventListener('click', () => setNewTaskDurationUnit('hours'));
 
-if (!subject_id) {
-  alert('Please select a subject');
-  return;
-}
-  const { cleanTitle, labels } = extractLabels(rawTitle);
-  const due_at = dateVal ? new Date(dateVal).toISOString() : '';
+  newTaskSave.addEventListener('click', async () => {
+    const rawTitle = newTaskTitle.value.trim();
+    const subject_id = newTaskSubject.value;
+    const notes = newTaskNotes.value.trim();
+    const dateVal = newTaskDate.value;
+    const durationValue = newTaskEstimatedDuration ? Number(newTaskEstimatedDuration.value) : 0;
+    const estimated_duration = durationValue > 0
+      ? Math.round(selectedTaskDurationUnit === 'hours' ? durationValue * 60 : durationValue)
+      : null;
 
-  const newTask = {
-    title: cleanTitle || rawTitle,
-    subject_id,
-    due_at,
-    notes,
-    priority: 'medium',
-    status: 'Not Started',
-    archived: 0,
-    estimated_duration,
-    is_estimated_duration_min: selectedTaskDurationUnit === 'minutes' ? 1 : 0,
-    labels
-  };
+    if (!rawTitle) {
+      alert('Please enter a task name');
+      return;
+    }
 
-  await store.addTasks([newTask]);
-  newTaskModal.style.display = 'none';
-});
+    if (!dateVal) {
+      alert('Please enter a deadline');
+      return;
+    }
 
-addItemsBtn.addEventListener('click', () => {
-  if (store.currentPaste) {
-    const pasteWithLabels = store.currentPaste.map(t => {
-      const { cleanTitle, labels } = extractLabels(t.title);
-      return { ...t, title: cleanTitle || t.title, labels };
-    });
-    store.addTasks(pasteWithLabels);
-    store.clearExtracted();
-    pasteInput.value = '';
-  }
-});
+    if (!subject_id) {
+      alert('Please select a subject');
+      return;
+    }
+
+    const { cleanTitle, labels } = extractLabels(rawTitle);
+    const due_at = dateVal ? new Date(dateVal).toISOString() : '';
+
+    const newTask = {
+      title: cleanTitle || rawTitle,
+      subject_id,
+      due_at,
+      notes,
+      priority: 'medium',
+      status: 'Not Started',
+      archived: 0,
+      estimated_duration,
+      is_estimated_duration_min: selectedTaskDurationUnit === 'minutes' ? 1 : 0,
+      labels
+    };
+
+    await store.addTasks([newTask]);
+    newTaskModal.style.display = 'none';
+  });
+
+  addItemsBtn.addEventListener('click', () => {
+    if (store.currentPaste) {
+      const pasteWithLabels = store.currentPaste.map(t => {
+        const { cleanTitle, labels } = extractLabels(t.title);
+        return { ...t, title: cleanTitle || t.title, labels };
+      });
+      store.addTasks(pasteWithLabels);
+      store.clearExtracted();
+      pasteInput.value = '';
+    }
+  });
 });
 
 // Ensures the button is hidden on initial page load if the textarea is empty
 if (pasteInput.value.trim() === "") {
-    clearBtn.style.display = 'none';
+  clearBtn.style.display = 'none';
 }
 
 extractBtn.addEventListener('click', async () => {
@@ -1620,19 +1613,19 @@ extractBtn.addEventListener('click', async () => {
 
 // Wipes the text, clears the store, hides the button, and refocuses the cursor
 clearBtn.addEventListener('click', () => {
-    pasteInput.value = '';
-    store.clearExtracted();
-    clearBtn.style.display = 'none'; // Hides the clear button instantly
-    pasteInput.focus();              // Puts the typing cursor back in the box
+  pasteInput.value = '';
+  store.clearExtracted();
+  clearBtn.style.display = 'none';
+  pasteInput.focus();
 });
 
 // Listens to typing/pasting to show or hide the button dynamically
 pasteInput.addEventListener('input', () => {
-    if (pasteInput.value.trim().length > 0) {
-        clearBtn.style.display = 'block'; 
-    } else {
-        clearBtn.style.display = 'none';
-    }
+  if (pasteInput.value.trim().length > 0) {
+    clearBtn.style.display = 'block';
+  } else {
+    clearBtn.style.display = 'none';
+  }
 });
 
 downloadBtn.addEventListener('click', () => {

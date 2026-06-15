@@ -5069,9 +5069,6 @@ body {
   font-size: 14px;
   transition: opacity 0.2s ease;
 }
-
 .subject-sidebar-item:hover .delete-subject-btn {
   opacity: 1;
 }
-
-
