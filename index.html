@@ -43,8 +43,6 @@
       <span id="auth-toggle-text">Don't have an account?</span>
       <a id="auth-toggle-btn" href="#" style="color:#4f46e5; font-weight:600; margin-left:4px;">Sign Up</a>
     </p>
-
-    <p id="auth-error" style="color:red; font-size:13px; text-align:center; margin:8px 0 0; display:none;"></p>
   </div>
 </div>
 
@@ -247,10 +245,6 @@
     Add items to planner
   </button>
 </div>
-
-
-      <button id="add-btn" class="add-btn" disabled>Add items to planner</button>
-    </div>
   </div>
 </div>
 
@@ -506,7 +500,7 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
     <h3 style="margin:0 0 12px; font-size:18px; font-weight:600;">New task</h3>
 
     <label style="display:block; font-size:12px; margin-bottom:4px;">Subject</label>
-    <select id="new-task-subject" paceholder="Subject" style="width:100%; padding:6px; margin-bottom:10px;"></select>
+    <select id="new-task-subject" placeholder="Subject" style="width:100%; padding:6px; margin-bottom:10px;"></select>
 
     <label style="display:block; font-size:12px; margin-bottom:4px;">Task name (Use #tag for labels)</label>
     <input id="new-task-title" type="text" style="width:100%; padding:6px; margin-bottom:10px;"placeholder="e.g. Study for exam #urgent #school">
