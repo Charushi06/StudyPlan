@@ -42,12 +42,10 @@ function generateSummary(tasks, subjects) {
 
     const d = new Date(t.due_at);
 
-    // today
     if (d.toDateString() === now.toDateString()) {
       todayCount++;
     }
 
-    // this week
     if (d >= now && d <= weekEnd) {
       weekCount++;
     }
@@ -174,7 +172,7 @@ function renderSidebarSubjects() {
   listEl.innerHTML = subjects.map(s => {
     const n = countBySubject[s.id] ?? 0;
     const safeColor = s.color ? escapeHtml(s.color) : 'var(--color-text-info)';
-return `
+    return `
   <div class="nav-item subject-sidebar-item" data-subject-id="${escapeHtml(s.id)}">
 
     <div class="subject-sidebar-content">
@@ -327,16 +325,16 @@ function loadTimerState() {
         saveTimerState();
 
         if (timeLeft <= 0) {
-  clearInterval(timerInterval);
-  timerInterval = null;
-  localStorage.removeItem('focusTimerState');
+          clearInterval(timerInterval);
+          timerInterval = null;
+          localStorage.removeItem('focusTimerState');
 
-  playCompletionSound();
-  showBrowserNotification();
-  Toast.show('Focus session complete!', 'success');
+          playCompletionSound();
+          showBrowserNotification();
+          Toast.show('Focus session complete!', 'success');
 
-  resetTimer();
-}
+          resetTimer();
+        }
       }, 250);
 
       timerPauseBtn.classList.remove('hidden');
@@ -347,6 +345,7 @@ function loadTimerState() {
     console.error('Failed to load timer state', err);
   }
 }
+
 function getTimerColor(timeLeft, totalTime) {
   const fraction = timeLeft / totalTime;
   if (fraction <= 0.1) return '#ef4444';
@@ -456,7 +455,7 @@ function startTimer() {
 
   startTime = Date.now() - (timePassed * 1000);
   saveTimerState();
-   timerInterval = setInterval(() => {
+  timerInterval = setInterval(() => {
     timePassed = Math.floor((Date.now() - startTime) / 1000);
     timeLeft = TIME_LIMIT - timePassed;
 
@@ -771,13 +770,11 @@ function renderTasks() {
   const tasks = store.tasks;
   const subjects = store.subjects;
   
-  if (subjects.length === 0) return; // Wait for subjects to load
+  if (subjects.length === 0) return;
   
-  // Filter based on archived status
   const activeTasks = tasks.filter(t => !t.archived);
   const archivedTasks = tasks.filter(t => t.archived);
   
-  // Update badges
   const allTasksBadge = document.querySelector('#all-tasks-btn .badge');
   if (allTasksBadge) {
     allTasksBadge.textContent = activeTasks.length;
@@ -792,7 +789,6 @@ function renderTasks() {
     ? displayTasksRaw.filter(t => t.labels && t.labels.includes(activeLabelFilter))
     : displayTasksRaw;
 
-  // Extract unique labels to populate the filter dropdown
   if (labelFilterSelect) {
     const uniqueLabels = new Set();
     store.tasks.forEach(t => {
@@ -801,7 +797,6 @@ function renderTasks() {
       }
     });
     
-    // Store current selection to restore it
     const currentSel = labelFilterSelect.value;
     let optionsHtml = '<option value="">All Labels</option>';
     Array.from(uniqueLabels).sort().forEach(lbl => {
@@ -862,7 +857,6 @@ function renderTasks() {
       });
     }
     
-      
     items.forEach(t => {
       const sub = subjects.find(s => s.id === t.subject_id) || subjects[0];
       const isDone = t.status === 'Done';
@@ -982,18 +976,11 @@ function renderTasks() {
       : '';
 
     const totalMinutes = [...dueSoon, ...completed].reduce((acc, t) => acc + (Number(t.estimated_duration) || 0), 0);
-    console.log('[Daily Study Time] Calendar view with selected date:', selectedDate);
-    console.log('[Daily Study Time] Pending tasks:', dueSoon.length, 'Completed tasks:', completed.length);
-    console.log('[Daily Study Time] Task durations:', [...dueSoon, ...completed].map(t => ({ title: t.title, estimated_duration: t.estimated_duration })));
-    console.log('[Daily Study Time] Total minutes calculated:', totalMinutes);
     const studyTimeEl = document.getElementById('daily-study-time');
     const studyTimeValueEl = document.getElementById('daily-study-time-value');
     if (studyTimeEl && studyTimeValueEl) {
       studyTimeEl.style.display = 'flex';
       studyTimeValueEl.textContent = formatDuration(totalMinutes);
-      console.log('[Daily Study Time] Banner shown with value:', formatDuration(totalMinutes));
-    } else {
-      console.log('[Daily Study Time] Banner elements not found');
     }
 
     tasksSection.innerHTML = actionBar +
@@ -1001,7 +988,6 @@ function renderTasks() {
                              renderGroup('Completed', completed, 'var(--color-text-tertiary)') +
                              emptyState;
   } else {
-    console.log('[Daily Study Time] Hiding banner - currentView:', currentView, 'selectedDate:', selectedDate);
     const studyTimeEl = document.getElementById('daily-study-time');
     if (studyTimeEl) {
       studyTimeEl.style.display = 'none';
@@ -1038,7 +1024,6 @@ function renderTasks() {
                              emptyState;
   }
 
-  // Bind CTA button in empty state
   const emptyStateAddBtn = document.getElementById('empty-state-add-btn');
   if (emptyStateAddBtn) {
     emptyStateAddBtn.addEventListener('click', () => {
@@ -1198,7 +1183,6 @@ function renderCalendar() {
     const isToday = i === today.getDate() && month === today.getMonth() && year === today.getFullYear();
     const isSelected = selectedDate && i === selectedDate.getDate() && month === selectedDate.getMonth() && year === selectedDate.getFullYear();
     
-    // Find tasks for this day
     const dayTasks = store.tasks.filter(t => {
       if (t.archived) return false;
       if (t.status === 'Done') return false;
@@ -1234,7 +1218,6 @@ function renderCalendar() {
   
   calGrid.innerHTML = html;
 
-  // Bind day clicks
   document.querySelectorAll('.interactive-day').forEach(el => {
     el.addEventListener('click', (e) => {
       const d = parseInt(e.currentTarget.getAttribute('data-day'));
@@ -1265,9 +1248,7 @@ function renderExtraction() {
   
   let html = `<div class="extract-title">Extracted — ${pasteItems.length} items</div>`;
   pasteItems.forEach((item, index) => {
-    // try to match subject name
     const sub = store.subjects.find(s => s.name.toLowerCase().includes((item.subject_name || '').toLowerCase())) || store.subjects[3];
-    // Attach subject id to item so Add will work
     item.subject_id = sub.id;
     
     if (item._isEditing) {
@@ -1414,16 +1395,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   store.fetchInitialData();
-<<<<<<< HEAD
   store.fetchFocusSessions();
-=======
   loadTimerState();
->>>>>>> upstream/main
-  
+
   const calendarBtn = document.getElementById('calendar-btn');
   const allTasksBtn = document.getElementById('all-tasks-btn');
   const archivedTasksBtn = document.getElementById('archived-tasks-btn');
   const focusModeBtn = document.getElementById('focus-mode-btn');
+  const profileBtn = document.getElementById('profile-btn');
 
   function updateSidebarActive(id) {
     document.querySelectorAll('.sidebar .nav-item').forEach(el => el.classList.remove('active'));
@@ -1460,7 +1439,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderTasks();
   });
 
-  if(focusModeBtn) {
+  if (focusModeBtn) {
     focusModeBtn.addEventListener('click', () => {
       currentView = 'focus';
       hideProfileSection();
@@ -1472,10 +1451,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-<<<<<<< HEAD
   if (profileBtn) {
     profileBtn.addEventListener('click', () => {
       showProfileSection();
+      updateSidebarActive('profile-btn');
     });
   }
 
@@ -1484,118 +1463,116 @@ document.addEventListener('DOMContentLoaded', () => {
     renderCalendar();
   });
 
-=======
->>>>>>> upstream/main
   document.getElementById('cal-next').addEventListener('click', () => {
     currentMonthDate.setMonth(currentMonthDate.getMonth() + 1);
     renderCalendar();
   });
 
 
-//NEw Task addition event listeners
-newTaskBtn.addEventListener('click', () => {
-  
-  if (!store.subjects || store.subjects.length === 0) {
-    Toast.show('Subjects are still loading. Please try again in a moment.', 'warning');
-    return;
-  }
+  // New Task addition event listeners
+  newTaskBtn.addEventListener('click', () => {
+    
+    if (!store.subjects || store.subjects.length === 0) {
+      Toast.show('Subjects are still loading. Please try again in a moment.', 'warning');
+      return;
+    }
 
-  newTaskSubject.innerHTML = store.subjects
-    .map(s => `<option value="${s.id}">${s.name}</option>`)
-    .join('');
+    newTaskSubject.innerHTML = store.subjects
+      .map(s => `<option value="${s.id}">${s.name}</option>`)
+      .join('');
 
+    if (selectedDate) {
+      const d = new Date(selectedDate);
+      d.setHours(18, 0, 0, 0); 
+      newTaskDate.value = d.toISOString().substring(0, 16);
+    } else {
+      newTaskDate.value = '';
+    }
 
-  if (selectedDate) {
-    const d = new Date(selectedDate);
-    d.setHours(18, 0, 0, 0); 
-    newTaskDate.value = d.toISOString().substring(0, 16);
-  } else {
-    newTaskDate.value = '';
-  }
+    newTaskTitle.value = '';
+    newTaskNotes.value = '';
+    if (newTaskEstimatedDuration) newTaskEstimatedDuration.value = '';
+    setNewTaskDurationUnit('minutes');
 
-  newTaskTitle.value = '';
-  newTaskNotes.value = '';
-  if (newTaskEstimatedDuration) newTaskEstimatedDuration.value = '';
-  setNewTaskDurationUnit('minutes');
+    newTaskModal.style.display = 'flex';
+  });
 
-  newTaskModal.style.display = 'flex';
-});
-
-newTaskCancel.addEventListener('click', () => {
-  newTaskModal.style.display = 'none';
-});
-
-newTaskModal.addEventListener('click', (e) => {
-  if (e.target === newTaskModal) {
+  newTaskCancel.addEventListener('click', () => {
     newTaskModal.style.display = 'none';
-  }
-});
+  });
 
-function setNewTaskDurationUnit(unit) {
-  selectedTaskDurationUnit = unit;
-  newTaskDurationSwitch?.setAttribute('data-unit', unit);
-  newTaskDurationMin?.classList.toggle('active', unit === 'minutes');
-  newTaskDurationHr?.classList.toggle('active', unit === 'hours');
-}
+  newTaskModal.addEventListener('click', (e) => {
+    if (e.target === newTaskModal) {
+      newTaskModal.style.display = 'none';
+    }
+  });
 
-newTaskDurationMin?.addEventListener('click', () => setNewTaskDurationUnit('minutes'));
-newTaskDurationHr?.addEventListener('click', () => setNewTaskDurationUnit('hours'));
-
-newTaskSave.addEventListener('click', async () => {
-  const rawTitle = newTaskTitle.value.trim();
-  const subject_id = newTaskSubject.value;
-  const notes = newTaskNotes.value.trim();
-  const dateVal = newTaskDate.value;
-  const durationValue = newTaskEstimatedDuration ? Number(newTaskEstimatedDuration.value) : 0;
-  const estimated_duration = durationValue > 0
-    ? Math.round(selectedTaskDurationUnit === 'hours' ? durationValue * 60 : durationValue)
-    : null;
-
-  if (!rawTitle) {
-    alert('Please enter a task name');
-    return;
+  function setNewTaskDurationUnit(unit) {
+    selectedTaskDurationUnit = unit;
+    newTaskDurationSwitch?.setAttribute('data-unit', unit);
+    newTaskDurationMin?.classList.toggle('active', unit === 'minutes');
+    newTaskDurationHr?.classList.toggle('active', unit === 'hours');
   }
 
-  if (!dateVal) {
-  alert('Please enter a deadline');
-  return;
-}
+  newTaskDurationMin?.addEventListener('click', () => setNewTaskDurationUnit('minutes'));
+  newTaskDurationHr?.addEventListener('click', () => setNewTaskDurationUnit('hours'));
 
-if (!subject_id) {
-  alert('Please select a subject');
-  return;
-}
-  const { cleanTitle, labels } = extractLabels(rawTitle);
-  const due_at = dateVal ? new Date(dateVal).toISOString() : '';
+  newTaskSave.addEventListener('click', async () => {
+    const rawTitle = newTaskTitle.value.trim();
+    const subject_id = newTaskSubject.value;
+    const notes = newTaskNotes.value.trim();
+    const dateVal = newTaskDate.value;
+    const durationValue = newTaskEstimatedDuration ? Number(newTaskEstimatedDuration.value) : 0;
+    const estimated_duration = durationValue > 0
+      ? Math.round(selectedTaskDurationUnit === 'hours' ? durationValue * 60 : durationValue)
+      : null;
 
-  const newTask = {
-    title: cleanTitle || rawTitle,
-    subject_id,
-    due_at,
-    notes,
-    priority: 'medium',
-    status: 'Not Started',
-    archived: 0,
-    estimated_duration,
-    is_estimated_duration_min: selectedTaskDurationUnit === 'minutes' ? 1 : 0,
-    labels
-  };
+    if (!rawTitle) {
+      alert('Please enter a task name');
+      return;
+    }
 
-  await store.addTasks([newTask]);
-  newTaskModal.style.display = 'none';
-});
+    if (!dateVal) {
+      alert('Please enter a deadline');
+      return;
+    }
 
-addItemsBtn.addEventListener('click', () => {
-  if (store.currentPaste) {
-    const pasteWithLabels = store.currentPaste.map(t => {
-      const { cleanTitle, labels } = extractLabels(t.title);
-      return { ...t, title: cleanTitle || t.title, labels };
-    });
-    store.addTasks(pasteWithLabels);
-    store.clearExtracted();
-    pasteInput.value = '';
-  }
-});
+    if (!subject_id) {
+      alert('Please select a subject');
+      return;
+    }
+
+    const { cleanTitle, labels } = extractLabels(rawTitle);
+    const due_at = dateVal ? new Date(dateVal).toISOString() : '';
+
+    const newTask = {
+      title: cleanTitle || rawTitle,
+      subject_id,
+      due_at,
+      notes,
+      priority: 'medium',
+      status: 'Not Started',
+      archived: 0,
+      estimated_duration,
+      is_estimated_duration_min: selectedTaskDurationUnit === 'minutes' ? 1 : 0,
+      labels
+    };
+
+    await store.addTasks([newTask]);
+    newTaskModal.style.display = 'none';
+  });
+
+  addItemsBtn.addEventListener('click', () => {
+    if (store.currentPaste) {
+      const pasteWithLabels = store.currentPaste.map(t => {
+        const { cleanTitle, labels } = extractLabels(t.title);
+        return { ...t, title: cleanTitle || t.title, labels };
+      });
+      store.addTasks(pasteWithLabels);
+      store.clearExtracted();
+      pasteInput.value = '';
+    }
+  });
 });
 
 // Ensures the button is hidden on initial page load if the textarea is empty
@@ -1622,8 +1599,8 @@ extractBtn.addEventListener('click', async () => {
 clearBtn.addEventListener('click', () => {
     pasteInput.value = '';
     store.clearExtracted();
-    clearBtn.style.display = 'none'; // Hides the clear button instantly
-    pasteInput.focus();              // Puts the typing cursor back in the box
+    clearBtn.style.display = 'none';
+    pasteInput.focus();
 });
 
 // Listens to typing/pasting to show or hide the button dynamically
@@ -1652,7 +1629,6 @@ if (fileInput) {
 
 // Handle Drag & Drop Events
 if (dropZone) {
-  // Prevent browser from opening the file
   ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
     dropZone.addEventListener(eventName, (e) => {
       e.preventDefault();
@@ -1660,21 +1636,18 @@ if (dropZone) {
     });
   });
 
-  // Add highlight effect
   ['dragenter', 'dragover'].forEach(eventName => {
     dropZone.addEventListener(eventName, () => {
       dropZone.classList.add('paste-zone--dragover');
     });
   });
 
-  // Remove highlight effect
   ['dragleave', 'drop'].forEach(eventName => {
     dropZone.addEventListener(eventName, () => {
       dropZone.classList.remove('paste-zone--dragover');
     });
   });
 
-  // Handle dropped file
   dropZone.addEventListener('drop', (e) => {
     const dt = e.dataTransfer;
 
@@ -1690,7 +1663,6 @@ function handleFileContent(file) {
   const allowedExtensions = ['txt', 'md', 'json'];
   const fileExtension = file.name.split('.').pop().toLowerCase();
 
-  // Validate extension
   if (!allowedExtensions.includes(fileExtension)) {
     alert('Invalid file format. Please upload a .txt, .md, or .json file.');
     return;
