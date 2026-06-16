@@ -5,6 +5,11 @@ const { db, initDb } = require('./database');
 const { GoogleGenAI } = require('@google/genai');
 const path = require('path');
 const csvDownloadRouter = require('./backend/routers/csvDownload.router.js');
+const { OAuth2Client } = require('google-auth-library');
+const jwt = require('jsonwebtoken');
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const JWT_SECRET = process.env.JWT_SECRET || 'your-fallback-secret-key';
 
 const app = express();
 app.use(cors());
@@ -553,18 +558,27 @@ Text: "${text}"
   return res.json(tasks);
 });
 // ================= AUTH =================
-const users = {}; // Simple in-memory user store
 
 app.post('/api/auth/signup', (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password required' });
   }
-  if (users[email]) {
-    return res.status(400).json({ error: 'User already exists' });
-  }
-  users[email] = { email, password };
-  res.json({ success: true, message: 'Account created successfully' });
+  db.get('SELECT * FROM users WHERE email = ?', [email], (err, row) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (row) return res.status(400).json({ error: 'User already exists' });
+    
+    const id = 'user_' + Date.now() + Math.random().toString(36).substr(2, 5);
+    db.run(
+      'INSERT INTO users (id, email, password, auth_provider) VALUES (?, ?, ?, ?)',
+      [id, email, password, 'local'],
+      function (err) {
+        if (err) return res.status(500).json({ error: err.message });
+        const token = jwt.sign({ id, email }, JWT_SECRET, { expiresIn: '7d' });
+        res.json({ success: true, message: 'Account created successfully', token });
+      }
+    );
+  });
 });
 
 app.post('/api/auth/login', (req, res) => {
@@ -572,11 +586,53 @@ app.post('/api/auth/login', (req, res) => {
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password required' });
   }
-  const user = users[email];
-  if (!user || user.password !== password) {
-    return res.status(401).json({ error: 'Invalid email or password' });
+  db.get('SELECT * FROM users WHERE email = ?', [email], (err, user) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!user || user.password !== password) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
+    res.json({ success: true, email: user.email, token });
+  });
+});
+
+app.post('/api/auth/google', async (req, res) => {
+  const { token } = req.body;
+  if (!token) return res.status(400).json({ error: 'Token is required' });
+  
+  try {
+    const ticket = await googleClient.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    const { email, name, picture } = payload;
+    
+    db.get('SELECT * FROM users WHERE email = ?', [email], (err, user) => {
+      if (err) return res.status(500).json({ error: err.message });
+      
+      if (user) {
+        // User exists, just log them in
+        const jwtToken = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
+        return res.json({ success: true, email: user.email, token: jwtToken });
+      } else {
+        // Create new user
+        const id = 'user_' + Date.now() + Math.random().toString(36).substr(2, 5);
+        db.run(
+          'INSERT INTO users (id, email, name, picture, auth_provider) VALUES (?, ?, ?, ?, ?)',
+          [id, email, name, picture, 'google'],
+          function (err) {
+            if (err) return res.status(500).json({ error: err.message });
+            const jwtToken = jwt.sign({ id, email }, JWT_SECRET, { expiresIn: '7d' });
+            res.json({ success: true, email, token: jwtToken });
+          }
+        );
+      }
+    });
+  } catch (err) {
+    console.error('Google Auth Error:', err);
+    res.status(401).json({ error: 'Invalid Google token' });
   }
-  res.json({ success: true, email: user.email });
 });
 
 // Intentional test route for verifying server error page behavior.

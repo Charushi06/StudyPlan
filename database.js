@@ -5,6 +5,17 @@ const db = new sqlite3.Database(path.join(__dirname, 'studyplan.db'));
 
 function initDb() {
   db.serialize(() => {
+    // Users Table
+    db.run(`CREATE TABLE IF NOT EXISTS users (
+      id TEXT PRIMARY KEY,
+      email TEXT UNIQUE NOT NULL,
+      name TEXT,
+      picture TEXT,
+      auth_provider TEXT DEFAULT 'local',
+      password TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`);
+
     // Subjects Table
     db.run(`CREATE TABLE IF NOT EXISTS subjects (
       id TEXT PRIMARY KEY,
