@@ -149,10 +149,27 @@ body {
 }
 
 /* Sidebar */
+@media (max-width: 768px) {
+  .app {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--color-border-tertiary);
+    padding: 12px;
+    gap: 8px;
+  }
+}
+
 .sidebar {
   background: var(--color-background-secondary);
   border-right: 1px solid var(--color-border-tertiary);
   padding: 20px 16px;
+  display: flex;
+}
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -4989,6 +5006,121 @@ body {
 .smart-highlight {
   color: #ffcc66;
   font-weight: 600;
+}
+/* Mobile Responsive Fixes */
+@media (max-width: 1024px) {
+  .app {
+    grid-template-columns: 220px 1fr;
+  }
+
+  .panel {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  body {
+    padding: 12px;
+  }
+
+  .app {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--color-border-tertiary);
+  }
+
+  .main {
+    width: 100%;
+  }
+
+  .topbar {
+    padding: 12px 16px;
+    flex-wrap: wrap;
+  }
+
+  .cal-section,
+  .tasks-section {
+    padding: 12px 16px;
+  }
+
+  .site-header,
+  .site-footer {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+
+  .header-nav,
+  .footer-links {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+@media (max-width: 768px) {
+  body {
+    padding: 12px;
+  }
+
+  .app {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--color-border-tertiary);
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .panel {
+    width: 100%;
+  }
+
+  .site-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .header-nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .header-right {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .cal-section,
+  .tasks-section {
+    padding: 12px 16px;
+  }
+}
+.header-nav a {
+  transition: 0.3s ease;
+  cursor: pointer;
+}
+
+.header-nav a:hover {
+  opacity: 0.7;
+}
+@media (max-width: 768px) {
+  .profile-btn {
+    width: auto;
+    padding: 8px 14px;
+  }
 }
 
 .subject-sidebar-item {
