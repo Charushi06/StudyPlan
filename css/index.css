@@ -5022,3 +5022,55 @@ body {
 .subject-sidebar-item:hover .delete-subject-btn {
   opacity: 1;
 }
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .site-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  
+  .header-nav {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  
+  .header-right {
+    width: 100%;
+    justify-content: flex-start;
+    margin-top: 8px;
+  }
+  
+  .app {
+    grid-template-columns: 1fr;
+    height: auto;
+    min-height: 100vh;
+    border-radius: 0;
+  }
+  
+  .sidebar {
+    border-right: none;
+    border-bottom: 1px solid var(--color-border-tertiary);
+    height: auto;
+  }
+  
+  .panel {
+    border-left: none;
+    border-top: 1px solid var(--color-border-tertiary);
+  }
+  
+  .cal-header {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .topbar {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  
+  .topbar select {
+    margin-left: 0 !important;
+  }
+}
