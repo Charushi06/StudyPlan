@@ -1496,6 +1496,23 @@ body {
   color: var(--color-text-primary);
 }
 
+.header-nav a.active {
+  color: var(--color-text-primary);
+  font-weight: 700;
+  position: relative;
+}
+
+.header-nav a.active::after {
+  background: var(--color-text-primary);
+  border-radius: 999px;
+  bottom: -8px;
+  content: '';
+  height: 2px;
+  left: 0;
+  position: absolute;
+  right: 0;
+}
+
 .profile-btn {
   padding: 8px 16px;
   border: none;
