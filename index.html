@@ -61,8 +61,26 @@
     <a href="#" id="nav-settings">Settings</a>
   </nav>
 
-  <div class="header-right">
-    <button class="profile-btn">Profile</button>
+  <div class="header-right" style="position:relative;">
+    <button class="profile-btn" id="profile-btn">Profile</button>
+
+    <!-- Profile Dropdown Overlay -->
+    <div id="profile-dropdown" class="profile-dropdown" style="display:none;">
+      <div class="profile-dropdown-header">Profile</div>
+
+      <div class="profile-dropdown-field">
+        <label for="profile-display-name" class="profile-dropdown-label">Display Name</label>
+        <input id="profile-display-name" type="text" class="profile-dropdown-input" placeholder="Your name">
+      </div>
+
+      <div class="profile-dropdown-field">
+        <label class="profile-dropdown-label">Email</label>
+        <input id="profile-email-display" type="email" class="profile-dropdown-input profile-dropdown-input--readonly" disabled>
+      </div>
+
+      <button id="profile-save-btn" class="btn btn-primary" style="width:100%; margin-top:4px;">Save</button>
+    </div>
+
     <button class="profile-btn" id="logout-btn">Logout</button>
   </div>
 </header>
@@ -272,6 +290,20 @@
     </div>
     
     <div style="margin-bottom: 24px;">
+      <h3 style="font-size:12px; font-weight:700; text-transform:uppercase; color:var(--color-text-tertiary); margin-bottom:16px; letter-spacing:0.05em;">Profile</h3>
+      <div style="margin-bottom: 16px;">
+        <label for="settings-display-name" style="display:block; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:var(--color-text-tertiary); margin-bottom:6px;">Display Name</label>
+        <input id="settings-display-name" type="text" placeholder="Your name" style="width:100%; box-sizing:border-box; padding:8px 10px; font-size:14px; font-family:inherit; border:1px solid var(--color-border-secondary); border-radius:var(--border-radius-sm); background:var(--color-background-secondary); color:var(--color-text-primary); outline:none; transition:border-color 0.15s ease;">
+      </div>
+      <div>
+        <label style="display:block; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:var(--color-text-tertiary); margin-bottom:6px;">Email</label>
+        <input id="settings-email-display" type="email" disabled style="width:100%; box-sizing:border-box; padding:8px 10px; font-size:14px; font-family:inherit; border:1px solid var(--color-border-tertiary); border-radius:var(--border-radius-sm); background:var(--color-background-tertiary); color:var(--color-text-tertiary); cursor:not-allowed;">
+      </div>
+    </div>
+
+    <div style="border-top:1px solid var(--color-border-tertiary); margin-bottom:24px;"></div>
+
+    <div style="margin-bottom: 24px;">
       <h3 style="font-size:12px; font-weight:700; text-transform:uppercase; color:var(--color-text-tertiary); margin-bottom:16px; letter-spacing:0.05em;">Appearance</h3>
       <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 16px;">
         <span style="font-size:14px; font-weight:500;">Dark Mode</span>
@@ -461,8 +493,24 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
   // Run on load
   loadPreferences();
 
+  // Pre-fill Settings profile fields whenever the modal opens
+  function loadSettingsProfileFields() {
+    const user = JSON.parse(localStorage.getItem('studyplan_user') || '{}');
+    document.getElementById('settings-display-name').value =
+      localStorage.getItem('studyplan_display_name') || '';
+    document.getElementById('settings-email-display').value = user.email || '';
+  }
+
+  navSettings.addEventListener('click', loadSettingsProfileFields);
+
   // Save changes when user clicks "Save Changes"
   settingsSave.addEventListener('click', () => {
+    // Save profile display name and sync to dropdown
+    const settingsName = document.getElementById('settings-display-name').value.trim();
+    localStorage.setItem('studyplan_display_name', settingsName);
+    const profileNameInput = document.getElementById('profile-display-name');
+    if (profileNameInput) profileNameInput.value = settingsName;
+    // Save appearance prefs
     localStorage.setItem('studyplan_dark_mode', darkModeToggle.checked);
     localStorage.setItem('studyplan_compact_view', compactViewToggle.checked);
     loadPreferences();
@@ -484,6 +532,47 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
     } else {
       document.body.classList.remove('compact-view');
     }
+  });
+
+  // ── Profile Dropdown ──────────────────────────────────────────
+  const profileBtn = document.getElementById('profile-btn');
+  const profileDropdown = document.getElementById('profile-dropdown');
+  const profileSaveBtn = document.getElementById('profile-save-btn');
+
+  function openProfileDropdown() {
+    const user = JSON.parse(localStorage.getItem('studyplan_user') || '{}');
+    document.getElementById('profile-display-name').value =
+      localStorage.getItem('studyplan_display_name') || '';
+    document.getElementById('profile-email-display').value = user.email || '';
+    profileDropdown.style.display = 'block';
+  }
+
+  function closeProfileDropdown() {
+    profileDropdown.style.display = 'none';
+  }
+
+  profileBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isOpen = profileDropdown.style.display === 'block';
+    isOpen ? closeProfileDropdown() : openProfileDropdown();
+  });
+
+  profileSaveBtn.addEventListener('click', () => {
+    const name = document.getElementById('profile-display-name').value.trim();
+    localStorage.setItem('studyplan_display_name', name);
+    closeProfileDropdown();
+  });
+
+  // Close on outside click
+  document.addEventListener('click', (e) => {
+    if (!profileDropdown.contains(e.target) && e.target !== profileBtn) {
+      closeProfileDropdown();
+    }
+  });
+
+  // Close on Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeProfileDropdown();
   });
 </script>
 
