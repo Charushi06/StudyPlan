@@ -1284,6 +1284,30 @@ document.addEventListener('DOMContentLoaded', () => {
   const archivedTasksBtn = document.getElementById('archived-tasks-btn');
   const focusModeBtn = document.getElementById('focus-mode-btn');
 
+  // Header navigation logic
+  const navDashboard = document.getElementById('nav-dashboard');
+  const navTasks = document.getElementById('nav-tasks');
+  const navCalendar = document.getElementById('nav-calendar');
+
+  if (navDashboard) {
+    navDashboard.addEventListener('click', (e) => {
+      e.preventDefault();
+      calendarBtn?.click();
+    });
+  }
+  if (navTasks) {
+    navTasks.addEventListener('click', (e) => {
+      e.preventDefault();
+      allTasksBtn?.click();
+    });
+  }
+  if (navCalendar) {
+    navCalendar.addEventListener('click', (e) => {
+      e.preventDefault();
+      calendarBtn?.click();
+    });
+  }
+
   function updateSidebarActive(id) {
     document.querySelectorAll('.sidebar .nav-item').forEach(el => el.classList.remove('active'));
     document.getElementById(id).classList.add('active');
