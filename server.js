@@ -48,7 +48,7 @@ function nlpWithTime(dateStr, t) {
 }
 
 function nlpExtractTime(lower) {
-  if (/\bmidnight\b/.test(lower)) return { hours: 23, minutes: 59 };
+  if (/\bmidnight\b/.test(lower)) return { hours: 0, minutes: 0 };
   if (/\bnoon\b/.test(lower)) return { hours: 12, minutes: 0 };
   let m = lower.match(/\b(\d{1,2}):(\d{2})\s*(am|pm)?\b/);
   if (m) {

@@ -46,7 +46,7 @@ function withTime(dateStr, timeParts) {
 export function extractTime(text) {
   const lower = text.toLowerCase();
 
-  if (/\bmidnight\b/.test(lower)) return { hours: 23, minutes: 59 };
+  if (/\bmidnight\b/.test(lower)) return { hours: 0, minutes: 0 };
   if (/\bnoon\b/.test(lower)) return { hours: 12, minutes: 0 };
 
   // HH:MM am/pm
