@@ -525,10 +525,26 @@ app.post('/api/extract', async (req, res) => {
   if (ai) {
     try {
       const prompt = `
-You are an AI study planner assistant. Extract ALL tasks and deadlines from the text below.
-Return ONLY a raw JSON array (no markdown, no backticks, no explanation).
-Each object must have: title (string), subject_name (string), due_at (ISO 8601 datetime), notes (string), confidence_score (number 0-100), priority ("low"|"medium"|"high"), icon (emoji).
-IMPORTANT: Do not strip hashtags from the task description! If the original text contains hashtag labels (e.g. #urgent, #Group), you MUST include them at the end of the 'title' field (e.g. 'Read chapter 1 #urgent').
+You are an smart AI study planner assistant. Extract ALL tasks and deadlines from the text below following all the critical rules.
+
+
+
+CRITICAL RULES:
+1. Return ONLY a raw JSON array (no markdown, no backticks, no explanation).
+2. Each object must have: 
+        title (string), 
+        subject_name (string), 
+        due_at (ISO 8601 datetime), 
+        notes (string), 
+        confidence_score (number 0-100), 
+        priority ("low"|"medium"|"high"), 
+        icon (emoji).
+3. only extract if there's a clear task given.
+4. try to keep the title short and clear.
+5. if no deadline is found, make deadline as 7 days from today.
+6. if a note or details about a task mention it under the task in notes (not as a new task).
+7. if not sure about the subject don't mention it.
+8. Do not strip hashtags from the task description! If the original text contains hashtag labels (e.g. #urgent, #Group), you MUST include them at the end of the 'title' field (e.g. 'Read chapter 1 #urgent').
 
 Text: "${text}"
 `;

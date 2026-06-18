@@ -8,6 +8,10 @@ const TASK_VERBS = [
   'submit', 'finish', 'complete', 'hand in', 'turn in', 'upload',
   'send', 'write', 'prepare', 'present', 'review', 'read', 'study',
   'practice', 'do', 'work on', 'draft', 'revise', 'email',
+  'solve', 'create', 'build', 'develop', 'test', 'implement', 'design',
+  'analyze', 'discuss', 'explain', 'document', 'summarize', 'outline',
+  'research', 'investigate', 'experiment', 'evaluate', 'report',
+  'attend', 'participate', 'contribute', 'collaborate', 'fix', 'debug',
 ];
 
 const ICONS = {
