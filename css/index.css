@@ -5022,3 +5022,342 @@ body {
 .subject-sidebar-item:hover .delete-subject-btn {
   opacity: 1;
 }
+
+/* =========================================
+   RESPONSIVE DESIGN
+========================================= */
+
+
+/* =========================
+   TABLET RESPONSIVENESS
+========================= */
+
+@media screen and (max-width: 768px) {
+
+  body {
+    padding: 14px;
+    overflow-x: hidden;
+  }
+
+  .wrapper {
+    width: 100%;
+  }
+
+  .app {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .site-header,
+  .site-footer {
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .header-nav,
+  .footer-links {
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+  }
+
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--color-border-tertiary);
+    padding: 16px;
+  }
+
+  .main {
+    width: 100%;
+  }
+
+  .panel {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid var(--color-border-tertiary);
+  }
+
+  .topbar {
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .tasks-section,
+  .cal-section,
+  .focus-section {
+    padding: 16px;
+  }
+
+  .task-item {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .task-actions {
+    opacity: 1;
+  }
+
+  .paste-actions {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .paste-zone {
+    margin: 16px;
+  }
+
+  .extract-preview {
+    padding: 0 16px 16px;
+  }
+
+  .timer-controls {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  img,
+  svg,
+  canvas,
+  iframe {
+    max-width: 100%;
+  }
+}
+
+
+
+/* =========================
+   MOBILE RESPONSIVENESS
+========================= */
+
+@media screen and (max-width: 425px) {
+
+  body {
+    padding: 10px;
+    overflow-x: hidden;
+  }
+
+  .wrapper {
+    width: 100%;
+  }
+
+  .app {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  /* Header */
+
+  .site-header,
+  .site-footer {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+    padding: 14px;
+  }
+
+  .header-nav,
+  .footer-links {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .site-title {
+    font-size: 18px;
+  }
+
+  /* Sidebar */
+
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--color-border-tertiary);
+    padding: 12px;
+  }
+
+  .nav-item {
+    font-size: 13px;
+    padding: 8px 10px;
+  }
+
+  /* Main Content */
+
+  .main {
+    width: 100%;
+  }
+
+  .topbar {
+    flex-wrap: wrap;
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .topbar-title {
+    font-size: 16px;
+  }
+
+  /* Calendar */
+
+  .cal-section {
+    padding: 12px;
+    overflow-x: auto;
+  }
+
+  .cal-grid {
+    gap: 2px;
+    min-width: 300px;
+  }
+
+  .cal-day {
+    font-size: 11px;
+    height: 28px;
+  }
+
+  .cal-legend {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  /* Tasks */
+
+  .tasks-section {
+    padding: 12px;
+  }
+
+  .task-item {
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .task-actions {
+    opacity: 1;
+    width: 100%;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+
+  .task-meta {
+    gap: 6px;
+  }
+
+  /* Buttons */
+
+  .btn,
+  .task-action-btn,
+  .add-btn,
+  .profile-btn {
+    width: 100%;
+  }
+
+  /* Right Panel */
+
+  .panel {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid var(--color-border-tertiary);
+  }
+
+  .panel-header {
+    padding: 14px;
+  }
+
+  .paste-zone {
+    margin: 12px;
+    padding: 18px 14px;
+    min-height: 100px;
+  }
+
+  .paste-actions {
+    flex-direction: column;
+    padding: 0 12px 12px;
+  }
+
+  .extract-preview {
+    padding: 0 12px 12px;
+    max-height: none;
+  }
+
+  /* Focus Mode */
+
+  .focus-section {
+    padding: 16px;
+    gap: 20px;
+  }
+
+  .timer-container {
+    width: 180px;
+    height: 180px;
+  }
+
+  .timer-text {
+    font-size: 32px;
+  }
+
+  .timer-controls {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  /* Modal */
+
+  #new-task-modal .modal-card,
+  #new-subject-modal .modal-card {
+    width: 95%;
+    max-width: 95%;
+  }
+
+  /* Prevent Overflow */
+
+  img,
+  svg,
+ canvas,
+  iframe {
+    max-width: 100%;
+  }
+}
+
+
+
+/* =========================
+   EXTRA SMALL DEVICES
+========================= */
+
+@media screen and (max-width: 320px) {
+
+  .site-title {
+    font-size: 16px;
+  }
+
+  .topbar-title {
+    font-size: 14px;
+  }
+
+  .task-name {
+    font-size: 13px;
+  }
+
+  .btn {
+    font-size: 12px;
+    padding: 8px;
+  }
+
+  .timer-container {
+    width: 150px;
+    height: 150px;
+  }
+
+  .timer-text {
+    font-size: 26px;
+  }
+}
