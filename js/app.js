@@ -1032,7 +1032,67 @@ const summaryBox = document.getElementById('summary-box');
 if (summaryBox) {
   summaryBox.innerHTML = generateSummary(store.tasks, store.subjects);
 }
+function renderWeekView() {
+  const calGrid = document.getElementById('cal-grid');
+  const calTitle = document.getElementById('cal-month-title');
+  if (!calGrid) return;
 
+  const today = new Date();
+  const startOfWeek = new Date(today);
+  startOfWeek.setDate(today.getDate() - today.getDay());
+
+  const endOfWeek = new Date(startOfWeek);
+  endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+  calTitle.textContent = `${startOfWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${endOfWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+
+  let html = `<div class="cal-day-label">Su</div><div class="cal-day-label">Mo</div><div class="cal-day-label">Tu</div><div class="cal-day-label">We</div><div class="cal-day-label">Th</div><div class="cal-day-label">Fr</div><div class="cal-day-label">Sa</div>`;
+
+  for (let i = 0; i < 7; i++) {
+    const day = new Date(startOfWeek);
+    day.setDate(startOfWeek.getDate() + i);
+
+    const isToday = day.toDateString() === today.toDateString();
+    const isSelected = selectedDate && day.toDateString() === selectedDate.toDateString();
+
+    const dayTasks = store.tasks.filter(t => {
+      if (t.archived || t.status === 'Done' || !t.due_at) return false;
+      return new Date(t.due_at).toDateString() === day.toDateString();
+    });
+
+    let indicatorHtml = '';
+    if (dayTasks.length > 0) {
+      indicatorHtml = `<div class="cal-day-indicators">`;
+      dayTasks.slice(0, 3).forEach(t => {
+        const sub = store.subjects.find(s => s.id === t.subject_id) || store.subjects[0];
+        indicatorHtml += `<div class="cal-day-indicator" style="background:${sub ? sub.color : 'var(--color-text-danger)'}"></div>`;
+      });
+      indicatorHtml += `</div>`;
+    }
+
+    const extraStyle = isSelected ? `border: 1.5px solid var(--color-text-primary);` : '';
+
+    html += `<div class="cal-day interactive-day ${isToday ? 'today' : ''}" data-day="${day.toISOString()}" style="${extraStyle}">
+      ${day.getDate()}
+      ${indicatorHtml}
+    </div>`;
+  }
+
+  calGrid.innerHTML = html;
+
+  document.querySelectorAll('.interactive-day').forEach(el => {
+    el.addEventListener('click', (e) => {
+      const clickedDate = new Date(e.currentTarget.getAttribute('data-day'));
+      if (selectedDate && clickedDate.toDateString() === selectedDate.toDateString()) {
+        selectedDate = null;
+      } else {
+        selectedDate = clickedDate;
+      }
+      renderWeekView();
+      renderTasks();
+    });
+  });
+}
 function renderCalendar() {
   const calTitle = document.getElementById('cal-month-title');
   const calGrid = document.getElementById('cal-grid');
@@ -1331,7 +1391,18 @@ document.addEventListener('DOMContentLoaded', () => {
     currentMonthDate.setMonth(currentMonthDate.getMonth() + 1);
     renderCalendar();
   });
-
+  const weekBtn = document.getElementById('week-view-btn');
+if (weekBtn) {
+  weekBtn.addEventListener('click', () => {
+    if (currentView === 'week') {
+      currentView = 'calendar';
+      renderCalendar();
+    } else {
+      currentView = 'week';
+      renderWeekView();
+    }
+  });
+}
 
 //NEw Task addition event listeners
 newTaskBtn.addEventListener('click', () => {
