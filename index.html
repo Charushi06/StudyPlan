@@ -65,6 +65,22 @@
     <button class="profile-btn">Profile</button>
     <button class="profile-btn" id="logout-btn">Logout</button>
   </div>
+  <!-- Mobile menu button -->
+  <button class="mobile-menu-btn" aria-label="Open menu" aria-expanded="false">☰</button>
+
+  <!-- Mobile menu (hidden by default) -->
+  <div class="mobile-menu" id="mobile-menu" aria-hidden="true">
+    <nav class="mobile-nav">
+      <a href="#">Dashboard</a>
+      <a href="#">Tasks</a>
+      <a href="#">Calendar</a>
+      <a href="#" id="mobile-nav-settings">Settings</a>
+    </nav>
+    <div class="mobile-actions">
+      <button class="profile-btn">Profile</button>
+      <button class="profile-btn" id="mobile-logout-btn">Logout</button>
+    </div>
+  </div>
 </header>
 
 
@@ -407,6 +423,16 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
     // Refresh page state
     window.location.reload();
 });
+
+  // Mobile logout (same behavior)
+  const mobileLogout = document.getElementById('mobile-logout-btn');
+  if (mobileLogout) {
+    mobileLogout.addEventListener('click', () => {
+      localStorage.removeItem('studyplan_user');
+      document.getElementById('auth-modal').style.display = 'flex';
+      window.location.reload();
+    });
+  }
 
   // Settings Modal Logic
   const settingsModal = document.getElementById('settings-modal');
