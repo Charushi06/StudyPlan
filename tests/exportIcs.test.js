@@ -1,6 +1,11 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
+// Note: Frontend download behavior has been updated to use an export modal
+// to prevent accidental duplicate downloads. User must click "Download CSV" in the modal
+// to trigger the actual download. These tests verify the backend CSV/ICS generation logic
+// which remains unchanged.
+
 const {
   buildCalendarIcs,
   formatIcsDate,

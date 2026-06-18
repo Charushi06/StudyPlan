@@ -88,6 +88,10 @@ let currentMonthDate = new Date();
 let selectedDate = null;
 let currentView = 'calendar'; // 'calendar', 'all-tasks', 'archived'
 
+// Export modal state
+let isExportOpen = false;
+let isDownloading = false;
+
 const tasksSection = document.getElementById('tasks-section');
 const focusSection = document.getElementById('focus-section');
 const extractPreview = document.getElementById('extract-preview');
@@ -630,6 +634,74 @@ async function downloadCalendar() {
         console.error(error);
         alert('Failed to export calendar');
     }
+}
+
+// Export Modal Functions
+function openExportModal() {
+  const modal = document.getElementById('export-data-modal');
+  if (modal) {
+    isExportOpen = true;
+    modal.style.display = 'flex';
+    // Set focus to the download button for accessibility
+    const downloadBtn = document.getElementById('export-data-download');
+    if (downloadBtn) downloadBtn.focus();
+  }
+}
+
+function closeExportModal() {
+  const modal = document.getElementById('export-data-modal');
+  if (modal) {
+    isExportOpen = false;
+    modal.style.display = 'none';
+  }
+}
+
+// Refactored download handler with duplicate prevention
+async function handleExportDownload() {
+  // Prevent duplicate downloads
+  if (isDownloading) return;
+  
+  const downloadBtn = document.getElementById('export-data-download');
+  const cancelBtn = document.getElementById('export-data-cancel');
+  
+  try {
+    isDownloading = true;
+    if (downloadBtn) {
+      downloadBtn.disabled = true;
+      downloadBtn.innerHTML = '<span aria-live="polite">Downloading...</span>';
+    }
+    if (cancelBtn) cancelBtn.disabled = true;
+
+    const response = await fetch('/api/download');
+    
+    if (!response.ok) {
+      throw new Error('Failed to download data');
+    }
+
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'study_data.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 100);
+
+    Toast.show('Data downloaded successfully', 'success');
+    closeExportModal();
+
+  } catch (error) {
+    console.error(error);
+    Toast.show('Failed to download data', 'error');
+  } finally {
+    isDownloading = false;
+    if (downloadBtn) {
+      downloadBtn.disabled = false;
+      downloadBtn.innerHTML = 'Download CSV';
+    }
+    if (cancelBtn) cancelBtn.disabled = false;
+  }
 }
 
 function renderTasks() {
@@ -1477,7 +1549,40 @@ pasteInput.addEventListener('input', () => {
 });
 
 downloadBtn.addEventListener('click', () => {
-  downloadData();
+  openExportModal();
+});
+
+// Export modal button listeners
+const exportCancelBtn = document.getElementById('export-data-cancel');
+const exportDownloadBtn = document.getElementById('export-data-download');
+
+if (exportCancelBtn) {
+  exportCancelBtn.addEventListener('click', () => {
+    closeExportModal();
+  });
+}
+
+if (exportDownloadBtn) {
+  exportDownloadBtn.addEventListener('click', () => {
+    handleExportDownload();
+  });
+}
+
+// Close modal when clicking outside (on backdrop)
+const exportModal = document.getElementById('export-data-modal');
+if (exportModal) {
+  exportModal.addEventListener('click', (e) => {
+    if (e.target === exportModal) {
+      closeExportModal();
+    }
+  });
+}
+
+// Close modal with Escape key for accessibility
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && isExportOpen) {
+    closeExportModal();
+  }
 });
 
 const fileInput = document.getElementById('file-input');
