@@ -1414,6 +1414,35 @@ document.addEventListener('DOMContentLoaded', () => {
     renderCalendar();
   });
 
+  document.getElementById('nav-dashboard').addEventListener('click', (e) => {
+    e.preventDefault();
+    currentView = 'calendar';
+    document.querySelector('.cal-section').classList.remove('hidden');
+    document.getElementById('tasks-section').classList.remove('hidden');
+    document.getElementById('focus-section').classList.add('hidden');
+    updateSidebarActive('calendar-btn');
+    renderTasks();
+  });
+
+  document.getElementById('nav-tasks').addEventListener('click', (e) => {
+    e.preventDefault();
+    currentView = 'all-tasks';
+    document.querySelector('.cal-section').classList.add('hidden');
+    document.getElementById('tasks-section').classList.remove('hidden');
+    document.getElementById('focus-section').classList.add('hidden');
+    updateSidebarActive('all-tasks-btn');
+    renderTasks();
+  });
+
+  document.getElementById('nav-calendar').addEventListener('click', (e) => {
+    e.preventDefault();
+    currentView = 'calendar';
+    document.querySelector('.cal-section').classList.remove('hidden');
+    document.getElementById('tasks-section').classList.remove('hidden');
+    document.getElementById('focus-section').classList.add('hidden');
+    updateSidebarActive('calendar-btn');
+    renderTasks();
+  });
 
 //NEw Task addition event listeners
 newTaskBtn.addEventListener('click', () => {
