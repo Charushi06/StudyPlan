@@ -5183,3 +5183,96 @@ body {
 .subject-sidebar-item:hover .delete-subject-btn {
   opacity: 1;
 }
+
+/* Form Validation Styles */
+.input-group {
+    margin-bottom: 12px;
+    width: 100%;
+}
+
+.input-error {
+    border-color: var(--color-text-danger) !important;
+}
+
+.input-success {
+    border-color: var(--color-text-success) !important;
+}
+
+.validation-msg {
+    font-size: 11px;
+    margin-top: 4px;
+    display: none;
+}
+
+.validation-msg.error {
+    color: var(--color-text-danger);
+    display: block;
+}
+
+.validation-msg.success {
+    color: var(--color-text-success);
+    display: block;
+}
+
+.password-requirements {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    margin-top: 8px;
+    padding-left: 0;
+    list-style: none;
+}
+
+.requirement-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+}
+
+.requirement-item.met {
+    color: var(--color-text-success);
+}
+
+.requirement-item.unmet {
+    color: var(--color-text-danger);
+}
+
+.strength-meter {
+    height: 4px;
+    width: 100%;
+    background: var(--color-border-tertiary);
+    border-radius: 2px;
+    margin-top: 8px;
+    overflow: hidden;
+}
+
+.strength-bar {
+    height: 100%;
+    width: 0;
+    transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+.strength-weak { width: 33.33%; background-color: var(--color-text-danger); }
+.strength-medium { width: 66.66%; background-color: var(--color-text-warning); }
+.strength-strong { width: 100%; background-color: var(--color-text-success); }
+
+/* Loading Spinner */
+.spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255,255,255,.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
+    margin-right: 8px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
