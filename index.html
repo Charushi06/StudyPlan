@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>StudyPlan</title>
   <link rel="stylesheet" href="/css/index.css">
+  <link rel="stylesheet" href="/css/landing.css">
 
   <script src="/js/lib/confetti.browser.min.js"></script>
 
@@ -48,6 +49,177 @@
   </div>
 </div>
 
+<div id="landing-view" style="display:none; width:100%;">
+  <!-- Landing Header -->
+  <header class="landing-header">
+    <a href="#" class="landing-brand">
+      <img src="/logo.png" alt="StudyPlan Logo">
+      <span>StudyPlan</span>
+    </a>
+    <nav class="landing-nav">
+      <a href="#features" class="landing-nav-link">Features</a>
+      <a href="#showcase" class="landing-nav-link">Showcase</a>
+      <a href="#faqs" class="landing-nav-link">FAQs</a>
+      <button class="landing-signin-btn" id="landing-signin-btn">Sign In</button>
+    </nav>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="landing-hero">
+    <div class="landing-badge">
+      <span>✨</span> Google Gemini AI-Powered Plan Builder
+    </div>
+    <h1 class="landing-title">
+      Turn Messy Syllabi and Notes into <span>Structured Study Plans</span>
+    </h1>
+    <p class="landing-subtitle">
+      Stop wasting hours copy-pasting calendar events. Paste emails, group chat threads, or lecture briefs, and let our Gemini-backed AI automatically schedule your deadlines, extract hashtags, and create custom Pomodoro study boards.
+    </p>
+    <div class="landing-ctas">
+      <button class="landing-cta-primary" id="landing-get-started-btn">Get Started Free</button>
+      <a href="#features" class="landing-cta-secondary" style="text-decoration:none;">Explore Features</a>
+    </div>
+
+    <!-- Interactive Mockup -->
+    <div class="landing-mockup" id="showcase">
+      <div class="mockup-header">
+        <span class="mockup-dot"></span>
+        <span class="mockup-dot"></span>
+        <span class="mockup-dot"></span>
+        <span class="mockup-title">Smart Paste Interactive Demonstration</span>
+      </div>
+      <div class="mockup-grid">
+        <div class="mockup-panel">
+          <div class="mockup-panel-title">✍️ Paste unstructured notes</div>
+          <textarea id="landing-mockup-input" class="mockup-textarea" placeholder="Paste your syllabus, message or notes here...">Hey team, our Computer Science OS Lab 3 is due next Tuesday at 11:59pm. #urgent</textarea>
+          <button id="landing-mockup-btn" class="mockup-button">Extract with Gemini AI →</button>
+        </div>
+        <div class="mockup-panel" style="display: flex; flex-direction: column; justify-content: center; min-height: 200px; position: relative;">
+          <div class="mockup-panel-title">🤖 AI Extracted Tasks</div>
+          <div id="landing-mockup-result" style="display: flex; flex-direction: column; gap: 12px; height: 100%; justify-content: center; align-items: center;">
+            <div style="text-align: center; color: var(--landing-text-muted); font-size: 13px; padding: 20px;">
+              Click "Extract with Gemini AI" to see how our parser structures your text in real time!
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="landing-features" id="features">
+    <div class="section-header">
+      <span class="section-tag">Powerful Capabilities</span>
+      <h2 class="section-title">Designed for Academic Excellence</h2>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🤖</div>
+        <h3 class="feature-title">AI Smart Paste</h3>
+        <p class="feature-desc">Paste messy lecture plans, emails, or syllabus timelines. The system extracts assignments, due dates, and hashtag labels instantly.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⏱️</div>
+        <h3 class="feature-title">Focus Session Timer</h3>
+        <p class="feature-desc">Boost productivity with an integrated Pomodoro timer synchronized with your high-priority study sessions.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3 class="feature-title">Workload conflict warnings</h3>
+        <p class="feature-desc">Our intelligent workload parser identifies deadline congestion and provides smart reschedule suggestions to keep you stress-free.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Showcase Section -->
+  <section class="landing-showcase">
+    <div class="showcase-text">
+      <h2 class="showcase-title">Stay Organized, Beat Stress</h2>
+      <p class="showcase-desc">
+        StudyPlan unifies your tasks, calendar view, subject trackers, and timers into a single beautiful dashboard.
+      </p>
+      <div class="showcase-list">
+        <div class="showcase-item">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Interactive calendar and due date badges
+        </div>
+        <div class="showcase-item">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Custom subjects with custom color pickers
+        </div>
+        <div class="showcase-item">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Local SQLite persistence ensuring 100% privacy
+        </div>
+      </div>
+    </div>
+    <div class="showcase-visual" style="display: flex; flex-direction: column; gap: 12px;">
+      <div class="mockup-task" style="border-left-color: var(--color-text-info);">
+        <div class="mockup-task-title">Study Operating Systems Scheduling Algorithms</div>
+        <div class="mockup-task-meta">
+          <span style="padding: 2px 6px; background: var(--color-background-info); border-radius: 4px; color: var(--color-text-info);">OS</span>
+          <span>Due in 2 days</span>
+        </div>
+      </div>
+      <div class="mockup-task" style="border-left-color: var(--color-text-success);">
+        <div class="mockup-task-title">Solve Calculus Limits Worksheet</div>
+        <div class="mockup-task-meta">
+          <span style="padding: 2px 6px; background: var(--color-background-success); border-radius: 4px; color: var(--color-text-success);">Maths</span>
+          <span>Due Friday</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQs Section -->
+  <section class="landing-faqs" id="faqs">
+    <div class="section-header">
+      <span class="section-tag">Questions & Answers</span>
+      <h2 class="section-title">Frequently Asked Questions</h2>
+    </div>
+    <div class="faqs-list">
+      <div class="faq-item">
+        <button class="faq-trigger">
+          How accurate is the AI parser?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-content">
+          The parser utilizes advanced Google Gemini models to identify tasks, subjects, deadlines, and priorities from complex unstructured texts, achieving over 95% accuracy on standard academic schedules. A smart NLP fallback is built-in if no API key is set.
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-trigger">
+          Is my study data secure?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-content">
+          Yes. All your study schedules, tasks, and notes are stored locally on your device in a secure SQLite database. We do not store or track any of your personal task data on external servers.
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-trigger">
+          How do focus sessions keep me on track?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-content">
+          Focus sessions utilize the classic Pomodoro Technique: block out distractions for 25 minutes to work intensely on a specific task, followed by a short break. Timer audio alerts and tab title animations keep you updated.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="landing-footer">
+    <p>© 2026 StudyPlan. All rights reserved.</p>
+    <div class="landing-footer-links">
+      <a href="/support-page/privacy.html">Privacy</a>
+      <a href="/support-page/terms.html">Terms</a>
+      <a href="/support-page/support.html">Support</a>
+    </div>
+  </footer>
+</div>
+
+<div id="dashboard-view" style="display:none; width:100%;">
   <header class="site-header">
   <div class="header-left">
     <img src="/logo.png" alt="Logo" class="logo">
@@ -262,6 +434,7 @@
     <a href="/support-page/support.html">Support</a>
   </div>
 </footer>
+</div>
 
 <!-- Settings Modal -->
 <div id="settings-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
@@ -384,6 +557,7 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
 
       localStorage.setItem('studyplan_user', JSON.stringify({ email: data.email }));
       document.getElementById('auth-modal').style.display = 'none';
+      window.location.reload(); // Refresh page to transition cleanly into the dashboard
 
     } catch (err) {
       errorEl.textContent = 'Network error. Please try again.';
@@ -391,9 +565,114 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
     }
   });
 
-  // Check if already logged in
-  if (localStorage.getItem('studyplan_user')) {
-    document.getElementById('auth-modal').style.display = 'none';
+  // Toggle View State Logic
+  const updateViewState = () => {
+    const isLoggedIn = !!localStorage.getItem('studyplan_user');
+    if (isLoggedIn) {
+      document.getElementById('landing-view').style.display = 'none';
+      document.getElementById('dashboard-view').style.display = 'block';
+      document.getElementById('auth-modal').style.display = 'none';
+      document.body.style.padding = '32px 16px';
+    } else {
+      document.getElementById('landing-view').style.display = 'block';
+      document.getElementById('dashboard-view').style.display = 'none';
+      document.getElementById('auth-modal').style.display = 'none';
+      document.body.style.padding = '0';
+    }
+  };
+  updateViewState();
+
+  // Landing CTAs
+  const signinBtn = document.getElementById('landing-signin-btn');
+  const getStartedBtn = document.getElementById('landing-get-started-btn');
+
+  if (signinBtn) {
+    signinBtn.addEventListener('click', () => {
+      isLogin = true;
+      document.getElementById('auth-title').textContent = 'Welcome back';
+      document.getElementById('auth-subtitle').textContent = 'Sign in to your StudyPlan account';
+      document.getElementById('auth-submit-btn').textContent = 'Sign In';
+      document.getElementById('auth-toggle-text').textContent = "Don't have an account?";
+      document.getElementById('auth-toggle-btn').textContent = 'Sign Up';
+      document.getElementById('auth-error').style.display = 'none';
+      document.getElementById('auth-modal').style.display = 'flex';
+    });
+  }
+
+  if (getStartedBtn) {
+    getStartedBtn.addEventListener('click', () => {
+      isLogin = false;
+      document.getElementById('auth-title').textContent = 'Create account';
+      document.getElementById('auth-subtitle').textContent = 'Start planning your studies';
+      document.getElementById('auth-submit-btn').textContent = 'Sign Up';
+      document.getElementById('auth-toggle-text').textContent = 'Already have an account?';
+      document.getElementById('auth-toggle-btn').textContent = 'Sign In';
+      document.getElementById('auth-error').style.display = 'none';
+      document.getElementById('auth-modal').style.display = 'flex';
+    });
+  }
+
+  // FAQ Accordion toggles
+  document.querySelectorAll('.faq-trigger').forEach(trigger => {
+    trigger.addEventListener('click', () => {
+      const parent = trigger.closest('.faq-item');
+      const wasActive = parent.classList.contains('active');
+      
+      document.querySelectorAll('.faq-item').forEach(item => item.classList.remove('active'));
+      
+      if (!wasActive) {
+        parent.classList.add('active');
+      }
+    });
+  });
+
+  // Interactive Mockup Code
+  const mockupBtn = document.getElementById('landing-mockup-btn');
+  const mockupInput = document.getElementById('landing-mockup-input');
+  const mockupResult = document.getElementById('landing-mockup-result');
+
+  if (mockupBtn) {
+    mockupBtn.addEventListener('click', () => {
+      const text = mockupInput.value.trim();
+      if (!text) return;
+
+      mockupResult.innerHTML = `
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 20px;">
+          <div class="loader-spinner" style="border-top-color: var(--landing-primary); width: 28px; height: 28px;"></div>
+          <div style="font-size: 11px; color: var(--landing-text-muted); margin-top: 8px;">Analyzing text with Gemini AI...</div>
+        </div>
+      `;
+
+      setTimeout(() => {
+        // Extract basic data for preview
+        let title = text.replace(/^(please|kindly|remember to)\s+/i, '').replace(/\s+(by|before|due|on|at)\s+.*/i, '').trim();
+        if (title.length > 50) title = title.substring(0, 47) + '...';
+        
+        let labels = [];
+        const labelRegex = /#([\w-]+)/g;
+        let match;
+        while ((match = labelRegex.exec(text)) !== null) {
+          labels.push(match[1]);
+        }
+        title = title.replace(labelRegex, '').trim() || 'Custom Task';
+
+        const labelsHtml = labels.map(l => `<span class="task-pill" style="background:#8b5cf6; color:white; font-size:9px; padding: 2px 6px;">${l}</span>`).join(' ');
+
+        mockupResult.innerHTML = `
+          <div class="mockup-task" style="border-left-color: var(--landing-primary); animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; width: 100%;">
+            <div class="mockup-task-title" style="font-size: 13px; font-weight: 700; color: var(--landing-text-main);">${title}</div>
+            <div class="mockup-task-meta" style="display: flex; gap: 8px; align-items: center; margin-top: 6px; font-size: 10px;">
+              <span class="task-pill pill-amber" style="background: var(--landing-glow); color: var(--landing-primary); font-weight: 600; padding: 2px 6px;">Due Next Tuesday</span>
+              <span class="task-pill" style="background: var(--color-background-tertiary); padding: 2px 6px;">CS</span>
+              ${labelsHtml}
+            </div>
+            <div style="font-size: 9px; color: #10b981; font-weight: bold; margin-top: 8px; display: flex; align-items: center; gap: 4px;">
+              <span>✓</span> 98% confidence score
+            </div>
+          </div>
+        `;
+      }, 1000);
+    });
   }
 
   // Logout Button Functionality
@@ -401,12 +680,9 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
   logoutBtn.addEventListener('click', () => {
     localStorage.removeItem('studyplan_user');
 
-    // Show login modal again
-    document.getElementById('auth-modal').style.display = 'flex';
-
-    // Refresh page state
+    // Refresh page state to show landing page
     window.location.reload();
-});
+  });
 
   // Settings Modal Logic
   const settingsModal = document.getElementById('settings-modal');
