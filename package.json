@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "node --test"
   },
   "keywords": [],
   "author": "",
@@ -17,6 +18,6 @@
     "sqlite3": "^6.0.1"
   },
   "engines": {
-    "node": "20.x"
+    "node": ">=20.x"
   }
 }
