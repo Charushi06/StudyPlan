@@ -4,11 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>StudyPlan</title>
-  <link rel="stylesheet" href="/css/index.css">
-
-  <script src="/js/lib/confetti.browser.min.js"></script>
-
-  <link rel="icon" type="image/x-icon" href="/public/favicon.ico" />
+  <link rel="stylesheet" href="./css/index.css">
+  <link rel="icon" type="image/x-icon" href="./public/favicon.ico" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -22,7 +20,12 @@
 
     <input id="auth-email" type="email" placeholder="Email address" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:12px; box-sizing:border-box;">
     
-    <input id="auth-password" type="password" placeholder="Password" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:20px; box-sizing:border-box;">
+    <div style="position:relative; margin-bottom:20px;">
+      <input id="auth-password" type="password" placeholder="Password" style="width:100%; padding:12px; padding-right:42px; border:1px solid #ddd; border-radius:8px; font-size:14px; box-sizing:border-box;">
+      <button type="button" id="toggle-password" onclick="(function(){var i=document.getElementById('auth-password'),b=document.getElementById('toggle-password');if(i.type==='password'){i.type='text';b.innerHTML='<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'18\' height=\'18\' fill=\'#888\' viewBox=\'0 0 16 16\'><path d=\'M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a7 7 0 0 0-2.79.588l.77.771A6 6 0 0 1 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755q-.247.248-.517.486z\'/><path d=\'M11.297 9.176a3.5 3.5 0 0 0-4.474-4.474l.823.823a2.5 2.5 0 0 1 2.829 2.829zm-2.943 1.299.822.822a3.5 3.5 0 0 1-4.474-4.474l.823.823a2.5 2.5 0 0 0 2.829 2.829z\'/><path d=\'M3.35 5.47q-.27.24-.518.487A13 13 0 0 0 1.172 8l.195.288c.335.48.83 1.12 1.465 1.755C4.121 11.332 5.881 12.5 8 12.5c.716 0 1.39-.133 2.02-.36l.77.772A7 7 0 0 1 8 13.5C3 13.5 0 8 0 8s.939-1.721 2.641-3.238l.708.709z\'/><path d=\'M13.646 14.354l-12-12 .708-.708 12 12z\'/></svg>';}else{i.type='password';b.innerHTML='<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'18\' height=\'18\' fill=\'#888\' viewBox=\'0 0 16 16\'><path d=\'M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8M1.173 8a13 13 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5s3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5s-3.879-1.168-5.168-2.457A13 13 0 0 1 1.172 8z\'/><path d=\'M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0\'/></svg>';}})();" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; padding:0; display:flex; align-items:center;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="#888" viewBox="0 0 16 16"><path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8M1.173 8a13 13 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5s3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5s-3.879-1.168-5.168-2.457A13 13 0 0 1 1.172 8z"/><path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0"/></svg>
+      </button>
+    </div>
 
     <button id="auth-submit-btn" style="width:100%; padding:12px; background:#4f46e5; color:white; border:none; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer;">
     Sign In
@@ -50,20 +53,22 @@
 
   <header class="site-header">
   <div class="header-left">
-    <img src="/logo.png" alt="Logo" class="logo">
+    <img src="logo.png" alt="Logo" class="logo">
     <h1 class="site-title">StudyPlan</h1>
   </div>
 
-  <nav class="header-nav">
-    <a href="#">Dashboard</a>
-    <a href="#">Tasks</a>
-    <a href="#">Calendar</a>
-    <a href="#" id="nav-settings">Settings</a>
-  </nav>
+
 
   <div class="header-right">
-    <button class="profile-btn">Profile</button>
-    <button class="profile-btn" id="logout-btn">Logout</button>
+    <button id="profile-btn"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-person" viewBox="0 0 16 16">
+  <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z"/>
+</svg><span>Profile</span></button>
+    <button  id="logout-btn">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-right" viewBox="0 0 16 16">
+  <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0z"/>
+  <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708z"/>
+</svg>
+      <span>Logout</span></button>
   </div>
 </header>
 
@@ -108,6 +113,13 @@
       <div id="subjects-sidebar-list"></div>
       <div class="add-subject" id="add-subject-btn" role="button" tabindex="0">
         <svg width="14" height="14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Add subject
+      </div>
+      <div class="sidebar-divider"></div>
+      <div id="setting">
+       <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="20" height="20" fill="var(--color-text-secondary)" viewBox="0 0 50 50">
+    <path d="M47.16,21.221l-5.91-0.966c-0.346-1.186-0.819-2.326-1.411-3.405l3.45-4.917c0.279-0.397,0.231-0.938-0.112-1.282 l-3.889-3.887c-0.347-0.346-0.893-0.391-1.291-0.104l-4.843,3.481c-1.089-0.602-2.239-1.08-3.432-1.427l-1.031-5.886 C28.607,2.35,28.192,2,27.706,2h-5.5c-0.49,0-0.908,0.355-0.987,0.839l-0.956,5.854c-1.2,0.345-2.352,0.818-3.437,1.412l-4.83-3.45 c-0.399-0.285-0.942-0.239-1.289,0.106L6.82,10.648c-0.343,0.343-0.391,0.883-0.112,1.28l3.399,4.863 c-0.605,1.095-1.087,2.254-1.438,3.46l-5.831,0.971c-0.482,0.08-0.836,0.498-0.836,0.986v5.5c0,0.485,0.348,0.9,0.825,0.985 l5.831,1.034c0.349,1.203,0.831,2.362,1.438,3.46l-3.441,4.813c-0.284,0.397-0.239,0.942,0.106,1.289l3.888,3.891 c0.343,0.343,0.884,0.391,1.281,0.112l4.87-3.411c1.093,0.601,2.248,1.078,3.445,1.424l0.976,5.861C21.3,47.647,21.717,48,22.206,48 h5.5c0.485,0,0.9-0.348,0.984-0.825l1.045-5.89c1.199-0.353,2.348-0.833,3.43-1.435l4.905,3.441 c0.398,0.281,0.938,0.232,1.282-0.111l3.888-3.891c0.346-0.347,0.391-0.894,0.104-1.292l-3.498-4.857 c0.593-1.08,1.064-2.222,1.407-3.408l5.918-1.039c0.479-0.084,0.827-0.5,0.827-0.985v-5.5C47.999,21.718,47.644,21.3,47.16,21.221z M25,32c-3.866,0-7-3.134-7-7c0-3.866,3.134-7,7-7s7,3.134,7,7C32,28.866,28.866,32,25,32z"></path>
+</svg> 
+        <h1 >Settings</h1>
       </div>
     </div>
 
@@ -247,9 +259,6 @@
     Add items to planner
   </button>
 </div>
-
-
-      <button id="add-btn" class="add-btn" disabled>Add items to planner</button>
     </div>
   </div>
 </div>
@@ -313,7 +322,7 @@
   </div>
 </div>
 
-  <script type="module" src="/js/app.js"></script>
+  <script type="module" src="./js/app.js"></script>
   <script>
   let isLogin = true;
 
@@ -366,7 +375,7 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
     return;
   }
 
-  const endpoint = isLogin ? '/api/auth/login' : '/api/auth/signup';
+  const endpoint = isLogin ? 'http://localhost:3000/api/auth/login' : 'http://localhost:3000/api/auth/signup';
 
   try {
     const res = await fetch(endpoint, {
@@ -410,7 +419,7 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
 
   // Settings Modal Logic
   const settingsModal = document.getElementById('settings-modal');
-  const navSettings = document.getElementById('nav-settings');
+  const navSettings = document.getElementById('setting');
   const settingsClose = document.getElementById('settings-close');
   const settingsSave = document.getElementById('settings-save');
 
@@ -533,5 +542,7 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
     </div>
   </div>
 </div>
+
+<script src="./js/lib/confetti.browser.min.js"></script>
 </body>
 </html>

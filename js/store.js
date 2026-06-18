@@ -26,8 +26,8 @@ export const store = {
   async fetchInitialData() {
     try {
       const [subsRes, tasksRes] = await Promise.all([
-        fetch('/api/subjects'),
-        fetch('/api/tasks')
+        fetch('http://localhost:3000/api/subjects'),
+        fetch('http://localhost:3000/api/tasks')
       ]);
       this.subjects = await subsRes.json();
       this.tasks = await tasksRes.json();
