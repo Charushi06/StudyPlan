@@ -1830,3 +1830,18 @@ if (calendarDownloadBtn) {
     downloadCalendar();
   });
 }
+
+// auth-toggle-hidden-password
+
+const ToggleIcon = document.getElementById('toggle-password-visibility');
+const ToggleText = document.getElementById('auth-password');
+
+ToggleIcon.addEventListener('click', () => {
+  const isPassword = ToggleText.type === 'password';
+  
+    ToggleText.type =  isPassword ? 'text' : 'password';
+
+    ToggleIcon.classList.toggle('fa-eye');
+    ToggleIcon.classList.toggle('fa-eye-slash');
+
+});
