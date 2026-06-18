@@ -14,39 +14,67 @@
 </head>
 <body>
   <!-- Auth Modal -->
-<div id="auth-modal" style="display:flex; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
-  <div style="background:white; border-radius:16px; padding:32px; width:360px; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
-    
-    <h2 id="auth-title" style="margin:0 0 8px; font-size:22px; font-weight:700;">Welcome back</h2>
-    <p id="auth-subtitle" style="margin:0 0 24px; color:#666; font-size:14px;">Sign in to your StudyPlan account</p>
+  <div id="auth-modal" style="display:flex; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+    <div class="auth-wrapper">
+      
+      <!-- Left Background Panel (Sign Up Prompt) -->
+      <div class="auth-panel-container auth-panel-left">
+        <h2 style="font-size:24px; margin-bottom:16px;">Don't Have an account?</h2>
+        <p style="font-size:14px; margin-bottom:24px; color:var(--color-text-secondary); line-height:1.5;">Join StudyPlan today to organize your tasks, schedule your time, and reach your goals.</p>
+        <button id="auth-to-signup-btn" class="auth-ghost-btn" >SIGN UP</button>
+      </div>
 
-    <input id="auth-email" type="email" placeholder="Email address" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:12px; box-sizing:border-box;">
-    
-    <input id="auth-password" type="password" placeholder="Password" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:20px; box-sizing:border-box;">
+      <!-- Right Background Panel (Log In Prompt) -->
+      <div class="auth-panel-container auth-panel-right">
+        <h2 style="font-size:24px; margin-bottom:16px;">Have an account?</h2>
+        <p style="font-size:14px; margin-bottom:24px; color:var(--color-text-secondary); line-height:1.5;">Welcome back! Sign in to continue accessing your organized study schedule.</p>
+        <button id="auth-to-login-btn" class="auth-ghost-btn">LOG IN</button>
+      </div>
 
-    <button id="auth-submit-btn" style="width:100%; padding:12px; background:#4f46e5; color:white; border:none; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer;">
-    Sign In
-    </button>
+      <!-- Sliding Panel with Forms -->
+      <div id="auth-slider" class="auth-slider">
+        
+        <!-- Login Form -->
+        <div class="auth-form-container auth-form-login">
+          <h2 class="auth-title" style="color :black; display : flex; justify-content: center;">LOG IN</h2>
+          
+          <div class="social-btn-container">
+            <button class="social-btn" id="login-google-btn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path fill="#4285F4" d="M23.74 12.27c0-.83-.07-1.63-.2-2.4H12.2v4.54h6.47c-.28 1.47-1.12 2.71-2.36 3.54v2.94h3.81c2.23-2.06 3.62-5.11 3.62-8.63z"/><path fill="#34A853" d="M12.2 24c3.24 0 5.95-1.07 7.93-2.91l-3.81-2.94c-1.07.72-2.45 1.15-4.12 1.15-3.17 0-5.86-2.14-6.82-5.02H1.46v3.04C3.44 21.24 7.5 24 12.2 24z"/><path fill="#FBBC05" d="M5.38 15.28c-.25-.73-.39-1.52-.39-2.33s.14-1.6.39-2.33V7.58H1.46C.68 9.14.2 10.97.2 12.95c0 1.98.48 3.81 1.26 5.37l3.92-3.04z"/><path fill="#EA4335" d="M12.2 4.7c1.76 0 3.34.6 4.59 1.78l3.43-3.43C18.15 1.07 15.44 0 12.2 0 7.5 0 3.44 2.76 1.46 6.74l3.92 3.04c.96-2.88 3.65-5.02 6.82-5.02z"/></svg>
+              Google
+            </button>
+            <button class="social-btn" id="login-notion-btn"> Notion </button>
+          </div>
 
-    <div style="font-size:12px; color:#666; margin-top:10px; line-height:1.6;">
-    Password must contain:
-     <ul style="padding-left:18px; margin-top:6px;">
-      <li>Minimum 8 characters</li>
-      <li>At least 1 capital letter</li>
-      <li>At least 1 special character</li>
-     </ul>
+          <input id="login-email" class="auth-input" type="email" placeholder="Email address">
+          <input id="login-password" class="auth-input" type="password" placeholder="Password">
+          <p id="login-error" style="color:var(--color-text-danger); font-size:13px; margin:0 0 12px; display:none;"></p>
+          <button id="login-submit-btn" class="auth-btn" style="background-color: black;">LOG IN</button>
+        </div>
+
+        <!-- Sign Up Form -->
+        <div class="auth-form-container auth-form-signup">
+          <h2 class="auth-title" style="color: black; display: flex; justify-content: center;">SIGN UP</h2>
+          
+          <div class="social-btn-container">
+            <button class="social-btn" id="signup-google-btn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path fill="#4285F4" d="M23.74 12.27c0-.83-.07-1.63-.2-2.4H12.2v4.54h6.47c-.28 1.47-1.12 2.71-2.36 3.54v2.94h3.81c2.23-2.06 3.62-5.11 3.62-8.63z"/><path fill="#34A853" d="M12.2 24c3.24 0 5.95-1.07 7.93-2.91l-3.81-2.94c-1.07.72-2.45 1.15-4.12 1.15-3.17 0-5.86-2.14-6.82-5.02H1.46v3.04C3.44 21.24 7.5 24 12.2 24z"/><path fill="#FBBC05" d="M5.38 15.28c-.25-.73-.39-1.52-.39-2.33s.14-1.6.39-2.33V7.58H1.46C.68 9.14.2 10.97.2 12.95c0 1.98.48 3.81 1.26 5.37l3.92-3.04z"/><path fill="#EA4335" d="M12.2 4.7c1.76 0 3.34.6 4.59 1.78l3.43-3.43C18.15 1.07 15.44 0 12.2 0 7.5 0 3.44 2.76 1.46 6.74l3.92 3.04c.96-2.88 3.65-5.02 6.82-5.02z"/></svg>
+              Google
+            </button>
+            <button class="social-btn" id="signup-notion-btn"> Notion </button>
+          </div>
+
+          <input id="signup-name" class="auth-input" type="text" placeholder="Full Name">
+          <input id="signup-email" class="auth-input" type="email" placeholder="Email address">
+          <input id="signup-password" class="auth-input" type="password" placeholder="Password">
+          <p id="signup-error" style="color:var(--color-text-danger); font-size:13px; margin:0 0 12px; display:none;"></p>
+          <button id="signup-submit-btn" class="auth-btn" style="background-color: black;">SIGN UP</button>
+        </div>
+      </div>
+
     </div>
-
-    <p id="auth-error" style="color:red; font-size:13px; text-align:center; margin:8px 0 0; display:none;"></p>
-
-    <p style="text-align:center; margin:16px 0 0; font-size:13px; color:#666;">
-      <span id="auth-toggle-text">Don't have an account?</span>
-      <a id="auth-toggle-btn" href="#" style="color:#4f46e5; font-weight:600; margin-left:4px;">Sign Up</a>
-    </p>
-
-    <p id="auth-error" style="color:red; font-size:13px; text-align:center; margin:8px 0 0; display:none;"></p>
   </div>
-</div>
+
 
   <header class="site-header">
   <div class="header-left">
@@ -317,63 +345,75 @@
   <script>
   let isLogin = true;
 
-  document.getElementById('auth-toggle-btn').addEventListener('click', (e) => {
+  const authSlider = document.getElementById('auth-slider');
+  const loginEmail = document.getElementById('login-email');
+  const loginPassword = document.getElementById('login-password');
+  const signupEmail = document.getElementById('signup-email');
+  const signupPassword = document.getElementById('signup-password');
+  const signupName = document.getElementById('signup-name');
+  
+  const loginError = document.getElementById('login-error');
+  const signupError = document.getElementById('signup-error');
+
+  // Toggle to Sign Up
+  document.getElementById('auth-to-signup-btn').addEventListener('click', (e) => {
     e.preventDefault();
-    isLogin = !isLogin;
-    document.getElementById('auth-title').textContent = isLogin ? 'Welcome back' : 'Create account';
-    document.getElementById('auth-subtitle').textContent = isLogin ? 'Sign in to your StudyPlan account' : 'Start planning your studies';
-    document.getElementById('auth-submit-btn').textContent = isLogin ? 'Sign In' : 'Sign Up';
-    document.getElementById('auth-toggle-text').textContent = isLogin ? "Don't have an account?" : 'Already have an account?';
-    document.getElementById('auth-toggle-btn').textContent = isLogin ? 'Sign Up' : 'Sign In';
-    document.getElementById('auth-error').style.display = 'none';
+    isLogin = false;
+    authSlider.classList.add('slide-left');
+    loginError.style.display = 'none';
+    signupError.style.display = 'none';
+    // Persist input values
+    signupEmail.value = loginEmail.value;
+    signupPassword.value = loginPassword.value;
+  });
+
+  // Toggle to Log In
+  document.getElementById('auth-to-login-btn').addEventListener('click', (e) => {
+    e.preventDefault();
+    isLogin = true;
+    authSlider.classList.remove('slide-left');
+    loginError.style.display = 'none';
+    signupError.style.display = 'none';
+    // Persist input values
+    loginEmail.value = signupEmail.value;
+    loginPassword.value = signupPassword.value;
   });
 
   // Password validation function
 function validatePassword(password) {
-
   // Minimum 8 characters
   const minLength = password.length >= 8;
-
   // At least 1 capital letter
   const hasCapital = /[A-Z]/.test(password);
-
   // At least 1 special character
   const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
 
   return minLength && hasCapital && hasSpecial;
 }
 
-document.getElementById('auth-submit-btn').addEventListener('click', async () => {
+  async function handleAuth(endpoint, email, password, errorEl, name = null) {
+    errorEl.style.display = 'none';
+    
+    // Empty fields check
+    if (!email || !password || (!isLogin && !name)) {
+      errorEl.textContent = 'Please fill in all fields';
+      errorEl.style.display = 'block';
+      return;
+    }
 
-  const email = document.getElementById('auth-email').value.trim();
-  const password = document.getElementById('auth-password').value.trim();
-  const errorEl = document.getElementById('auth-error');
+    // Password validation check
+    if (!validatePassword(password)) {
+      errorEl.textContent = 'Password must be at least 8 chars, 1 capital, 1 special.';
+      errorEl.style.display = 'block';
+      return;
+    }
 
-  errorEl.style.display = 'none';
-
-  // Empty fields check
-  if (!email || !password) {
-    errorEl.textContent = 'Please fill in all fields';
-    errorEl.style.display = 'block';
-    return;
-  }
-
-  // Password validation check
-  if (!validatePassword(password)) {
-    errorEl.textContent =
-      'Password must be at least 8 characters long, contain 1 capital letter and 1 special character.';
-    errorEl.style.display = 'block';
-    return;
-  }
-
-  const endpoint = isLogin ? '/api/auth/login' : '/api/auth/signup';
-
-  try {
-    const res = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    });
+    try {
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, name })
+      });
       const data = await res.json();
 
       if (!res.ok) {
@@ -384,12 +424,40 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
 
       localStorage.setItem('studyplan_user', JSON.stringify({ email: data.email }));
       document.getElementById('auth-modal').style.display = 'none';
-
     } catch (err) {
       errorEl.textContent = 'Network error. Please try again.';
       errorEl.style.display = 'block';
     }
+  }
+
+  // Login Submit
+  document.getElementById('login-submit-btn').addEventListener('click', () => {
+    handleAuth('/api/auth/login', loginEmail.value.trim(), loginPassword.value.trim(), loginError);
   });
+
+  // Sign Up Submit
+  document.getElementById('signup-submit-btn').addEventListener('click', () => {
+    handleAuth('/api/auth/signup', signupEmail.value.trim(), signupPassword.value.trim(), signupError, signupName.value.trim());
+  });
+
+  // Social Login Handlers (Mock)
+  async function handleSocialAuth(provider) {
+    try {
+      const res = await fetch(`/api/auth/${provider}`, { method: 'POST' });
+      const data = await res.json();
+      if (res.ok) {
+        localStorage.setItem('studyplan_user', JSON.stringify({ email: data.email }));
+        document.getElementById('auth-modal').style.display = 'none';
+      }
+    } catch (err) {
+      console.error(`Error with ${provider} login`);
+    }
+  }
+
+  document.getElementById('login-google-btn').addEventListener('click', () => handleSocialAuth('google'));
+  document.getElementById('signup-google-btn').addEventListener('click', () => handleSocialAuth('google'));
+  document.getElementById('login-notion-btn').addEventListener('click', () => handleSocialAuth('notion'));
+  document.getElementById('signup-notion-btn').addEventListener('click', () => handleSocialAuth('notion'));
 
   // Check if already logged in
   if (localStorage.getItem('studyplan_user')) {

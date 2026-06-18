@@ -579,6 +579,23 @@ app.post('/api/auth/login', (req, res) => {
   res.json({ success: true, email: user.email });
 });
 
+// Mock Social Logins
+app.post('/api/auth/google', (req, res) => {
+  const mockEmail = 'user@google.com';
+  if (!users[mockEmail]) {
+    users[mockEmail] = { email: mockEmail, password: 'mockpassword' };
+  }
+  res.json({ success: true, email: mockEmail });
+});
+
+app.post('/api/auth/notion', (req, res) => {
+  const mockEmail = 'user@notion.so';
+  if (!users[mockEmail]) {
+    users[mockEmail] = { email: mockEmail, password: 'mockpassword' };
+  }
+  res.json({ success: true, email: mockEmail });
+});
+
 // Intentional test route for verifying server error page behavior.
 app.get('/debug/force-error', (req, res, next) => {
   next(new Error('Intentional test error'));
