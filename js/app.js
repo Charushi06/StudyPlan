@@ -3,6 +3,7 @@ import { extractTasksFromText } from './utils/api.js';
 import { initGlobalErrorBoundary } from './utils/errorBoundary.js';
 import { analyzeWorkload } from './utils/scheduler.js';
 import { Toast } from './utils/toast.js';
+import { initPlanner } from './planner.js';
 
 initGlobalErrorBoundary();
 
@@ -1304,6 +1305,7 @@ store.subscribe(renderSidebarSubjects);
 store.subscribe(renderStreak);
 
 document.addEventListener('DOMContentLoaded', () => {
+  initPlanner();
   if (newSubjectColorsEl) {
     SUBJECT_COLORS.forEach(c => {
       const btn = document.createElement('button');

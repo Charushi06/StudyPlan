@@ -1,0 +1,89 @@
+/* Smart Study Planner Styles */
+
+.streak-widget {
+  color: var(--color-text-warning);
+}
+
+.session-block {
+  background: var(--color-background-primary);
+  border: 1px solid var(--color-border-primary);
+  border-left: 4px solid var(--color-text-info);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.session-block:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.session-block.completed {
+  opacity: 0.6;
+  border-left-color: var(--color-text-success);
+}
+
+.session-block.completed .session-title {
+  text-decoration: line-through;
+  color: var(--color-text-tertiary);
+}
+
+.session-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.session-title {
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--color-text-primary);
+}
+
+.session-meta {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  display: flex;
+  gap: 12px;
+}
+
+.session-type-badge {
+  background: var(--color-background-secondary);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.session-type-revision {
+  color: var(--color-text-warning);
+  background: rgba(234, 179, 8, 0.1);
+}
+
+.session-type-learning {
+  color: var(--color-text-info);
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.exam-item, .goal-item {
+  background: var(--color-background-secondary);
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border-secondary);
+}
+
+.exam-title, .goal-title {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.exam-meta, .goal-meta {
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+}

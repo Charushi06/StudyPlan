@@ -252,8 +252,13 @@ function nlpExtractTasksFromText(text) {
 
 // ================= SUBJECTS =================
 app.get('/api/subjects', (req, res) => {
+  console.log('GET /api/subjects route hit');
   db.all('SELECT * FROM subjects', (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
+    if (err) {
+      console.error('GET /api/subjects database error:', err.message);
+      return res.status(500).json({ error: err.message });
+    }
+    console.log(`GET /api/subjects returned ${rows.length} subjects`);
     res.json(rows);
   });
 });
@@ -270,10 +275,13 @@ const ALLOWED_SUBJECT_COLORS = new Set([
 app.post('/api/subjects', (req, res) => {
   const name = String(req.body?.name || '').trim();
   let color = String(req.body?.color || '').trim() || 'var(--color-text-info)';
+  console.log(`POST /api/subjects hit with name="${name}", color="${color}"`);
   if (!name) {
+    console.warn('POST /api/subjects: name is missing or empty');
     return res.status(400).json({ error: 'Subject name is required' });
   }
   if (!ALLOWED_SUBJECT_COLORS.has(color)) {
+    console.warn(`POST /api/subjects: color "${color}" is not allowed, falling back to default`);
     color = 'var(--color-text-info)';
   }
   db.get(
@@ -281,10 +289,12 @@ app.post('/api/subjects', (req, res) => {
     [name],
     (err, row) => {
       if (err) {
+        console.error('POST /api/subjects database check error:', err.message);
         return res.status(500).json({ error: err.message });
       }
 
       if (row) {
+        console.warn(`POST /api/subjects: subject "${name}" already exists`);
         return res.status(400).json({
           error: 'Subject already exists',
         });
@@ -296,7 +306,11 @@ app.post('/api/subjects', (req, res) => {
         'INSERT INTO subjects (id, name, short_code, color) VALUES (?, ?, ?, ?)',
         [id, name, shortCode, color],
         function (err) {
-          if (err) return res.status(500).json({ error: err.message });
+          if (err) {
+            console.error('POST /api/subjects insert database error:', err.message);
+            return res.status(500).json({ error: err.message });
+          }
+          console.log(`POST /api/subjects successfully created subject "${name}" with ID=${id}`);
           res.status(201).json({ id, name, short_code: shortCode, color });
         }
       );
@@ -515,6 +529,126 @@ app.delete('/api/tasks/:id', (req, res) => {
       res.json({ success: true, changes: this.changes });
     }
   );
+});
+
+// ================= EXAMS =================
+app.get('/api/exams', (req, res) => {
+  db.all('SELECT * FROM exams ORDER BY date ASC', (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
+  });
+});
+
+app.post('/api/exams', (req, res) => {
+  const { title, subject_id, date } = req.body;
+  if (!title || !subject_id || !date) return res.status(400).json({ error: 'Missing fields' });
+  const id = 'exam_' + Date.now();
+  db.run('INSERT INTO exams (id, title, subject_id, date) VALUES (?, ?, ?, ?)', [id, title, subject_id, date], function (err) {
+    if (err) return res.status(500).json({ error: err.message });
+    res.status(201).json({ id, title, subject_id, date });
+  });
+});
+
+app.delete('/api/exams/:id', (req, res) => {
+  db.run('DELETE FROM exams WHERE id = ?', [req.params.id], function (err) {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ success: true, changes: this.changes });
+  });
+});
+
+// ================= STUDY GOALS =================
+app.get('/api/study_goals', (req, res) => {
+  db.all('SELECT * FROM study_goals ORDER BY target_date ASC', (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
+  });
+});
+
+app.post('/api/study_goals', (req, res) => {
+  const { description, subject_id, target_date } = req.body;
+  if (!description || !subject_id) return res.status(400).json({ error: 'Missing fields' });
+  const id = 'goal_' + Date.now();
+  db.run('INSERT INTO study_goals (id, description, subject_id, target_date) VALUES (?, ?, ?, ?)', [id, description, subject_id, target_date], function (err) {
+    if (err) return res.status(500).json({ error: err.message });
+    res.status(201).json({ id, description, subject_id, target_date });
+  });
+});
+
+app.delete('/api/study_goals/:id', (req, res) => {
+  db.run('DELETE FROM study_goals WHERE id = ?', [req.params.id], function (err) {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ success: true, changes: this.changes });
+  });
+});
+
+// ================= STUDY SESSIONS =================
+app.get('/api/study_sessions', (req, res) => {
+  db.all('SELECT * FROM study_sessions ORDER BY start_time ASC', (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
+  });
+});
+
+app.put('/api/study_sessions/:id', (req, res) => {
+  const { status } = req.body;
+  db.run('UPDATE study_sessions SET status = ? WHERE id = ?', [status, req.params.id], function (err) {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ success: true, changes: this.changes });
+  });
+});
+
+app.post('/api/planner/generate', async (req, res) => {
+  const { tasks, exams, goals, weak_subjects } = req.body;
+
+  if (ai) {
+    try {
+      const prompt = `
+You are an expert AI Study Planner. Create a 3-day study schedule based on the following:
+Tasks: ${JSON.stringify(tasks)}
+Exams: ${JSON.stringify(exams)}
+Goals: ${JSON.stringify(goals)}
+Weak Subjects (need more focus): ${JSON.stringify(weak_subjects)}
+
+Generate 2 to 4 study sessions per day. 
+Each session must have: 
+- title: string (what to do)
+- start_time: ISO date string (assuming the first day is tomorrow at 10 AM, and sessions are 1 hour long)
+- end_time: ISO date string
+- subject_id: string (use one of the subject_ids from the data. If no subjects exist, use "sub_1")
+- type: "learning" or "revision"
+
+Return ONLY a raw JSON array of session objects.
+`;
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt
+      });
+
+      let rawText = (typeof response.text === 'function' ? response.text() : response.text).trim();
+      if (rawText.startsWith('\`\`\`')) rawText = rawText.replace(/\`\`\`json|\`\`\`/g, '').trim();
+
+      const sessions = JSON.parse(rawText);
+
+      // Save to database
+      const stmt = db.prepare('INSERT INTO study_sessions (id, title, start_time, end_time, subject_id, type) VALUES (?, ?, ?, ?, ?, ?)');
+      const inserted = [];
+      for (const s of sessions) {
+        const id = 'sess_' + Date.now() + Math.random().toString(36).substr(2, 5);
+        s.id = id;
+        stmt.run([id, s.title, s.start_time, s.end_time, s.subject_id, s.type]);
+        inserted.push(s);
+      }
+      stmt.finalize();
+
+      return res.json({ success: true, sessions: inserted });
+
+    } catch (e) {
+      console.error('AI Schedule generation failed:', e.message);
+      return res.status(500).json({ error: 'Failed to generate schedule' });
+    }
+  } else {
+      return res.status(500).json({ error: 'AI API key not configured' });
+  }
 });
 
 // ================= AI EXTRACTION =================
