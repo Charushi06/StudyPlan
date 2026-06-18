@@ -29,9 +29,10 @@ function extractLabels(title) {
 let activeLabelFilter = '';
 
 function generateSummary(tasks, subjects) {
-  const now = new Date();
-  const weekEnd = new Date();
-  weekEnd.setDate(now.getDate() + 7);
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const weekEnd = new Date(todayStart);
+  weekEnd.setDate(todayStart.getDate() + 7);
 
   let todayCount = 0;
   let weekCount = 0;
@@ -41,14 +42,15 @@ function generateSummary(tasks, subjects) {
     if (t.archived || t.status === 'Done' || !t.due_at) return;
 
     const d = new Date(t.due_at);
+    const taskDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
 
     // today
-    if (d.toDateString() === now.toDateString()) {
+    if (+taskDate === +todayStart) {
       todayCount++;
     }
 
     // this week
-    if (d >= now && d <= weekEnd) {
+    if (taskDate >= todayStart && taskDate <= weekEnd) {
       weekCount++;
     }
 
@@ -1028,9 +1030,11 @@ function renderTasks() {
 }
 
 
-const summaryBox = document.getElementById('summary-box');
-if (summaryBox) {
-  summaryBox.innerHTML = generateSummary(store.tasks, store.subjects);
+function renderSummary() {
+  const summaryBox = document.getElementById('summary-box');
+  if (summaryBox) {
+    summaryBox.innerHTML = generateSummary(store.tasks, store.subjects);
+  }
 }
 
 function renderCalendar() {
@@ -1220,6 +1224,7 @@ store.subscribe(renderExtraction);
 store.subscribe(renderCalendar);
 store.subscribe(renderFocusTasks);
 store.subscribe(renderSidebarSubjects);
+store.subscribe(renderSummary);
 
 document.addEventListener('DOMContentLoaded', () => {
   if (newSubjectColorsEl) {
