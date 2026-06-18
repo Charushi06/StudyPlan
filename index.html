@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>StudyPlan</title>
   <link rel="stylesheet" href="/css/index.css">
+  <link rel="stylesheet" href="/css/recommendations.css">
 
   <script src="/js/lib/confetti.browser.min.js"></script>
 
@@ -94,6 +95,11 @@
         Archived Tasks
         <span class="badge">0</span>
       </div>
+      <div class="nav-item rec-nav-item" id="study-insights-btn" role="link" aria-label="View AI Study Insights">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v4M8 11v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Study Insights
+        <span class="rec-ai-badge">AI</span>
+      </div>
       <div class="nav-item" id="download-btn">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h9M2 12h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         Download Data
@@ -135,6 +141,29 @@
             </p>
           </div>
         </div>
+
+      <!-- AI Study Recommendations (Issue #68) -->
+      <div id="recommendations-section" style="padding: 12px 24px 0;">
+        <div class="rec-card">
+          <div class="rec-header">
+            <div class="rec-header-left">
+              <span class="rec-header-icon">🧠</span>
+              <span class="rec-header-title">Study Recommendations</span>
+              <span class="rec-header-badge" id="rec-badge">AI</span>
+            </div>
+            <button class="rec-refresh-btn" id="rec-refresh-btn" title="Refresh recommendations" aria-label="Refresh AI recommendations">↻</button>
+          </div>
+          <div class="rec-insights" id="rec-insights"></div>
+          <div class="rec-tips-list" id="rec-tips-list">
+            <!-- Skeleton loader -->
+            <div class="rec-skeleton">
+              <div class="rec-skeleton-item"><div class="rec-skeleton-icon"></div><div class="rec-skeleton-lines"><div class="rec-skeleton-line short"></div><div class="rec-skeleton-line long"></div><div class="rec-skeleton-line medium"></div></div></div>
+              <div class="rec-skeleton-item"><div class="rec-skeleton-icon"></div><div class="rec-skeleton-lines"><div class="rec-skeleton-line short"></div><div class="rec-skeleton-line long"></div><div class="rec-skeleton-line medium"></div></div></div>
+              <div class="rec-skeleton-item"><div class="rec-skeleton-icon"></div><div class="rec-skeleton-lines"><div class="rec-skeleton-line short"></div><div class="rec-skeleton-line medium"></div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <!-- Calendar -->
       <div class="cal-section">

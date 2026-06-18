@@ -552,7 +552,153 @@ Text: "${text}"
   const tasks = nlpExtractTasksFromText(text);
   return res.json(tasks);
 });
+
+// ================= AI RECOMMENDATIONS =================
+/**
+ * POST /api/recommendations
+ * Body: { tasks: Array<{ title, subject_name, due_at, priority, completed }> }
+ * Returns: { recommendations: Array<{ icon, title, tip, subject, type }>, insights: { urgentCount, topSubject } }
+ */
+app.post('/api/recommendations', async (req, res) => {
+  const { tasks } = req.body;
+  if (!tasks || !Array.isArray(tasks)) {
+    return res.status(400).json({ error: 'tasks array is required' });
+  }
+
+  const pending = tasks.filter(t => !t.completed);
+  if (pending.length === 0) {
+    return res.json({
+      recommendations: [{
+        icon: '🎉',
+        title: 'All caught up!',
+        tip: 'You have no pending tasks. Great job staying on top of your studies!',
+        subject: 'General',
+        type: 'motivation'
+      }],
+      insights: { urgentCount: 0, topSubject: null }
+    });
+  }
+
+  // Compute basic insights regardless of AI
+  const now = new Date();
+  const urgentCount = pending.filter(t => {
+    if (!t.due_at) return false;
+    const diff = (new Date(t.due_at) - now) / (1000 * 60 * 60 * 24);
+    return diff <= 2;
+  }).length;
+
+  const subjectCounts = {};
+  pending.forEach(t => {
+    const s = t.subject_name || 'General';
+    subjectCounts[s] = (subjectCounts[s] || 0) + 1;
+  });
+  const topSubject = Object.entries(subjectCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || null;
+
+  // Try Gemini first
+  if (ai) {
+    try {
+      const taskSummary = pending.slice(0, 15).map(t => {
+        const dueStr = t.due_at ? new Date(t.due_at).toLocaleDateString() : 'no deadline';
+        return `- "${t.title}" | Subject: ${t.subject_name || 'General'} | Priority: ${t.priority || 'medium'} | Due: ${dueStr}`;
+      }).join('\n');
+
+      const prompt = `You are an expert academic study coach. A student has the following pending study tasks:
+
+${taskSummary}
+
+Based ONLY on these tasks, generate exactly 3 personalized, actionable study recommendations.
+Return ONLY a raw JSON array (no markdown, no backticks, no explanation).
+Each item must have these exact fields:
+- icon: a single relevant emoji
+- title: a short punchy title (max 6 words)
+- tip: a specific, actionable tip (2-3 sentences) referencing the actual subjects/tasks
+- subject: the most relevant subject name from the list (or "General")
+- type: one of "scheduling" | "technique" | "motivation" | "priority"
+
+Focus on: task prioritization, subject-specific study methods, time management, and stress reduction.`;
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt
+      });
+
+      let rawText = (typeof response.text === 'function' ? response.text() : response.text).trim();
+      if (rawText.startsWith('```')) rawText = rawText.replace(/```json|```/g, '').trim();
+
+      const recommendations = JSON.parse(rawText);
+      return res.json({ recommendations, insights: { urgentCount, topSubject } });
+    } catch (e) {
+      console.error('Gemini recommendations failed, using heuristic:', e.message);
+    }
+  }
+
+  // Heuristic fallback — build smart tips from task data
+  const recommendations = [];
+
+  // Tip 1: Most urgent task
+  const soonestTask = pending
+    .filter(t => t.due_at)
+    .sort((a, b) => new Date(a.due_at) - new Date(b.due_at))[0];
+
+  if (soonestTask) {
+    const diff = Math.ceil((new Date(soonestTask.due_at) - now) / (1000 * 60 * 60 * 24));
+    recommendations.push({
+      icon: diff <= 1 ? '🚨' : '⏰',
+      title: diff <= 1 ? 'Urgent: Due Very Soon!' : 'Start With Your Deadline',
+      tip: `"${soonestTask.title}" is due ${diff <= 0 ? 'today' : `in ${diff} day${diff > 1 ? 's' : ''}`}. Tackle this first to reduce stress. Break it into 25-minute Pomodoro sessions with 5-minute breaks.`,
+      subject: soonestTask.subject_name || 'General',
+      type: 'priority'
+    });
+  }
+
+  // Tip 2: Subject with most tasks
+  if (topSubject && subjectCounts[topSubject] > 1) {
+    const studyTips = {
+      'Mathematics': 'Practice problems actively rather than passively re-reading. Work through examples step-by-step and check your answers.',
+      'Physics': 'Draw diagrams for every problem. Link equations to physical intuition before attempting calculations.',
+      'Chemistry': 'Use flashcards for formulas and reactions. Practice balancing equations daily for 10 minutes.',
+      'Literature': 'Annotate texts as you read. Note themes, symbols, and character motivations for quick essay recall.',
+      'Programming': 'Code along with your notes rather than just reading. Break problems into smaller functions and test each one.',
+      'History': 'Create timelines and mind maps. Connect events causally — ask "why did this happen?" for each fact.',
+    };
+    const tip = studyTips[topSubject] || `You have ${subjectCounts[topSubject]} tasks in ${topSubject}. Group them into a dedicated study block to build momentum and reduce context-switching.`;
+    recommendations.push({
+      icon: '📚',
+      title: `Focus Block: ${topSubject}`,
+      tip,
+      subject: topSubject,
+      type: 'technique'
+    });
+  }
+
+  // Tip 3: High priority tasks
+  const highPriority = pending.filter(t => t.priority === 'high');
+  if (highPriority.length > 0) {
+    recommendations.push({
+      icon: '🎯',
+      title: 'High Priority First',
+      tip: `You have ${highPriority.length} high-priority task${highPriority.length > 1 ? 's' : ''}. Use the "Eat the Frog" technique — schedule your most challenging task at the start of your study session when your focus is sharpest.`,
+      subject: highPriority[0].subject_name || 'General',
+      type: 'scheduling'
+    });
+  }
+
+  // Tip 4: Motivational if few tasks
+  if (recommendations.length < 2) {
+    recommendations.push({
+      icon: '💪',
+      title: 'Stay Consistent',
+      tip: `You have ${pending.length} task${pending.length > 1 ? 's' : ''} to complete. Study in consistent 45-minute blocks and reward yourself after each completed task. Small wins build big momentum!`,
+      subject: 'General',
+      type: 'motivation'
+    });
+  }
+
+  return res.json({ recommendations, insights: { urgentCount, topSubject } });
+});
+
 // ================= AUTH =================
+
 const users = {}; // Simple in-memory user store
 
 app.post('/api/auth/signup', (req, res) => {

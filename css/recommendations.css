@@ -1,0 +1,311 @@
+/* ============================================================
+   css/recommendations.css  —  AI Study Recommendations Widget
+   Issue #68: AI-Powered Study Recommendations
+   ============================================================ */
+
+/* ---- Scoped CSS variables ---- */
+:root {
+  --rec-bg: rgba(255, 255, 255, 0.04);
+  --rec-border: rgba(99, 102, 241, 0.35);
+  --rec-header-color: #a5b4fc;
+  --rec-title-color: #e2e8f0;
+  --rec-tip-color: #94a3b8;
+  --rec-tag-bg: rgba(99, 102, 241, 0.15);
+  --rec-tag-color: #a5b4fc;
+  --rec-card-bg: rgba(15, 23, 42, 0.55);
+  --rec-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+  --rec-chip-hover: rgba(99, 102, 241, 0.22);
+  --rec-refresh-color: #64748b;
+}
+
+[data-theme="light"] {
+  --rec-bg: rgba(255, 255, 255, 0.85);
+  --rec-border: rgba(99, 102, 241, 0.25);
+  --rec-header-color: #4f46e5;
+  --rec-title-color: #1e293b;
+  --rec-tip-color: #475569;
+  --rec-tag-bg: rgba(99, 102, 241, 0.1);
+  --rec-tag-color: #4f46e5;
+  --rec-card-bg: rgba(248, 250, 252, 0.9);
+  --rec-shadow: 0 4px 16px rgba(99, 102, 241, 0.12);
+  --rec-chip-hover: rgba(99, 102, 241, 0.08);
+  --rec-refresh-color: #94a3b8;
+}
+
+/* ---- Container ---- */
+#recommendations-section {
+  margin: 0 0 20px 0;
+  animation: recFadeIn 0.5s ease forwards;
+}
+
+@keyframes recFadeIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- Card ---- */
+.rec-card {
+  background: var(--rec-card-bg);
+  border: 1px solid var(--rec-border);
+  border-radius: 16px;
+  padding: 20px 22px;
+  box-shadow: var(--rec-shadow);
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Animated gradient top border */
+.rec-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899, #6366f1);
+  background-size: 200% 100%;
+  animation: recGradientSlide 3s linear infinite;
+}
+
+@keyframes recGradientSlide {
+  0%   { background-position: 0% 0%; }
+  100% { background-position: 200% 0%; }
+}
+
+/* ---- Header row ---- */
+.rec-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.rec-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rec-header-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.rec-header-title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--rec-header-color);
+}
+
+.rec-header-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 20px;
+  background: var(--rec-tag-bg);
+  color: var(--rec-tag-color);
+  border: 1px solid var(--rec-border);
+  letter-spacing: 0.04em;
+}
+
+.rec-refresh-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--rec-refresh-color);
+  font-size: 14px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  transition: color 0.2s, background 0.2s, transform 0.3s;
+  line-height: 1;
+}
+
+.rec-refresh-btn:hover {
+  color: var(--rec-header-color);
+  background: var(--rec-chip-hover);
+}
+
+.rec-refresh-btn.spinning {
+  animation: recSpin 0.7s linear infinite;
+}
+
+@keyframes recSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ---- Insights strip ---- */
+.rec-insights {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.rec-insight-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: var(--rec-tag-bg);
+  color: var(--rec-tag-color);
+  border: 1px solid var(--rec-border);
+}
+
+.rec-insight-chip.urgent {
+  background: rgba(239, 68, 68, 0.12);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+/* ---- Tips list ---- */
+.rec-tips-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ---- Single tip chip ---- */
+.rec-tip {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  background: var(--rec-bg);
+  border: 1px solid var(--rec-border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  cursor: default;
+  transition: background 0.2s, border-color 0.2s, transform 0.15s;
+}
+
+.rec-tip:hover {
+  background: var(--rec-chip-hover);
+  border-color: rgba(99, 102, 241, 0.5);
+  transform: translateX(3px);
+}
+
+.rec-tip-icon {
+  font-size: 22px;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.rec-tip-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.rec-tip-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--rec-title-color);
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+
+.rec-tip-text {
+  font-size: 12px;
+  color: var(--rec-tip-color);
+  line-height: 1.55;
+}
+
+.rec-tip-tag {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 7px;
+  border-radius: 10px;
+  background: var(--rec-tag-bg);
+  color: var(--rec-tag-color);
+  margin-top: 6px;
+}
+
+/* ---- Type color accents ---- */
+.rec-tip[data-type="priority"]   { border-left: 3px solid #ef4444; }
+.rec-tip[data-type="scheduling"] { border-left: 3px solid #f59e0b; }
+.rec-tip[data-type="technique"]  { border-left: 3px solid #6366f1; }
+.rec-tip[data-type="motivation"] { border-left: 3px solid #10b981; }
+
+/* ---- Skeleton loader ---- */
+.rec-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rec-skeleton-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  background: var(--rec-bg);
+  border: 1px solid var(--rec-border);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.rec-skeleton-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, rgba(99,102,241,0.08) 25%, rgba(99,102,241,0.18) 50%, rgba(99,102,241,0.08) 75%);
+  background-size: 200% 100%;
+  animation: recSkeletonPulse 1.5s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+.rec-skeleton-lines {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rec-skeleton-line {
+  height: 10px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, rgba(99,102,241,0.06) 25%, rgba(99,102,241,0.14) 50%, rgba(99,102,241,0.06) 75%);
+  background-size: 200% 100%;
+  animation: recSkeletonPulse 1.5s ease-in-out infinite;
+}
+
+.rec-skeleton-line.short { width: 40%; }
+.rec-skeleton-line.medium { width: 70%; }
+.rec-skeleton-line.long  { width: 90%; }
+
+@keyframes recSkeletonPulse {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ---- Empty / error state ---- */
+.rec-empty {
+  text-align: center;
+  padding: 18px 12px;
+  color: var(--rec-tip-color);
+  font-size: 13px;
+}
+
+/* ---- Sidebar nav item ---- */
+.nav-item.rec-nav-item {
+  position: relative;
+}
+
+.rec-ai-badge {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+  color: #fff;
+  letter-spacing: 0.04em;
+}

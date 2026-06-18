@@ -1595,3 +1595,108 @@ if (calendarDownloadBtn) {
     downloadCalendar();
   });
 }
+
+// ============================================================
+// AI Study Recommendations — Issue #68
+// ============================================================
+
+let _recFetchPending = false;
+let _recLastTaskHash = null;
+
+function _taskHash(tasks) {
+  return tasks.map(t => `${t.id}:${t.completed}`).join('|');
+}
+
+function _renderTip({ icon, title, tip, subject, type }) {
+  const el = document.createElement('div');
+  el.className = 'rec-tip';
+  el.dataset.type = type || 'technique';
+  el.innerHTML = `
+    <span class="rec-tip-icon">${icon}</span>
+    <div class="rec-tip-body">
+      <div class="rec-tip-title">${title}</div>
+      <div class="rec-tip-text">${tip}</div>
+      ${subject ? `<span class="rec-tip-tag">${subject}</span>` : ''}
+    </div>`;
+  return el;
+}
+
+function _renderInsights(insights) {
+  const container = document.getElementById('rec-insights');
+  if (!container) return;
+  container.innerHTML = '';
+  if (insights.urgentCount > 0) {
+    const chip = document.createElement('span');
+    chip.className = 'rec-insight-chip urgent';
+    chip.textContent = `\uD83D\uDEA8 ${insights.urgentCount} due soon`;
+    container.appendChild(chip);
+  }
+  if (insights.topSubject) {
+    const chip = document.createElement('span');
+    chip.className = 'rec-insight-chip';
+    chip.textContent = `\uD83D\uDCCC Focus: ${insights.topSubject}`;
+    container.appendChild(chip);
+  }
+}
+
+function _showRecSkeleton() {
+  const list = document.getElementById('rec-tips-list');
+  if (!list) return;
+  list.innerHTML = '<div class="rec-skeleton"><div class="rec-skeleton-item"><div class="rec-skeleton-icon"></div><div class="rec-skeleton-lines"><div class="rec-skeleton-line short"></div><div class="rec-skeleton-line long"></div><div class="rec-skeleton-line medium"></div></div></div><div class="rec-skeleton-item"><div class="rec-skeleton-icon"></div><div class="rec-skeleton-lines"><div class="rec-skeleton-line short"></div><div class="rec-skeleton-line long"></div></div></div><div class="rec-skeleton-item"><div class="rec-skeleton-icon"></div><div class="rec-skeleton-lines"><div class="rec-skeleton-line short"></div><div class="rec-skeleton-line medium"></div></div></div></div>';
+}
+
+async function fetchRecommendations(force = false) {
+  const tasks = store.tasks || [];
+  const hash = _taskHash(tasks);
+  if (!force && hash === _recLastTaskHash) return;
+  if (_recFetchPending) return;
+  _recFetchPending = true;
+  _recLastTaskHash = hash;
+  _showRecSkeleton();
+  const refreshBtn = document.getElementById('rec-refresh-btn');
+  if (refreshBtn) refreshBtn.classList.add('spinning');
+  try {
+    const res = await fetch('/api/recommendations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tasks })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const list = document.getElementById('rec-tips-list');
+    if (!list) return;
+    list.innerHTML = '';
+    if (data.insights) _renderInsights(data.insights);
+    if (data.recommendations && data.recommendations.length > 0) {
+      data.recommendations.forEach(rec => list.appendChild(_renderTip(rec)));
+    } else {
+      list.innerHTML = '<div class="rec-empty">No recommendations yet. Add some tasks to get started!</div>';
+    }
+    const badge = document.getElementById('rec-badge');
+    if (badge) badge.textContent = tasks.length > 0 ? 'Gemini AI' : 'Smart Tips';
+  } catch (err) {
+    console.error('Recommendations fetch failed:', err);
+    const list = document.getElementById('rec-tips-list');
+    if (list) list.innerHTML = '<div class="rec-empty">Could not load recommendations. Check your server connection.</div>';
+  } finally {
+    _recFetchPending = false;
+    const rb = document.getElementById('rec-refresh-btn');
+    if (rb) rb.classList.remove('spinning');
+  }
+}
+
+const recRefreshBtn = document.getElementById('rec-refresh-btn');
+if (recRefreshBtn) recRefreshBtn.addEventListener('click', () => fetchRecommendations(true));
+
+const studyInsightsBtn = document.getElementById('study-insights-btn');
+if (studyInsightsBtn) {
+  studyInsightsBtn.addEventListener('click', () => {
+    const section = document.getElementById('recommendations-section');
+    if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    fetchRecommendations(true);
+  });
+}
+
+store.subscribe(() => {
+  if (store.tasks) setTimeout(() => fetchRecommendations(), 500);
+});
