@@ -553,30 +553,87 @@ Text: "${text}"
   return res.json(tasks);
 });
 // ================= AUTH =================
-const users = {}; // Simple in-memory user store
 
+// SIGNUP
 app.post('/api/auth/signup', (req, res) => {
   const { email, password } = req.body;
+
   if (!email || !password) {
-    return res.status(400).json({ error: 'Email and password required' });
+    return res.status(400).json({
+      error: 'Email and password required'
+    });
   }
-  if (users[email]) {
-    return res.status(400).json({ error: 'User already exists' });
-  }
-  users[email] = { email, password };
-  res.json({ success: true, message: 'Account created successfully' });
+
+  const id = 'user_' + Date.now();
+
+  db.run(
+    `INSERT INTO users (id, email, password)
+     VALUES (?, ?, ?)`,
+    [id, email, password],
+    function(err) {
+
+      if (err) {
+
+        if (err.message.includes('UNIQUE')) {
+          return res.status(400).json({
+            error: 'User already exists'
+          });
+        }
+
+        return res.status(500).json({
+          error: err.message
+        });
+      }
+
+      res.json({
+        success: true,
+        message: 'Account created successfully'
+      });
+    }
+  );
 });
 
+// LOGIN
 app.post('/api/auth/login', (req, res) => {
   const { email, password } = req.body;
+
   if (!email || !password) {
-    return res.status(400).json({ error: 'Email and password required' });
+    return res.status(400).json({
+      error: 'Email and password required'
+    });
   }
-  const user = users[email];
-  if (!user || user.password !== password) {
-    return res.status(401).json({ error: 'Invalid email or password' });
-  }
-  res.json({ success: true, email: user.email });
+
+  db.get(
+    `SELECT * FROM users WHERE email = ?`,
+    [email],
+    (err, user) => {
+
+      if (err) {
+        return res.status(500).json({
+          error: err.message
+        });
+      }
+
+      if (!user || user.password !== password) {
+        return res.status(401).json({
+          error: 'Invalid email or password'
+        });
+      }
+
+      res.json({
+        success: true,
+        email: user.email
+      });
+    }
+  );
+});
+
+// LOGOUT
+app.post('/api/auth/logout', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Logged out successfully'
+  });
 });
 
 // Intentional test route for verifying server error page behavior.
