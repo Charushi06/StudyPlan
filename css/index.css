@@ -5022,3 +5022,56 @@ body {
 .subject-sidebar-item:hover .delete-subject-btn {
   opacity: 1;
 }
+
+/* ============================================================
+   COMPACT VIEW STYLES
+   ============================================================ */
+.compact-view .site-header {
+  padding: 8px 16px;
+}
+.compact-view .site-title {
+  font-size: 18px;
+}
+.compact-view .logo {
+  height: 28px;
+}
+.compact-view .wrapper {
+  padding: 8px;
+}
+.compact-view .sidebar {
+  padding: 12px;
+  gap: 6px;
+}
+.compact-view .sidebar-header {
+  margin: 8px 0 4px;
+  font-size: 11px;
+}
+.compact-view .nav-item {
+  padding: 6px 10px;
+  font-size: 13px;
+}
+.compact-view .cal-section {
+  padding: 12px;
+}
+.compact-view .cal-grid {
+  gap: 4px;
+}
+.compact-view .cal-day {
+  height: 32px;
+  font-size: 12px;
+  padding: 2px;
+}
+.compact-view .task-item {
+  padding: 8px 12px;
+  margin-bottom: 6px;
+}
+.compact-view .task-name {
+  font-size: 13px;
+}
+.compact-view .task-pill {
+  font-size: 10px;
+  padding: 2px 6px;
+}
+.compact-view .panel {
+  padding: 12px;
+}
