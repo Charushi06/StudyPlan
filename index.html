@@ -115,6 +115,14 @@
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="1" y="2" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M1 6h14" stroke="currentColor" stroke-width="1.5"/><path d="M5 1v2M11 1v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         Calendar
       </div>
+      <div class="nav-item" id="nav-study-rooms" role="link" aria-label="View Study Rooms">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M5 7a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM11 5a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM2 14c0-1.66 1.34-3 3-3h2c1.66 0 3 1.34 3 3v1H2v-1zm8 0c0-1.1-.9-2-2-2H8c-1.1 0-2 .9-2 2v1h4v-1z" fill="currentColor"/></svg>
+        Study Rooms
+      </div>
+      <div class="nav-item" id="nav-mood-check" role="link" aria-label="View Mood Check">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 2a6 6 0 100 12A6 6 0 008 2zm0 1a5 5 0 110 10A5 5 0 018 3zm-2 4a1 1 0 112 0 1 1 0 01-2 0zm4 0a1 1 0 112 0 1 1 0 01-2 0zm-4 3.5c0 1.1 1.35 2 3 2s3-.9 3-2H6z" fill="currentColor"/></svg>
+        Mood Check
+      </div>
       <div class="nav-item" id="all-tasks-btn" role="link" aria-label="View All Tasks">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 4h12M2 8h9M2 12h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         All Tasks
@@ -260,6 +268,90 @@
       </div>
     </div>
 
+    <div id="study-rooms-view" class="study-rooms-view hidden">
+      <div class="section-header">
+        <h2>Study Rooms</h2>
+        <p class="section-subtitle">Create or join a room and keep your study group connected.</p>
+        <div id="room-message" class="room-message hidden"></div>
+      </div>
+
+      <div class="study-rooms-grid">
+        <div class="room-card" id="create-room-card">
+          <h3>Create a Room</h3>
+          <label for="create-room-name">Your name</label>
+          <input id="create-room-name" type="text" placeholder="Enter your name">
+          <label for="create-room-title">Room name</label>
+          <input id="create-room-title" type="text" placeholder="Enter a room name">
+          <div class="room-actions">
+            <button id="create-room-btn" class="btn btn-primary">Create Room</button>
+          </div>
+        </div>
+
+        <div class="room-card" id="join-room-card">
+          <h3>Join a Room</h3>
+          <label for="join-room-name">Your name</label>
+          <input id="join-room-name" type="text" placeholder="Enter your name">
+          <label for="join-room-code">Room code</label>
+          <input id="join-room-code" type="text" placeholder="Enter room code" maxlength="6">
+          <div class="room-actions">
+            <button id="join-room-btn" class="btn btn-primary">Join Room</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="my-rooms-container" class="my-rooms-container hidden">
+        <div class="room-info">
+          <div class="room-info-header">
+            <div>
+              <div class="room-label">Room Name</div>
+              <h3 id="active-room-name">— <span id="streak-badge" class="streak-badge"></span></h3>
+            </div>
+            <div class="room-meta">
+              <div class="room-code">
+                <span id="active-room-code">XXXXXX</span>
+                <button id="copy-room-code-btn" class="btn">Copy</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="member-list" id="room-member-list"></div>
+
+          <div class="pomodoro-card">
+            <div class="pomodoro-display" id="pomodoro-display">25:00</div>
+            <div class="pomodoro-controls">
+              <button id="pomodoro-start-btn" class="btn btn-primary">Start</button>
+              <button id="pomodoro-pause-btn" class="btn hidden">Pause</button>
+              <button id="pomodoro-reset-btn" class="btn">Reset</button>
+            </div>
+            <button id="leave-room-btn" class="btn leave-room-btn">Leave Room</button>
+          </div>
+
+          <div class="leaderboard-card" id="leaderboard-card" style="margin-top:18px;">
+            <h3>Leaderboard</h3>
+            <div id="leaderboard-list">Loading...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="mood-check-view" class="mood-check-view hidden">
+      <div class="section-header">
+        <h2>Mood Check</h2>
+        <p class="section-subtitle">Tell us how you're feeling and get personalized study suggestions.</p>
+      </div>
+      <div class="mood-check-card">
+        <div class="mood-row">
+          <h4 style="margin-top:0; margin-bottom:12px; color:var(--color-text-primary);">How are you feeling?</h4>
+          <div class="mood-button-row">
+            <button id="mood-tired" class="btn">😴 Tired</button>
+            <button id="mood-energetic" class="btn">😃 Energetic</button>
+            <button id="mood-stressed" class="btn">😓 Stressed</button>
+          </div>
+          <div id="mood-suggestion" class="mood-suggestion hidden"></div>
+        </div>
+      </div>
+    </div>
+
     <!-- Right Panel -->
     <div class="panel">
       <div class="panel-header">
@@ -365,6 +457,8 @@
 </div>
 
   <script type="module" src="/js/app.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/rooms.js"></script>
   <script>
   let isLogin = true;
 

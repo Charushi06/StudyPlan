@@ -90,6 +90,7 @@ let currentView = 'calendar'; // 'calendar', 'all-tasks', 'archived'
 
 const tasksSection = document.getElementById('tasks-section');
 const focusSection = document.getElementById('focus-section');
+const moodCheckView = document.getElementById('mood-check-view');
 const extractPreview = document.getElementById('extract-preview');
 const pasteInput = document.getElementById('paste-input');
 const extractBtn = document.getElementById('extract-btn');
@@ -1365,6 +1366,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const allTasksBtn = document.getElementById('all-tasks-btn');
   const archivedTasksBtn = document.getElementById('archived-tasks-btn');
   const focusModeBtn = document.getElementById('focus-mode-btn');
+  const moodCheckBtn = document.getElementById('nav-mood-check');
 
   function updateSidebarActive(id) {
     document.querySelectorAll('.sidebar .nav-item').forEach(el => el.classList.remove('active'));
@@ -1376,6 +1378,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('.cal-section').classList.remove('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
+    document.getElementById('study-rooms-view')?.classList.add('hidden');
     updateSidebarActive('calendar-btn');
     renderTasks();
   });
@@ -1385,6 +1388,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('.cal-section').classList.add('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
+    document.getElementById('study-rooms-view')?.classList.add('hidden');
+    document.getElementById('mood-check-view')?.classList.add('hidden');
     updateSidebarActive('all-tasks-btn');
     renderTasks();
   });
@@ -1394,6 +1399,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('.cal-section').classList.add('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
+    document.getElementById('study-rooms-view')?.classList.add('hidden');
+    document.getElementById('mood-check-view')?.classList.add('hidden');
     updateSidebarActive('archived-tasks-btn');
     renderTasks();
   });
@@ -1404,8 +1411,22 @@ document.addEventListener('DOMContentLoaded', () => {
       document.querySelector('.cal-section').classList.add('hidden');
       document.getElementById('tasks-section').classList.add('hidden');
       document.getElementById('focus-section').classList.remove('hidden');
+      document.getElementById('study-rooms-view')?.classList.add('hidden');
+      document.getElementById('mood-check-view')?.classList.add('hidden');
       updateSidebarActive('focus-mode-btn');
       renderFocusTasks();
+    });
+  }
+
+  if (moodCheckBtn) {
+    moodCheckBtn.addEventListener('click', () => {
+      currentView = 'mood-check';
+      document.querySelector('.cal-section').classList.add('hidden');
+      document.getElementById('tasks-section').classList.add('hidden');
+      document.getElementById('focus-section').classList.add('hidden');
+      document.getElementById('study-rooms-view')?.classList.add('hidden');
+      document.getElementById('mood-check-view')?.classList.remove('hidden');
+      updateSidebarActive('nav-mood-check');
     });
   }
 

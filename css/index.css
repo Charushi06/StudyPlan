@@ -1332,6 +1332,284 @@ body {
   display: none !important;
 }
 
+.study-rooms-view {
+  padding: 24px;
+}
+
+.mood-check-view {
+  padding: 24px;
+}
+
+.mood-check-card {
+  max-width: 860px;
+  margin: 0 auto;
+  background: var(--color-background-secondary);
+  border: 1px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-lg);
+  padding: 28px;
+  box-shadow: var(--shadow-sm);
+}
+
+.mood-button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.mood-check-view .section-header {
+  margin-bottom: 20px;
+}
+
+.mood-check-view .mood-suggestion {
+  margin-top: 12px;
+}
+
+.section-header {
+  margin-bottom: 20px;
+}
+
+.section-header h2 {
+  font-size: 24px;
+  margin-bottom: 8px;
+  color: var(--color-text-primary);
+}
+
+.section-subtitle {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+
+.study-rooms-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.room-card,
+.room-info {
+  background: var(--color-background-secondary);
+  border: 1px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-lg);
+  padding: 22px;
+  box-shadow: var(--shadow-sm);
+}
+
+.room-info {
+  overflow-y: auto;
+  max-height: calc(100vh - 120px);
+}
+
+.room-card h3 {
+  margin-bottom: 16px;
+  color: var(--color-text-primary);
+}
+
+.room-card label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: var(--color-text-tertiary);
+}
+
+.room-card input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-md);
+  background: var(--color-background-primary);
+  color: var(--color-text-primary);
+  margin-bottom: 16px;
+}
+
+.room-actions {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.room-info-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.room-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+
+.room-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.room-code {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--color-background-primary);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-md);
+  color: var(--color-text-primary);
+}
+
+.room-code button {
+  border: 1px solid var(--color-border-secondary);
+  background: transparent;
+  color: var(--color-text-secondary);
+  border-radius: var(--border-radius-sm);
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.member-list {
+  margin-top: 16px;
+  border-top: 1px solid var(--color-border-tertiary);
+  padding-top: 18px;
+}
+
+.member-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-border-tertiary);
+}
+
+.member-item:last-child {
+  border-bottom: none;
+}
+
+.member-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-border-secondary);
+  flex-shrink: 0;
+}
+
+.member-dot.online {
+  background: var(--color-text-success);
+}
+
+.member-name {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.member-meta {
+  font-size: 13px;
+  color: var(--color-text-tertiary);
+}
+
+.mood-row {
+  margin-top: 10px;
+}
+
+.mood-row .btn {
+  padding: 8px 12px;
+  font-size: 14px;
+}
+
+.mood-suggestion {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: var(--border-radius-md);
+  background: var(--color-background-primary);
+  border: 1px solid var(--color-border-secondary);
+  color: var(--color-text-primary);
+}
+
+.leaderboard-card {
+  background: var(--color-background-secondary);
+  border: 1px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-md);
+  padding: 14px;
+}
+
+.leaderboard-item { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--color-border-tertiary); }
+.streak-badge { background: transparent; color: var(--color-text-warning); font-weight:700; margin-left:8px; }
+
+.pomodoro-card {
+  margin-top: 24px;
+  display: grid;
+  gap: 18px;
+}
+
+.pomodoro-display {
+  font-size: 48px;
+  font-weight: 700;
+  text-align: center;
+  color: var(--color-text-primary);
+}
+
+.pomodoro-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.leave-room-btn {
+  justify-self: center;
+  width: fit-content;
+  margin: 0 auto;
+}
+
+.room-empty {
+  color: var(--color-text-tertiary);
+  padding: 12px 0;
+}
+
+.room-message {
+  margin-top: 18px;
+  padding: 14px 16px;
+  border-radius: var(--border-radius-md);
+  font-size: 14px;
+  color: var(--color-text-primary);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--color-border-tertiary);
+}
+
+.room-message--success {
+  background: var(--color-background-success);
+  border-color: var(--color-border-success);
+  color: var(--color-text-success);
+}
+
+.room-message--error {
+  background: var(--color-background-danger);
+  border-color: var(--color-border-danger);
+  color: var(--color-text-danger);
+}
+
+.room-message--info {
+  background: var(--color-background-primary);
+  border-color: var(--color-border-secondary);
+  color: var(--color-text-secondary);
+}
+
+@media (max-width: 900px) {
+  .app {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .study-rooms-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Timer duration input */
 .timer-duration-row {
   display: flex;
