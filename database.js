@@ -64,6 +64,9 @@ db.all("PRAGMA table_info(tasks)", (err, rows) => {
         stmt.run('sub_2', 'Mathematics', 'Maths', 'var(--color-text-success)');
         stmt.run('sub_3', 'English Lit', 'English', 'var(--color-text-purple)');
         stmt.run('sub_4', 'Physics', 'Physics', 'var(--color-text-warning)');
+        stmt.run('sub_5', 'Chemistry', 'Chem', 'var(--color-text-danger)');
+        stmt.run('sub_6', 'Biology', 'Bio', 'var(--color-text-success)');
+        stmt.run('sub_7', 'History', 'Hist', 'var(--color-text-secondary)');
         stmt.finalize();
       }
     });
