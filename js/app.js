@@ -59,8 +59,8 @@ function generateSummary(tasks, subjects) {
 
   const topSubject = Object.keys(subjectCount).length
     ? Object.keys(subjectCount).reduce((a, b) =>
-        subjectCount[a] > subjectCount[b] ? a : b
-      )
+      subjectCount[a] > subjectCount[b] ? a : b
+    )
     : 'no specific subject';
 
   return `
@@ -484,39 +484,39 @@ if (panelToggleBtn) {
   });
 }
 
-if(timerStartBtn) timerStartBtn.addEventListener('click', startTimer);
-if(timerPauseBtn) timerPauseBtn.addEventListener('click', pauseTimer);
-if(timerResetBtn) timerResetBtn.addEventListener('click', resetTimer);
+if (timerStartBtn) timerStartBtn.addEventListener('click', startTimer);
+if (timerPauseBtn) timerPauseBtn.addEventListener('click', pauseTimer);
+if (timerResetBtn) timerResetBtn.addEventListener('click', resetTimer);
 
 function renderFocusTasks() {
-  if(!focusTaskList || !activeFocusTask) return;
+  if (!focusTaskList || !activeFocusTask) return;
   const tasks = store.tasks;
   const subjects = store.subjects;
-  
+
   const activeTasks = tasks.filter(t => !t.archived && t.status !== 'Done');
   const now = new Date();
-  
+
   const dueSoon = [];
   activeTasks.forEach(t => {
-    if(!t.due_at) return;
+    if (!t.due_at) return;
     const d = new Date(t.due_at);
     const diffDays = (d - now) / (1000 * 60 * 60 * 24);
     if (diffDays <= 3) dueSoon.push(t);
   });
-  
-  dueSoon.sort((a,b) => new Date(a.due_at) - new Date(b.due_at));
-  
+
+  dueSoon.sort((a, b) => new Date(a.due_at) - new Date(b.due_at));
+
   if (dueSoon.length === 0) {
     focusTaskList.innerHTML = '<div class="tasks-empty-state">No tasks due soon to focus on.</div>';
   } else {
     focusTaskList.innerHTML = dueSoon.map(t => {
       const sub = subjects.find(s => s.id === t.subject_id) || subjects[0] || { short_code: 'Gen' };
       let pillClass = '';
-      if(sub.short_code === 'CS') pillClass = 'pill-blue';
-      else if(sub.short_code === 'Maths') pillClass = 'pill-green';
-      else if(sub.short_code === 'English') pillClass = 'pill-purple';
+      if (sub.short_code === 'CS') pillClass = 'pill-blue';
+      else if (sub.short_code === 'Maths') pillClass = 'pill-green';
+      else if (sub.short_code === 'English') pillClass = 'pill-purple';
       else pillClass = 'pill-amber';
-      
+
       return `
         <div class="focus-task-item" data-id="${t.id}">
           <div class="task-name">${t.title}</div>
@@ -526,7 +526,7 @@ function renderFocusTasks() {
         </div>
       `;
     }).join('');
-    
+
     document.querySelectorAll('.focus-task-item').forEach(el => {
       el.addEventListener('click', () => {
         activeFocusTaskId = el.dataset.id;
@@ -534,7 +534,7 @@ function renderFocusTasks() {
       });
     });
   }
-  
+
   if (activeFocusTaskId) {
     const activeT = store.tasks.find(t => t.id === activeFocusTaskId);
     if (activeT) {
@@ -552,7 +552,7 @@ function renderFocusTasks() {
           </div>
         </div>
       `;
-      
+
       const completeBtn = activeFocusTask.querySelector('.complete-focus-task-btn');
       if (completeBtn) {
         completeBtn.addEventListener('click', () => {
@@ -561,7 +561,7 @@ function renderFocusTasks() {
           renderFocusTasks();
         });
       }
-      
+
       const clearBtn = activeFocusTask.querySelector('.clear-focus-task-btn');
       if (clearBtn) {
         clearBtn.addEventListener('click', () => {
@@ -581,31 +581,31 @@ function renderFocusTasks() {
 function formatDate(dateStr) {
   if (!dateStr) return 'No Date';
   const d = new Date(dateStr);
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' });
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
 async function downloadData() {
-    try {
-        const response = await fetch('/api/download');
-        
-        if (!response.ok) {
-            throw new Error('Failed to download data');
-        }
+  try {
+    const response = await fetch('/api/download');
 
-        const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'study_data.csv';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(url), 100);
+    if (!response.ok) {
+      throw new Error('Failed to download data');
+    } 
 
-    } catch (error) {
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'study_data.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 100);
+
+  } catch (error) {
         console.error(error);
         Toast.show('Failed to download data', 'error');
-    }
+  }
 }
 
 async function downloadCalendar() {
@@ -635,13 +635,13 @@ async function downloadCalendar() {
 function renderTasks() {
   const tasks = store.tasks;
   const subjects = store.subjects;
-  
+
   if (subjects.length === 0) return; // Wait for subjects to load
-  
+
   // Filter based on archived status
   const activeTasks = tasks.filter(t => !t.archived);
   const archivedTasks = tasks.filter(t => t.archived);
-  
+
   // Update badges
   const allTasksBadge = document.querySelector('#all-tasks-btn .badge');
   if (allTasksBadge) {
@@ -651,12 +651,14 @@ function renderTasks() {
   if (archivedBadge) {
     archivedBadge.textContent = archivedTasks.length;
   }
+
+
   
   const displayTasksRaw = currentView === 'archived' ? archivedTasks : activeTasks;
   const displayTasks = activeLabelFilter
     ? displayTasksRaw.filter(t => t.labels && t.labels.includes(activeLabelFilter))
     : displayTasksRaw;
-
+  
   // Extract unique labels to populate the filter dropdown
   if (labelFilterSelect) {
     const uniqueLabels = new Set();
@@ -683,7 +685,7 @@ function renderTasks() {
   const thisWeek = [];
   const completed = [];
   const pending = [];
-  
+
   if (currentView === 'calendar' && selectedDate) {
     sorted.forEach(t => {
       const d = new Date(t.due_at);
@@ -708,14 +710,14 @@ function renderTasks() {
       else thisWeek.push(t);
     });
   }
-  
+
   const renderGroup = (title, items, titleColor, showConflict = false) => {
     if (items.length === 0) return '';
     let html = `<div class="tasks-group">
       <div class="tasks-group-header">
         <span style="color:${titleColor}">${title}</span>
       </div>`;
-    
+
     if (showConflict) {
       const workloadSuggestions = analyzeWorkload(items);
       workloadSuggestions.forEach(workload => {
@@ -726,26 +728,27 @@ function renderTasks() {
         </div>`;
       });
     }
-    
-      
+
+
     items.forEach(t => {
       const sub = subjects.find(s => s.id === t.subject_id) || subjects[0];
       const isDone = t.status === 'Done';
+
       const isHighPriority = t.priority === 'high';
       const isOverdue = !isDone && t.due_at && new Date(t.due_at) < now;
       const isUrgent = isHighPriority && title === '⚠ Due soon';
       
       let pillClass = '';
-      if(sub.short_code === 'CS') pillClass = 'pill-blue';
-      else if(sub.short_code === 'Maths') pillClass = 'pill-green';
-      else if(sub.short_code === 'English') pillClass = 'pill-purple';
+      if (sub.short_code === 'CS') pillClass = 'pill-blue';
+      else if (sub.short_code === 'Maths') pillClass = 'pill-green';
+      else if (sub.short_code === 'English') pillClass = 'pill-purple';
       else pillClass = 'pill-amber';
-      
+
       if (t._isEditing) {
-        let subjectOptions = subjects.map(s => 
+        let subjectOptions = subjects.map(s =>
           `<option value="${s.id}" ${s.id === t.subject_id ? 'selected' : ''}>${s.name}</option>`
         ).join('');
-        
+
         const localDate = t.due_at ? new Date(t.due_at).toISOString().substring(0, 16) : '';
         const isHighPriority = t.priority === 'high';
         const editDurationUnit = t.is_estimated_duration_min === 0 ? 'hours' : 'minutes';
@@ -805,53 +808,57 @@ function renderTasks() {
           labelsHtml = t.labels.map(l => `<span class="task-pill" style="background:${getLabelColor(l)}; color:white;">${l}</span>`).join(' ');
         }
 
-        html += `
- <div class="task-item 
-  ${isUrgent ? 'urgent' : ''} 
-  ${isHighPriority ? 'high-priority' : ''} 
-  ${isOverdue ? 'overdue' : ''} 
-  ${isDone ? 'done' : ''} 
-  ${store.selectedTasks.includes(t.id) ? 'selected-task' : ''}
-" 
-data-id="${t.id}">
+  html += `
+            <div class="task-item 
+              ${isUrgent ? 'urgent' : ''} 
+              ${isHighPriority ? 'high-priority' : ''} 
+              ${isOverdue ? 'overdue' : ''} 
+              ${isDone ? 'done' : ''} 
+              ${store.selectedTasks.includes(t.id) ? 'selected-task' : ''}
+            " 
+            data-id="${t.id}">
 
-  <input 
-    type="checkbox"
-    class="task-select-checkbox"
-    data-id="${t.id}"
-    ${store.selectedTasks.includes(t.id) ? 'checked' : ''}
-  />
+              <input 
+                type="checkbox"
+                class="task-select-checkbox"
+                data-id="${t.id}"
+                ${store.selectedTasks.includes(t.id) ? 'checked' : ''}
+              />
 
-  <div class="task-check ${isDone ? 'done' : ''}"></div>
+              <div class="task-check ${isDone ? 'done' : ''}"></div>
 
-  <div class="task-info">
-    <div class="task-name">${t.title}</div>
+              <div class="task-info">
+                <div class="task-name">${t.title}</div>
 
-    <div class="task-meta">
-      <span class="task-pill ${
-        isDone
-          ? 'pill-green'
-          : (isOverdue || isHighPriority ? 'pill-red' : 'pill-amber')
-      }">
-        ${isDone ? 'Done' : 'Due ' + formatDate(t.due_at)}
-      </span>
+                <div class="task-meta">
+                  <span class="task-pill ${
+                    isDone
+                      ? 'pill-green'
+                      : (isOverdue || isHighPriority ? 'pill-red' : 'pill-amber')
+                  }">
+                    ${isDone ? 'Done' : 'Due ' + formatDate(t.due_at)}
+                  </span>
 
-      <span class="task-pill ${pillClass}">
-        ${sub.short_code}
-      </span>
+                  <span class="task-pill ${pillClass}">
+                    ${sub.short_code}
+                  </span>
 
-      ${labelsHtml}
-    </div>
-  </div>
+                  ${labelsHtml}
+                </div>
+              </div>
 
-  <div class="task-actions">
-    ${actionButtons}
-  </div>
-</div>
-`;
-          
+              <div class="task-actions">
+                ${actionButtons}
+              </div>
+            </div>
+          `;
+        }
+      });
+      html += `</div>`;
+      return html;
+    };
   if (currentView === 'calendar' && selectedDate) {
-    const selStr = selectedDate.toLocaleDateString('en-US', {month:'short', day:'numeric'});
+    const selStr = selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     const actionBar = `<div class="tasks-actions-bar">
            <button id="mark-all-pending-btn" class="task-action-btn" ${pending.length === 0 ? 'disabled' : ''}>Mark all pending completed (${pending.length})</button>
            <button id="mark-day-complete-btn" class="task-action-btn task-action-btn-secondary" ${pending.length === 0 ? 'disabled' : ''}>Mark selected day completed</button>
@@ -885,9 +892,9 @@ data-id="${t.id}">
     }
 
     tasksSection.innerHTML = actionBar +
-                             renderGroup(`Tasks for ${selStr}`, dueSoon, 'var(--color-text-primary)') +
-                             renderGroup('Completed', completed, 'var(--color-text-tertiary)') +
-                             emptyState;
+      renderGroup(`Tasks for ${selStr}`, dueSoon, 'var(--color-text-primary)') +
+      renderGroup('Completed', completed, 'var(--color-text-tertiary)') +
+      emptyState;
   } else {
     const bulkToolbar = store.selectedTasks.length > 0
   ? `
@@ -988,11 +995,11 @@ const actionBar = currentView === 'archived'
   document.querySelectorAll('.task-item').forEach(el => {
     el.addEventListener('click', (e) => {
       if (e.target.closest('.task-actions') || e.target.closest('.task-check')) return;
-      
+
       const taskId = el.dataset.id;
       const task = store.tasks.find(t => String(t.id) === String(taskId));
       if (task && task._isEditing) return;
-      
+
       store.toggleTaskStatus(taskId);
     });
   });
@@ -1028,6 +1035,7 @@ const actionBar = currentView === 'archived'
       e.stopPropagation();
       const taskId = el.dataset.id;
       const itemEl = el.closest('.task-item');
+
       
       const rawTitle = itemEl.querySelector('.board-edit-title').value;
       const subject_id = itemEl.querySelector('.board-edit-subject').value;
@@ -1155,32 +1163,32 @@ function renderCalendar() {
   const calTitle = document.getElementById('cal-month-title');
   const calGrid = document.getElementById('cal-grid');
   if (!calGrid) return;
-  
+
   const year = currentMonthDate.getFullYear();
   const month = currentMonthDate.getMonth();
-  
+
   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   calTitle.textContent = `${monthNames[month]} ${year}`;
-  
+
   const topbarTitle = document.querySelector('.topbar-title');
-  if(topbarTitle) topbarTitle.textContent = `${monthNames[month]} ${year}`;
+  if (topbarTitle) topbarTitle.textContent = `${monthNames[month]} ${year}`;
 
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const prevMonthDays = new Date(year, month, 0).getDate();
-  
+
   const today = new Date();
-  
+
   let html = `<div class="cal-day-label">Su</div><div class="cal-day-label">Mo</div><div class="cal-day-label">Tu</div><div class="cal-day-label">We</div><div class="cal-day-label">Th</div><div class="cal-day-label">Fr</div><div class="cal-day-label">Sa</div>`;
-  
+
   for (let i = 0; i < firstDay; i++) {
     html += `<div class="cal-day muted">${prevMonthDays - firstDay + i + 1}</div>`;
   }
-  
+
   for (let i = 1; i <= daysInMonth; i++) {
     const isToday = i === today.getDate() && month === today.getMonth() && year === today.getFullYear();
     const isSelected = selectedDate && i === selectedDate.getDate() && month === selectedDate.getMonth() && year === selectedDate.getFullYear();
-    
+
     // Find tasks for this day
     const dayTasks = store.tasks.filter(t => {
       if (t.archived) return false;
@@ -1194,9 +1202,9 @@ function renderCalendar() {
     if (dayTasks.length > 0) {
       indicatorHtml = `<div class="cal-day-indicators">`;
       dayTasks.forEach((t, idx) => {
-         if (idx > 2) return;
-         const sub = store.subjects.find(s => s.id === t.subject_id) || store.subjects[0];
-         indicatorHtml += `<div class="cal-day-indicator" style="background:${sub ? sub.color : 'var(--color-text-danger)'}"></div>`;
+        if (idx > 2) return;
+        const sub = store.subjects.find(s => s.id === t.subject_id) || store.subjects[0];
+        indicatorHtml += `<div class="cal-day-indicator" style="background:${sub ? sub.color : 'var(--color-text-danger)'}"></div>`;
       });
       indicatorHtml += `</div>`;
     }
@@ -1208,14 +1216,14 @@ function renderCalendar() {
       ${indicatorHtml}
     </div>`;
   }
-  
+
   const totalCells = firstDay + daysInMonth;
   const nextDays = (7 - (totalCells % 7)) % 7;
   for (let i = 1; i <= nextDays; i++) {
     html += `<div cl
     ass="cal-day muted">${i}</div>`;
   }
-  
+
   calGrid.innerHTML = html;
 
   // Bind day clicks
@@ -1223,7 +1231,7 @@ function renderCalendar() {
     el.addEventListener('click', (e) => {
       const d = parseInt(e.currentTarget.getAttribute('data-day'));
       const clickedDate = new Date(year, month, d);
-      
+
       if (selectedDate && clickedDate.getTime() === selectedDate.getTime()) {
         selectedDate = null;
       } else {
@@ -1243,24 +1251,24 @@ function renderExtraction() {
     addItemsBtn.textContent = 'Add items to planner';
     return;
   }
-  
+
   addItemsBtn.disabled = false;
   addItemsBtn.textContent = `Add ${pasteItems.length} items to planner`;
-  
+
   let html = `<div class="extract-title">Extracted — ${pasteItems.length} items</div>`;
   pasteItems.forEach((item, index) => {
     // try to match subject name
     const sub = store.subjects.find(s => s.name.toLowerCase().includes((item.subject_name || '').toLowerCase())) || store.subjects[3];
     // Attach subject id to item so Add will work
     item.subject_id = sub.id;
-    
+
     if (item._isEditing) {
-      let subjectOptions = store.subjects.map(s => 
+      let subjectOptions = store.subjects.map(s =>
         `<option value="${s.id}" ${s.id === sub.id ? 'selected' : ''}>${s.name}</option>`
       ).join('');
-      
+
       const localDate = item.due_at ? new Date(item.due_at).toISOString().substring(0, 16) : '';
-      
+
       html += `
         <div class="extract-card">
           <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Subject</label>
@@ -1295,15 +1303,15 @@ function renderExtraction() {
       `;
     }
   });
-  
+
   extractPreview.innerHTML = html;
-  
+
   setTimeout(() => {
     document.querySelectorAll('.conf-fill').forEach(el => {
       el.style.width = el.getAttribute('data-width') + '%';
     });
   }, 100);
-  
+
   document.querySelectorAll('.conf-edit').forEach(btn => {
     btn.addEventListener('click', (e) => {
       const idx = e.target.getAttribute('data-index');
@@ -1319,9 +1327,9 @@ function renderExtraction() {
       const title = card.querySelector('.edit-title-input').value;
       let dateVal = card.querySelector('.edit-date-input').value;
       const notes = card.querySelector('.edit-notes-input').value;
-      
+
       const newSubject = store.subjects.find(s => s.id === subjectId);
-      
+
       store.updateExtractedItem(idx, {
         subject_id: subjectId,
         subject_name: newSubject ? newSubject.name : 'General',
@@ -1334,11 +1342,89 @@ function renderExtraction() {
   });
 }
 
+function calculateStreak(tasks) {
+  const completedTasks = tasks.filter(t => t.status === 'Done' && t.due_at && !t.archived);
+
+  const dates = new Set();
+  completedTasks.forEach(t => {
+    const d = new Date(t.due_at);
+    if (!isNaN(d.getTime())) {
+      dates.add(`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`);
+    }
+  });
+
+  if (dates.size === 0) return 0;
+
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
+
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = `${yesterday.getFullYear()}-${yesterday.getMonth()}-${yesterday.getDate()}`;
+
+  let streak = 0;
+  let checkDate = new Date();
+  let checkStr = todayStr;
+
+  if (dates.has(todayStr)) {
+    streak = 1;
+  } else if (dates.has(yesterdayStr)) {
+    streak = 1;
+    checkDate = yesterday;
+    checkStr = yesterdayStr;
+  } else {
+    return 0;
+  }
+
+  while (true) {
+    checkDate.setDate(checkDate.getDate() - 1);
+    checkStr = `${checkDate.getFullYear()}-${checkDate.getMonth()}-${checkDate.getDate()}`;
+    if (dates.has(checkStr)) {
+      streak++;
+    } else {
+      break;
+    }
+  }
+
+  return streak;
+}
+
+function renderStreak() {
+  const streakCount = calculateStreak(store.tasks);
+
+  const streakCountEl = document.getElementById('streak-count');
+  if (streakCountEl) {
+    streakCountEl.textContent = streakCount;
+  }
+
+  const badge3 = document.getElementById('badge-3-wrapper');
+  const badge7 = document.getElementById('badge-7-wrapper');
+  const badge30 = document.getElementById('badge-30-wrapper');
+
+  if (badge3) badge3.classList.toggle('hidden', streakCount < 3);
+  if (badge7) badge7.classList.toggle('hidden', streakCount < 7);
+  if (badge30) badge30.classList.toggle('hidden', streakCount < 30);
+
+  const tooltip = document.getElementById('streak-tooltip');
+  if (tooltip) {
+    if (streakCount >= 30) {
+      tooltip.textContent = '30 day badge unlocked';
+    } else if (streakCount >= 7) {
+      tooltip.textContent = '7 day badge unlocked';
+    } else if (streakCount >= 3) {
+      tooltip.textContent = '3 day badge unlocked';
+    } else {
+      tooltip.textContent = 'Complete tasks to build streak & earn cool badges';
+    }
+  }
+}
+
 store.subscribe(renderTasks);
 store.subscribe(renderExtraction);
 store.subscribe(renderCalendar);
 store.subscribe(renderFocusTasks);
 store.subscribe(renderSidebarSubjects);
+store.subscribe(renderStreak);
 
 document.addEventListener('DOMContentLoaded', () => {
   if (newSubjectColorsEl) {
@@ -1435,7 +1521,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderTasks();
   });
 
-  if(focusModeBtn) {
+  if (focusModeBtn) {
     focusModeBtn.addEventListener('click', () => {
       currentView = 'focus';
       document.querySelector('.cal-section').classList.add('hidden');
@@ -1460,37 +1546,35 @@ newTaskBtn.addEventListener('click', () => {
     return;
   }
 
-  newTaskSubject.innerHTML = store.subjects
-    .map(s => `<option value="${s.id}">${s.name}</option>`)
-    .join('');
+    newTaskSubject.innerHTML = store.subjects
+      .map(s => `<option value="${s.id}">${s.name}</option>`)
+      .join('');
 
 
-  if (selectedDate) {
-    const d = new Date(selectedDate);
-    d.setHours(18, 0, 0, 0); 
-    newTaskDate.value = d.toISOString().substring(0, 16);
-  } else {
-    newTaskDate.value = '';
-  }
-
+    if (selectedDate) {
+      const d = new Date(selectedDate);
+      d.setHours(18, 0, 0, 0);
+      newTaskDate.value = d.toISOString().substring(0, 16);
+    } else {
+      newTaskDate.value = '';
+    }
   newTaskTitle.value = '';
   newTaskNotes.value = '';
   if (newTaskEstimatedDuration) newTaskEstimatedDuration.value = '';
   setNewTaskDurationUnit('minutes');
+    newTaskModal.style.display = 'flex';
+  });
 
-  newTaskModal.style.display = 'flex';
-});
-
-newTaskCancel.addEventListener('click', () => {
-  newTaskModal.style.display = 'none';
-});
+  newTaskCancel.addEventListener('click', () => {
+    newTaskModal.style.display = 'none';
+  });
 
 newTaskModal.addEventListener('click', (e) => {
-  if (e.target === newTaskModal) {
-    newTaskModal.style.display = 'none';
-  }
-});
-
+    if (e.target === newTaskModal) {
+      newTaskModal.style.display = 'none';
+    }
+  });
+  
 function setNewTaskDurationUnit(unit) {
   selectedTaskDurationUnit = unit;
   newTaskDurationSwitch?.setAttribute('data-unit', unit);
@@ -1541,9 +1625,10 @@ if (!subject_id) {
     labels
   };
 
-  await store.addTasks([newTask]);
-  newTaskModal.style.display = 'none';
-});
+    await store.addTasks([newTask]);
+    newTaskModal.style.display = 'none';
+  });
+
 
 addItemsBtn.addEventListener('click', () => {
   if (store.currentPaste) {
@@ -1566,15 +1651,15 @@ if (pasteInput.value.trim() === "") {
 extractBtn.addEventListener('click', async () => {
   const text = pasteInput.value;
   if (!text.trim()) return;
-  
+
   extractBtn.innerHTML = '<span class="loader-spinner"></span>';
   extractBtn.disabled = true;
   
   const items = await extractTasksFromText(text);
-  
+
   extractBtn.innerHTML = 'Extract with AI →';
   extractBtn.disabled = false;
-  
+
   store.setExtracted(items);
 });
 
@@ -1707,6 +1792,131 @@ if (quoteEl) {
 
   quoteEl.textContent = quotes[index];
 }
+calendarDownloadBtn.addEventListener('click', () => {
+  downloadCalendar();
+});
+
+// ================= AUTH FRONTEND =================
+
+const authModal = document.getElementById('auth-modal');
+const authTitle = document.getElementById('auth-title');
+const authSubtitle = document.getElementById('auth-subtitle');
+const authSubmitBtn = document.getElementById('auth-submit-btn');
+const authToggleBtn = document.getElementById('auth-toggle-btn');
+const authToggleText = document.getElementById('auth-toggle-text');
+const authError = document.getElementById('auth-error');
+
+const emailInput = document.getElementById('auth-email');
+const passwordInput = document.getElementById('auth-password');
+
+const logoutBtn = document.getElementById('logout-btn');
+
+let isLoginMode = true;
+
+// ================= CHECK LOGIN =================
+
+const savedUser = localStorage.getItem('studyplan_user');
+
+if (savedUser) {
+  authModal.style.display = 'none';
+} else {
+  authModal.style.display = 'flex';
+}
+
+// ================= TOGGLE LOGIN/SIGNUP =================
+
+authToggleBtn.addEventListener('click', (e) => {
+  e.preventDefault();
+
+  isLoginMode = !isLoginMode;
+
+  authError.style.display = 'none';
+
+  if (isLoginMode) {
+    authTitle.textContent = 'Welcome back';
+    authSubtitle.textContent = 'Sign in to your StudyPlan account';
+    authSubmitBtn.textContent = 'Sign In';
+    authToggleText.textContent = "Don't have an account?";
+    authToggleBtn.textContent = 'Sign Up';
+  } else {
+    authTitle.textContent = 'Create account';
+    authSubtitle.textContent = 'Sign up for StudyPlan';
+    authSubmitBtn.textContent = 'Sign Up';
+    authToggleText.textContent = 'Already have an account?';
+    authToggleBtn.textContent = 'Sign In';
+  }
+});
+
+// ================= LOGIN / SIGNUP =================
+
+authSubmitBtn.addEventListener('click', async () => {
+
+  const email = emailInput.value.trim();
+  const password = passwordInput.value.trim();
+
+  if (!email || !password) {
+    authError.textContent = 'Please fill all fields';
+    authError.style.display = 'block';
+    return;
+  }
+
+  const endpoint = isLoginMode
+    ? '/api/auth/login'
+    : '/api/auth/signup';
+
+  try {
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        email,
+        password
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      authError.textContent = data.error || 'Authentication failed';
+      authError.style.display = 'block';
+      return;
+    }
+
+    // Save logged-in user
+    localStorage.setItem('studyplan_user', email);
+
+    authModal.style.display = 'none';
+
+    location.reload();
+
+  } catch (err) {
+
+    authError.textContent = 'Server error';
+    authError.style.display = 'block';
+  }
+});
+
+// ================= LOGOUT =================
+
+logoutBtn.addEventListener('click', async () => {
+
+  try {
+
+    await fetch('/api/auth/logout', {
+      method: 'POST'
+    });
+
+    localStorage.removeItem('studyplan_user');
+
+    location.reload();
+
+  } catch (err) {
+    console.error(err);
+  }
+});
 
 
 if (calendarDownloadBtn) {
