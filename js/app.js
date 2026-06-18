@@ -1588,6 +1588,73 @@ if (quoteEl) {
 
   quoteEl.textContent = quotes[index];
 }
+calendarDownloadBtn.addEventListener('click', () => {
+  downloadCalendar();
+});
+
+
+/* Profile Dropdown Functionality */
+
+const profileIconBtn = document.getElementById('profile-icon-btn');
+const profileDropdown = document.getElementById('profile-dropdown');
+const logoutBtn = document.getElementById('logout-btn');
+
+
+function toggleProfileDropdown() {
+  profileDropdown.classList.toggle('active');
+}
+
+
+if (profileIconBtn) {
+  profileIconBtn.addEventListener('click', (e) => {
+    e.stopPropagation(); 
+    toggleProfileDropdown();
+  });
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', (e) => {
+  const isClickInsideDropdown = profileDropdown && profileDropdown.contains(e.target);
+  const isClickOnIcon = profileIconBtn && profileIconBtn.contains(e.target);
+  
+  if (!isClickInsideDropdown && !isClickOnIcon && profileDropdown) {
+    profileDropdown.classList.remove('active');
+  }
+});
+
+
+async function updateProfileInfo() {
+  const token = localStorage.getItem("authToken");
+
+  try {
+    const res = await fetch("http://localhost:5000/api/profile", {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const userInfo = await res.json();
+
+    document.getElementById("profile-username").textContent = userInfo.username;
+    document.getElementById("profile-email").textContent = userInfo.email;
+    document.getElementById("profile-name").textContent = userInfo.fullName;
+    document.getElementById("profile-role").textContent = userInfo.role;
+  } catch (err) {
+    console.error("Profile fetch failed:", err);
+    document.getElementById("profile-username").textContent = "Guest User";
+    document.getElementById("profile-email").textContent = "user@example.com";
+    document.getElementById("profile-name").textContent = "User Name";
+    document.getElementById("profile-role").textContent = "Student";
+  }
+}
+
+updateProfileInfo();
+
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", () => {
+    localStorage.removeItem("authToken");
+    window.location.href = "/";
+  });
+}
+
+
 
 
 if (calendarDownloadBtn) {
