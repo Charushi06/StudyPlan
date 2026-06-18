@@ -1595,3 +1595,91 @@ if (calendarDownloadBtn) {
     downloadCalendar();
   });
 }
+
+// Profile Modal Functionality
+function openProfile() {
+  console.log('openProfile called!');
+  const profileModal = document.getElementById('profile-modal');
+  if (!profileModal) {
+    console.error('profile-modal element not found!');
+    return;
+  }
+
+  // Retrieve user email
+  let email = 'student@studyplan.com';
+  try {
+    const userStr = localStorage.getItem('studyplan_user');
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      if (user && user.email) {
+        email = user.email;
+      }
+    }
+  } catch (e) {
+    console.error('Failed to parse user from localStorage', e);
+  }
+
+  // Set email and avatar initials
+  const emailEl = document.getElementById('profile-email');
+  if (emailEl) emailEl.textContent = email;
+
+  const avatarEl = document.getElementById('profile-avatar');
+  if (avatarEl) {
+    const initials = email.substring(0, 2).toUpperCase();
+    avatarEl.textContent = initials;
+  }
+
+  // Retrieve progress statistics from the store
+  const subjectsCount = store.subjects ? store.subjects.length : 0;
+  const pendingCount = store.tasks ? store.tasks.filter(t => !t.archived && t.status !== 'Done').length : 0;
+  const doneCount = store.tasks ? store.tasks.filter(t => t.status === 'Done').length : 0;
+
+  const subjectsCountEl = document.getElementById('profile-subjects-count');
+  if (subjectsCountEl) subjectsCountEl.textContent = subjectsCount;
+
+  const pendingCountEl = document.getElementById('profile-pending-count');
+  if (pendingCountEl) pendingCountEl.textContent = pendingCount;
+
+  const doneCountEl = document.getElementById('profile-done-count');
+  if (doneCountEl) doneCountEl.textContent = doneCount;
+
+  // Display modal
+  profileModal.style.display = 'flex';
+  console.log('profile-modal displayed!');
+}
+
+// Bind Profile Button and Modal close events
+const profileBtn = document.getElementById('profile-btn');
+console.log('Binding profile-btn:', profileBtn);
+if (profileBtn) {
+  profileBtn.addEventListener('click', openProfile);
+  console.log('profile-btn click listener added successfully!');
+} else {
+  console.error('profile-btn element not found during binding!');
+}
+
+const profileClose = document.getElementById('profile-close');
+if (profileClose) {
+  profileClose.addEventListener('click', () => {
+    const profileModal = document.getElementById('profile-modal');
+    if (profileModal) profileModal.style.display = 'none';
+  });
+}
+
+const profileOk = document.getElementById('profile-ok');
+if (profileOk) {
+  profileOk.addEventListener('click', () => {
+    const profileModal = document.getElementById('profile-modal');
+    if (profileModal) profileModal.style.display = 'none';
+  });
+}
+
+// Close when clicking outside the modal content card
+const profileModalEl = document.getElementById('profile-modal');
+if (profileModalEl) {
+  window.addEventListener('click', (e) => {
+    if (e.target === profileModalEl) {
+      profileModalEl.style.display = 'none';
+    }
+  });
+}

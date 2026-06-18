@@ -62,7 +62,7 @@
   </nav>
 
   <div class="header-right">
-    <button class="profile-btn">Profile</button>
+    <button class="profile-btn" id="profile-btn">Profile</button>
     <button class="profile-btn" id="logout-btn">Logout</button>
   </div>
 </header>
@@ -309,6 +309,46 @@
 
     <button id="settings-save" style="width:100%; padding:12px; background:var(--color-text-primary); color:var(--color-background-primary); border:none; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; margin-top:8px;">
       Save Changes
+    </button>
+  </div>
+</div>
+
+<!-- Profile Modal -->
+<div id="profile-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
+  <div style="background:var(--color-background-primary); border:1px solid var(--color-border-tertiary); border-radius:16px; padding:32px; width:400px; box-shadow:var(--shadow-lg); color:var(--color-text-primary); position:relative;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+      <h2 style="margin:0; font-size:20px; font-weight:700;">My Profile</h2>
+      <button id="profile-close" style="background:none; border:none; font-size:24px; cursor:pointer; color:var(--color-text-secondary);">&times;</button>
+    </div>
+    
+    <div style="display:flex; flex-direction:column; align-items:center; margin-bottom:24px;">
+      <div id="profile-avatar" style="width:80px; height:80px; border-radius:50%; background:linear-gradient(135deg, #4f46e5, #ec4899); color:white; display:flex; align-items:center; justify-content:center; font-size:32px; font-weight:700; margin-bottom:16px; box-shadow:0 8px 16px rgba(79, 70, 229, 0.3);">
+        U
+      </div>
+      <div id="profile-email" style="font-size:16px; font-weight:600; color:var(--color-text-primary); margin-bottom:4px;">user@example.com</div>
+      <div style="font-size:12px; color:var(--color-text-tertiary);">Active Student</div>
+    </div>
+    
+    <div style="background:var(--color-background-secondary); border-radius:12px; padding:16px; margin-bottom:24px; border:1px solid var(--color-border-tertiary);">
+      <h3 style="font-size:12px; font-weight:700; text-transform:uppercase; color:var(--color-text-tertiary); margin-bottom:12px; letter-spacing:0.05em;">Your Progress</h3>
+      <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; text-align:center;">
+        <div>
+          <div id="profile-subjects-count" style="font-size:20px; font-weight:700; color:var(--color-text-info);">0</div>
+          <div style="font-size:10px; color:var(--color-text-secondary); font-weight:500;">Subjects</div>
+        </div>
+        <div>
+          <div id="profile-pending-count" style="font-size:20px; font-weight:700; color:var(--color-text-warning);">0</div>
+          <div style="font-size:10px; color:var(--color-text-secondary); font-weight:500;">Pending</div>
+        </div>
+        <div>
+          <div id="profile-done-count" style="font-size:20px; font-weight:700; color:var(--color-text-success);">0</div>
+          <div style="font-size:10px; color:var(--color-text-secondary); font-weight:500;">Completed</div>
+        </div>
+      </div>
+    </div>
+
+    <button id="profile-ok" style="width:100%; padding:12px; background:var(--color-text-primary); color:var(--color-background-primary); border:none; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer;">
+      Done
     </button>
   </div>
 </div>
