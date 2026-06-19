@@ -114,6 +114,16 @@ function nlpExtractDate(text, now = new Date()) {
     return nlpWithTime(nlpStartOf(d).toISOString(), time);
   }
 
+  m = lower.match(new RegExp(`\\bfirst\\s+(${NLP_WEEKDAYS.join('|')})\\s+of\\s+next\\s+month\\b`));
+  if (m) {
+    const target = NLP_WEEKDAYS.indexOf(m[1]);
+    const d = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    let diff = target - d.getDay();
+    if (diff < 0) diff += 7;
+    d.setDate(d.getDate() + diff);
+    return nlpWithTime(nlpStartOf(d).toISOString(), time);
+  }
+
   const wdPattern = new RegExp(`\\b(next|this|on|coming)?\\s*(${NLP_WEEKDAYS.join('|')})\\b`);
   m = lower.match(wdPattern);
   if (m) {
@@ -144,16 +154,6 @@ function nlpExtractDate(text, now = new Date()) {
     if (resolved) return nlpWithTime(nlpStartOf(resolved).toISOString(), time);
   }
 
-  m = lower.match(new RegExp(`\\bfirst\\s+(${NLP_WEEKDAYS.join('|')})\\s+of\\s+next\\s+month\\b`));
-  if (m) {
-    const target = NLP_WEEKDAYS.indexOf(m[1]);
-    const d = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-    let diff = target - d.getDay();
-    if (diff < 0) diff += 7;
-    d.setDate(d.getDate() + diff);
-    return nlpWithTime(nlpStartOf(d).toISOString(), time);
-  }
-
   m = lower.match(/\b(\d{1,2})[\/\-\.](\d{1,2})(?:[\/\-\.](\d{2,4}))?\b/);
   if (m) {
     let p1 = parseInt(m[1]), p2 = parseInt(m[2]);
@@ -177,8 +177,10 @@ function nlpExtractDate(text, now = new Date()) {
   if (/\bend of (the\s+)?month\b/.test(lower)) {
     return nlpWithTime(nlpStartOf(new Date(now.getFullYear(), now.getMonth() + 1, 0)).toISOString(), time);
   }
-  if (/\bbeginning of (next\s+)?month\b/.test(lower)) {
-    return nlpWithTime(nlpStartOf(new Date(now.getFullYear(), now.getMonth() + 1, 1)).toISOString(), time);
+  m = lower.match(/\bbeginning of (next\s+)?month\b/);
+  if (m) {
+    const isNext = !!m[1];
+    return nlpWithTime(nlpStartOf(new Date(now.getFullYear(), now.getMonth() + (isNext ? 1 : 0), 1)).toISOString(), time);
   }
   if (/\bnext month\b/.test(lower)) {
     const d = new Date(now); d.setMonth(d.getMonth() + 1);
@@ -720,6 +722,17 @@ app.use((err, req, res, next) => {
 
 // ================= SERVER =================
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log('Server running on port ' + PORT);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log('Server running on port ' + PORT);
+  });
+} else {
+  module.exports = {
+    app,
+    nlpExtractDate,
+    nlpResolveYear,
+    nlpAddDays,
+    nlpStartOf,
+    isValidDate
+  };
+}

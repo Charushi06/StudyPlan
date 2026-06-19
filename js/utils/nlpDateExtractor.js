@@ -231,10 +231,10 @@ function matchEndOfPeriod(lower, now) {
     const d = new Date(now.getFullYear(), now.getMonth() + 1, 0); // last day of month
     return toISO(startOf(d));
   }
-  const m = lower.match(/\bbeginning of (next\s+)?month\b/);
-  if (m) {
-    const offset = m[1] ? 1 : 0;
-    const d = new Date(now.getFullYear(), now.getMonth() + offset, 1);
+  const beginMonthMatch = lower.match(/\bbeginning of (next\s+)?month\b/);
+  if (beginMonthMatch) {
+    const isNext = !!beginMonthMatch[1];
+    const d = new Date(now.getFullYear(), now.getMonth() + (isNext ? 1 : 0), 1);
     return toISO(startOf(d));
   }
   if (/\bend of (the\s+)?year\b/.test(lower)) {
