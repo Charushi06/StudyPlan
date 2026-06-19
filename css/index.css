@@ -5183,3 +5183,38 @@ body {
 .subject-sidebar-item:hover .delete-subject-btn {
   opacity: 1;
 }
+
+/* Notes Styling */
+.note-card {
+  transition: all 0.2s ease;
+  background: var(--color-background-primary);
+}
+
+.note-card:hover {
+  border-color: var(--color-border-primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.note-card:hover .note-edit-btn {
+  background: var(--color-background-secondary);
+  border-color: var(--color-border-primary);
+}
+
+#notes-section {
+  background: var(--color-background-primary);
+  min-height: 100vh;
+}
+
+#notes-search {
+  background: var(--color-background-secondary) !important;
+  transition: all 0.2s;
+}
+
+#notes-search:focus {
+  border-color: var(--color-border-primary) !important;
+  outline: none;
+}
+
+#notes-list {
+  animation: fadeIn 0.3s ease-in-out;
+}

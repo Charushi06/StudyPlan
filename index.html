@@ -44,7 +44,60 @@
       <a id="auth-toggle-btn" href="#" style="color:#4f46e5; font-weight:600; margin-left:4px;">Sign Up</a>
     </p>
 
+    <p id="forgot-password-link" style="text-align:center; margin:12px 0 0; font-size:12px; color:#666; display:none;">
+      <a href="#" id="forgot-btn" style="color:#4f46e5; text-decoration:none;">Forgot password?</a>
+    </p>
+
     <p id="auth-error" style="color:red; font-size:13px; text-align:center; margin:8px 0 0; display:none;"></p>
+  </div>
+</div>
+
+<!-- Forgot Password Modal -->
+<div id="forgot-password-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+  <div style="background:white; border-radius:16px; padding:32px; width:360px; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+    <h2 style="margin:0 0 8px; font-size:22px; font-weight:700;">Reset Password</h2>
+    <p id="forgot-subtitle" style="margin:0 0 24px; color:#666; font-size:14px;">Enter your email address to receive a password reset link</p>
+
+    <input id="forgot-email" type="email" placeholder="Email address" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:20px; box-sizing:border-box;">
+
+    <button id="forgot-submit-btn" style="width:100%; padding:12px; background:#4f46e5; color:white; border:none; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer;">
+      Send Reset Link
+    </button>
+
+    <p id="forgot-error" style="color:red; font-size:13px; text-align:center; margin:16px 0 0; display:none;"></p>
+    <p id="forgot-success" style="color:green; font-size:13px; text-align:center; margin:16px 0 0; display:none;"></p>
+
+    <p style="text-align:center; margin:16px 0 0; font-size:13px; color:#666;">
+      <a id="back-to-login-btn" href="#" style="color:#4f46e5; font-weight:600; cursor:pointer;">Back to Login</a>
+    </p>
+  </div>
+</div>
+
+<!-- Reset Password Modal -->
+<div id="reset-password-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+  <div style="background:white; border-radius:16px; padding:32px; width:360px; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+    <h2 style="margin:0 0 8px; font-size:22px; font-weight:700;">Set New Password</h2>
+    <p id="reset-subtitle" style="margin:0 0 24px; color:#666; font-size:14px;">Enter your new password</p>
+
+    <input id="reset-password" type="password" placeholder="New Password" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:12px; box-sizing:border-box;">
+
+    <input id="reset-confirm-password" type="password" placeholder="Confirm Password" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:20px; box-sizing:border-box;">
+
+    <div style="font-size:12px; color:#666; margin-bottom:12px; line-height:1.6;">
+    Password must contain:
+     <ul style="padding-left:18px; margin-top:6px;">
+      <li>Minimum 8 characters</li>
+      <li>At least 1 capital letter</li>
+      <li>At least 1 special character</li>
+     </ul>
+    </div>
+
+    <button id="reset-submit-btn" style="width:100%; padding:12px; background:#4f46e5; color:white; border:none; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer;">
+      Reset Password
+    </button>
+
+    <p id="reset-error" style="color:red; font-size:13px; text-align:center; margin:16px 0 0; display:none;"></p>
+    <p id="reset-success" style="color:green; font-size:13px; text-align:center; margin:16px 0 0; display:none;"></p>
   </div>
 </div>
 
@@ -138,6 +191,10 @@
       <div class="nav-item" id="calendar-download-btn">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M1 6h14" stroke="currentColor" stroke-width="1.5"/><path d="M5 1v2M11 1v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         Export to Calendar
+      </div>
+      <div class="nav-item" id="notes-btn" role="link" aria-label="View Notes">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 1h12v14H2z" stroke="currentColor" stroke-width="1.5"/><path d="M4 3h8M4 6h8M4 9h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Notes
       </div>
       <div class="sidebar-divider"></div>
       <div class="sidebar-header">Subjects</div>
@@ -258,6 +315,22 @@
           </div>
         </div>
       </div>
+
+      <!-- Notes Section (hidden by default) -->
+      <div id="notes-section" style="display: none; padding: 24px;">
+        <div class="topbar">
+          <div class="topbar-title">My Notes</div>
+          <input type="text" id="notes-search" placeholder="Search notes..."
+                 style="margin-left: auto; margin-right: 12px; padding: 6px 12px; border-radius: 6px;
+                        border: 1px solid var(--color-border-secondary); background: var(--color-background-primary);
+                        color: var(--color-text-primary); outline: none;">
+          <button class="btn btn-primary" id="new-note-btn">
+            <svg width="12" height="12" fill="none" style="margin-right:2px"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> New Note
+          </button>
+        </div>
+        <div id="notes-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; margin-top: 20px;">
+        </div>
+      </div>
     </div>
 
     <!-- Right Panel -->
@@ -367,6 +440,7 @@
   <script type="module" src="/js/app.js"></script>
   <script>
   let isLogin = true;
+  let resetToken = null;
 
   document.getElementById('auth-toggle-btn').addEventListener('click', (e) => {
     e.preventDefault();
@@ -377,68 +451,223 @@
     document.getElementById('auth-toggle-text').textContent = isLogin ? "Don't have an account?" : 'Already have an account?';
     document.getElementById('auth-toggle-btn').textContent = isLogin ? 'Sign Up' : 'Sign In';
     document.getElementById('auth-error').style.display = 'none';
+    document.getElementById('forgot-password-link').style.display = isLogin ? 'block' : 'none';
+  });
+
+  // Forgot Password Button
+  document.getElementById('forgot-btn')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    document.getElementById('auth-modal').style.display = 'none';
+    document.getElementById('forgot-password-modal').style.display = 'flex';
+  });
+
+  // Back to Login from Forgot Password
+  document.getElementById('back-to-login-btn')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    document.getElementById('forgot-password-modal').style.display = 'none';
+    document.getElementById('reset-password-modal').style.display = 'none';
+    document.getElementById('auth-modal').style.display = 'flex';
   });
 
   // Password validation function
-function validatePassword(password) {
-
-  // Minimum 8 characters
-  const minLength = password.length >= 8;
-
-  // At least 1 capital letter
-  const hasCapital = /[A-Z]/.test(password);
-
-  // At least 1 special character
-  const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-
-  return minLength && hasCapital && hasSpecial;
-}
-
-document.getElementById('auth-submit-btn').addEventListener('click', async () => {
-
-  const email = document.getElementById('auth-email').value.trim();
-  const password = document.getElementById('auth-password').value.trim();
-  const errorEl = document.getElementById('auth-error');
-
-  errorEl.style.display = 'none';
-
-  // Empty fields check
-  if (!email || !password) {
-    errorEl.textContent = 'Please fill in all fields';
-    errorEl.style.display = 'block';
-    return;
+  function validatePassword(password) {
+    const minLength = password.length >= 8;
+    const hasCapital = /[A-Z]/.test(password);
+    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    return minLength && hasCapital && hasSpecial;
   }
 
-  // Password validation check
-  if (!validatePassword(password)) {
-    errorEl.textContent =
-      'Password must be at least 8 characters long, contain 1 capital letter and 1 special character.';
-    errorEl.style.display = 'block';
-    return;
-  }
+  // Main Auth Submit (Login/Signup)
+  document.getElementById('auth-submit-btn').addEventListener('click', async () => {
+    const email = document.getElementById('auth-email').value.trim();
+    const password = document.getElementById('auth-password').value.trim();
+    const errorEl = document.getElementById('auth-error');
 
-  const endpoint = isLogin ? '/api/auth/login' : '/api/auth/signup';
+    errorEl.style.display = 'none';
 
-  try {
-    const res = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    });
+    if (!email || !password) {
+      errorEl.textContent = 'Please fill in all fields';
+      errorEl.style.display = 'block';
+      return;
+    }
+
+    if (!validatePassword(password)) {
+      errorEl.textContent = 'Password must be at least 8 characters long, contain 1 capital letter and 1 special character.';
+      errorEl.style.display = 'block';
+      return;
+    }
+
+    const endpoint = isLogin ? '/api/auth/login' : '/api/auth/signup';
+    const submitBtn = document.getElementById('auth-submit-btn');
+    const originalText = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Processing...';
+
+    try {
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+
       const data = await res.json();
 
       if (!res.ok) {
-        errorEl.textContent = data.error || 'Something went wrong';
+        errorEl.textContent = data.error || 'Something went wrong. Please try again.';
         errorEl.style.display = 'block';
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
         return;
       }
 
-      localStorage.setItem('studyplan_user', JSON.stringify({ email: data.email }));
+      localStorage.setItem('studyplan_user', JSON.stringify({ email: data.email, id: data.id }));
       document.getElementById('auth-modal').style.display = 'none';
+      submitBtn.textContent = originalText;
 
     } catch (err) {
+      console.error('Auth error:', err);
+      errorEl.textContent = 'Network error. Please check your connection and try again.';
+      errorEl.style.display = 'block';
+      submitBtn.disabled = false;
+      submitBtn.textContent = originalText;
+    }
+  });
+
+  // Forgot Password Submit
+  document.getElementById('forgot-submit-btn')?.addEventListener('click', async () => {
+    const email = document.getElementById('forgot-email').value.trim();
+    const errorEl = document.getElementById('forgot-error');
+    const successEl = document.getElementById('forgot-success');
+    const submitBtn = document.getElementById('forgot-submit-btn');
+
+    errorEl.style.display = 'none';
+    successEl.style.display = 'none';
+
+    if (!email) {
+      errorEl.textContent = 'Please enter your email address';
+      errorEl.style.display = 'block';
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending...';
+
+    try {
+      const res = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        errorEl.textContent = data.error || 'Failed to process request';
+        errorEl.style.display = 'block';
+      } else {
+        // Store token if returned (for testing)
+        if (data.token) {
+          resetToken = data.token;
+          successEl.textContent = `Reset token: ${data.token} (Copy this to reset password)`;
+        } else {
+          successEl.textContent = data.message || 'Check your email for reset instructions';
+        }
+        successEl.style.display = 'block';
+        document.getElementById('forgot-email').value = '';
+
+        // Show reset password modal after delay
+        setTimeout(() => {
+          if (resetToken) {
+            document.getElementById('forgot-password-modal').style.display = 'none';
+            document.getElementById('reset-password-modal').style.display = 'flex';
+          }
+        }, 2000);
+      }
+
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Send Reset Link';
+
+    } catch (err) {
+      console.error('Forgot password error:', err);
       errorEl.textContent = 'Network error. Please try again.';
       errorEl.style.display = 'block';
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Send Reset Link';
+    }
+  });
+
+  // Reset Password Submit
+  document.getElementById('reset-submit-btn')?.addEventListener('click', async () => {
+    const newPassword = document.getElementById('reset-password').value.trim();
+    const confirmPassword = document.getElementById('reset-confirm-password').value.trim();
+    const errorEl = document.getElementById('reset-error');
+    const successEl = document.getElementById('reset-success');
+    const submitBtn = document.getElementById('reset-submit-btn');
+
+    errorEl.style.display = 'none';
+    successEl.style.display = 'none';
+
+    if (!resetToken) {
+      errorEl.textContent = 'No reset token found. Please try forgot password again.';
+      errorEl.style.display = 'block';
+      return;
+    }
+
+    if (!newPassword || !confirmPassword) {
+      errorEl.textContent = 'Please fill in all fields';
+      errorEl.style.display = 'block';
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      errorEl.textContent = 'Passwords do not match';
+      errorEl.style.display = 'block';
+      return;
+    }
+
+    if (!validatePassword(newPassword)) {
+      errorEl.textContent = 'Password must be at least 8 characters, contain 1 capital letter and 1 special character';
+      errorEl.style.display = 'block';
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Resetting...';
+
+    try {
+      const res = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: resetToken, newPassword })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        errorEl.textContent = data.error || 'Failed to reset password';
+        errorEl.style.display = 'block';
+      } else {
+        successEl.textContent = 'Password reset successfully! Redirecting to login...';
+        successEl.style.display = 'block';
+        resetToken = null;
+
+        setTimeout(() => {
+          document.getElementById('reset-password-modal').style.display = 'none';
+          document.getElementById('auth-modal').style.display = 'flex';
+          document.getElementById('reset-password').value = '';
+          document.getElementById('reset-confirm-password').value = '';
+        }, 2000);
+      }
+
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Reset Password';
+
+    } catch (err) {
+      console.error('Reset password error:', err);
+      errorEl.textContent = 'Network error. Please try again.';
+      errorEl.style.display = 'block';
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Reset Password';
     }
   });
 
@@ -447,15 +676,14 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
     document.getElementById('auth-modal').style.display = 'none';
   }
 
+  // Show forgot password link only in login mode
+  document.getElementById('forgot-password-link').style.display = isLogin ? 'block' : 'none';
+
   // Logout Button Functionality
   const logoutBtn = document.getElementById('logout-btn');
   logoutBtn.addEventListener('click', () => {
     localStorage.removeItem('studyplan_user');
-
-    // Show login modal again
     document.getElementById('auth-modal').style.display = 'flex';
-
-    // Refresh page state
     window.location.reload();
 });
 
@@ -581,6 +809,37 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
     <div style="display:flex; justify-content:flex-end; gap:8px;">
       <button id="new-task-cancel" class="btn" style="padding:6px 10px;">Cancel</button>
       <button id="new-task-save" class="btn btn-primary" style="padding:6px 12px;">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- New Note Modal -->
+<div id="new-note-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0; z-index:9998; align-items:center; justify-content:center;">
+  <div class="modal-card" style="border-radius:12px; padding:24px; width:600px; max-height:80vh; overflow-y:auto; box-shadow:0 12px 40px rgba(0,0,0,0.25);">
+    <h3 style="margin:0 0 16px; font-size:18px; font-weight:600;">Create New Note</h3>
+    <label style="display:block; font-size:12px; margin-bottom:4px;">Note Title</label>
+    <input id="new-note-title" type="text" placeholder="Note Title..." style="width:100%; padding:12px; border:1px solid var(--color-border-secondary); border-radius:8px; margin-bottom:16px; font-size:14px; box-sizing:border-box;">
+    <label style="display:block; font-size:12px; margin-bottom:4px;">Content</label>
+    <textarea id="new-note-content" placeholder="Start typing your note..." style="width:100%; padding:12px; border:1px solid var(--color-border-secondary); border-radius:8px; margin-bottom:16px; font-size:14px; resize:vertical; min-height:200px; box-sizing:border-box;"></textarea>
+    <div style="display:flex; gap:8px; justify-content:flex-end;">
+      <button id="new-note-cancel" class="btn" style="padding:6px 12px;">Cancel</button>
+      <button id="new-note-save" class="btn btn-primary" style="padding:6px 12px;">Save Note</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Note Modal -->
+<div id="edit-note-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0; z-index:9998; align-items:center; justify-content:center;">
+  <div class="modal-card" style="border-radius:12px; padding:24px; width:600px; max-height:80vh; overflow-y:auto; box-shadow:0 12px 40px rgba(0,0,0,0.25);">
+    <h3 style="margin:0 0 16px; font-size:18px; font-weight:600;">Edit Note</h3>
+    <label style="display:block; font-size:12px; margin-bottom:4px;">Note Title</label>
+    <input id="edit-note-title" type="text" placeholder="Note Title..." style="width:100%; padding:12px; border:1px solid var(--color-border-secondary); border-radius:8px; margin-bottom:16px; font-size:14px; box-sizing:border-box;">
+    <label style="display:block; font-size:12px; margin-bottom:4px;">Content</label>
+    <textarea id="edit-note-content" placeholder="Start typing your note..." style="width:100%; padding:12px; border:1px solid var(--color-border-secondary); border-radius:8px; margin-bottom:16px; font-size:14px; resize:vertical; min-height:200px; box-sizing:border-box;"></textarea>
+    <div style="display:flex; gap:8px; justify-content:flex-end;">
+      <button id="edit-note-cancel" class="btn" style="padding:6px 12px;">Cancel</button>
+      <button id="edit-note-delete" class="btn" style="padding:6px 12px; margin-right:auto;">Delete</button>
+      <button id="edit-note-save" class="btn btn-primary" style="padding:6px 12px;">Save Changes</button>
     </div>
   </div>
 </div>
