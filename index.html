@@ -22,8 +22,9 @@
 
     <input id="auth-email" type="email" placeholder="Email address" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:12px; box-sizing:border-box;">
     
-    <input id="auth-password" type="password" placeholder="Password" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:20px; box-sizing:border-box;">
+    <input id="auth-password" type="password" placeholder="Password" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:12px; box-sizing:border-box;">
 
+    <input id="auth-confirm-password" type="password" placeholder="Confirm Password" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:20px; box-sizing:border-box; display:none;">
     <button id="auth-submit-btn" style="width:100%; padding:12px; background:#4f46e5; color:white; border:none; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer;">
     Sign In
     </button>
@@ -300,7 +301,6 @@
 </div>
 
 
-      <button id="add-btn" class="add-btn" disabled>Add items to planner</button>
     </div>
   </div>
 </div>
@@ -371,6 +371,7 @@
   document.getElementById('auth-toggle-btn').addEventListener('click', (e) => {
     e.preventDefault();
     isLogin = !isLogin;
+    document.getElementById('auth-confirm-password').style.display = isLogin ? 'none' : 'block';
     document.getElementById('auth-title').textContent = isLogin ? 'Welcome back' : 'Create account';
     document.getElementById('auth-subtitle').textContent = isLogin ? 'Sign in to your StudyPlan account' : 'Start planning your studies';
     document.getElementById('auth-submit-btn').textContent = isLogin ? 'Sign In' : 'Sign Up';
@@ -379,19 +380,27 @@
     document.getElementById('auth-error').style.display = 'none';
   });
 
+  // Email validation
+function validateEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
   // Password validation function
 function validatePassword(password) {
-
-  // Minimum 8 characters
   const minLength = password.length >= 8;
-
-  // At least 1 capital letter
   const hasCapital = /[A-Z]/.test(password);
-
-  // At least 1 special character
   const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-
   return minLength && hasCapital && hasSpecial;
+}
+
+// Field highlight helper
+function setFieldError(inputEl, message) {
+  inputEl.style.borderColor = 'red';
+  inputEl.title = message;
+}
+
+function clearFieldError(inputEl) {
+  inputEl.style.borderColor = '#ddd';
+  inputEl.title = '';
 }
 
 document.getElementById('auth-submit-btn').addEventListener('click', async () => {
@@ -402,18 +411,45 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
 
   errorEl.style.display = 'none';
 
+ const confirmPassword = document.getElementById('auth-confirm-password').value.trim();
+  const emailInput = document.getElementById('auth-email');
+  const passwordInput = document.getElementById('auth-password');
+  const confirmInput = document.getElementById('auth-confirm-password');
+
+  clearFieldError(emailInput);
+  clearFieldError(passwordInput);
+  clearFieldError(confirmInput);
+
   // Empty fields check
   if (!email || !password) {
     errorEl.textContent = 'Please fill in all fields';
     errorEl.style.display = 'block';
+    if (!email) setFieldError(emailInput, 'Email is required');
+    if (!password) setFieldError(passwordInput, 'Password is required');
+    return;
+  }
+
+  // Email format check
+  if (!validateEmail(email)) {
+    errorEl.textContent = 'Please enter a valid email address';
+    errorEl.style.display = 'block';
+    setFieldError(emailInput, 'Invalid email format');
     return;
   }
 
   // Password validation check
   if (!validatePassword(password)) {
-    errorEl.textContent =
-      'Password must be at least 8 characters long, contain 1 capital letter and 1 special character.';
+    errorEl.textContent = 'Password must be at least 8 characters, contain 1 capital letter and 1 special character.';
     errorEl.style.display = 'block';
+    setFieldError(passwordInput, 'Weak password');
+    return;
+  }
+
+  // Confirm password check (only on signup)
+  if (!isLogin && password !== confirmPassword) {
+    errorEl.textContent = 'Passwords do not match';
+    errorEl.style.display = 'block';
+    setFieldError(confirmInput, 'Passwords do not match');
     return;
   }
 
