@@ -99,10 +99,20 @@ function matchInNDaysWeeks(lower, now) {
 const WEEKDAYS = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
 
 function matchNamedWeekday(lower, now) {
+  let m = lower.match(new RegExp(`\\bfirst\\s+(${WEEKDAYS.join('|')})\\s+of\\s+next\\s+month\\b`));
+  if (m) {
+    const target = WEEKDAYS.indexOf(m[1]);
+    const d = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    let diff = target - d.getDay();
+    if (diff < 0) diff += 7;
+    d.setDate(d.getDate() + diff);
+    return toISO(startOf(d));
+  }
+
   const pattern = new RegExp(
     `\\b(next|this|on|coming)?\\s*(${WEEKDAYS.join('|')})\\b`
   );
-  const m = lower.match(pattern);
+  m = lower.match(pattern);
   if (!m) return null;
 
   const qualifier = m[1] || '';
@@ -151,31 +161,62 @@ function matchAbsoluteDate(lower, now) {
   if (m) {
     const month = MONTHS[m[1]];
     const day = parseInt(m[2]);
-    return toISO(startOf(resolveYear(now, month, day)));
+    const resolved = resolveYear(now, month, day);
+    if (resolved) return toISO(startOf(resolved));
   }
 
   m = lower.match(new RegExp(`\\b${ordinal}\\s+(${monthNames})\\b`));
   if (m) {
     const day = parseInt(m[1]);
     const month = MONTHS[m[2]];
-    return toISO(startOf(resolveYear(now, month, day)));
+    const resolved = resolveYear(now, month, day);
+    if (resolved) return toISO(startOf(resolved));
+  }
+
+  m = lower.match(new RegExp(`\\bmid[-\\s](${monthNames})\\b`));
+  if (m) {
+    const resolved = resolveYear(now, MONTHS[m[1]], 15);
+    if (resolved) return toISO(startOf(resolved));
   }
 
   m = lower.match(/\b(\d{1,2})[\/\-\.](\d{1,2})(?:[\/\-\.](\d{2,4}))?\b/);
   if (m) {
-    const day = parseInt(m[1]);
-    const month = parseInt(m[2]) - 1;
+    const p1 = parseInt(m[1]);
+    const p2 = parseInt(m[2]);
+    let month, day;
+    if (p1 > 12 && p2 <= 12) {
+      day = p1;
+      month = p2 - 1;
+    } else {
+      month = p1 - 1;
+      day = p2;
+    }
     const year = m[3] ? (m[3].length === 2 ? 2000 + parseInt(m[3]) : parseInt(m[3])) : null;
-    return toISO(startOf(resolveYear(now, month, day, year)));
+    const resolved = resolveYear(now, month, day, year);
+    if (resolved) return toISO(startOf(resolved));
   }
 
   return null;
 }
 
+export function isValidDate(year, month, day) {
+  const d = new Date(year, month, day);
+  return d.getFullYear() === year && d.getMonth() === month && d.getDate() === day;
+}
+
 function resolveYear(now, month, day, explicitYear = null) {
-  if (explicitYear) return new Date(explicitYear, month, day);
-  const candidate = new Date(now.getFullYear(), month, day);
-  if (candidate < now) candidate.setFullYear(candidate.getFullYear() + 1);
+  if (explicitYear) {
+    if (!isValidDate(explicitYear, month, day)) return null;
+    return new Date(explicitYear, month, day);
+  }
+  let y = now.getFullYear();
+  if (!isValidDate(y, month, day)) return null;
+  const candidate = new Date(y, month, day);
+  if (candidate < now) {
+    y += 1;
+    if (!isValidDate(y, month, day)) return null;
+    candidate.setFullYear(y);
+  }
   return candidate;
 }
 
@@ -188,6 +229,10 @@ function matchEndOfPeriod(lower, now) {
   }
   if (/\bend of (the\s+)?month\b/.test(lower)) {
     const d = new Date(now.getFullYear(), now.getMonth() + 1, 0); // last day of month
+    return toISO(startOf(d));
+  }
+  if (/\bbeginning of (next\s+)?month\b/.test(lower)) {
+    const d = new Date(now.getFullYear(), now.getMonth() + 1, 1);
     return toISO(startOf(d));
   }
   if (/\bend of (the\s+)?year\b/.test(lower)) {

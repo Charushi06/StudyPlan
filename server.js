@@ -74,10 +74,24 @@ const NLP_MONTHS = {
   oct:9,october:9,nov:10,november:10,dec:11,december:11
 };
 
+function isValidDate(year, month, day) {
+  const d = new Date(year, month, day);
+  return d.getFullYear() === year && d.getMonth() === month && d.getDate() === day;
+}
+
 function nlpResolveYear(now, month, day, explicitYear = null) {
-  if (explicitYear) return new Date(explicitYear, month, day);
-  const c = new Date(now.getFullYear(), month, day);
-  if (c < now) c.setFullYear(c.getFullYear() + 1);
+  if (explicitYear) {
+    if (!isValidDate(explicitYear, month, day)) return null;
+    return new Date(explicitYear, month, day);
+  }
+  let y = now.getFullYear();
+  if (!isValidDate(y, month, day)) return null;
+  const c = new Date(y, month, day);
+  if (c < now) {
+    y += 1;
+    if (!isValidDate(y, month, day)) return null;
+    c.setFullYear(y);
+  }
   return c;
 }
 
@@ -113,27 +127,62 @@ function nlpExtractDate(text, now = new Date()) {
   const monthNames = Object.keys(NLP_MONTHS).join('|');
   const ord = `(\\d{1,2})(?:st|nd|rd|th)?`;
   m = lower.match(new RegExp(`\\b(${monthNames})\\s+${ord}\\b`));
-  if (m) return nlpWithTime(nlpStartOf(nlpResolveYear(now, NLP_MONTHS[m[1]], parseInt(m[2]))).toISOString(), time);
+  if (m) {
+    const resolved = nlpResolveYear(now, NLP_MONTHS[m[1]], parseInt(m[2]));
+    if (resolved) return nlpWithTime(nlpStartOf(resolved).toISOString(), time);
+  }
+
   m = lower.match(new RegExp(`\\b${ord}\\s+(${monthNames})\\b`));
-  if (m) return nlpWithTime(nlpStartOf(nlpResolveYear(now, NLP_MONTHS[m[2]], parseInt(m[1]))).toISOString(), time);
+  if (m) {
+    const resolved = nlpResolveYear(now, NLP_MONTHS[m[2]], parseInt(m[1]));
+    if (resolved) return nlpWithTime(nlpStartOf(resolved).toISOString(), time);
+  }
+
+  m = lower.match(new RegExp(`\\bmid[-\\s](${monthNames})\\b`));
+  if (m) {
+    const resolved = nlpResolveYear(now, NLP_MONTHS[m[1]], 15);
+    if (resolved) return nlpWithTime(nlpStartOf(resolved).toISOString(), time);
+  }
+
+  m = lower.match(new RegExp(`\\bfirst\\s+(${NLP_WEEKDAYS.join('|')})\\s+of\\s+next\\s+month\\b`));
+  if (m) {
+    const target = NLP_WEEKDAYS.indexOf(m[1]);
+    const d = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    let diff = target - d.getDay();
+    if (diff < 0) diff += 7;
+    d.setDate(d.getDate() + diff);
+    return nlpWithTime(nlpStartOf(d).toISOString(), time);
+  }
 
   m = lower.match(/\b(\d{1,2})[\/\-\.](\d{1,2})(?:[\/\-\.](\d{2,4}))?\b/);
   if (m) {
-    const day = parseInt(m[1]), month = parseInt(m[2]) - 1;
+    let p1 = parseInt(m[1]), p2 = parseInt(m[2]);
+    let month, day;
+    if (p1 > 12 && p2 <= 12) {
+      day = p1;
+      month = p2 - 1;
+    } else {
+      month = p1 - 1;
+      day = p2;
+    }
     const yr = m[3] ? (m[3].length === 2 ? 2000 + parseInt(m[3]) : parseInt(m[3])) : null;
-    return nlpWithTime(nlpStartOf(nlpResolveYear(now, month, day, yr)).toISOString(), time);
+    const resolved = nlpResolveYear(now, month, day, yr);
+    if (resolved) return nlpWithTime(nlpStartOf(resolved).toISOString(), time);
   }
 
   if (/\bend of (the\s+)?week\b/.test(lower) || /\bby (the\s+)?weekend\b/.test(lower)) {
     const d = new Date(now); d.setDate(d.getDate() + (7 - d.getDay()));
-    return nlpStartOf(d).toISOString();
+    return nlpWithTime(nlpStartOf(d).toISOString(), time);
   }
   if (/\bend of (the\s+)?month\b/.test(lower)) {
-    return nlpStartOf(new Date(now.getFullYear(), now.getMonth() + 1, 0)).toISOString();
+    return nlpWithTime(nlpStartOf(new Date(now.getFullYear(), now.getMonth() + 1, 0)).toISOString(), time);
+  }
+  if (/\bbeginning of (next\s+)?month\b/.test(lower)) {
+    return nlpWithTime(nlpStartOf(new Date(now.getFullYear(), now.getMonth() + 1, 1)).toISOString(), time);
   }
   if (/\bnext month\b/.test(lower)) {
     const d = new Date(now); d.setMonth(d.getMonth() + 1);
-    return nlpStartOf(d).toISOString();
+    return nlpWithTime(nlpStartOf(d).toISOString(), time);
   }
 
   return null;
