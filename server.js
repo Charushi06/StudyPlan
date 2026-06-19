@@ -558,6 +558,7 @@ Text: "${text}"
 // ================= AUTH (SQLite) =================
 app.post('/api/auth/signup', (req, res) => {
   const { email, password } = req.body;
+
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password required' });
   }
@@ -574,8 +575,10 @@ app.post('/api/auth/signup', (req, res) => {
   });
 });
 
+// LOGIN
 app.post('/api/auth/login', (req, res) => {
   const { email, password } = req.body;
+
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password required' });
   }
