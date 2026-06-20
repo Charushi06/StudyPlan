@@ -13,11 +13,23 @@ app.use(express.json());
 const page404Path = path.join(__dirname, '404.html');
 const page500Path = path.join(__dirname, 'error.html');
 
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dashboard.html'));
+});
+
+app.get('/index.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+app.get('/dashboard.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dashboard.html'));
+});
+
+
 // Static
 app.use('/css', express.static(path.join(__dirname, 'css')));
 app.use('/js', express.static(path.join(__dirname, 'js')));
 app.use(express.static(__dirname));
-
 initDb();
 
 // Environment Validation
@@ -256,6 +268,11 @@ app.get('/api/subjects', (req, res) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(rows);
   });
+});
+
+// Handle favicon request to avoid 404
+app.get('/favicon.ico', (req, res) => {
+  res.status(204).end();
 });
 
 const ALLOWED_SUBJECT_COLORS = new Set([
@@ -669,7 +686,9 @@ app.use((err, req, res, next) => {
   return res.status(500).sendFile(page500Path);
 });
 
-// ================= SERVER =================
+
+
+// // ================= SERVER =================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log('Server running on port ' + PORT);

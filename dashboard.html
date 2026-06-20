@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>StudyPlan - Dashboard</title>
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Auth Modal - Show this first -->
+  <!-- Auth Modal -->
+<div id="auth-modal">
+  <div>
+    <div class="modal-header">
+      <span class="modal-icon" id="modal-icon"></span>
+      <h2 id="auth-title">Welcome back</h2>
+      <p class="auth-subtitle" id="auth-subtitle">Sign in to your StudyPlan account</p>
+    </div>
+
+    <div class="input-group">
+      <label for="auth-email">Email</label>
+      <input id="auth-email" type="email" placeholder="you@example.com">
+    </div>
+
+    <div class="input-group">
+      <label for="auth-password">Password</label>
+      <input id="auth-password" type="password" placeholder="Enter your password">
+    </div>
+
+    <button id="auth-submit-btn">Sign In</button>
+
+    <p id="auth-error"></p>
+
+    <div class="auth-toggle">
+      <span id="auth-toggle-text">Don't have an account?</span>
+      <a id="auth-toggle-btn">Sign Up</a>
+    </div>
+  </div>
+</div>
+
+  <div class="stars-container" id="stars-container"></div>
+  <div class="crescent"></div>
+
+  <div class="wrapper" id="main-wrapper" style="display:none;">
+<header class="dashboard-header">
+  <div class="header-left">
+    <img src="/logo.png" alt="Logo" class="logo">
+    <h1 class="site-title">StudyPlan</h1>
+  </div>
+  <nav class="header-nav">
+    <a href="/dashboard.html" class="active">Dashboard</a>
+    <a href="/index.html">Planner</a>
+    <a href="/index.html#calendar">Calendar</a>
+    <a href="#" id="nav-settings">Settings</a>
+  </nav>
+  <div class="header-right">
+    <span class="user-email" id="user-email"></span>
+    <button class="logout-btn" id="logout-btn">Logout</button>
+  </div>
+</header>
+
+    <div class="dashboard-content" id="dashboard-content">
+      <div class="greeting-section">
+        <div class="greeting-text" id="greeting-text">Good morning</div>
+        <div class="user-name" id="user-name">User</div>
+        <div class="date-text" id="date-text"></div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-item">
+          <div class="stat-number" id="total-tasks">0</div>
+          <div class="stat-label">total tasks</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" id="completed-tasks">0</div>
+          <div class="stat-label">completed</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" id="pending-tasks">0</div>
+          <div class="stat-label">pending</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" id="due-tasks">0</div>
+          <div class="stat-label">due soon</div>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <div class="dashboard-card">
+          <div class="card-header">
+            <span class="card-title">Upcoming Deadlines</span>
+          </div>
+          <div class="deadline-list" id="deadline-list">
+            <div class="empty-state">No upcoming deadlines</div>
+          </div>
+        </div>
+
+        <div class="dashboard-card">
+          <div class="card-header">
+            <span class="card-title">Today's Priority</span>
+          </div>
+          <div class="priority-list" id="priority-list">
+            <div class="empty-state">No tasks for today</div>
+          </div>
+        </div>
+
+        <div class="dashboard-card">
+          <div class="card-header">
+            <span class="card-title">Recent Activity</span>
+          </div>
+          <div class="recent-list" id="recent-list">
+            <div class="empty-state">No recent activity</div>
+          </div>
+        </div>
+      </div>
+
+      <button class="start-planning-btn" id="start-planning-btn">
+        Start Planning
+        <span class="arrow">→</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="custom-cursor"></div>
+
+  <script type="module" src="/js/dashboard.js"></script>
+<script>
+  function createStars() {
+    const starsContainer = document.getElementById('stars-container');
+    if (!starsContainer) return;
+    
+    starsContainer.innerHTML = '';
+    const starCount = 80;
+    const starShapes = ['✦', '✧', '★', '☆', '✴', '✲'];
+    
+    for (let i = 0; i < starCount; i++) {
+      const star = document.createElement('div');
+      star.className = 'star';
+      star.textContent = starShapes[Math.floor(Math.random() * starShapes.length)];
+      star.style.left = Math.random() * 100 + '%';
+      star.style.top = Math.random() * 100 + '%';
+      star.style.fontSize = (Math.random() * 12 + 6) + 'px';
+      star.style.animationDelay = Math.random() * 6 + 's';
+      star.style.animationDuration = (Math.random() * 4 + 2) + 's';
+      star.style.opacity = Math.random() * 0.3 + 0.1;
+      starsContainer.appendChild(star);
+    }
+  }
+  
+  createStars();
+</script>
+</body>
+</html>

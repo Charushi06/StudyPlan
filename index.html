@@ -54,10 +54,10 @@
     <h1 class="site-title">StudyPlan</h1>
   </div>
 
-  <nav class="header-nav">
-  <a href="#" id="nav-dashboard">Dashboard</a>
-  <a href="#" id="nav-tasks">Tasks</a>
-  <a href="#" id="nav-calendar">Calendar</a>
+<nav class="header-nav">
+  <a href="dashboard.html">Dashboard</a>
+  <a href="/index.html">Tasks</a>
+  <a href="/index.html">Calendar</a>
   <a href="#" id="nav-settings">Settings</a>
 </nav>
 
@@ -151,26 +151,12 @@
     <div class="main">
       <div class="topbar">
         <div class="topbar-title">April 2026</div>
-        <!--Streak-->
-        <div class="streak-display" id="streak-display">
-          <img
-            src="/public/streak-icon.svg"
-            alt="Streak"
-            class="streak-icon"
-            id="streak-icon"
-          />
-          <span id="streak-count">0</span>
-
-           <div class="streak-tooltip" id="streak-tooltip">
-            Complete tasks to build streak & earn cool badges
-          </div>
-
+        <div class="view-toggle-group">
+          <button class="view-btn active" data-view="month">Month</button>
+          <button class="view-btn" data-view="week">Week</button>
+          <button class="view-btn" data-view="day">Day</button>
         </div>
-        <select id="label-filter" style="margin-left:auto; margin-right: 12px; padding: 6px; border-radius: 6px; border: 1px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); outline: none; cursor: pointer;">
-          <option value="">All Labels</option>
-        </select>
-        <button class="btn">Week</button>
-        <button class="btn btn-primary"  id="add-task-btn">
+        <button class="btn btn-primary" id="add-task-btn">
           <svg width="12" height="12" fill="none" style="margin-right:2px"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> New task
         </button>
       </div>
@@ -189,10 +175,13 @@
 
       <!-- Calendar -->
       <div class="cal-section">
+        
         <div class="cal-header">
+          
           <div id="cal-month-title" class="cal-title">April 2026</div>
-          <span id="cal-prev" class="cal-nav" role="button" aria-label="Previous Month">‹</span>
-          <span id="cal-next" class="cal-nav" role="button" aria-label="Next Month">›</span>
+          <span id="cal-prev" class="cal-nav">‹</span>
+          <span id="cal-next" class="cal-nav">›</span>
+          <span class="collapse-icon">▼</span>
         </div>
         <div id="cal-grid" class="cal-grid">
           <div class="cal-day-label">Su</div><div class="cal-day-label">Mo</div><div class="cal-day-label">Tu</div><div class="cal-day-label">We</div><div class="cal-day-label">Th</div><div class="cal-day-label">Fr</div><div class="cal-day-label">Sa</div>
@@ -299,8 +288,8 @@
   </button>
 </div>
 
-
-      <button id="add-btn" class="add-btn" disabled>Add items to planner</button>
+<!-- 
+      <button id="add-btn" class="add-btn" disabled>Add items to planner</button> -->
     </div>
   </div>
 </div>
