@@ -3,80 +3,202 @@ import { initGlobalErrorBoundary } from './utils/errorBoundary.js';
 
 initGlobalErrorBoundary();
 
+// DOM Elements
+const authModal = document.getElementById('auth-modal');
+const mainWrapper = document.getElementById('main-wrapper');
+const authTitle = document.getElementById('auth-title');
+const authSubtitle = document.getElementById('auth-subtitle');
+const authEmail = document.getElementById('auth-email');
+const authPassword = document.getElementById('auth-password');
+const authSubmitBtn = document.getElementById('auth-submit-btn');
+const authToggleBtn = document.getElementById('auth-toggle-btn');
+const authToggleText = document.getElementById('auth-toggle-text');
+const authError = document.getElementById('auth-error');
+const userEmailSpan = document.getElementById('user-email');
+const userNameSpan = document.getElementById('user-name');
+
+let isLogin = true;
+
+// Check if user is already logged in
+let currentUser = null;
+try {
+  const userData = localStorage.getItem('studyplan_user');
+  currentUser = userData ? JSON.parse(userData) : null;
+} catch {
+  currentUser = null;
+}
+
+// If already logged in, hide auth modal and show dashboard
+if (currentUser && currentUser.email) {
+  authModal.style.display = 'none';
+  mainWrapper.style.display = 'block';
+  setUserInfo(currentUser);
+}
+
+// Auth toggle
+authToggleBtn.addEventListener('click', (e) => {
+  e.preventDefault();
+  isLogin = !isLogin;
+  authTitle.textContent = isLogin ? 'Welcome back To StudyPlan' : 'Create account';
+  authSubtitle.textContent = isLogin ? 'Sign in to your StudyPlan account' : 'Start planning your studies';
+  authSubmitBtn.textContent = isLogin ? 'Sign In' : 'Sign Up';
+  authToggleText.textContent = isLogin ? "Don't have an account?" : 'Already have an account?';
+  authToggleBtn.textContent = isLogin ? 'Sign Up' : 'Sign In';
+  authError.style.display = 'none';
+});
+
+// Auth submit
+authSubmitBtn.addEventListener('click', async () => {
+  const email = authEmail.value.trim();
+  const password = authPassword.value.trim();
+
+  if (!email || !password) {
+    authError.textContent = 'Please fill in all fields';
+    authError.style.display = 'block';
+    return;
+  }
+
+  const endpoint = isLogin ? '/api/auth/login' : '/api/auth/signup';
+
+  try {
+    authSubmitBtn.disabled = true;
+    authSubmitBtn.textContent = 'Loading...';
+
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      authError.textContent = data.error || 'Something went wrong';
+      authError.style.display = 'block';
+      authSubmitBtn.disabled = false;
+      authSubmitBtn.textContent = isLogin ? 'Sign In' : 'Sign Up';
+      return;
+    }
+
+    localStorage.setItem('studyplan_user', JSON.stringify({ email: data.email || email }));
+    currentUser = { email: data.email || email };
+    authModal.style.display = 'none';
+    mainWrapper.style.display = 'block';
+    setUserInfo(currentUser);
+    updateDashboard();
+
+    authSubmitBtn.disabled = false;
+    authSubmitBtn.textContent = isLogin ? 'Sign In' : 'Sign Up';
+
+  } catch (err) {
+    authError.textContent = 'Network error. Please try again.';
+    authError.style.display = 'block';
+    authSubmitBtn.disabled = false;
+    authSubmitBtn.textContent = isLogin ? 'Sign In' : 'Sign Up';
+  }
+});
+
+// Enter key support for auth
+authEmail.addEventListener('keydown', (e) => { if (e.key === 'Enter') authSubmitBtn.click(); });
+authPassword.addEventListener('keydown', (e) => { if (e.key === 'Enter') authSubmitBtn.click(); });
+
+// Logout
+const logoutBtn = document.getElementById('logout-btn');
+if (logoutBtn) {
+  logoutBtn.addEventListener('click', () => {
+    localStorage.removeItem('studyplan_user');
+    currentUser = null;
+    mainWrapper.style.display = 'none';
+    authModal.style.display = 'flex';
+    authEmail.value = '';
+    authPassword.value = '';
+    authError.style.display = 'none';
+  });
+}
+
+// Start Planning button
+const startBtn = document.getElementById('start-planning-btn');
+if (startBtn) {
+  startBtn.addEventListener('click', () => {
+    window.location.href = '/index.html';
+  });
+}
+
+// Helper functions
+function getGreeting() {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 18) return 'Good afternoon';
+  return 'Good evening';
+}
+
+function setDate() {
+  const dateElem = document.getElementById('date-text');
+  if (dateElem) {
+    const now = new Date();
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    dateElem.textContent = now.toLocaleDateString('en-US', options);
+  }
+}
+
+function setUserInfo(user) {
+  const greetingElem = document.getElementById('greeting-text');
+  const userNameElem = document.getElementById('user-name');
+  const userEmailElem = document.getElementById('user-email');
+  
+  if (user && user.email) {
+    const name = user.email.split('@')[0];
+    const displayName = name.charAt(0).toUpperCase() + name.slice(1);
+    
+    if (greetingElem) greetingElem.textContent = getGreeting();
+    if (userNameElem) userNameElem.textContent = displayName;
+    if (userEmailElem) userEmailElem.textContent = user.email;
+  }
+}
+
 function formatDate(dateStr) {
   if (!dateStr) return '';
-  const d = new Date(dateStr);
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return '';
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  } catch {
+    return '';
+  }
 }
 
 function getTimeAgo(date) {
-  const now = new Date();
-  const diffMs = now - date;
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
-  
-  if (diffMins < 1) return 'just now';
-  if (diffMins < 60) return diffMins + 'm ago';
-  if (diffHours < 24) return diffHours + 'h ago';
-  return diffDays + 'd ago';
+  if (!date) return 'just now';
+  try {
+    const now = new Date();
+    const diffMs = now - date;
+    if (isNaN(diffMs)) return 'just now';
+    
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    
+    if (diffMins < 1) return 'just now';
+    if (diffMins < 60) return diffMins + 'm ago';
+    if (diffHours < 24) return diffHours + 'h ago';
+    return diffDays + 'd ago';
+  } catch {
+    return 'just now';
+  }
 }
 
-function calculateStreak(tasks) {
-  const completedTasks = tasks.filter(t => t.status === 'Done' && !t.archived);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  
-  let streak = 0;
-  let currentDate = new Date(today);
-  
-  for (let i = 0; i < 365; i++) {
-    const dateStr = currentDate.toDateString();
-    const hasTaskOnDate = completedTasks.some(t => {
-      if (!t.due_at) return false;
-      const taskDate = new Date(t.due_at);
-      taskDate.setHours(0, 0, 0, 0);
-      return taskDate.toDateString() === dateStr;
-    });
-    
-    if (hasTaskOnDate) {
-      streak++;
-      currentDate.setDate(currentDate.getDate() - 1);
-    } else {
-      break;
-    }
-  }
-  
-  const allDates = completedTasks.map(t => {
-    if (!t.due_at) return null;
-    const d = new Date(t.due_at);
-    d.setHours(0, 0, 0, 0);
-    return d.toDateString();
-  }).filter(d => d);
-  
-  const uniqueDates = [...new Set(allDates)].sort();
-  let bestStreak = 0;
-  let currentStreak = 1;
-  
-  for (let i = 1; i < uniqueDates.length; i++) {
-    const prev = new Date(uniqueDates[i-1]);
-    const curr = new Date(uniqueDates[i]);
-    const diffDays = (curr - prev) / (1000 * 60 * 60 * 24);
-    if (diffDays === 1) {
-      currentStreak++;
-    } else {
-      bestStreak = Math.max(bestStreak, currentStreak);
-      currentStreak = 1;
-    }
-  }
-  bestStreak = Math.max(bestStreak, currentStreak);
-  
-  return { current: streak, best: bestStreak };
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 function updateDashboard() {
-  const tasks = store.tasks;
-  const subjects = store.subjects;
+  const tasks = store.tasks || [];
+  const subjects = store.subjects || [];
   
   const now = new Date();
   const weekStart = new Date(now);
@@ -105,16 +227,12 @@ function updateDashboard() {
     return diffDays <= 3 && diffDays >= 0;
   }).length;
   
-  const totalTasksElem = document.getElementById('total-tasks');
-  const completedTasksElem = document.getElementById('completed-tasks');
-  const pendingTasksElem = document.getElementById('pending-tasks');
-  const dueTasksElem = document.getElementById('due-tasks');
+  document.getElementById('total-tasks').textContent = totalThisWeek;
+  document.getElementById('completed-tasks').textContent = completedThisWeek;
+  document.getElementById('pending-tasks').textContent = totalThisWeek - completedThisWeek;
+  document.getElementById('due-tasks').textContent = dueSoonTasks;
   
-  if (totalTasksElem) totalTasksElem.textContent = totalThisWeek;
-  if (completedTasksElem) completedTasksElem.textContent = completedThisWeek;
-  if (pendingTasksElem) pendingTasksElem.textContent = totalThisWeek - completedThisWeek;
-  if (dueTasksElem) dueTasksElem.textContent = dueSoonTasks;
-  
+  // Today's Priority
   const todayTasks = tasks.filter(t => {
     if (t.archived || t.status === 'Done') return false;
     if (!t.due_at) return false;
@@ -139,13 +257,12 @@ function updateDashboard() {
       }).join('');
       
       document.querySelectorAll('.priority-item').forEach(el => {
-        el.addEventListener('click', () => {
-          window.location.href = '/index.html';
-        });
+        el.addEventListener('click', () => window.location.href = '/index.html');
       });
     }
   }
   
+  // Upcoming Deadlines
   const upcomingTasks = tasks.filter(t => {
     if (t.archived || t.status === 'Done') return false;
     if (!t.due_at) return false;
@@ -160,115 +277,75 @@ function updateDashboard() {
     } else {
       deadlineList.innerHTML = upcomingTasks.map(task => {
         const daysDiff = Math.ceil((new Date(task.due_at) - now) / (1000 * 60 * 60 * 24));
-        let dateClass = '';
         let dateText = formatDate(task.due_at);
         if (daysDiff === 0) dateText = 'Today';
         else if (daysDiff === 1) dateText = 'Tomorrow';
-        else if (daysDiff <= 3) dateClass = 'deadline-date';
         return `
           <div class="deadline-item" data-id="${task.id}">
             <span class="deadline-name">${escapeHtml(task.title)}</span>
-            <span class="${dateClass}">${dateText}</span>
+            <span class="deadline-date">${dateText}</span>
           </div>
         `;
       }).join('');
       
       document.querySelectorAll('.deadline-item').forEach(el => {
-        el.addEventListener('click', () => {
-          window.location.href = '/index.html';
-        });
+        el.addEventListener('click', () => window.location.href = '/index.html');
       });
     }
   }
   
+  // Recent Activity
   const allTasks = [...tasks].filter(t => !t.archived).sort((a, b) => {
     const dateA = new Date(a.due_at || a.created_at || 0);
     const dateB = new Date(b.due_at || b.created_at || 0);
     return dateB - dateA;
   }).slice(0, 5);
   
-  const recentList = document.getElementById('recent-list');
-  if (recentList) {
-    if (allTasks.length === 0) {
-      recentList.innerHTML = '<div class="empty-state">No recent activity</div>';
-    } else {
-      recentList.innerHTML = allTasks.map(task => {
-        const statusIcon = task.status === 'Done' ? '✓' : '○';
-        const statusClass = task.status === 'Done' ? 'recent-text' : 'recent-text';
-        const date = new Date(task.due_at || task.created_at || Date.now());
-        const timeAgo = getTimeAgo(date);
-        const sub = subjects.find(s => s.id === task.subject_id) || subjects[0];
-        return `
-          <div class="recent-item" data-id="${task.id}">
-            <div class="recent-icon">${statusIcon}</div>
-            <div class="recent-text">${escapeHtml(task.title)}</div>
-            <div class="recent-time">${timeAgo}</div>
-          </div>
-        `;
-      }).join('');
-      
-      document.querySelectorAll('.recent-item').forEach(el => {
-        el.addEventListener('click', () => {
-          window.location.href = '/index.html';
-        });
+
+const recentList = document.getElementById('recent-list');
+if (recentList) {
+  if (allTasks.length === 0) {
+    recentList.innerHTML = '<div class="empty-state">No recent activity</div>';
+  } else {
+    recentList.innerHTML = allTasks.map(task => {
+      const statusIcon = task.status === 'Done' ? '✓' : '○';
+      const statusClass = task.status === 'Done' ? 'completed' : '';
+      const date = task.due_at ? new Date(task.due_at) : (task.created_at ? new Date(task.created_at) : new Date());
+      const timeAgo = getTimeAgo(date);
+      return `
+        <div class="recent-item" data-id="${task.id}">
+          <span class="recent-icon">${statusIcon}</span>
+          <span class="recent-text ${statusClass}">${escapeHtml(task.title)}</span>
+          <span class="recent-time">${timeAgo}</span>
+        </div>
+      `;
+    }).join('');
+    
+    document.querySelectorAll('.recent-item').forEach(el => {
+      el.addEventListener('click', () => {
+        window.location.href = '/index.html';
       });
-    }
+    });
   }
-  
-  const streak = calculateStreak(tasks);
-  const streakElem = document.getElementById('streak-days');
-  const streakBarElem = document.getElementById('streak-bar');
-  const streakBestElem = document.getElementById('streak-best');
-  
-  if (streakElem) streakElem.textContent = streak.current;
-  if (streakBarElem) {
-    const percent = streak.best > 0 ? (streak.current / streak.best) * 100 : 0;
-    streakBarElem.style.width = percent + '%';
-  }
-  if (streakBestElem) streakBestElem.textContent = 'Best: ' + streak.best + ' days';
+}
 }
 
-function escapeHtml(str) {
-  if (!str) return '';
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
-const startBtn = document.getElementById('start-planning-btn');
-if (startBtn) {
-  startBtn.addEventListener('click', () => {
-    window.location.href = '/index.html';
+// Initialize
+if (currentUser && currentUser.email) {
+  setUserInfo(currentUser);
+  setDate();
+  
+  store.subscribe(() => {
+    updateDashboard();
+  });
+  
+  store.fetchInitialData().then(() => {
+    updateDashboard();
   });
 }
 
-store.subscribe(() => {
-  updateDashboard();
-});
-
-store.fetchInitialData().then(() => {
-  updateDashboard();
-});
-
-const greetingElem = document.querySelector('.greeting-text');
-if (greetingElem) {
-  const hour = new Date().getHours();
-  let greeting = 'Good evening';
-  if (hour < 12) greeting = 'Good morning';
-  else if (hour < 18) greeting = 'Good afternoon';
-  greetingElem.textContent = greeting;
-}
-
-function setDate() {
-  const dateElem = document.getElementById('date-text');
-  if (dateElem) {
-    const now = new Date();
-    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    dateElem.textContent = now.toLocaleDateString('en-US', options);
-  }
-}
-
-setDate();
+setInterval(() => {
+  setDate();
+  const greetingElem = document.getElementById('greeting-text');
+  if (greetingElem && currentUser) greetingElem.textContent = getGreeting();
+}, 60000);

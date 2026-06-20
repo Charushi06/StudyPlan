@@ -252,6 +252,11 @@ app.get('/api/subjects', (req, res) => {
   });
 });
 
+// Handle favicon request to avoid 404
+app.get('/favicon.ico', (req, res) => {
+  res.status(204).end();
+});
+
 const ALLOWED_SUBJECT_COLORS = new Set([
   'var(--color-text-info)',
   'var(--color-text-success)',
