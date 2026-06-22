@@ -519,7 +519,7 @@ function renderFocusTasks() {
 
       return `
         <div class="focus-task-item" data-id="${t.id}">
-          <div class="task-name">${t.title}</div>
+          <div class="task-name">${escapeHtml(t.title)}</div>
           <div class="task-meta">
             <span class="task-pill ${pillClass}">${sub.short_code}</span>
           </div>
@@ -541,7 +541,7 @@ function renderFocusTasks() {
       const sub = subjects.find(s => s.id === activeT.subject_id) || subjects[0] || { name: 'General' };
       activeFocusTask.innerHTML = `
         <div class="task-info" style="width: 100%">
-          <div class="task-name" style="font-size: 16px;">${activeT.title}</div>
+          <div class="task-name" style="font-size: 16px;">${escapeHtml(activeT.title)}</div>
           <div class="task-meta">
             <span class="task-pill pill-amber">Due ${formatDate(activeT.due_at)}</span>
             <span class="task-pill">${sub.name}</span>
@@ -764,7 +764,7 @@ function renderTasks() {
             </select>
 
             <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Task Name</label>
-            <input class="board-edit-title edit-field" type="text" value="${t.title}${t.labels && t.labels.length > 0 ? ' #' + t.labels.join(' #') : ''}" style="width:100%; margin-bottom: 12px; font-size:13px; font-weight:600; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
+            <input class="board-edit-title edit-field" type="text" value="${escapeHtml(t.title)}${t.labels && t.labels.length > 0 ? ' #' + escapeHtml(t.labels.join(' #')) : ''}" style="width:100%; margin-bottom: 12px; font-size:13px; font-weight:600; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
 
             <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Deadline</label>
             <input class="board-edit-date edit-field" type="datetime-local" value="${localDate}" style="width:100%; margin-bottom: 12px; font-size:12px; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
@@ -780,7 +780,7 @@ function renderTasks() {
             </div>
 
             <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Notes</label>
-            <input class="board-edit-notes edit-field" type="text" value="${t.notes || ''}" placeholder="Notes..." style="width:100%; margin-bottom: 12px; font-size:12px; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
+            <input class="board-edit-notes edit-field" type="text" value="${escapeHtml(t.notes || '')}" placeholder="Notes..." style="width:100%; margin-bottom: 12px; font-size:12px; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
 
             <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Priority</label>
             <select class="board-edit-priority edit-field" style="width:100%; margin-bottom: 12px; font-size:12px; padding:4px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
@@ -805,14 +805,14 @@ function renderTasks() {
 
         let labelsHtml = '';
         if (t.labels && Array.isArray(t.labels)) {
-          labelsHtml = t.labels.map(l => `<span class="task-pill" style="background:${getLabelColor(l)}; color:white;">${l}</span>`).join(' ');
+          labelsHtml = t.labels.map(l => `<span class="task-pill" style="background:${getLabelColor(l)}; color:white;">${escapeHtml(l)}</span>`).join(' ');
         }
 
         html += `
           <div class="task-item ${isUrgent ? 'urgent' : ''} ${isHighPriority ? 'high-priority' : ''} ${isOverdue ? 'overdue' : ''} ${isDone ? 'done' : ''}" data-id="${t.id}">
             <div class="task-check ${isDone ? 'done' : ''}"></div>
             <div class="task-info">
-              <div class="task-name">${t.title}</div>
+              <div class="task-name">${escapeHtml(t.title)}</div>
               <div class="task-meta">
                 <span class="task-pill ${isDone ? 'pill-green' : (isOverdue || isHighPriority ? 'pill-red' : 'pill-amber')}">${isDone ? 'Done' : 'Due ' + formatDate(t.due_at)}</span>
                 <span class="task-pill ${pillClass}">${sub.short_code}</span>
