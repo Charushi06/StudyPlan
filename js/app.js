@@ -1365,10 +1365,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const allTasksBtn = document.getElementById('all-tasks-btn');
   const archivedTasksBtn = document.getElementById('archived-tasks-btn');
   const focusModeBtn = document.getElementById('focus-mode-btn');
+  const statisticsBtn = document.getElementById('statistics-btn');
 
   function updateSidebarActive(id) {
     document.querySelectorAll('.sidebar .nav-item').forEach(el => el.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
+    if (document.getElementById(id)) {
+      document.getElementById(id).classList.add('active');
+    }
   }
 
   calendarBtn.addEventListener('click', () => {
@@ -1376,6 +1379,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('.cal-section').classList.remove('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
+    document.getElementById('statistics-section').classList.add('hidden');
     updateSidebarActive('calendar-btn');
     renderTasks();
   });
@@ -1385,6 +1389,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('.cal-section').classList.add('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
+    document.getElementById('statistics-section').classList.add('hidden');
     updateSidebarActive('all-tasks-btn');
     renderTasks();
   });
@@ -1394,6 +1399,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('.cal-section').classList.add('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
+    document.getElementById('statistics-section').classList.add('hidden');
     updateSidebarActive('archived-tasks-btn');
     renderTasks();
   });
@@ -1404,8 +1410,21 @@ document.addEventListener('DOMContentLoaded', () => {
       document.querySelector('.cal-section').classList.add('hidden');
       document.getElementById('tasks-section').classList.add('hidden');
       document.getElementById('focus-section').classList.remove('hidden');
+      document.getElementById('statistics-section').classList.add('hidden');
       updateSidebarActive('focus-mode-btn');
       renderFocusTasks();
+    });
+  }
+
+  if (statisticsBtn) {
+    statisticsBtn.addEventListener('click', () => {
+      currentView = 'statistics';
+      document.querySelector('.cal-section').classList.add('hidden');
+      document.getElementById('tasks-section').classList.add('hidden');
+      document.getElementById('focus-section').classList.add('hidden');
+      document.getElementById('statistics-section').classList.remove('hidden');
+      updateSidebarActive('statistics-btn');
+      renderHeatmap();
     });
   }
 
@@ -1420,6 +1439,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('.cal-section').classList.remove('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
+    document.getElementById('statistics-section').classList.add('hidden');
     updateSidebarActive('calendar-btn');
     renderTasks();
   });
@@ -1430,6 +1450,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('.cal-section').classList.add('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
+    document.getElementById('statistics-section').classList.add('hidden');
     updateSidebarActive('all-tasks-btn');
     renderTasks();
   });
@@ -1440,6 +1461,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('.cal-section').classList.remove('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
+    document.getElementById('statistics-section').classList.add('hidden');
     updateSidebarActive('calendar-btn');
     renderTasks();
   });
@@ -1830,3 +1852,79 @@ if (calendarDownloadBtn) {
     downloadCalendar();
   });
 }
+
+// ================= HEATMAP (ISSUE 1175) =================
+
+function getStudyActivityByDate(tasks) {
+  const activityMap = new Map();
+  const completedTasks = tasks.filter(t => t.status === 'Done' && t.due_at && !t.archived);
+
+  completedTasks.forEach(t => {
+    const d = new Date(t.due_at);
+    if (!isNaN(d.getTime())) {
+      const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      activityMap.set(dateStr, (activityMap.get(dateStr) || 0) + 1);
+    }
+  });
+
+  return activityMap;
+}
+
+function renderHeatmap() {
+  const grid = document.getElementById('heatmap-grid');
+  if (!grid) return;
+
+  grid.innerHTML = ''; // Clear previous
+
+  const activityMap = getStudyActivityByDate(store.tasks);
+
+  // Generate last 365 days
+  const today = new Date();
+  const startDate = new Date();
+  startDate.setDate(today.getDate() - 364); // 365 days including today
+
+  // Shift start date to a Sunday so the grid aligns with weeks
+  const startDayOfWeek = startDate.getDay();
+  startDate.setDate(startDate.getDate() - startDayOfWeek);
+
+  const totalDays = Math.floor((today - startDate) / (1000 * 60 * 60 * 24)) + 1;
+  const numWeeks = Math.ceil(totalDays / 7);
+
+  // Set grid columns
+  grid.style.gridTemplateColumns = `repeat(${numWeeks}, 1fr)`;
+
+  let currentDate = new Date(startDate);
+  for (let i = 0; i < numWeeks * 7; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'heatmap-cell';
+
+    // If future date, hide cell but keep layout
+    if (currentDate > today) {
+      cell.style.visibility = 'hidden';
+    } else {
+      const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
+      const count = activityMap.get(dateStr) || 0;
+
+      // Assign level based on count
+      let level = 0;
+      if (count >= 4) level = 4;
+      else if (count >= 3) level = 3;
+      else if (count >= 2) level = 2;
+      else if (count >= 1) level = 1;
+
+      cell.style.backgroundColor = `var(--heatmap-level-${level})`;
+
+      // Formatted date for tooltip
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      const formattedDate = currentDate.toLocaleDateString(undefined, options);
+      const tooltipText = count === 0 ? `No tasks completed on ${formattedDate}` : `${count} task(s) completed on ${formattedDate}`;
+      cell.setAttribute('data-tooltip', tooltipText);
+    }
+
+    grid.appendChild(cell);
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+}
+
+// Hook renderHeatmap to store changes
+store.subscribe(renderHeatmap);

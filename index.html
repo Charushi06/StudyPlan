@@ -125,6 +125,10 @@
         Focus Mode
         
       </div>
+      <div class="nav-item" id="statistics-btn" role="link" aria-label="View Statistics">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 14h12M4 10v4M8 6v8M12 2v12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Statistics
+      </div>
       <div class="nav-item" id="archived-tasks-btn">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 3h12v2H2V3zm1 3h10v7H3V6zm2 2v3h2V8H5zm4 0v3h2V8H9z" fill="currentColor"/></svg>
         Archived Tasks
@@ -255,6 +259,30 @@
           <div class="focus-task-header">Select a task to focus on</div>
           <div id="focus-task-list" class="focus-task-list">
             <!-- JS will populate tasks -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Statistics -->
+      <div id="statistics-section" class="statistics-section hidden" style="padding: 24px;">
+        <h2 style="margin-bottom: 16px; color: var(--color-text-primary);">Study Consistency</h2>
+        <div class="heatmap-container" style="background: var(--color-background-secondary); padding: 24px; border-radius: var(--border-radius-lg); border: 1px solid var(--color-border-secondary);">
+          <div class="heatmap-header" style="margin-bottom: 16px; color: var(--color-text-secondary); font-size: 14px;">
+            <span>Last 365 Days</span>
+          </div>
+          <div class="heatmap-scroll-wrapper" style="overflow-x: auto; padding-bottom: 8px;">
+            <div class="heatmap-grid" id="heatmap-grid">
+              <!-- JS will populate -->
+            </div>
+          </div>
+          <div class="heatmap-legend" id="heatmap-legend" style="display: flex; align-items: center; justify-content: flex-end; gap: 4px; margin-top: 16px; font-size: 12px; color: var(--color-text-secondary);">
+            <span>Less</span>
+            <div class="heatmap-cell" style="background: var(--heatmap-level-0)"></div>
+            <div class="heatmap-cell" style="background: var(--heatmap-level-1)"></div>
+            <div class="heatmap-cell" style="background: var(--heatmap-level-2)"></div>
+            <div class="heatmap-cell" style="background: var(--heatmap-level-3)"></div>
+            <div class="heatmap-cell" style="background: var(--heatmap-level-4)"></div>
+            <span>More</span>
           </div>
         </div>
       </div>
