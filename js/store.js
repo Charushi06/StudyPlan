@@ -203,6 +203,27 @@ export const store = {
 
       if (newStatus === 'Done') {
         triggerConfetti();
+
+        // SPACED REPETITION LOGIC (Issue 1178)
+        if (!task.revision_stage || task.revision_stage === 0) {
+          // Schedule first revision 1 day later
+          const revDate = new Date();
+          revDate.setDate(revDate.getDate() + 1);
+          
+          this.addTasks([{
+            title: `Revision: ${task.title}`,
+            subject_id: task.subject_id,
+            due_at: revDate.toISOString(),
+            status: 'Not Started',
+            priority: task.priority,
+            revision_stage: 1
+          }]);
+        } else {
+          // It's already a revision task, ask for feedback
+          if (window.showRevisionModal) {
+            window.showRevisionModal(task);
+          }
+        }
       }
 
       try {

@@ -808,6 +808,11 @@ function renderTasks() {
           labelsHtml = t.labels.map(l => `<span class="task-pill" style="background:${getLabelColor(l)}; color:white;">${l}</span>`).join(' ');
         }
 
+        let revisionHtml = '';
+        if (t.revision_stage > 0) {
+          revisionHtml = `<span class="task-pill pill-purple" title="Spaced Repetition Stage ${t.revision_stage}">🔁 Stage ${t.revision_stage}</span>`;
+        }
+
         html += `
           <div class="task-item ${isUrgent ? 'urgent' : ''} ${isHighPriority ? 'high-priority' : ''} ${isOverdue ? 'overdue' : ''} ${isDone ? 'done' : ''}" data-id="${t.id}">
             <div class="task-check ${isDone ? 'done' : ''}"></div>
@@ -816,6 +821,7 @@ function renderTasks() {
               <div class="task-meta">
                 <span class="task-pill ${isDone ? 'pill-green' : (isOverdue || isHighPriority ? 'pill-red' : 'pill-amber')}">${isDone ? 'Done' : 'Due ' + formatDate(t.due_at)}</span>
                 <span class="task-pill ${pillClass}">${sub.short_code}</span>
+                ${revisionHtml}
                 ${labelsHtml}
               </div>
             </div>
@@ -1830,3 +1836,55 @@ if (calendarDownloadBtn) {
     downloadCalendar();
   });
 }
+
+// ================= SPACED REPETITION (Issue 1178) =================
+window.showRevisionModal = function(task) {
+  const modal = document.getElementById('revision-modal');
+  if (!modal) return;
+  modal.style.display = 'flex';
+
+  const btnEasy = document.getElementById('rev-btn-easy');
+  const btnMedium = document.getElementById('rev-btn-medium');
+  const btnHard = document.getElementById('rev-btn-hard');
+
+  // Clone to remove old event listeners
+  const newEasy = btnEasy.cloneNode(true);
+  const newMedium = btnMedium.cloneNode(true);
+  const newHard = btnHard.cloneNode(true);
+  btnEasy.parentNode.replaceChild(newEasy, btnEasy);
+  btnMedium.parentNode.replaceChild(newMedium, btnMedium);
+  btnHard.parentNode.replaceChild(newHard, btnHard);
+
+  const handleFeedback = (difficulty) => {
+    modal.style.display = 'none';
+    let nextStage = task.revision_stage || 1;
+    if (difficulty === 'easy') nextStage += 1;
+    else if (difficulty === 'hard') nextStage = Math.max(1, nextStage - 1);
+    
+    let daysToAdd = 1;
+    if (nextStage === 2) daysToAdd = 3;
+    else if (nextStage === 3) daysToAdd = 7;
+    else if (nextStage >= 4) daysToAdd = 14;
+
+    const revDate = new Date();
+    revDate.setDate(revDate.getDate() + daysToAdd);
+    
+    let baseTitle = task.title;
+    if (baseTitle.startsWith('Revision: ')) {
+      baseTitle = baseTitle.replace('Revision: ', '');
+    }
+
+    store.addTasks([{
+      title: `Revision: ${baseTitle}`,
+      subject_id: task.subject_id,
+      due_at: revDate.toISOString(),
+      status: 'Not Started',
+      priority: task.priority,
+      revision_stage: nextStage
+    }]);
+  };
+
+  newEasy.addEventListener('click', () => handleFeedback('easy'));
+  newMedium.addEventListener('click', () => handleFeedback('medium'));
+  newHard.addEventListener('click', () => handleFeedback('hard'));
+};

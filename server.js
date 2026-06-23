@@ -370,8 +370,8 @@ app.post('/api/tasks', (req, res) => {
     let errors = [];
 
     const stmt = db.prepare(`INSERT INTO tasks 
-      (id, subject_id, title, due_at, status, priority, confidence_score, notes, estimated_duration, is_estimated_duration_min, labels) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+      (id, subject_id, title, due_at, status, priority, confidence_score, notes, estimated_duration, is_estimated_duration_min, labels, revision_stage) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
 
 
     let pending = tasks.length;
@@ -432,6 +432,7 @@ app.post('/api/tasks', (req, res) => {
               Number.isFinite(Number(t.estimated_duration)) ? Number(t.estimated_duration) : null,
               t.is_estimated_duration_min === 0 ? 0 : 1,
               typeof t.labels === 'string' ? t.labels : JSON.stringify(t.labels || []),
+              t.revision_stage || 0,
               function (insertErr) {
                 if (insertErr) {
                   errors.push({ task: t, error: insertErr.message });
@@ -474,7 +475,7 @@ app.post('/api/tasks', (req, res) => {
 // ================= UPDATE =================
 app.put('/api/tasks/:id', (req, res) => {
 
-  const { status, archived, title, subject_id, due_at, notes, priority, estimated_duration, is_estimated_duration_min,labels } = req.body;
+  const { status, archived, title, subject_id, due_at, notes, priority, estimated_duration, is_estimated_duration_min,labels, revision_stage } = req.body;
 
 
   let query = 'UPDATE tasks SET ';
@@ -491,6 +492,7 @@ app.put('/api/tasks/:id', (req, res) => {
   if (estimated_duration !== undefined) { updates.push('estimated_duration = ?'); params.push(Number.isFinite(Number(estimated_duration)) ? Number(estimated_duration) : null); }
   if (is_estimated_duration_min !== undefined) { updates.push('is_estimated_duration_min = ?'); params.push(is_estimated_duration_min === 0 ? 0 : 1); }
   if (labels !== undefined) { updates.push('labels = ?'); params.push(typeof labels === 'string' ? labels : JSON.stringify(labels)); }
+  if (revision_stage !== undefined) { updates.push('revision_stage = ?'); params.push(revision_stage); }
 
   if (updates.length === 0) {
     return res.status(400).json({ error: 'No fields to update' });
