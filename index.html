@@ -98,6 +98,9 @@
         />
       </div>
     </div>
+    <button class="profile-btn" id="header-dark-mode-toggle" title="Toggle Dark Mode">
+      <i class="fas fa-moon"></i>
+    </button>
     <button class="profile-btn">Profile</button>
     <button class="profile-btn" id="logout-btn">Logout</button>
   </div>
@@ -487,20 +490,43 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
   // Settings Toggles State Management
   const darkModeToggle = document.getElementById('dark-mode-toggle');
   const compactViewToggle = document.getElementById('compact-view-toggle');
+  const headerDarkModeToggle = document.getElementById('header-dark-mode-toggle');
+
+  const updateDarkModeUI = (isDark) => {
+    if (isDark) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      if (headerDarkModeToggle) {
+        headerDarkModeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+      }
+    } else {
+      document.documentElement.setAttribute('data-theme', 'light');
+      if (headerDarkModeToggle) {
+        headerDarkModeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+      }
+    }
+    if (darkModeToggle) {
+      darkModeToggle.checked = isDark;
+    }
+  }
 
   // Load preferences
   const loadPreferences = () => {
-    const isDarkMode = localStorage.getItem('studyplan_dark_mode') === 'true';
+    // Check if user has explicitly set a preference, otherwise fallback to system preference
+    const storedPreference = localStorage.getItem('studyplan_dark_mode');
+    let isDarkMode;
+    
+    if (storedPreference !== null) {
+      isDarkMode = storedPreference === 'true';
+    } else {
+      // Check system preference
+      isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    
     const isCompactView = localStorage.getItem('studyplan_compact_view') === 'true';
 
-    darkModeToggle.checked = isDarkMode;
-    compactViewToggle.checked = isCompactView;
+    updateDarkModeUI(isDarkMode);
 
-    if (isDarkMode) {
-      document.documentElement.setAttribute('data-theme', 'dark');
-    } else {
-      document.documentElement.setAttribute('data-theme', 'light');
-    }
+    compactViewToggle.checked = isCompactView;
 
     if (isCompactView) {
       document.body.classList.add('compact-view');
@@ -522,12 +548,17 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
 
   // Also apply immediately on toggle for better UX
   darkModeToggle.addEventListener('change', (e) => {
-    if (e.target.checked) {
-      document.documentElement.setAttribute('data-theme', 'dark');
-    } else {
-      document.documentElement.setAttribute('data-theme', 'light');
-    }
+    updateDarkModeUI(e.target.checked);
+    localStorage.setItem('studyplan_dark_mode', e.target.checked);
   });
+
+  if (headerDarkModeToggle) {
+    headerDarkModeToggle.addEventListener('click', () => {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      updateDarkModeUI(!isDark);
+      localStorage.setItem('studyplan_dark_mode', !isDark);
+    });
+  }
 
   compactViewToggle.addEventListener('change', (e) => {
     if (e.target.checked) {
