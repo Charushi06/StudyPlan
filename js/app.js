@@ -1409,10 +1409,38 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  document.getElementById('cal-next').addEventListener('click', () => {
-    currentMonthDate.setMonth(currentMonthDate.getMonth() + 1);
+  const calPrevBtn = document.getElementById('cal-prev');
+  const calNextBtn = document.getElementById('cal-next');
+
+  function moveCalendarMonth(offset) {
+    currentMonthDate = new Date(
+      currentMonthDate.getFullYear(),
+      currentMonthDate.getMonth() + offset,
+      1
+    );
     renderCalendar();
-  });
+    renderTasks();
+  }
+
+  if (calPrevBtn) {
+    calPrevBtn.addEventListener('click', () => moveCalendarMonth(-1));
+    calPrevBtn.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        moveCalendarMonth(-1);
+      }
+    });
+  }
+
+  if (calNextBtn) {
+    calNextBtn.addEventListener('click', () => moveCalendarMonth(1));
+    calNextBtn.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        moveCalendarMonth(1);
+      }
+    });
+  }
 
   document.getElementById('nav-dashboard').addEventListener('click', (e) => {
     e.preventDefault();

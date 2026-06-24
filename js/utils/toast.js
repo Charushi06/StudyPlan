@@ -2,6 +2,15 @@
  * Custom modern toast notifications for StudyPlan
  */
 
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 class ToastManager {
   constructor() {
     this.container = document.createElement('div');
@@ -12,35 +21,32 @@ class ToastManager {
   show(message, type = 'info', duration = 3000) {
     const toast = document.createElement('div');
     toast.className = `toast-notification toast-${type}`;
-    
-    let icon = '';
-    if (type === 'success') icon = '✅';
-    else if (type === 'error') icon = '❌';
-    else if (type === 'warning') icon = '⚠';
-    else icon = 'ℹ️';
 
-    // Handle messages that already have emojis at the start to avoid double icons
+    let icon = '';
+    if (type === 'success') icon = '\u2705';
+    else if (type === 'error') icon = '\u274c';
+    else if (type === 'warning') icon = '\u26a0';
+    else icon = '\u2139\uFE0F';
+
     let cleanMessage = message;
-    if (/^[✅❌⚠]/.test(message)) {
+    if (/^[\u2705\u274c\u26a0]/.test(message)) {
       icon = message.charAt(0);
       cleanMessage = message.substring(1).trim();
     }
 
     toast.innerHTML = `
-      <div class="toast-icon">${icon}</div>
-      <div class="toast-message">${cleanMessage}</div>
+      <div class="toast-icon">${escapeHtml(icon)}</div>
+      <div class="toast-message">${escapeHtml(cleanMessage)}</div>
       <button class="toast-close" aria-label="Close">&times;</button>
     `;
 
     this.container.appendChild(toast);
 
-    // Setup close button
     const closeBtn = toast.querySelector('.toast-close');
     closeBtn.addEventListener('click', () => {
       this.closeToast(toast);
     });
 
-    // Auto dismiss
     if (duration > 0) {
       setTimeout(() => {
         this.closeToast(toast);
@@ -62,45 +68,66 @@ class ToastManager {
     return new Promise((resolve) => {
       const backdrop = document.createElement('div');
       backdrop.className = 'custom-confirm-backdrop';
-      
+      backdrop.setAttribute('role', 'presentation');
+
       const modal = document.createElement('div');
-      modal.className = 'custom-confirm-modal modal-card';
-      
+      modal.className = 'custom-confirm-modal';
+      modal.setAttribute('role', 'dialog');
+      modal.setAttribute('aria-modal', 'true');
+      modal.setAttribute('aria-labelledby', 'custom-confirm-title');
+      modal.setAttribute('aria-describedby', 'custom-confirm-message');
+
       modal.innerHTML = `
-        <h3 style="margin:0 0 12px; font-size:18px; font-weight:600;">Confirm Action</h3>
-        <p style="font-size:14px; margin-bottom: 24px; color: var(--color-text-secondary); line-height: 1.5;">${message}</p>
-        <div style="display:flex; justify-content:flex-end; gap:8px;">
-          <button class="btn confirm-cancel" style="padding:6px 16px;">Cancel</button>
-          <button class="btn btn-primary task-btn-danger confirm-ok" style="padding:6px 16px;">Confirm</button>
+        <div class="custom-confirm-icon" aria-hidden="true">!</div>
+        <div class="custom-confirm-content">
+          <h3 id="custom-confirm-title">Confirm deletion</h3>
+          <p id="custom-confirm-message">${escapeHtml(message)}</p>
+        </div>
+        <div class="custom-confirm-actions">
+          <button class="btn confirm-cancel" type="button">Cancel</button>
+          <button class="btn btn-primary confirm-ok" type="button">Delete</button>
         </div>
       `;
-      
+
       backdrop.appendChild(modal);
       document.body.appendChild(backdrop);
+      document.body.classList.add('confirm-open');
 
-      // Animation in
-      backdrop.style.animation = 'fadeIn 0.2s ease-out forwards';
-      modal.style.animation = 'slideUp 0.2s ease-out forwards';
+      const cancelBtn = backdrop.querySelector('.confirm-cancel');
+      const okBtn = backdrop.querySelector('.confirm-ok');
+
+      let isClosing = false;
 
       const close = (result) => {
-        backdrop.style.animation = 'fadeOut 0.2s ease-out forwards';
-        modal.style.animation = 'slideDown 0.2s ease-out forwards';
+        if (isClosing) return;
+        isClosing = true;
+        backdrop.classList.add('custom-confirm-closing');
+        document.removeEventListener('keydown', onKeyDown);
         setTimeout(() => {
           if (backdrop.parentNode) {
             backdrop.parentNode.removeChild(backdrop);
           }
+          document.body.classList.remove('confirm-open');
           resolve(result);
-        }, 200); // match animation duration
+        }, 180);
       };
 
-      backdrop.querySelector('.confirm-cancel').addEventListener('click', () => close(false));
-      backdrop.querySelector('.confirm-ok').addEventListener('click', () => close(true));
-      
+      function onKeyDown(e) {
+        if (e.key === 'Escape') close(false);
+      }
+
+      cancelBtn.addEventListener('click', () => close(false));
+      okBtn.addEventListener('click', () => close(true));
+
       backdrop.addEventListener('click', (e) => {
         if (e.target === backdrop) close(false);
       });
+
+      document.addEventListener('keydown', onKeyDown);
+      okBtn.focus();
     });
   }
 }
 
 export const Toast = new ToastManager();
+
