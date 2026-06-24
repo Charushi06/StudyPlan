@@ -5183,3 +5183,150 @@ body {
 .subject-sidebar-item:hover .delete-subject-btn {
   opacity: 1;
 }
+
+/* Delete confirmation dialog */
+body.confirm-open {
+  overflow: hidden;
+}
+
+.custom-confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.52);
+  backdrop-filter: blur(8px);
+  animation: confirm-backdrop-in 0.18s ease-out both;
+}
+
+.custom-confirm-modal {
+  width: min(420px, 100%);
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 14px;
+  padding: 22px;
+  border: 1px solid var(--color-border-tertiary);
+  border-radius: 14px;
+  background: var(--color-background-primary);
+  color: var(--color-text-primary);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.32);
+  animation: confirm-modal-in 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.custom-confirm-icon {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--color-border-danger);
+  background: var(--color-background-danger);
+  color: var(--color-text-danger);
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.custom-confirm-content h3 {
+  margin: 0 0 8px;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.custom-confirm-content p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.custom-confirm-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.custom-confirm-actions .btn {
+  min-width: 92px;
+  min-height: 38px;
+  border-radius: 8px;
+}
+
+.custom-confirm-actions .confirm-ok {
+  background: var(--color-text-danger);
+  color: #ffffff;
+}
+
+.custom-confirm-actions .confirm-ok:hover {
+  background: #7f1d1d;
+}
+
+.custom-confirm-closing {
+  animation: confirm-backdrop-out 0.18s ease-in both;
+}
+
+.custom-confirm-closing .custom-confirm-modal {
+  animation: confirm-modal-out 0.18s ease-in both;
+}
+
+@keyframes confirm-backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes confirm-backdrop-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes confirm-modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes confirm-modal-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+}
+
+@media (max-width: 480px) {
+  .custom-confirm-modal {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 20px;
+  }
+
+  .custom-confirm-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .custom-confirm-actions {
+    flex-direction: column-reverse;
+  }
+
+  .custom-confirm-actions .btn {
+    width: 100%;
+  }
+}
