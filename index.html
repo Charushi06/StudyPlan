@@ -22,7 +22,12 @@
 
     <input id="auth-email" type="email" placeholder="Email address" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:12px; box-sizing:border-box;">
     
-    <input id="auth-password" type="password" placeholder="Password" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:20px; box-sizing:border-box;">
+    <div class="password-field">
+      <input id="auth-password" type="password" placeholder="Password">
+      <button id="toggle-password-btn" class="password-toggle-btn" type="button" aria-label="Show password" title="Show password">
+        <i class="fa-regular fa-eye" aria-hidden="true"></i>
+      </button>
+    </div>
 
     <button id="auth-submit-btn" style="width:100%; padding:12px; background:#4f46e5; color:white; border:none; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer;">
     Sign In
@@ -44,7 +49,6 @@
       <a id="auth-toggle-btn" href="#" style="color:#4f46e5; font-weight:600; margin-left:4px;">Sign Up</a>
     </p>
 
-    <p id="auth-error" style="color:red; font-size:13px; text-align:center; margin:8px 0 0; display:none;"></p>
   </div>
 </div>
 
@@ -98,7 +102,7 @@
         />
       </div>
     </div>
-    <button class="profile-btn">Profile</button>
+    <button class="profile-btn" id="profile-btn" type="button">Profile</button>
     <button class="profile-btn" id="logout-btn">Logout</button>
   </div>
 </header>
@@ -314,6 +318,17 @@
   </div>
 </footer>
 
+<!-- Profile Modal -->
+<div id="profile-modal" class="profile-modal" aria-hidden="true">
+  <div class="profile-card" role="dialog" aria-modal="true" aria-labelledby="profile-title">
+    <button id="profile-close" class="profile-close-btn" type="button" aria-label="Close profile">&times;</button>
+    <div class="profile-avatar" aria-hidden="true">SP</div>
+    <h2 id="profile-title">User Profile</h2>
+    <p class="profile-label">Email</p>
+    <p id="profile-email" class="profile-email">Not signed in</p>
+  </div>
+</div>
+
 <!-- Settings Modal -->
 <div id="settings-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
   <div style="background:var(--color-background-primary); border:1px solid var(--color-border-tertiary); border-radius:16px; padding:32px; width:400px; box-shadow:var(--shadow-lg); color:var(--color-text-primary);">
@@ -366,99 +381,6 @@
 
   <script type="module" src="/js/app.js"></script>
   <script>
-  let isLogin = true;
-
-  document.getElementById('auth-toggle-btn').addEventListener('click', (e) => {
-    e.preventDefault();
-    isLogin = !isLogin;
-    document.getElementById('auth-title').textContent = isLogin ? 'Welcome back' : 'Create account';
-    document.getElementById('auth-subtitle').textContent = isLogin ? 'Sign in to your StudyPlan account' : 'Start planning your studies';
-    document.getElementById('auth-submit-btn').textContent = isLogin ? 'Sign In' : 'Sign Up';
-    document.getElementById('auth-toggle-text').textContent = isLogin ? "Don't have an account?" : 'Already have an account?';
-    document.getElementById('auth-toggle-btn').textContent = isLogin ? 'Sign Up' : 'Sign In';
-    document.getElementById('auth-error').style.display = 'none';
-  });
-
-  // Password validation function
-function validatePassword(password) {
-
-  // Minimum 8 characters
-  const minLength = password.length >= 8;
-
-  // At least 1 capital letter
-  const hasCapital = /[A-Z]/.test(password);
-
-  // At least 1 special character
-  const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-
-  return minLength && hasCapital && hasSpecial;
-}
-
-document.getElementById('auth-submit-btn').addEventListener('click', async () => {
-
-  const email = document.getElementById('auth-email').value.trim();
-  const password = document.getElementById('auth-password').value.trim();
-  const errorEl = document.getElementById('auth-error');
-
-  errorEl.style.display = 'none';
-
-  // Empty fields check
-  if (!email || !password) {
-    errorEl.textContent = 'Please fill in all fields';
-    errorEl.style.display = 'block';
-    return;
-  }
-
-  // Password validation check
-  if (!validatePassword(password)) {
-    errorEl.textContent =
-      'Password must be at least 8 characters long, contain 1 capital letter and 1 special character.';
-    errorEl.style.display = 'block';
-    return;
-  }
-
-  const endpoint = isLogin ? '/api/auth/login' : '/api/auth/signup';
-
-  try {
-    const res = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    });
-      const data = await res.json();
-
-      if (!res.ok) {
-        errorEl.textContent = data.error || 'Something went wrong';
-        errorEl.style.display = 'block';
-        return;
-      }
-
-      localStorage.setItem('studyplan_user', JSON.stringify({ email: data.email }));
-      document.getElementById('auth-modal').style.display = 'none';
-
-    } catch (err) {
-      errorEl.textContent = 'Network error. Please try again.';
-      errorEl.style.display = 'block';
-    }
-  });
-
-  // Check if already logged in
-  if (localStorage.getItem('studyplan_user')) {
-    document.getElementById('auth-modal').style.display = 'none';
-  }
-
-  // Logout Button Functionality
-  const logoutBtn = document.getElementById('logout-btn');
-  logoutBtn.addEventListener('click', () => {
-    localStorage.removeItem('studyplan_user');
-
-    // Show login modal again
-    document.getElementById('auth-modal').style.display = 'flex';
-
-    // Refresh page state
-    window.location.reload();
-});
-
   // Settings Modal Logic
   const settingsModal = document.getElementById('settings-modal');
   const navSettings = document.getElementById('nav-settings');

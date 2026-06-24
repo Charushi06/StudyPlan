@@ -3130,6 +3130,116 @@ body {
   font-weight: 600;
 }
 
+.password-field {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.password-field input {
+  width: 100%;
+  padding: 12px 44px 12px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.password-toggle-btn:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--color-text-primary);
+}
+
+.profile-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.profile-modal.is-open {
+  display: flex;
+}
+
+.profile-card {
+  position: relative;
+  width: min(360px, 100%);
+  padding: 32px;
+  border: 1px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-lg);
+  background: var(--color-background-primary);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+}
+
+.profile-close-btn {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.profile-avatar {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  background: var(--color-text-primary);
+  color: var(--color-background-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.profile-card h2 {
+  margin: 0 0 20px;
+  font-size: 22px;
+}
+
+.profile-label {
+  margin-bottom: 6px;
+  color: var(--color-text-tertiary);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.profile-email {
+  color: var(--color-text-secondary);
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+
 /* Footer */
 .site-footer {
   width: 100%;
