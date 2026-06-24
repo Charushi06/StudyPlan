@@ -1714,14 +1714,64 @@ const authError = document.getElementById('auth-error');
 
 const emailInput = document.getElementById('auth-email');
 const passwordInput = document.getElementById('auth-password');
+const passwordToggleBtn = document.getElementById('toggle-password-btn');
+const profileBtn = document.getElementById('profile-btn');
+const profileModal = document.getElementById('profile-modal');
+const profileCloseBtn = document.getElementById('profile-close');
+const profileEmail = document.getElementById('profile-email');
 
 const logoutBtn = document.getElementById('logout-btn');
 
 let isLoginMode = true;
 
+function getSavedUser() {
+  const saved = localStorage.getItem('studyplan_user');
+
+  if (!saved) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(saved);
+    return typeof parsed === 'object' && parsed !== null ? parsed : { email: saved };
+  } catch (err) {
+    return { email: saved };
+  }
+}
+
+function getUserInitials(email) {
+  if (!email) {
+    return 'SP';
+  }
+
+  return email
+    .split('@')[0]
+    .split(/[._-]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(part => part.charAt(0).toUpperCase())
+    .join('') || 'SP';
+}
+
+function showProfile() {
+  const user = getSavedUser();
+  const email = user?.email || 'Not signed in';
+  const avatar = profileModal.querySelector('.profile-avatar');
+
+  profileEmail.textContent = email;
+  avatar.textContent = getUserInitials(email);
+  profileModal.classList.add('is-open');
+  profileModal.setAttribute('aria-hidden', 'false');
+}
+
+function hideProfile() {
+  profileModal.classList.remove('is-open');
+  profileModal.setAttribute('aria-hidden', 'true');
+}
+
 // ================= CHECK LOGIN =================
 
-const savedUser = localStorage.getItem('studyplan_user');
+const savedUser = getSavedUser();
 
 if (savedUser) {
   authModal.style.display = 'none';
@@ -1750,6 +1800,34 @@ authToggleBtn.addEventListener('click', (e) => {
     authSubmitBtn.textContent = 'Sign Up';
     authToggleText.textContent = 'Already have an account?';
     authToggleBtn.textContent = 'Sign In';
+  }
+});
+
+// ================= PASSWORD VISIBILITY =================
+
+passwordToggleBtn.addEventListener('click', () => {
+  const isHidden = passwordInput.type === 'password';
+  const icon = passwordToggleBtn.querySelector('i');
+
+  passwordInput.type = isHidden ? 'text' : 'password';
+  passwordToggleBtn.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+  passwordToggleBtn.setAttribute('title', isHidden ? 'Hide password' : 'Show password');
+  icon.className = isHidden ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye';
+});
+
+// ================= PROFILE =================
+
+profileBtn.addEventListener('click', showProfile);
+profileCloseBtn.addEventListener('click', hideProfile);
+profileModal.addEventListener('click', (event) => {
+  if (event.target === profileModal) {
+    hideProfile();
+  }
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && profileModal.classList.contains('is-open')) {
+    hideProfile();
   }
 });
 
@@ -1792,7 +1870,7 @@ authSubmitBtn.addEventListener('click', async () => {
     }
 
     // Save logged-in user
-    localStorage.setItem('studyplan_user', email);
+    localStorage.setItem('studyplan_user', JSON.stringify({ email: data.email || email }));
 
     authModal.style.display = 'none';
 
