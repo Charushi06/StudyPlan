@@ -356,6 +356,24 @@ app.get('/api/tasks', (req, res) => {
   });
 });
 
+// ================= WORKLOAD HEATMAP =================
+app.get('/api/workload', (req, res) => {
+  db.all('SELECT DATE(due_at) as date, title, due_at, status FROM tasks WHERE (archived = 0 OR archived IS NULL) ORDER BY due_at ASC', (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    const workload = {};
+    rows.forEach(r => {
+      const date = r.date;
+      if (!date) return;
+      if (!workload[date]) {
+        workload[date] = { count: 0, tasks: [] };
+      }
+      workload[date].count++;
+      workload[date].tasks.push({ title: r.title, due_at: r.due_at, status: r.status });
+    });
+    res.json(workload);
+  });
+});
+
 // ================= ADD TASKS =================
 app.post('/api/tasks', (req, res) => {
   try {

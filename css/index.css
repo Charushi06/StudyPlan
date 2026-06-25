@@ -5022,3 +5022,164 @@ body {
 .subject-sidebar-item:hover .delete-subject-btn {
   opacity: 1;
 }
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .site-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  
+  .header-nav {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  
+  .header-right {
+    width: 100%;
+    justify-content: flex-start;
+    margin-top: 8px;
+  }
+  
+  .app {
+    grid-template-columns: 1fr;
+    height: auto;
+    min-height: 100vh;
+    border-radius: 0;
+  }
+  
+  .sidebar {
+    border-right: none;
+    border-bottom: 1px solid var(--color-border-tertiary);
+    height: auto;
+  }
+  
+  .panel {
+    border-left: none;
+    border-top: 1px solid var(--color-border-tertiary);
+  }
+  
+  .cal-header {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .topbar {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  
+  .topbar select {
+    margin-left: 0 !important;
+  }
+}
+
+/* Heatmap Section */
+.heatmap-section {
+  padding: 24px;
+  background: var(--color-background-primary);
+  border-radius: var(--border-radius-lg);
+  margin: 16px 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.heatmap-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.heatmap-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.heatmap-legend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.legend-cell {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+.heatmap-container {
+  overflow-x: auto;
+  padding-bottom: 16px;
+}
+
+.heatmap-grid {
+  display: grid;
+  grid-template-rows: repeat(7, 1fr);
+  grid-auto-flow: column;
+  gap: 4px;
+  width: max-content;
+}
+
+.heatmap-cell {
+  width: 14px;
+  height: 14px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: transform 0.1s, opacity 0.1s;
+}
+
+.heatmap-cell:hover {
+  transform: scale(1.2);
+  opacity: 0.8;
+}
+
+.workload-none {
+  background-color: var(--color-background-tertiary);
+}
+.workload-low {
+  background-color: #9be9a8; /* green */
+}
+.workload-medium {
+  background-color: #f6c04f; /* yellow */
+}
+.workload-heavy {
+  background-color: #f06a6a; /* red */
+}
+
+/* Tooltip */
+.heatmap-tooltip {
+  position: absolute;
+  background: var(--color-text-primary);
+  color: var(--color-background-primary);
+  padding: 8px 12px;
+  border-radius: var(--border-radius-sm);
+  font-size: 12px;
+  pointer-events: none;
+  z-index: 1000;
+  box-shadow: var(--shadow-md);
+  max-width: 250px;
+  white-space: normal;
+  line-height: 1.4;
+}
+
+.heatmap-tooltip strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 13px;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+  padding-bottom: 4px;
+}
+
+.heatmap-tooltip ul {
+  margin: 4px 0 0;
+  padding-left: 14px;
+  list-style-type: disc;
+}
+
+.heatmap-tooltip li {
+  margin-bottom: 2px;
+}
+
