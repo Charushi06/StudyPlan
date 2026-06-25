@@ -161,6 +161,16 @@ function matchAbsoluteDate(lower, now) {
     return toISO(startOf(resolveYear(now, month, day)));
   }
 
+  m = lower.match(/\b(\d{4})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})\b/);
+
+  if (m) {
+    const year = parseInt(m[1]);
+    const month = parseInt(m[2]) - 1;
+    const day = parseInt(m[3]);
+
+    return toISO(startOf(new Date(year, month, day)));
+  }
+
   m = lower.match(/\b(\d{1,2})[\/\-\.](\d{1,2})(?:[\/\-\.](\d{2,4}))?\b/);
   if (m) {
     const day = parseInt(m[1]);

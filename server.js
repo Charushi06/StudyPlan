@@ -75,12 +75,12 @@ const NLP_MONTHS = {
   oct:9,october:9,nov:10,november:10,dec:11,december:11
 };
 
-function nlpResolveYear(now, month, day, explicitYear = null) {
-  if (explicitYear) return new Date(explicitYear, month, day);
-  const c = new Date(now.getFullYear(), month, day);
-  if (c < now) c.setFullYear(c.getFullYear() + 1);
-  return c;
-}
+  function nlpResolveYear(now, month, day, explicitYear = null) {
+    if (explicitYear) return new Date(explicitYear, month, day);
+    const c = new Date(now.getFullYear(), month, day);
+    if (c < now) c.setFullYear(c.getFullYear() + 1);
+    return c;
+  }
 
 function nlpExtractDate(text, now = new Date()) {
   const lower = text.toLowerCase();
@@ -117,6 +117,19 @@ function nlpExtractDate(text, now = new Date()) {
   if (m) return nlpWithTime(nlpStartOf(nlpResolveYear(now, NLP_MONTHS[m[1]], parseInt(m[2]))).toISOString(), time);
   m = lower.match(new RegExp(`\\b${ord}\\s+(${monthNames})\\b`));
   if (m) return nlpWithTime(nlpStartOf(nlpResolveYear(now, NLP_MONTHS[m[2]], parseInt(m[1]))).toISOString(), time);
+
+  m = lower.match(/\b(\d{4})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})\b/);
+
+  if (m) {
+    const year = parseInt(m[1]);
+    const month = parseInt(m[2]) - 1;
+    const day = parseInt(m[3]);
+
+    return nlpWithTime(
+      nlpStartOf(new Date(year, month, day)).toISOString(),
+      time
+    );
+  }
 
   m = lower.match(/\b(\d{1,2})[\/\-\.](\d{1,2})(?:[\/\-\.](\d{2,4}))?\b/);
   if (m) {
