@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const bcrypt = require('bcrypt');
 const { db, initDb } = require('./database');
 const { GoogleGenAI } = require('@google/genai');
 const path = require('path');
@@ -74,12 +75,12 @@ const NLP_MONTHS = {
   oct:9,october:9,nov:10,november:10,dec:11,december:11
 };
 
-function nlpResolveYear(now, month, day, explicitYear = null) {
-  if (explicitYear) return new Date(explicitYear, month, day);
-  const c = new Date(now.getFullYear(), month, day);
-  if (c < now) c.setFullYear(c.getFullYear() + 1);
-  return c;
-}
+  function nlpResolveYear(now, month, day, explicitYear = null) {
+    if (explicitYear) return new Date(explicitYear, month, day);
+    const c = new Date(now.getFullYear(), month, day);
+    if (c < now) c.setFullYear(c.getFullYear() + 1);
+    return c;
+  }
 
 function nlpExtractDate(text, now = new Date()) {
   const lower = text.toLowerCase();
@@ -116,6 +117,19 @@ function nlpExtractDate(text, now = new Date()) {
   if (m) return nlpWithTime(nlpStartOf(nlpResolveYear(now, NLP_MONTHS[m[1]], parseInt(m[2]))).toISOString(), time);
   m = lower.match(new RegExp(`\\b${ord}\\s+(${monthNames})\\b`));
   if (m) return nlpWithTime(nlpStartOf(nlpResolveYear(now, NLP_MONTHS[m[2]], parseInt(m[1]))).toISOString(), time);
+
+  m = lower.match(/\b(\d{4})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})\b/);
+
+  if (m) {
+    const year = parseInt(m[1]);
+    const month = parseInt(m[2]) - 1;
+    const day = parseInt(m[3]);
+
+    return nlpWithTime(
+      nlpStartOf(new Date(year, month, day)).toISOString(),
+      time
+    );
+  }
 
   m = lower.match(/\b(\d{1,2})[\/\-\.](\d{1,2})(?:[\/\-\.](\d{2,4}))?\b/);
   if (m) {
@@ -555,7 +569,7 @@ Text: "${text}"
 // ================= AUTH =================
 
 // SIGNUP
-app.post('/api/auth/signup', (req, res) => {
+app.post('/api/auth/signup', async(req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -566,10 +580,11 @@ app.post('/api/auth/signup', (req, res) => {
 
   const id = 'user_' + Date.now();
 
+  const hashedPassword = await bcrypt.hash(password, 10);
   db.run(
     `INSERT INTO users (id, email, password)
      VALUES (?, ?, ?)`,
-    [id, email, password],
+    [id, email, hashedPassword],
     function(err) {
 
       if (err) {
@@ -594,7 +609,7 @@ app.post('/api/auth/signup', (req, res) => {
 });
 
 // LOGIN
-app.post('/api/auth/login', (req, res) => {
+app.post('/api/auth/login',async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -606,7 +621,7 @@ app.post('/api/auth/login', (req, res) => {
   db.get(
     `SELECT * FROM users WHERE email = ?`,
     [email],
-    (err, user) => {
+    async (err, user) => {
 
       if (err) {
         return res.status(500).json({
@@ -614,12 +629,21 @@ app.post('/api/auth/login', (req, res) => {
         });
       }
 
-      if (!user || user.password !== password) {
+      if (!user) {
         return res.status(401).json({
           error: 'Invalid email or password'
         });
       }
+      const isValid = await bcrypt.compare(
+        password,
+        user.password
+      );
 
+      if (!isValid) {
+        return res.status(401).json({
+          error: 'Invalid email or password'
+        });
+      }
       res.json({
         success: true,
         email: user.email
