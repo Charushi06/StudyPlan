@@ -5196,3 +5196,59 @@ body {
 .subject-sidebar-item:hover .delete-subject-btn {
   opacity: 1;
 }
+
+@media (max-width: 768px) {
+  body {
+    padding: 16px 8px;
+  }
+
+  .site-header {
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+    text-align: center;
+  }
+
+  .header-nav {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .app {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .sidebar {
+    border-right: none;
+    border-bottom: 1px solid var(--color-border-tertiary);
+    padding: 12px;
+  }
+
+  .panel {
+    border-left: none;
+    border-top: 1px solid var(--color-border-tertiary);
+  }
+
+  .topbar {
+    flex-wrap: wrap;
+    padding: 16px;
+  }
+
+  .site-footer {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+
+  .footer-links {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .nav-item {
+    font-size: 13px;
+    padding: 8px 10px;
+  }
+}
