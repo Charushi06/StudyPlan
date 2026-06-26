@@ -1351,6 +1351,79 @@ function renderExtraction() {
   });
 }
 
+function calculateStreak(tasks) {
+  const completedTasks = tasks.filter(t => t.status === 'Done' && t.due_at && !t.archived);
+  const dates = new Set();
+  completedTasks.forEach(t => {
+    const d = new Date(t.due_at);
+    if (!isNaN(d.getTime())) {
+      dates.add(`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`);
+    }
+  });
+
+  if (dates.size === 0) return 0;
+
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = `${yesterday.getFullYear()}-${yesterday.getMonth()}-${yesterday.getDate()}`;
+
+  let streak = 0;
+  let checkDate = new Date();
+
+  if (dates.has(todayStr)) {
+    streak = 1;
+  } else if (dates.has(yesterdayStr)) {
+    streak = 1;
+    checkDate = yesterday;
+  } else {
+    return 0;
+  }
+
+  while (true) {
+    checkDate.setDate(checkDate.getDate() - 1);
+    const checkStr = `${checkDate.getFullYear()}-${checkDate.getMonth()}-${checkDate.getDate()}`;
+    if (dates.has(checkStr)) {
+      streak++;
+    } else {
+      break;
+    }
+  }
+
+  return streak;
+}
+
+function renderStreak() {
+  const streakCount = calculateStreak(store.tasks);
+
+  const streakCountEl = document.getElementById('streak-count');
+  if (streakCountEl) {
+    streakCountEl.textContent = streakCount;
+  }
+
+  const badge3 = document.getElementById('badge-3-wrapper');
+  const badge7 = document.getElementById('badge-7-wrapper');
+  const badge30 = document.getElementById('badge-30-wrapper');
+
+  if (badge3) badge3.classList.toggle('hidden', streakCount < 3);
+  if (badge7) badge7.classList.toggle('hidden', streakCount < 7);
+  if (badge30) badge30.classList.toggle('hidden', streakCount < 30);
+
+  const tooltip = document.getElementById('streak-tooltip');
+  if (tooltip) {
+    if (streakCount >= 30) {
+      tooltip.textContent = '30 day badge unlocked';
+    } else if (streakCount >= 7) {
+      tooltip.textContent = '7 day badge unlocked';
+    } else if (streakCount >= 3) {
+      tooltip.textContent = '3 day badge unlocked';
+    } else {
+      tooltip.textContent = 'Complete tasks to build streak & earn cool badges';
+    }
+  }
+}
+
 store.subscribe(renderTasks);
 store.subscribe(renderExtraction);
 store.subscribe(renderCalendar);
