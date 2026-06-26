@@ -6,6 +6,7 @@ export const store = {
   tasks: [],
   currentPaste: null,
   listeners: [],
+  selectedTasks: [],
 
   isSameCalendarDate(dateA, dateB) {
     return (
@@ -64,6 +65,50 @@ export const store = {
       return false;
     }
   },
+
+    // ================= DELETE SUBJECT FUNCTION =================
+
+    async deleteSubject(subjectId) {
+  const subject = this.subjects.find(
+    s => String(s.id) === String(subjectId)
+  );
+
+  if (!subject) return;
+
+  const confirmed = confirm(
+    `Are you sure you want to delete "${subject.name}"?\n\nThis will also remove related tasks.`
+  );
+
+  if (!confirmed) return;
+
+  const originalSubjects = [...this.subjects];
+  const originalTasks = [...this.tasks];
+
+  // optimistic update
+  this.subjects = this.subjects.filter(
+    s => String(s.id) !== String(subjectId)
+  );
+
+  this.tasks = this.tasks.filter(
+    t => String(t.subject_id) !== String(subjectId)
+  );
+
+  this.notify();
+
+  try {
+    await fetch(`/api/subjects/${subjectId}`, {
+      method: 'DELETE'
+    });
+  } catch (e) {
+    this.subjects = originalSubjects;
+    this.tasks = originalTasks;
+    this.notify();
+
+    console.error('Failed to delete subject', e);
+    alert('❌ Failed to delete subject');
+  }
+},
+
 
   // ================= UPDATED FUNCTION =================
   async addTasks(newTasks) {
@@ -317,5 +362,107 @@ export const store = {
   clearExtracted() {
     this.currentPaste = null;
     this.notify();
+  },
+  toggleTaskSelection(taskId) {
+  taskId = String(taskId);
+
+  const exists =
+    this.selectedTasks.includes(taskId);
+
+  if (exists) {
+    this.selectedTasks =
+      this.selectedTasks.filter(
+        id => id !== taskId
+      );
+  } else {
+    this.selectedTasks.push(taskId);
   }
+
+  this.notify();
+},
+
+clearSelectedTasks() {
+  this.selectedTasks = [];
+  this.notify();
+},
+
+selectAllTasks() {
+  this.selectedTasks = this.tasks
+    .filter(t =>
+      !t.archived &&
+      t.status !== 'Done'
+    )
+    .map(t => String(t.id));
+
+  this.notify();
+},
+
+async bulkCompleteTasks() {
+  const selected = this.tasks.filter(t =>
+    this.selectedTasks.includes(String(t.id))
+  );
+
+  for (const task of selected) {
+    task.status = 'Done';
+
+    await fetch(`/api/tasks/${task.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        status: 'Done'
+      })
+    });
+  }
+
+  this.clearSelectedTasks();
+  this.notify();
+},
+
+async bulkArchiveTasks() {
+  const selected = this.tasks.filter(t =>
+    this.selectedTasks.includes(t.id)
+  );
+
+  for (const task of selected) {
+    task.archived = 1;
+
+    await fetch(`/api/tasks/${task.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        archived: 1
+      })
+    });
+  }
+
+  this.clearSelectedTasks();
+  this.notify();
+},
+
+async bulkDeleteTasks() {
+  const confirmed = confirm(
+    `Delete ${this.selectedTasks.length} selected tasks?`
+  );
+
+  if (!confirmed) return;
+
+  await Promise.all(
+    this.selectedTasks.map(id =>
+      fetch(`/api/tasks/${id}`, {
+        method: 'DELETE'
+      })
+    )
+  );
+
+  this.tasks = this.tasks.filter(
+    t => !this.selectedTasks.includes(String(t.id))
+  );
+
+  this.clearSelectedTasks();
+  this.notify();
+},
 };
