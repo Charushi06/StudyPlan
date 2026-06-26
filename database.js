@@ -62,6 +62,11 @@ db.all("PRAGMA table_info(tasks)", (err, rows) => {
   if (!columnNames.includes("labels")) {
     db.run("ALTER TABLE tasks ADD COLUMN labels TEXT DEFAULT '[]'");
   }
+
+  // User email column
+  if (!columnNames.includes("user_email")) {
+    db.run("ALTER TABLE tasks ADD COLUMN user_email TEXT");
+  }
 });
 
     // Pre-populate some subjects if empty

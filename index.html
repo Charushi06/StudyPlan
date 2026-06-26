@@ -55,13 +55,25 @@
   </div>
 
   <nav class="header-nav">
-    <a href="#">Dashboard</a>
-    <a href="#">Tasks</a>
-    <a href="#">Calendar</a>
+    <a href="#" id="nav-dashboard">Dashboard</a>
+    <a href="#" id="nav-tasks">Tasks</a>
+    <a href="#" id="nav-calendar">Calendar</a>
     <a href="#" id="nav-settings">Settings</a>
   </nav>
 
   <div class="header-right">
+    <!--Streak Badge-->
+    <div class="streak-badges">
+      <div class="badge-wrapper hidden" id="badge-3-wrapper" title="3 Day Streak">
+        <img src="/public/medal-3daystreak.svg" alt="3 Day Streak" class="streak-badge" />
+      </div>
+      <div class="badge-wrapper hidden" id="badge-7-wrapper" title="7 Day Streak">
+        <img src="/public/rocket-7daystreak.svg" alt="7 Day Streak" class="streak-badge" />
+      </div>
+      <div class="badge-wrapper hidden" id="badge-30-wrapper" title="30 Day Streak">
+        <img src="/public/crown-30andmorestreak.svg" alt="30 Day Streak" class="streak-badge" />
+      </div>
+    </div>
     <button class="profile-btn" id="profile-btn">Profile</button>
     <button class="profile-btn" id="logout-btn">Logout</button>
   </div>

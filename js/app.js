@@ -1358,6 +1358,7 @@ store.subscribe(renderFocusTasks);
 store.subscribe(renderFocusStats);
 store.subscribe(renderProfileSection);
 store.subscribe(renderSidebarSubjects);
+store.subscribe(renderStreak);
 
 document.addEventListener('DOMContentLoaded', () => {
   if (newSubjectColorsEl) {
@@ -1484,6 +1485,40 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('cal-next').addEventListener('click', () => {
     currentMonthDate.setMonth(currentMonthDate.getMonth() + 1);
     renderCalendar();
+  });
+
+  // Header nav link listeners
+  document.getElementById('nav-dashboard').addEventListener('click', (e) => {
+    e.preventDefault();
+    currentView = 'calendar';
+    hideProfileSection();
+    document.querySelector('.cal-section').classList.remove('hidden');
+    document.getElementById('tasks-section').classList.remove('hidden');
+    document.getElementById('focus-section').classList.add('hidden');
+    updateSidebarActive('calendar-btn');
+    renderTasks();
+  });
+
+  document.getElementById('nav-tasks').addEventListener('click', (e) => {
+    e.preventDefault();
+    currentView = 'all-tasks';
+    hideProfileSection();
+    document.querySelector('.cal-section').classList.add('hidden');
+    document.getElementById('tasks-section').classList.remove('hidden');
+    document.getElementById('focus-section').classList.add('hidden');
+    updateSidebarActive('all-tasks-btn');
+    renderTasks();
+  });
+
+  document.getElementById('nav-calendar').addEventListener('click', (e) => {
+    e.preventDefault();
+    currentView = 'calendar';
+    hideProfileSection();
+    document.querySelector('.cal-section').classList.remove('hidden');
+    document.getElementById('tasks-section').classList.remove('hidden');
+    document.getElementById('focus-section').classList.add('hidden');
+    updateSidebarActive('calendar-btn');
+    renderTasks();
   });
 
   // New Task addition event listeners
