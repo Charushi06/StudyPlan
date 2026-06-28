@@ -724,6 +724,12 @@ function renderProfileSection() {
   const pendingCount = tasks.filter(t => t.status !== 'Done' && !t.archived).length;
   const archivedCount = tasks.filter(t => t.archived).length;
   const subjectsCount = subjects.length;
+  const totalActiveTasks = completedCount + pendingCount;
+
+  const readinessPercentage =
+    totalActiveTasks === 0
+       ? 0
+       : Math.round((completedCount / totalActiveTasks) * 100);
   const username = localStorage.getItem('studyplan_username') || 'StudyPlan User';
   const email = localStorage.getItem('studyplan_email') || 'user@studyplan.app';
   const joinedDate = localStorage.getItem('studyplan_joined') || 'June 2026';
@@ -771,6 +777,10 @@ function renderProfileSection() {
           <div>
             <span class="profile-stat-value">${subjectsCount}</span>
             <span>Subjects</span>
+          </div>
+          <div>
+             <span class="profile-stat-value">${readinessPercentage}%</span>
+              <span>Readiness</span>
           </div>
         </div>
       </section>
