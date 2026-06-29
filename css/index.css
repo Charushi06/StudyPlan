@@ -5196,3 +5196,80 @@ body {
 .subject-sidebar-item:hover .delete-subject-btn {
   opacity: 1;
 }
+
+/* ONBOARDING TOUR */
+
+#tour-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9998;
+}
+
+#tour-popup {
+  position: absolute;
+  z-index: 9999;
+  background: var(--color-background-primary);
+  border: 1px solid var(--color-border-tertiary);
+  border-radius: 12px;
+  padding: 20px;
+  width: 280px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+#tour-step-indicator {
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+  margin-bottom: 6px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+#tour-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  color: var(--color-text-primary);
+}
+
+#tour-message {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin: 0 0 16px;
+  line-height: 1.5;
+}
+
+.tour-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+#tour-skip {
+  background: none;
+  border: 1px solid var(--color-border-secondary);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+}
+
+#tour-next {
+  background: var(--color-text-primary);
+  color: var(--color-background-primary);
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tour-highlight {
+  position: relative;
+  z-index: 9999;
+  border-radius: 8px;
+  box-shadow: 0 0 0 4px var(--color-text-info);
+}
