@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>StudyPlan</title>
-  <link rel="stylesheet" href="/css/index.css">
+  <link rel="stylesheet" href="./css/index.css">
 
   <script src="/js/lib/confetti.browser.min.js"></script>
 
@@ -348,6 +348,10 @@
       <div id="extract-preview" class="extract-preview">
         <!-- Javascript will inject extracted items here -->
       </div>
+      <div id="loading-spinner" class="loading-spinner" style="display: none;">
+        <div class="spinner"></div>
+        <p>Generating AI study plan...</p>
+      </div>
       <div id="summary-box" class="summary-box"></div>
 
   <button id="add-btn" class="add-btn" disabled>
@@ -420,7 +424,7 @@
   </div>
 </div>
 
-  <script type="module" src="/js/app.js"></script>
+  <script type="module" src="./js/app.js"></script>
   <script>
   let isLogin = true;
 

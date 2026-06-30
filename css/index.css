@@ -5196,3 +5196,33 @@ body {
 .subject-sidebar-item:hover .delete-subject-btn {
   opacity: 1;
 }
+
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 20px 0;
+  gap: 12px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #ddd;
+  border-top: 4px solid #4f46e5;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loading-spinner p {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+}
+
+@keyframes spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}
