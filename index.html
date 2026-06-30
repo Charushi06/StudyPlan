@@ -55,14 +55,51 @@
   </div>
 
   <nav class="header-nav">
-    <a href="#">Dashboard</a>
-    <a href="#">Tasks</a>
-    <a href="#">Calendar</a>
-    <a href="#" id="nav-settings">Settings</a>
-  </nav>
+  <a href="#" id="nav-dashboard">Dashboard</a>
+  <a href="#" id="nav-tasks">Tasks</a>
+  <a href="#" id="nav-calendar">Calendar</a>
+  <a href="#" id="nav-settings">Settings</a>
+</nav>
 
   <div class="header-right">
-    <button class="profile-btn">Profile</button>
+    <button class="profile-btn" id="profile-btn">Profile</button>
+    <!--Streak Badge-->
+    <div class="streak-badges">
+      <div
+        class="badge-wrapper hidden"
+        id="badge-3-wrapper"
+        title="3 Day Streak"
+      >
+        <img
+          src="/public/medal-3daystreak.svg"
+          alt="3 Day Streak"
+          class="streak-badge"
+        />
+      </div>
+      <div
+        class="badge-wrapper hidden"
+        id="badge-7-wrapper"
+        title="7 Day Streak"
+      >
+        <img
+          src="/public/rocket-7daystreak.svg"
+          alt="7 Day Streak"
+          class="streak-badge"
+        />
+      </div>
+      <div
+        class="badge-wrapper hidden"
+        id="badge-30-wrapper"
+        title="30 Day Streak"
+      >
+        <img
+          src="/public/crown-30andmorestreak.svg"
+          alt="30 Day Streak"
+          class="streak-badge"
+        />
+      </div>
+    </div>
+    <!-- <button class="profile-btn">Profile</button> -->
     <button class="profile-btn" id="logout-btn">Logout</button>
   </div>
 </header>
@@ -115,6 +152,21 @@
     <div class="main">
       <div class="topbar">
         <div class="topbar-title">April 2026</div>
+        <!--Streak-->
+        <div class="streak-display" id="streak-display">
+          <img
+            src="/public/streak-icon.svg"
+            alt="Streak"
+            class="streak-icon"
+            id="streak-icon"
+          />
+          <span id="streak-count">0</span>
+
+           <div class="streak-tooltip" id="streak-tooltip">
+            Complete tasks to build streak & earn cool badges
+          </div>
+
+        </div>
         <select id="label-filter" style="margin-left:auto; margin-right: 12px; padding: 6px; border-radius: 6px; border: 1px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); outline: none; cursor: pointer;">
           <option value="">All Labels</option>
         </select>
@@ -207,6 +259,61 @@
           </div>
         </div>
       </div>
+
+      <div id="profile-section" class="profile-section hidden">
+        <div class="profile-header">
+          <div>
+            <div class="profile-page-title">Profile</div>
+            <p class="profile-page-subtitle">View your account summary, study stats, and future account settings in one place.</p>
+          </div>
+        </div>
+
+        <div class="profile-grid">
+          <section class="profile-card">
+            <h2>Account details</h2>
+            <div class="profile-field">
+              <span class="profile-field-label">Username</span>
+              <span id="profile-username">StudyPlan User</span>
+            </div>
+            <div class="profile-field">
+              <span class="profile-field-label">Email</span>
+              <span id="profile-email">user@studyplan.app</span>
+            </div>
+            <div class="profile-field">
+              <span class="profile-field-label">Member since</span>
+              <span id="profile-joined">June 2026</span>
+            </div>
+          </section>
+
+          <section class="profile-card">
+            <h2>Study statistics</h2>
+            <div class="profile-stats">
+              <div>
+                <span class="profile-stat-value" id="profile-completed-count">0</span>
+                <span>Completed</span>
+              </div>
+              <div>
+                <span class="profile-stat-value" id="profile-pending-count">0</span>
+                <span>Pending</span>
+              </div>
+              <div>
+                <span class="profile-stat-value" id="profile-archived-count">0</span>
+                <span>Archived</span>
+              </div>
+              <div>
+                <span class="profile-stat-value" id="profile-subjects-count">0</span>
+                <span>Subjects</span>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <section class="profile-card profile-summary-card">
+          <h2>Account overview</h2>
+          <p id="profile-summary-text">Your profile information and study statistics will update automatically as you use StudyPlan.</p>
+        </section>
+      </div>
+
     </div>
 
     <!-- Right Panel -->
