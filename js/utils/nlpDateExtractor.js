@@ -74,8 +74,8 @@ export function extractTime(text) {
 
 function matchRelativeDay(lower, now) {
   if (/\btoday\b/.test(lower)) return toISO(startOf(now));
-  if (/\btomorrow\b/.test(lower)) return toISO(startOf(addDays(now, 1)));
   if (/\bday after tomorrow\b/.test(lower)) return toISO(startOf(addDays(now, 2)));
+  if (/\btomorrow\b/.test(lower)) return toISO(startOf(addDays(now, 1)));
   if (/\byesterday\b/.test(lower)) return toISO(startOf(addDays(now, -1))); // edge case
   return null;
 }
