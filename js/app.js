@@ -98,6 +98,7 @@ const addItemsBtn = document.getElementById('add-btn');
 const downloadBtn = document.getElementById('download-btn');
 const calendarDownloadBtn = document.getElementById('calendar-download-btn');
 const newTaskBtn = document.getElementById('add-task-btn');
+const manualTaskBtn = document.getElementById('manual-task-btn');
 const labelFilterSelect = document.getElementById('label-filter');
 const profileSection = document.getElementById('profile-section');
 const profileBtn = document.getElementById('profile-btn');
@@ -1836,6 +1837,12 @@ newTaskBtn.addEventListener('click', () => {
   setNewTaskDurationUnit('minutes');
     newTaskModal.style.display = 'flex';
   });
+
+if (manualTaskBtn && newTaskBtn) {
+  manualTaskBtn.addEventListener('click', () => {
+    newTaskBtn.click();
+  });
+}
 
   newTaskCancel.addEventListener('click', () => {
     newTaskModal.style.display = 'none';
