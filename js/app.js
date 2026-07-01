@@ -357,7 +357,28 @@ const newTaskEstimatedDuration = document.getElementById('new-task-estimated-dur
 const newTaskDurationSwitch = document.getElementById('new-task-duration-switch');
 const newTaskDurationMin = document.getElementById('new-task-duration-min');
 const newTaskDurationHr = document.getElementById('new-task-duration-hr');
+const manualTaskSubject = document.getElementById('manual-task-subject');
+const manualTaskTitle = document.getElementById('manual-task-title');
+const manualTaskDate = document.getElementById('manual-task-date');
+const manualTaskNotes = document.getElementById('manual-task-notes');
+const manualTaskSubmit = document.getElementById('manual-task-submit');
 let selectedTaskDurationUnit = 'minutes';
+
+function renderManualTaskSubjects() {
+  if (!manualTaskSubject) return;
+
+  manualTaskSubject.innerHTML = `
+    <option value="">Select subject</option>
+    ${store.subjects.map(s => `<option value="${escapeHtml(s.id)}">${escapeHtml(s.name)}</option>`).join('')}
+  `;
+}
+
+function clearManualTaskForm() {
+  if (manualTaskSubject) manualTaskSubject.value = '';
+  if (manualTaskTitle) manualTaskTitle.value = '';
+  if (manualTaskDate) manualTaskDate.value = '';
+  if (manualTaskNotes) manualTaskNotes.value = '';
+}
 
 // Timer elements
 const timerText = document.getElementById('timer-text');
@@ -1647,6 +1668,7 @@ store.subscribe(renderFocusTasks);
 store.subscribe(renderProfileSection);
 store.subscribe(renderSidebarSubjects);
 store.subscribe(renderStreak);
+store.subscribe(renderManualTaskSubjects);
 
 document.addEventListener('DOMContentLoaded', () => {
   if (newSubjectColorsEl) {
@@ -1846,6 +1868,49 @@ newTaskModal.addEventListener('click', (e) => {
       newTaskModal.style.display = 'none';
     }
   });
+
+manualTaskSubmit?.addEventListener('click', async () => {
+  if (!manualTaskSubject || !manualTaskTitle || !manualTaskDate) return;
+
+  const subject_id = manualTaskSubject.value;
+  const rawTitle = manualTaskTitle.value.trim();
+  const dueDateValue = manualTaskDate.value;
+  const notes = manualTaskNotes ? manualTaskNotes.value.trim() : '';
+
+  if (!subject_id) {
+    Toast.show('Please select a subject', 'warning');
+    return;
+  }
+
+  if (!rawTitle) {
+    Toast.show('Please enter a task title', 'warning');
+    return;
+  }
+
+  if (!dueDateValue) {
+    Toast.show('Please select a due date', 'warning');
+    return;
+  }
+
+  const due_at = new Date(dueDateValue).toISOString();
+  const { cleanTitle, labels } = extractLabels(rawTitle);
+
+  const manualTask = {
+    title: cleanTitle || rawTitle,
+    subject_id,
+    due_at,
+    notes,
+    priority: 'medium',
+    status: 'Not Started',
+    archived: 0,
+    labels
+  };
+
+  const result = await store.addTasks([manualTask]);
+  if (result && result.inserted > 0) {
+    clearManualTaskForm();
+  }
+});
   
 function setNewTaskDurationUnit(unit) {
   selectedTaskDurationUnit = unit;

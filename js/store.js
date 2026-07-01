@@ -125,7 +125,7 @@ export const store = {
         //  Backend error
         Toast.show(`❌ ${data.message || "Failed to add tasks"}`, 'error');
         console.error('Add task error:', data);
-        return;
+        return data;
       }
 
       // ================= USER MESSAGES =================
@@ -151,9 +151,11 @@ export const store = {
       this.tasks = await tasksRes.json();
       this.notify();
 
+      return data;
     } catch (e) {
       console.error('Failed to add tasks', e);
       Toast.show("❌ Network error. Please try again.", 'error');
+      return null;
     }
   },
 

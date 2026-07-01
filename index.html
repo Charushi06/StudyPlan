@@ -345,6 +345,31 @@
         <button id="extract-btn" class="btn btn-primary" style="flex:2;" aria-label="Extract tasks with AI">Extract with AI →</button>
       </div>
 
+      <div class="manual-task-entry" style="margin: 20px 20px 0; padding: 28px; border-radius: 18px; background: var(--color-background-primary); border: 1px solid var(--color-border-secondary); box-shadow: var(--shadow-sm);">
+        <div style="margin-bottom: 22px;">
+          <div class="paste-label" style="margin-bottom: 12px;">Manual Task Entry</div>
+          <div style="font-size: 12px; color: var(--color-text-tertiary); margin-bottom: 16px;">Use this form when AI extraction isn't needed.</div>
+        </div>
+
+        <label class="paste-label" for="manual-task-subject" style="margin-bottom: 12px; display:block;">Subject</label>
+        <select id="manual-task-subject" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--color-border-secondary); background: var(--color-background-secondary); color: var(--color-text-primary); margin-bottom:16px; box-sizing:border-box;">
+          <option value="">Select subject</option>
+        </select>
+
+        <label class="paste-label" for="manual-task-title" style="margin-bottom: 12px; display:block;">Task Title</label>
+        <input id="manual-task-title" type="text" placeholder="Enter task title" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--color-border-secondary); background: var(--color-background-secondary); color: var(--color-text-primary); margin-bottom:16px; box-sizing:border-box;">
+
+        <label class="paste-label" for="manual-task-date" style="margin-bottom: 12px; display:block;">Due Date</label>
+        <input id="manual-task-date" type="datetime-local" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--color-border-secondary); background: var(--color-background-secondary); color: var(--color-text-primary); margin-bottom:16px; box-sizing:border-box;">
+
+        <label class="paste-label" for="manual-task-notes" style="margin-bottom: 12px; display:block;">Notes <span style="font-weight:400; color: var(--color-text-tertiary); font-size: 12px;">(optional)</span></label>
+        <textarea id="manual-task-notes" rows="3" placeholder="Add notes for this task" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--color-border-secondary); background: var(--color-background-secondary); color: var(--color-text-primary); margin-bottom:18px; box-sizing:border-box;"></textarea>
+
+        <div class="paste-actions" style="margin: 0;">
+          <button id="manual-task-submit" class="btn btn-primary" style="width:100%;" aria-label="Add task">Add Task</button>
+        </div>
+      </div>
+
       <div id="extract-preview" class="extract-preview">
         <!-- Javascript will inject extracted items here -->
       </div>
