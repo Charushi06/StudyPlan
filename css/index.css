@@ -1686,13 +1686,13 @@ body {
 #new-subject-modal .modal-card {
   width: 100%;
   max-width: 360px;
-  background-color: #0f172a;
+  background-color: var(--color-background-primary);
   border-radius: 14px;
   padding: 20px 20px 16px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6) !important;
-  color: #e5e7eb;
+  color: var(--color-text-primary);
   box-sizing: border-box;
-  border: 1px solid rgba(148, 163, 184, 0.35) !important;
+  border: 1px solid var(--color-border-secondary) !important;
 }
 
 
@@ -1702,7 +1702,7 @@ body {
   font-size: 18px;
   font-weight: 600;
   letter-spacing: 0.01em;
-  color: #f9fafb;
+  color: var(--color-text-primary);
 }
 
 
@@ -1713,33 +1713,33 @@ body {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #9ca3af;
-  /* muted */
+  color: var(--color-text-secondary);
   margin-bottom: 4px;
 }
 
 
 #new-task-modal input,
 #new-task-modal select,
+#new-task-modal textarea,
 #new-subject-modal input,
-#new-subject-modal select {
+#new-subject-modal select,
+#new-subject-modal textarea {
   width: 100%;
   box-sizing: border-box;
   font-size: 13px;
   padding: 7px 8px;
   margin-bottom: 10px;
-  border-radius: 6px;
-  border: 1px solid #4b5563;
-  background-color: #111827 !important;
-  color: #e5e7eb;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--color-border-secondary);
+  background-color: var(--color-background-secondary) !important;
+  color: var(--color-text-primary);
   transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
-  color-scheme: dark;
 }
 
 
 #new-task-modal input::placeholder,
 #new-subject-modal input::placeholder {
-  color: #6b7280;
+  color: var(--color-text-tertiary);
 }
 
 
@@ -1748,9 +1748,9 @@ body {
 #new-subject-modal input:focus,
 #new-subject-modal select:focus {
   outline: none;
-  border-color: #4f46e5;
-  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.35);
-  background: #020617;
+  border-color: var(--color-text-primary);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.08);
+  background: var(--color-background-secondary);
 }
 
 
@@ -1770,17 +1770,6 @@ body {
   border-radius: 999px;
 }
 
-#new-task-modal .btn:not(.btn-primary),
-#new-subject-modal .btn:not(.btn-primary) {
-  background: rgba(15, 23, 42, 0.9);
-  color: #e5e7eb;
-  border: 1px solid #4b5563;
-}
-
-#new-task-modal .btn:not(.btn-primary):hover,
-#new-subject-modal .btn:not(.btn-primary):hover {
-  background: #020617;
-}
 
 .duration-switch {
   position: relative;
@@ -1791,7 +1780,7 @@ body {
   padding: 3px;
   border: 1px solid var(--color-border-secondary);
   border-radius: 999px;
-  background: rgba(15, 23, 42, 0.72);
+  background: var(--color-background-secondary);
   overflow: hidden;
 }
 
@@ -1818,7 +1807,7 @@ body {
   border: 0;
   border-radius: 999px;
   background: transparent;
-  color: var(--color-text-secondary);
+  color: var(--color-text-primary);
   font-family: inherit;
   font-size: 12px;
   font-weight: 700;
@@ -4982,133 +4971,6 @@ body {
   padding: 10px;
 }
 
-/* Task Addition Model */
-
-
-#new-task-modal {
-
-  position: fixed;
-  inset: 0;
-  z-index: 9998;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  background-color: rgba(0, 0, 0, 0.55) !important;
-}
-
-
-#new-task-modal .modal-card {
-  width: 100%;
-  max-width: 360px;
-  background-color: #0f172a;
-  border-radius: 14px;
-  padding: 20px 20px 16px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6) !important;
-  color: #e5e7eb;
-  box-sizing: border-box;
-  border: 1px solid rgba(148, 163, 184, 0.35) !important;
-}
-
-
-#new-task-modal .modal-card h3 {
-  margin: 0 0 12px;
-  font-size: 18px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  color: #f9fafb;
-}
-
-
-#new-task-modal label {
-  display: block;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #9ca3af;
-  /* muted */
-  margin-bottom: 4px;
-}
-
-
-#new-task-modal input,
-#new-task-modal select {
-  width: 100%;
-  box-sizing: border-box;
-  font-size: 13px;
-  padding: 7px 8px;
-  margin-bottom: 10px;
-  border-radius: 6px;
-  border: 1px solid #4b5563;
-  background-color: #111827 !important;
-  color: #e5e7eb;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
-  color-scheme: dark;
-}
-
-
-#new-task-modal input::placeholder {
-  color: #6b7280;
-}
-
-
-#new-task-modal input:focus,
-#new-task-modal select:focus {
-  outline: none;
-  border-color: #4f46e5;
-  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.35);
-  background: #020617;
-}
-
-
-#new-task-modal .modal-card>div:last-child {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 6px;
-}
-
-
-#new-task-modal .btn {
-  font-size: 12px;
-  padding: 6px 10px;
-  border-radius: 999px;
-}
-
-#new-task-modal .btn:not(.btn-primary) {
-  background: rgba(15, 23, 42, 0.9);
-  color: #e5e7eb;
-  border: 1px solid #4b5563;
-}
-
-#new-task-modal .btn:not(.btn-primary):hover {
-  background: #020617;
-}
-
-
-#new-task-modal.showing .modal-card {
-  animation: new-task-modal-in 0.16s ease-out;
-}
-
-@keyframes new-task-modal-in {
-  from {
-    opacity: 0;
-    transform: translateY(6px) scale(0.97);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-
-@media (max-width: 480px) {
-  #new-task-modal .modal-card {
-    max-width: 90vw;
-    padding: 16px 14px 12px;
-  }
-}
 
 
 .smart-workload-card {
@@ -5195,4 +5057,15 @@ body {
 
 .subject-sidebar-item:hover .delete-subject-btn {
   opacity: 1;
+}
+
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 9999;
+  max-width: min(360px, calc(100vw - 32px));
 }
