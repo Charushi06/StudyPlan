@@ -5196,3 +5196,89 @@ body {
 .subject-sidebar-item:hover .delete-subject-btn {
   opacity: 1;
 }
+
+/* ================= Toast notifications ================= */
+/* Fixed overlay, stacked in the top-right corner of the viewport */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none; /* clicks pass through empty space in the container */
+}
+
+.toast-notification {
+  pointer-events: auto; /* the toast itself is still clickable (close button) */
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 260px;
+  max-width: 360px;
+  padding: 12px 14px;
+  border-radius: var(--border-radius-md);
+  background: var(--color-background-primary);
+  border: 1px solid var(--color-border-tertiary);
+  box-shadow: var(--shadow-lg);
+  animation: toastSlideIn 0.2s ease-out;
+  color: var(--color-text-primary);
+  font-size: 14px;
+}
+
+.toast-notification.toast-success { border-color: var(--color-border-success); }
+.toast-notification.toast-error   { border-color: var(--color-border-danger); }
+.toast-notification.toast-warning { border-color: rgba(133, 79, 11, 0.3); }
+.toast-notification.toast-info    { border-color: var(--color-border-info); }
+
+.toast-icon { font-size: 16px; flex-shrink: 0; }
+.toast-message { flex: 1; line-height: 1.4; }
+.toast-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: var(--color-text-tertiary);
+  flex-shrink: 0;
+  padding: 0 2px;
+}
+.toast-close:hover { color: var(--color-text-primary); }
+
+.toast-hiding {
+  animation: toastSlideOut 0.2s ease-in forwards;
+}
+
+@keyframes toastSlideIn {
+  from { transform: translateX(30px); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes toastSlideOut {
+  from { transform: translateX(0); opacity: 1; }
+  to   { transform: translateX(30px); opacity: 0; }
+}
+
+/* ================= Confirm modal ================= */
+/* Fixed, centered, dimmed overlay */
+.custom-confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.custom-confirm-modal {
+  background: var(--color-background-primary);
+  border-radius: 14px;
+  padding: 20px;
+  width: 100%;
+  max-width: 340px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--color-border-tertiary);
+  color: var(--color-text-primary);
+  box-sizing: border-box;
+}

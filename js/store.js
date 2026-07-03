@@ -17,7 +17,9 @@ export const store = {
   },
   
   subscribe(listener) {
+    if(!this.listeners.includes(listener)){
     this.listeners.push(listener);
+    }
   },
   
   notify() {
@@ -269,6 +271,7 @@ export const store = {
         await fetch(`/api/tasks/${taskId}`, {
           method: 'DELETE'
         });
+        Toast.show("Task deleted successfully", "success"); // moved here from app.js
       } catch (e) {
         this.tasks.splice(taskIndex, 0, removedTask);
         this.notify();

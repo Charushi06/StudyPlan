@@ -4,6 +4,11 @@ import { initGlobalErrorBoundary } from './utils/errorBoundary.js';
 import { analyzeWorkload } from './utils/scheduler.js';
 import { Toast } from './utils/toast.js';
 
+if (window.__studyplanAppInitialized) {
+  console.warn('app.js already initialized — skipping duplicate setup');
+} else {
+  window.__studyplanAppInitialized = true;
+ 
 initGlobalErrorBoundary();
 
 function getLabelColor(labelStr) {
@@ -307,40 +312,26 @@ function renderSidebarSubjects() {
   listEl.innerHTML = subjects.map(s => {
     const n = countBySubject[s.id] ?? 0;
     const safeColor = s.color ? escapeHtml(s.color) : 'var(--color-text-info)';
-return `
-  <div class="nav-item subject-sidebar-item" data-subject-id="${escapeHtml(s.id)}">
-
-    <div class="subject-sidebar-content">
-      <span class="nav-dot" style="background:${safeColor}"></span>
-
-      <span class="subject-name">
-        ${escapeHtml(s.name)}
-      </span>
-    </div>
-
-    <div class="subject-sidebar-actions">
-      <span class="badge">${n}</span>
-
-      <button
-        class="delete-subject-btn"
-        data-subject-id="${escapeHtml(s.id)}"
-        title="Delete subject"
-      >
-        ✕
-      </button>
-    </div>
-
-  </div>
-`;
+    return `
+      <div class="nav-item subject-sidebar-item" data-subject-id="${escapeHtml(s.id)}">
+        <div class="subject-sidebar-content">
+          <span class="nav-dot" style="background:${safeColor}"></span>
+          <span class="subject-name">
+            ${escapeHtml(s.name)}
+          </span>
+        </div>
+        <div class="subject-sidebar-actions">
+          <span class="badge">${n}</span>
+          <button class="delete-subject-btn" data-subject-id="${escapeHtml(s.id)}" title="Delete subject">✕</button>
+        </div>
+      </div>
+    `;
   }).join('');
 
-  document.querySelectorAll('.delete-subject-btn')
-  .forEach(btn => {
+  document.querySelectorAll('.delete-subject-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
-
       const subjectId = btn.dataset.subjectId;
-
       store.deleteSubject(subjectId);
     });
   });
@@ -400,9 +391,7 @@ function calculateTimeFraction() {
 }
 
 function setCircleDasharray() {
-  const circleDasharray = `${(
-    calculateTimeFraction() * FULL_DASH_ARRAY
-  ).toFixed(0)} 283`;
+  const circleDasharray = `${(calculateTimeFraction() * FULL_DASH_ARRAY).toFixed(0)} 283`;
   timerPathRemaining.setAttribute("stroke-dasharray", circleDasharray);
 }
 
@@ -424,7 +413,6 @@ function loadTimerState() {
 
   try {
     const state = JSON.parse(saved);
-
     TIME_LIMIT = state.TIME_LIMIT || (25 * 60);
 
     if (state.isRunning && state.startTime) {
@@ -435,7 +423,6 @@ function loadTimerState() {
     }
 
     timeLeft = TIME_LIMIT - timePassed;
-
     if (timeLeft < 0) timeLeft = 0;
 
     if (state.durationInput) {
@@ -456,20 +443,18 @@ function loadTimerState() {
         timerText.innerHTML = formatTimeLeft(timeLeft);
         setCircleDasharray();
         updateTimerColor();
-
         saveTimerState();
 
         if (timeLeft <= 0) {
-  clearInterval(timerInterval);
-  timerInterval = null;
-  localStorage.removeItem('focusTimerState');
+          clearInterval(timerInterval);
+          timerInterval = null;
+          localStorage.removeItem('focusTimerState');
 
-  playCompletionSound();
-  showBrowserNotification();
-  Toast.show('Focus session complete!', 'success');
-
-  resetTimer();
-}
+          playCompletionSound();
+          showBrowserNotification();
+          Toast.show('Focus session complete!', 'success');
+          resetTimer();
+        }
       }, 250);
 
       timerPauseBtn.classList.remove('hidden');
@@ -480,6 +465,7 @@ function loadTimerState() {
     console.error('Failed to load timer state', err);
   }
 }
+
 function getTimerColor(timeLeft, totalTime) {
   const fraction = timeLeft / totalTime;
   if (fraction <= 0.1) return '#ef4444';
@@ -542,7 +528,7 @@ function startTimer() {
 
   startTime = Date.now() - (timePassed * 1000);
   saveTimerState();
-   timerInterval = setInterval(() => {
+  timerInterval = setInterval(() => {
     timePassed = Math.floor((Date.now() - startTime) / 1000);
     timeLeft = TIME_LIMIT - timePassed;
 
@@ -569,9 +555,7 @@ function startTimer() {
 function pauseTimer() {
   clearInterval(timerInterval);
   timerInterval = null;
-
   saveTimerState();
-
   timerPauseBtn.classList.add('hidden');
   timerStartBtn.classList.remove('hidden');
 }
@@ -579,7 +563,6 @@ function pauseTimer() {
 function resetTimer() {
   clearInterval(timerInterval);
   timerInterval = null;
-
   localStorage.removeItem('focusTimerState');
 
   timePassed = 0;
@@ -587,7 +570,6 @@ function resetTimer() {
   timeLeft = TIME_LIMIT;
 
   timerDurationInput.disabled = false;
-
   timerText.innerHTML = formatTimeLeft(timeLeft);
   timerPathRemaining.setAttribute("stroke-dasharray", "283 283");
   updateTimerColor();
@@ -735,7 +717,6 @@ function renderProfileSection() {
         <p class="profile-page-subtitle">View your account summary, study stats, and future account settings in one place.</p>
       </div>
     </div>
-
     <div class="profile-grid">
       <section class="profile-card">
         <h2>Account details</h2>
@@ -752,7 +733,6 @@ function renderProfileSection() {
           <span>${escapeHtml(joinedDate)}</span>
         </div>
       </section>
-
       <section class="profile-card">
         <h2>Study statistics</h2>
         <div class="profile-stats">
@@ -775,7 +755,6 @@ function renderProfileSection() {
         </div>
       </section>
     </div>
-
     <section class="profile-card profile-summary-card">
       <h2>Account overview</h2>
       <p>Your profile information and study statistics will update automatically as you use StudyPlan.</p>
@@ -807,10 +786,7 @@ function formatDate(dateStr) {
 async function downloadData() {
   try {
     const response = await fetch('/api/download');
-
-    if (!response.ok) {
-      throw new Error('Failed to download data');
-    } 
+    if (!response.ok) throw new Error('Failed to download data');
 
     const blob = await response.blob();
     const url = URL.createObjectURL(blob);
@@ -821,35 +797,30 @@ async function downloadData() {
     a.click();
     document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 100);
-
   } catch (error) {
-        console.error(error);
-        Toast.show('Failed to download data', 'error');
+    console.error(error);
+    Toast.show('Failed to download data', 'error');
   }
 }
 
 async function downloadCalendar() {
-    try {
-        const response = await fetch('/api/download/calendar');
+  try {
+    const response = await fetch('/api/download/calendar');
+    if (!response.ok) throw new Error('Failed to export calendar');
 
-        if (!response.ok) {
-            throw new Error('Failed to export calendar');
-        }
-
-        const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'studyplan_calendar.ics';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(url), 100);
-
-    } catch (error) {
-        console.error(error);
-        alert('Failed to export calendar');
-    }
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'studyplan_calendar.ics';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 100);
+  } catch (error) {
+    console.error(error);
+    alert('Failed to export calendar');
+  }
 }
 
 function renderTasks() {
@@ -860,11 +831,9 @@ function renderTasks() {
 
   if (subjects.length === 0) return; // Wait for subjects to load
 
-  // Filter based on archived status
   const activeTasks = tasks.filter(t => !t.archived);
   const archivedTasks = tasks.filter(t => t.archived);
 
-  // Update badges
   const allTasksBadge = document.querySelector('#all-tasks-btn .badge');
   if (allTasksBadge) {
     allTasksBadge.textContent = activeTasks.length;
@@ -874,14 +843,11 @@ function renderTasks() {
     archivedBadge.textContent = archivedTasks.length;
   }
 
-
-  
   const displayTasksRaw = currentView === 'archived' ? archivedTasks : activeTasks;
   const displayTasks = activeLabelFilter
     ? displayTasksRaw.filter(t => t.labels && t.labels.includes(activeLabelFilter))
     : displayTasksRaw;
   
-  // Extract unique labels to populate the filter dropdown
   if (labelFilterSelect) {
     const uniqueLabels = new Set();
     store.tasks.forEach(t => {
@@ -890,7 +856,6 @@ function renderTasks() {
       }
     });
     
-    // Store current selection to restore it
     const currentSel = labelFilterSelect.value;
     let optionsHtml = '<option value="">All Labels</option>';
     Array.from(uniqueLabels).sort().forEach(lbl => {
@@ -900,7 +865,6 @@ function renderTasks() {
   }
 
   const sorted = [...displayTasks].sort((a,b) => new Date(a.due_at) - new Date(b.due_at));
-  
   const now = new Date(); 
   
   const dueSoon = [];
@@ -951,11 +915,9 @@ function renderTasks() {
       });
     }
 
-
     items.forEach(t => {
       const sub = subjects.find(s => s.id === t.subject_id) || subjects[0];
       const isDone = t.status === 'Done';
-
       const isHighPriority = t.priority === 'high';
       const isOverdue = !isDone && t.due_at && new Date(t.due_at) < now;
       const isUrgent = isHighPriority && title === '⚠ Due soon';
@@ -972,7 +934,6 @@ function renderTasks() {
         ).join('');
 
         const localDate = t.due_at ? new Date(t.due_at).toISOString().substring(0, 16) : '';
-        const isHighPriority = t.priority === 'high';
         const editDurationUnit = t.is_estimated_duration_min === 0 ? 'hours' : 'minutes';
         const editDurationValue = t.estimated_duration
           ? (editDurationUnit === 'hours' ? Math.round(Number(t.estimated_duration) / 60) : Number(t.estimated_duration))
@@ -984,13 +945,10 @@ function renderTasks() {
             <select class="board-edit-subject edit-field" style="width:100%; margin-bottom: 12px; font-size:12px; padding:4px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
               ${subjectOptions}
             </select>
-
             <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Task Name</label>
             <input class="board-edit-title edit-field" type="text" value="${t.title}${t.labels && t.labels.length > 0 ? ' #' + t.labels.join(' #') : ''}" style="width:100%; margin-bottom: 12px; font-size:13px; font-weight:600; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
-
             <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Deadline</label>
             <input class="board-edit-date edit-field" type="datetime-local" value="${localDate}" style="width:100%; margin-bottom: 12px; font-size:12px; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
-
             <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Estimated Completion Time</label>
             <div style="display:flex; gap:8px; margin-bottom:12px;">
               <input class="board-edit-estimated-duration edit-field" type="number" min="1" step="1" value="${editDurationValue}" style="flex:1; min-width:0; font-size:12px; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);" placeholder="Duration">
@@ -1000,16 +958,13 @@ function renderTasks() {
                 <button type="button" class="duration-switch-option board-edit-duration-unit ${editDurationUnit === 'hours' ? 'active' : ''}" data-unit="hours">Hr</button>
               </div>
             </div>
-
             <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Notes</label>
             <input class="board-edit-notes edit-field" type="text" value="${t.notes || ''}" placeholder="Notes..." style="width:100%; margin-bottom: 12px; font-size:12px; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
-
             <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Priority</label>
             <select class="board-edit-priority edit-field" style="width:100%; margin-bottom: 12px; font-size:12px; padding:4px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
               <option value="medium" ${!isHighPriority ? 'selected' : ''}>Medium</option>
               <option value="high" ${isHighPriority ? 'selected' : ''}>High</option>
             </select>
-
             <div style="display:flex; justify-content: flex-end; gap: 8px; margin-top: 4px;">
               <button class="btn cancel-board-edit-btn" data-id="${t.id}" style="padding: 6px 12px; font-size: 11px; background: var(--color-background-secondary); color: var(--color-text-primary); border: 1px solid var(--color-border-secondary);">Cancel</button>
               <button class="btn btn-primary save-board-edit-btn" data-id="${t.id}" style="padding: 6px 12px; font-size: 11px;">Save</button>
@@ -1030,62 +985,49 @@ function renderTasks() {
           labelsHtml = t.labels.map(l => `<span class="task-pill" style="background:${getLabelColor(l)}; color:white;">${l}</span>`).join(' ');
         }
 
-  html += `
-            <div class="task-item 
-              ${isUrgent ? 'urgent' : ''} 
-              ${isHighPriority ? 'high-priority' : ''} 
-              ${isOverdue ? 'overdue' : ''} 
-              ${isDone ? 'done' : ''} 
-              ${isTaskSelected(t.id) ? 'selected-task' : ''}
-            " 
-            data-id="${t.id}"
-            role="button"
-            tabindex="0"
-            aria-label="${isTaskSelected(t.id) ? 'Deselect' : 'Select'} ${escapeHtml(t.title)} for bulk actions"
-            aria-pressed="${isTaskSelected(t.id) ? 'true' : 'false'}">
-
-              <button
-                class="task-check ${isDone ? 'done' : ''}"
-                type="button"
-                aria-label="${isDone ? 'Mark task incomplete' : 'Mark task complete'}"
-              ></button>
-
-              <div class="task-info">
-                <div class="task-name">${t.title}</div>
-
-                <div class="task-meta">
-                  <span class="task-pill ${
-                    isDone
-                      ? 'pill-green'
-                      : (isOverdue || isHighPriority ? 'pill-red' : 'pill-amber')
-                  }">
-                    ${isDone ? 'Done' : 'Due ' + formatDate(t.due_at)}
-                  </span>
-
-                  <span class="task-pill ${pillClass}">
-                    ${sub.short_code}
-                  </span>
-
-                  ${labelsHtml}
-                </div>
-              </div>
-
-              <div class="task-actions">
-                ${actionButtons}
+        html += `
+          <div class="task-item 
+            ${isUrgent ? 'urgent' : ''} 
+            ${isHighPriority ? 'high-priority' : ''} 
+            ${isOverdue ? 'overdue' : ''} 
+            ${isDone ? 'done' : ''} 
+            ${isTaskSelected(t.id) ? 'selected-task' : ''}
+          " 
+          data-id="${t.id}"
+          role="button"
+          tabindex="0"
+          aria-label="${isTaskSelected(t.id) ? 'Deselect' : 'Select'} ${escapeHtml(t.title)} for bulk actions"
+          aria-pressed="${isTaskSelected(t.id) ? 'true' : 'false'}">
+            <button class="task-check ${isDone ? 'done' : ''}" type="button" aria-label="${isDone ? 'Mark task incomplete' : 'Mark task complete'}"></button>
+            <div class="task-info">
+              <div class="task-name">${t.title}</div>
+              <div class="task-meta">
+                <span class="task-pill ${isDone ? 'pill-green' : (isOverdue || isHighPriority ? 'pill-red' : 'pill-amber')}">
+                  ${isDone ? 'Done' : 'Due ' + formatDate(t.due_at)}
+                </span>
+                <span class="task-pill ${pillClass}">
+                  ${sub.short_code}
+                </span>
+                ${labelsHtml}
               </div>
             </div>
-          `;
-        }
-      });
-      html += `</div>`;
-      return html;
-    };
+            <div class="task-actions">
+              ${actionButtons}
+            </div>
+          </div>
+        `;
+      }
+    });
+    html += `</div>`;
+    return html;
+  };
+
   if (currentView === 'calendar' && selectedDate) {
     const selStr = selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     const actionBar = `<div class="tasks-actions-bar">
-           <button id="mark-all-pending-btn" class="task-action-btn" ${pending.length === 0 ? 'disabled' : ''}>Mark all pending completed (${pending.length})</button>
-           <button id="mark-day-complete-btn" class="task-action-btn task-action-btn-secondary" ${pending.length === 0 ? 'disabled' : ''}>Mark selected day completed</button>
-         </div>`;
+        <button id="mark-all-pending-btn" class="task-action-btn" ${pending.length === 0 ? 'disabled' : ''}>Mark all pending completed (${pending.length})</button>
+        <button id="mark-day-complete-btn" class="task-action-btn task-action-btn-secondary" ${pending.length === 0 ? 'disabled' : ''}>Mark selected day completed</button>
+      </div>`;
 
     const emptyState = dueSoon.length === 0 && completed.length === 0
       ? `<div class="tasks-empty-state">
@@ -1100,18 +1042,11 @@ function renderTasks() {
       : '';
 
     const totalMinutes = [...dueSoon, ...completed].reduce((acc, t) => acc + (Number(t.estimated_duration) || 0), 0);
-    console.log('[Daily Study Time] Calendar view with selected date:', selectedDate);
-    console.log('[Daily Study Time] Pending tasks:', dueSoon.length, 'Completed tasks:', completed.length);
-    console.log('[Daily Study Time] Task durations:', [...dueSoon, ...completed].map(t => ({ title: t.title, estimated_duration: t.estimated_duration })));
-    console.log('[Daily Study Time] Total minutes calculated:', totalMinutes);
     const studyTimeEl = document.getElementById('daily-study-time');
     const studyTimeValueEl = document.getElementById('daily-study-time-value');
     if (studyTimeEl && studyTimeValueEl) {
       studyTimeEl.style.display = 'flex';
       studyTimeValueEl.textContent = formatDuration(totalMinutes);
-      console.log('[Daily Study Time] Banner shown with value:', formatDuration(totalMinutes));
-    } else {
-      console.log('[Daily Study Time] Banner elements not found');
     }
 
     tasksSection.innerHTML = actionBar +
@@ -1121,53 +1056,31 @@ function renderTasks() {
   } else {
     const selectedCount = getSelectedTasks().length;
     const bulkToolbar = `
-    <div class="bulk-toolbar">
-      <span class="bulk-toolbar-count">${selectedCount} selected</span>
+      <div class="bulk-toolbar">
+        <span class="bulk-toolbar-count">${selectedCount} selected</span>
+        <button id="select-all-btn" class="bulk-action-btn" type="button">Select All</button>
+        <button id="bulk-complete-btn" class="bulk-action-btn" type="button" ${selectedCount === 0 ? 'disabled' : ''}>Complete</button>
+        <button id="bulk-archive-btn" class="bulk-action-btn" type="button" ${selectedCount === 0 ? 'disabled' : ''}>Archive</button>
+        <button id="bulk-delete-btn" class="bulk-action-btn bulk-action-btn-danger" type="button" ${selectedCount === 0 ? 'disabled' : ''}>Delete</button>
+        <button id="clear-selection-btn" class="bulk-action-btn" type="button" ${selectedCount === 0 ? 'disabled' : ''}>Clear</button>
+      </div>
+    `;
 
-      <button id="select-all-btn" class="bulk-action-btn" type="button">
-        Select All
-      </button>
+    const actionBar = currentView === 'archived'
+      ? ''
+      : `
+        ${bulkToolbar}
+        <div class="tasks-actions-bar">
+          <button id="mark-all-pending-btn" class="task-action-btn" ${pending.length === 0 ? 'disabled' : ''}>
+            Mark all pending completed (${pending.length})
+          </button>
+        </div>
+      `;
 
-      <button id="bulk-complete-btn" class="bulk-action-btn" type="button" ${selectedCount === 0 ? 'disabled' : ''}>
-        Complete
-      </button>
-
-      <button id="bulk-archive-btn" class="bulk-action-btn" type="button" ${selectedCount === 0 ? 'disabled' : ''}>
-        Archive
-      </button>
-
-      <button id="bulk-delete-btn" class="bulk-action-btn bulk-action-btn-danger" type="button" ${selectedCount === 0 ? 'disabled' : ''}>
-        Delete
-      </button>
-
-      <button id="clear-selection-btn" class="bulk-action-btn" type="button" ${selectedCount === 0 ? 'disabled' : ''}>
-        Clear
-      </button>
-    </div>
-  `;
-
-const actionBar = currentView === 'archived'
-  ? ''
-  : `
-    ${bulkToolbar}
-
-    <div class="tasks-actions-bar">
-      <button
-        id="mark-all-pending-btn"
-        class="task-action-btn"
-        ${pending.length === 0 ? 'disabled' : ''}
-      >
-        Mark all pending completed (${pending.length})
-      </button>
-    </div>
-  `;
-    console.log('[Daily Study Time] Hiding banner - currentView:', currentView, 'selectedDate:', selectedDate);
     const studyTimeEl = document.getElementById('daily-study-time');
     if (studyTimeEl) {
       studyTimeEl.style.display = 'none';
     }
-
-  
 
     const titlePrefix = currentView === 'archived' ? 'Archived: ' : '';
     const emptyStateTitle = currentView === 'archived' ? 'No archived tasks' : 'Start your journey';
@@ -1189,34 +1102,34 @@ const actionBar = currentView === 'archived'
          </div>`
       : '';
 
-    tasksSection.innerHTML =
-  actionBar +
-  renderGroup(titlePrefix + '⚠ Due soon', dueSoon, 'var(--color-text-danger)', true) +
-  renderGroup(titlePrefix + 'This week', thisWeek, 'var(--color-text-secondary)', true) +
-  renderGroup(titlePrefix + 'Completed', completed, 'var(--color-text-tertiary)') +
-  emptyState;
+    tasksSection.innerHTML = actionBar +
+      renderGroup(titlePrefix + '⚠ Due soon', dueSoon, 'var(--color-text-danger)', true) +
+      renderGroup(titlePrefix + 'This week', thisWeek, 'var(--color-text-secondary)', true) +
+      renderGroup(titlePrefix + 'Completed', completed, 'var(--color-text-tertiary)') +
+      emptyState;
 
-document.querySelectorAll('.task-item').forEach(taskEl => {
-  const selectTask = () => {
-    const taskId = taskEl.dataset.id;
-    const task = store.tasks.find(t => String(t.id) === String(taskId));
-    if (!taskId || (task && task._isEditing)) return;
-    toggleTaskSelection(taskId);
-  };
+    document.querySelectorAll('.task-item').forEach(taskEl => {
+      const selectTask = () => {
+        const taskId = taskEl.dataset.id;
+        const task = store.tasks.find(t => String(t.id) === String(taskId));
+        if (!taskId || (task && task._isEditing)) return;
+        toggleTaskSelection(taskId);
+      };
 
-  taskEl.addEventListener('click', (e) => {
-    if (e.target.closest('button, input, .task-actions, .edit-field')) return;
-    selectTask();
-  });
+      taskEl.addEventListener('click', (e) => {
+        if (e.target.closest('button, input, .task-actions, .edit-field')) return;
+        selectTask();
+      });
 
-  taskEl.addEventListener('keydown', (e) => {
-    if (e.key !== 'Enter' && e.key !== ' ') return;
-    if (e.target.closest('button, input, .edit-field')) return;
-    e.preventDefault();
-    selectTask();
-  });
-});
+      taskEl.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        if (e.target.closest('button, input, .edit-field')) return;
+        e.preventDefault();
+        selectTask();
+      });
+    });
   }
+
   // Bind CTA button in empty state
   const emptyStateAddBtn = document.getElementById('empty-state-add-btn');
   if (emptyStateAddBtn) {
@@ -1224,7 +1137,7 @@ document.querySelectorAll('.task-item').forEach(taskEl => {
       document.getElementById('add-task-btn')?.click();
     });
   }
-                           
+                               
   document.querySelectorAll('.edit-task-btn').forEach(el => {
     el.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -1256,7 +1169,6 @@ document.querySelectorAll('.task-item').forEach(taskEl => {
       e.stopPropagation();
       const taskId = el.dataset.id;
       const itemEl = el.closest('.task-item');
-
       
       const rawTitle = itemEl.querySelector('.board-edit-title').value;
       const subject_id = itemEl.querySelector('.board-edit-subject').value;
@@ -1306,13 +1218,8 @@ document.querySelectorAll('.task-item').forEach(taskEl => {
     });
   });
 
-  document.querySelectorAll('.delete-task-btn').forEach(el => {
-    el.addEventListener('click', (e) => {
-      e.stopPropagation();
-      store.deleteTask(el.dataset.id);
-    });
-  });
-
+ 
+  
   const markAllPendingBtn = document.getElementById('mark-all-pending-btn');
   if (markAllPendingBtn) {
     markAllPendingBtn.addEventListener('click', (e) => {
@@ -1328,52 +1235,7 @@ document.querySelectorAll('.task-item').forEach(taskEl => {
       store.markPendingTasksForDateCompleted(selectedDate);
     });
   }
-  const bulkCompleteBtn =
-  document.getElementById('bulk-complete-btn');
-
-if (bulkCompleteBtn) {
-  bulkCompleteBtn.addEventListener('click', () => {
-    store.bulkCompleteTasks();
-  });
 }
-
-const bulkArchiveBtn =
-  document.getElementById('bulk-archive-btn');
-
-if (bulkArchiveBtn) {
-  bulkArchiveBtn.addEventListener('click', () => {
-    store.bulkArchiveTasks();
-  });
-}
-
-const bulkDeleteBtn =
-  document.getElementById('bulk-delete-btn');
-
-if (bulkDeleteBtn) {
-  bulkDeleteBtn.addEventListener('click', () => {
-    store.bulkDeleteTasks();
-  });
-}
-
-const clearSelectionBtn =
-  document.getElementById('clear-selection-btn');
-
-if (clearSelectionBtn) {
-  clearSelectionBtn.addEventListener('click', () => {
-    store.clearSelectedTasks();
-  });
-}
-
-const selectAllBtn =
-  document.getElementById('select-all-btn');
-
-if (selectAllBtn) {
-  selectAllBtn.addEventListener('click', () => {
-    store.selectAllTasks();
-  });
-}
-}
-
 
 const summaryBox = document.getElementById('summary-box');
 if (summaryBox) {
@@ -1387,7 +1249,6 @@ function renderCalendar() {
 
   const year = currentMonthDate.getFullYear();
   const month = currentMonthDate.getMonth();
-
   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   calTitle.textContent = `${monthNames[month]} ${year}`;
 
@@ -1397,7 +1258,6 @@ function renderCalendar() {
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const prevMonthDays = new Date(year, month, 0).getDate();
-
   const today = new Date();
 
   let html = `<div class="cal-day-label">Su</div><div class="cal-day-label">Mo</div><div class="cal-day-label">Tu</div><div class="cal-day-label">We</div><div class="cal-day-label">Th</div><div class="cal-day-label">Fr</div><div class="cal-day-label">Sa</div>`;
@@ -1410,7 +1270,6 @@ function renderCalendar() {
     const isToday = i === today.getDate() && month === today.getMonth() && year === today.getFullYear();
     const isSelected = selectedDate && i === selectedDate.getDate() && month === selectedDate.getMonth() && year === selectedDate.getFullYear();
 
-    // Find tasks for this day
     const dayTasks = store.tasks.filter(t => {
       if (t.archived) return false;
       if (t.status === 'Done') return false;
@@ -1431,7 +1290,6 @@ function renderCalendar() {
     }
 
     const extraStyle = isSelected ? `border: 1.5px solid var(--color-text-primary);` : '';
-
     html += `<div class="cal-day interactive-day ${isToday ? 'today' : ''}" data-day="${i}" style="${extraStyle}">
       ${i}
       ${indicatorHtml}
@@ -1441,13 +1299,11 @@ function renderCalendar() {
   const totalCells = firstDay + daysInMonth;
   const nextDays = (7 - (totalCells % 7)) % 7;
   for (let i = 1; i <= nextDays; i++) {
-    html += `<div cl
-    ass="cal-day muted">${i}</div>`;
+    html += `<div class="cal-day muted">${i}</div>`;
   }
 
   calGrid.innerHTML = html;
 
-  // Bind day clicks
   document.querySelectorAll('.interactive-day').forEach(el => {
     el.addEventListener('click', (e) => {
       const d = parseInt(e.currentTarget.getAttribute('data-day'));
@@ -1478,9 +1334,7 @@ function renderExtraction() {
 
   let html = `<div class="extract-title">Extracted — ${pasteItems.length} items</div>`;
   pasteItems.forEach((item, index) => {
-    // try to match subject name
     const sub = store.subjects.find(s => s.name.toLowerCase().includes((item.subject_name || '').toLowerCase())) || store.subjects[3];
-    // Attach subject id to item so Add will work
     item.subject_id = sub.id;
 
     if (item._isEditing) {
@@ -1496,16 +1350,12 @@ function renderExtraction() {
           <select class="edit-subject-input edit-field" data-index="${index}" style="width:100%; margin-bottom: 12px; font-size:12px; padding:4px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
             ${subjectOptions}
           </select>
-
           <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Task Name</label>
           <input class="edit-title-input edit-field" type="text" value="${item.title}" data-index="${index}" style="width:100%; margin-bottom: 12px; font-size:13px; font-weight:600; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
-
           <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Deadline</label>
           <input class="edit-date-input edit-field" type="datetime-local" value="${localDate}" data-index="${index}" style="width:100%; margin-bottom: 12px; font-size:12px; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
-
           <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Notes</label>
           <input class="edit-notes-input edit-field" type="text" value="${item.notes || ''}" data-index="${index}" placeholder="Notes..." style="width:100%; margin-bottom: 12px; font-size:12px; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
-
           <div style="display:flex; justify-content: flex-end; gap: 8px; margin-top: 4px;">
             <button class="btn btn-primary save-edit-btn" data-index="${index}" style="padding: 6px 12px; font-size: 11px;">Save Changes</button>
           </div>
@@ -1548,7 +1398,6 @@ function renderExtraction() {
       const title = card.querySelector('.edit-title-input').value;
       let dateVal = card.querySelector('.edit-date-input').value;
       const notes = card.querySelector('.edit-notes-input').value;
-
       const newSubject = store.subjects.find(s => s.id === subjectId);
 
       store.updateExtractedItem(idx, {
@@ -1565,8 +1414,8 @@ function renderExtraction() {
 
 function calculateStreak(tasks) {
   const completedTasks = tasks.filter(t => t.status === 'Done' && t.due_at && !t.archived);
-
   const dates = new Set();
+  
   completedTasks.forEach(t => {
     const d = new Date(t.due_at);
     if (!isNaN(d.getTime())) {
@@ -1578,41 +1427,36 @@ function calculateStreak(tasks) {
 
   const today = new Date();
   const todayStr = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
-
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
   const yesterdayStr = `${yesterday.getFullYear()}-${yesterday.getMonth()}-${yesterday.getDate()}`;
 
   let streak = 0;
   let checkDate = new Date();
-  let checkStr = todayStr;
 
   if (dates.has(todayStr)) {
     streak = 1;
   } else if (dates.has(yesterdayStr)) {
     streak = 1;
     checkDate = yesterday;
-    checkStr = yesterdayStr;
   } else {
     return 0;
   }
 
   while (true) {
     checkDate.setDate(checkDate.getDate() - 1);
-    checkStr = `${checkDate.getFullYear()}-${checkDate.getMonth()}-${checkDate.getDate()}`;
+    const checkStr = `${checkDate.getFullYear()}-${checkDate.getMonth()}-${checkDate.getDate()}`;
     if (dates.has(checkStr)) {
       streak++;
     } else {
       break;
     }
   }
-
   return streak;
 }
 
 function renderStreak() {
   const streakCount = calculateStreak(store.tasks);
-
   const streakCountEl = document.getElementById('streak-count');
   if (streakCountEl) {
     streakCountEl.textContent = streakCount;
@@ -1628,15 +1472,10 @@ function renderStreak() {
 
   const tooltip = document.getElementById('streak-tooltip');
   if (tooltip) {
-    if (streakCount >= 30) {
-      tooltip.textContent = '30 day badge unlocked';
-    } else if (streakCount >= 7) {
-      tooltip.textContent = '7 day badge unlocked';
-    } else if (streakCount >= 3) {
-      tooltip.textContent = '3 day badge unlocked';
-    } else {
-      tooltip.textContent = 'Complete tasks to build streak & earn cool badges';
-    }
+    if (streakCount >= 30) tooltip.textContent = '30 day badge unlocked';
+    else if (streakCount >= 7) tooltip.textContent = '7 day badge unlocked';
+    else if (streakCount >= 3) tooltip.textContent = '3 day badge unlocked';
+    else tooltip.textContent = 'Complete tasks to build streak & earn cool badges';
   }
 }
 
@@ -1649,6 +1488,59 @@ store.subscribe(renderSidebarSubjects);
 store.subscribe(renderStreak);
 
 document.addEventListener('DOMContentLoaded', () => {
+
+const globalTasksSection = document.getElementById('tasks-section');
+
+if (globalTasksSection) {
+  globalTasksSection.addEventListener('click', async (e) => {
+    // Find if the clicked element or its parent is a delete button
+    const deleteBtn = e.target.closest('.delete-task-btn');
+    if (!deleteBtn) return;
+
+    // Stop propagation and prevent default behavior
+    e.preventDefault();
+    e.stopPropagation();
+
+       const taskId = deleteBtn.dataset.id;
+    if (!taskId) return;
+
+    // store.deleteTask() already asks for confirmation and shows
+    // a success toast internally, so we don't need to repeat it here.
+    store.deleteTask(taskId);
+  });
+}
+
+  const bulkCompleteBtn = document.getElementById('bulk-complete-btn');
+  if (bulkCompleteBtn) {
+    bulkCompleteBtn.addEventListener('click', () => store.bulkCompleteTasks());
+  }
+
+  const bulkArchiveBtn = document.getElementById('bulk-archive-btn');
+  if (bulkArchiveBtn) {
+    bulkArchiveBtn.addEventListener('click', () => store.bulkArchiveTasks());
+  }
+
+  const bulkDeleteBtn = document.getElementById('bulk-delete-btn');
+  if (bulkDeleteBtn) {
+    bulkDeleteBtn.addEventListener('click', async () => {
+      const confirmed = await Toast.confirm("Are you sure you want to permanently delete all selected tasks?");
+      if (confirmed) {
+        store.bulkDeleteTasks();
+        Toast.show("Selected tasks deleted successfully", "success");
+      }
+    });
+  }
+
+  const clearSelectionBtn = document.getElementById('clear-selection-btn');
+  if (clearSelectionBtn) {
+    clearSelectionBtn.addEventListener('click', () => store.clearSelectedTasks());
+  }
+
+  const selectAllBtn = document.getElementById('select-all-btn');
+  if (selectAllBtn) {
+    selectAllBtn.addEventListener('click', () => store.selectAllTasks());
+  }
+
   if (newSubjectColorsEl) {
     SUBJECT_COLORS.forEach(c => {
       const btn = document.createElement('button');
@@ -1810,18 +1702,12 @@ document.addEventListener('DOMContentLoaded', () => {
     renderTasks();
   });
 
-//NEw Task addition event listeners
-newTaskBtn.addEventListener('click', () => {
-  
-  if (!store.subjects || store.subjects.length === 0) {
-    Toast.show('Subjects are still loading. Please try again in a moment.', 'warning');
-    return;
-  }
-
-    newTaskSubject.innerHTML = store.subjects
-      .map(s => `<option value="${s.id}">${s.name}</option>`)
-      .join('');
-
+  newTaskBtn.addEventListener('click', () => {
+    if (!store.subjects || store.subjects.length === 0) {
+      Toast.show('Subjects are still loading. Please try again in a moment.', 'warning');
+      return;
+    }
+    newTaskSubject.innerHTML = store.subjects.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
 
     if (selectedDate) {
       const d = new Date(selectedDate);
@@ -1830,10 +1716,10 @@ newTaskBtn.addEventListener('click', () => {
     } else {
       newTaskDate.value = '';
     }
-  newTaskTitle.value = '';
-  newTaskNotes.value = '';
-  if (newTaskEstimatedDuration) newTaskEstimatedDuration.value = '';
-  setNewTaskDurationUnit('minutes');
+    newTaskTitle.value = '';
+    newTaskNotes.value = '';
+    if (newTaskEstimatedDuration) newTaskEstimatedDuration.value = '';
+    setNewTaskDurationUnit('minutes');
     newTaskModal.style.display = 'flex';
   });
 
@@ -1841,83 +1727,77 @@ newTaskBtn.addEventListener('click', () => {
     newTaskModal.style.display = 'none';
   });
 
-newTaskModal.addEventListener('click', (e) => {
-    if (e.target === newTaskModal) {
-      newTaskModal.style.display = 'none';
-    }
+  newTaskModal.addEventListener('click', (e) => {
+    if (e.target === newTaskModal) newTaskModal.style.display = 'none';
   });
-  
-function setNewTaskDurationUnit(unit) {
-  selectedTaskDurationUnit = unit;
-  newTaskDurationSwitch?.setAttribute('data-unit', unit);
-  newTaskDurationMin?.classList.toggle('active', unit === 'minutes');
-  newTaskDurationHr?.classList.toggle('active', unit === 'hours');
-}
-
-newTaskDurationMin?.addEventListener('click', () => setNewTaskDurationUnit('minutes'));
-newTaskDurationHr?.addEventListener('click', () => setNewTaskDurationUnit('hours'));
-
-newTaskSave.addEventListener('click', async () => {
-  const rawTitle = newTaskTitle.value.trim();
-  const subject_id = newTaskSubject.value;
-  const notes = newTaskNotes.value.trim();
-  const dateVal = newTaskDate.value;
-  const durationValue = newTaskEstimatedDuration ? Number(newTaskEstimatedDuration.value) : 0;
-  const estimated_duration = durationValue > 0
-    ? Math.round(selectedTaskDurationUnit === 'hours' ? durationValue * 60 : durationValue)
-    : null;
-
-  if (!rawTitle) {
-    alert('Please enter a task name');
-    return;
+    
+  function setNewTaskDurationUnit(unit) {
+    selectedTaskDurationUnit = unit;
+    newTaskDurationSwitch?.setAttribute('data-unit', unit);
+    newTaskDurationMin?.classList.toggle('active', unit === 'minutes');
+    newTaskDurationHr?.classList.toggle('active', unit === 'hours');
   }
 
-  if (!dateVal) {
-  alert('Please enter a deadline');
-  return;
-}
+  newTaskDurationMin?.addEventListener('click', () => setNewTaskDurationUnit('minutes'));
+  newTaskDurationHr?.addEventListener('click', () => setNewTaskDurationUnit('hours'));
 
-if (!subject_id) {
-  alert('Please select a subject');
-  return;
-}
-  const { cleanTitle, labels } = extractLabels(rawTitle);
-  const due_at = dateVal ? new Date(dateVal).toISOString() : '';
+  newTaskSave.addEventListener('click', async () => {
+    const rawTitle = newTaskTitle.value.trim();
+    const subject_id = newTaskSubject.value;
+    const notes = newTaskNotes.value.trim();
+    const dateVal = newTaskDate.value;
+    const durationValue = newTaskEstimatedDuration ? Number(newTaskEstimatedDuration.value) : 0;
+    const estimated_duration = durationValue > 0
+      ? Math.round(selectedTaskDurationUnit === 'hours' ? durationValue * 60 : durationValue)
+      : null;
 
-  const newTask = {
-    title: cleanTitle || rawTitle,
-    subject_id,
-    due_at,
-    notes,
-    priority: 'medium',
-    status: 'Not Started',
-    archived: 0,
-    estimated_duration,
-    is_estimated_duration_min: selectedTaskDurationUnit === 'minutes' ? 1 : 0,
-    labels
-  };
+    if (!rawTitle) {
+      alert('Please enter a task name');
+      return;
+    }
+    if (!dateVal) {
+      alert('Please enter a deadline');
+      return;
+    }
+    if (!subject_id) {
+      alert('Please select a subject');
+      return;
+    }
+    const { cleanTitle, labels } = extractLabels(rawTitle);
+    const due_at = dateVal ? new Date(dateVal).toISOString() : '';
+
+    const newTask = {
+      title: cleanTitle || rawTitle,
+      subject_id,
+      due_at,
+      notes,
+      priority: 'medium',
+      status: 'Not Started',
+      archived: 0,
+      estimated_duration,
+      is_estimated_duration_min: selectedTaskDurationUnit === 'minutes' ? 1 : 0,
+      labels
+    };
 
     await store.addTasks([newTask]);
     newTaskModal.style.display = 'none';
   });
 
-
-addItemsBtn.addEventListener('click', () => {
-  if (store.currentPaste) {
-    const pasteWithLabels = store.currentPaste.map(t => {
-      const { cleanTitle, labels } = extractLabels(t.title);
-      return { ...t, title: cleanTitle || t.title, labels };
-    });
-    store.addTasks(pasteWithLabels);
-    store.clearExtracted();
-    pasteInput.value = '';
-  }
+  addItemsBtn.addEventListener('click', () => {
+    if (store.currentPaste) {
+      const pasteWithLabels = store.currentPaste.map(t => {
+        const { cleanTitle, labels } = extractLabels(t.title);
+        return { ...t, title: cleanTitle || t.title, labels };
+      });
+      store.addTasks(pasteWithLabels);
+      store.clearExtracted();
+      pasteInput.value = '';
+    }
+  });
 });
-});
 
-// Ensures the button is hidden on initial page load if the textarea is empty
 if (pasteInput.value.trim() === "") {
-    clearBtn.style.display = 'none';
+  clearBtn.style.display = 'none';
 }
 
 extractBtn.addEventListener('click', async () => {
@@ -1928,28 +1808,24 @@ extractBtn.addEventListener('click', async () => {
   extractBtn.disabled = true;
   
   const items = await extractTasksFromText(text);
-
   extractBtn.innerHTML = 'Extract with AI →';
   extractBtn.disabled = false;
-
   store.setExtracted(items);
 });
 
-// Wipes the text, clears the store, hides the button, and refocuses the cursor
 clearBtn.addEventListener('click', () => {
-    pasteInput.value = '';
-    store.clearExtracted();
-    clearBtn.style.display = 'none'; // Hides the clear button instantly
-    pasteInput.focus();              // Puts the typing cursor back in the box
+  pasteInput.value = '';
+  store.clearExtracted();
+  clearBtn.style.display = 'none';
+  pasteInput.focus();
 });
 
-// Listens to typing/pasting to show or hide the button dynamically
 pasteInput.addEventListener('input', () => {
-    if (pasteInput.value.trim().length > 0) {
-        clearBtn.style.display = 'block'; 
-    } else {
-        clearBtn.style.display = 'none';
-    }
+  if (pasteInput.value.trim().length > 0) {
+    clearBtn.style.display = 'block'; 
+  } else {
+    clearBtn.style.display = 'none';
+  }
 });
 
 downloadBtn.addEventListener('click', () => {
@@ -1959,7 +1835,6 @@ downloadBtn.addEventListener('click', () => {
 const fileInput = document.getElementById('file-input');
 const dropZone = document.getElementById('drop-zone');
 
-// Handle File Selection via File Explorer
 if (fileInput) {
   fileInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
@@ -1967,9 +1842,7 @@ if (fileInput) {
   });
 }
 
-// Handle Drag & Drop Events
 if (dropZone) {
-  // Prevent browser from opening the file
   ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
     dropZone.addEventListener(eventName, (e) => {
       e.preventDefault();
@@ -1977,24 +1850,20 @@ if (dropZone) {
     });
   });
 
-  // Add highlight effect
   ['dragenter', 'dragover'].forEach(eventName => {
     dropZone.addEventListener(eventName, () => {
       dropZone.classList.add('paste-zone--dragover');
     });
   });
 
-  // Remove highlight effect
   ['dragleave', 'drop'].forEach(eventName => {
     dropZone.addEventListener(eventName, () => {
       dropZone.classList.remove('paste-zone--dragover');
     });
   });
 
-  // Handle dropped file
   dropZone.addEventListener('drop', (e) => {
     const dt = e.dataTransfer;
-
     if (dt && dt.files.length > 0) {
       const file = dt.files[0];
       handleFileContent(file);
@@ -2002,38 +1871,28 @@ if (dropZone) {
   });
 }
 
-// File Reader Function
 function handleFileContent(file) {
   const allowedExtensions = ['txt', 'md', 'json'];
   const fileExtension = file.name.split('.').pop().toLowerCase();
 
-  // Validate extension
   if (!allowedExtensions.includes(fileExtension)) {
     alert('Invalid file format. Please upload a .txt, .md, or .json file.');
     return;
   }
 
   const reader = new FileReader();
-
   reader.onload = (e) => {
     const pasteInput = document.getElementById('paste-input');
-
     if (pasteInput) {
       pasteInput.value = e.target.result;
-
-      alert(
-        `Loaded "${file.name}" successfully! Click "Extract with AI" to find your tasks.`
-      );
+      alert(`Loaded "${file.name}" successfully! Click "Extract with AI" to find your tasks.`);
     }
   };
-
   reader.onerror = () => {
     alert('Error reading file content. Please try again.');
   };
-
   reader.readAsText(file);
 }
-
 
 const quotes = [
   "Small Progress is still Progress",
@@ -2049,27 +1908,24 @@ const quotes = [
 ];
 
 const quoteEl = document.getElementById('motivational-quotes');
-
 if (quoteEl) {
   const today = new Date();
   const seed = today.toDateString();
-
   let hash = 0;
-
   for (let i = 0; i < seed.length; i++) {
     hash = seed.charCodeAt(i) + ((hash << 5) - hash);
   }
-
   const index = Math.abs(hash % quotes.length);
-
   quoteEl.textContent = quotes[index];
 }
-calendarDownloadBtn.addEventListener('click', () => {
-  downloadCalendar();
-});
+
+if (calendarDownloadBtn) {
+  calendarDownloadBtn.addEventListener('click', () => {
+    downloadCalendar();
+  });
+}
 
 // ================= AUTH FRONTEND =================
-
 const authModal = document.getElementById('auth-modal');
 const authTitle = document.getElementById('auth-title');
 const authSubtitle = document.getElementById('auth-subtitle');
@@ -2077,31 +1933,22 @@ const authSubmitBtn = document.getElementById('auth-submit-btn');
 const authToggleBtn = document.getElementById('auth-toggle-btn');
 const authToggleText = document.getElementById('auth-toggle-text');
 const authError = document.getElementById('auth-error');
-
 const emailInput = document.getElementById('auth-email');
 const passwordInput = document.getElementById('auth-password');
-
 const logoutBtn = document.getElementById('logout-btn');
 
 let isLoginMode = true;
 
-// ================= CHECK LOGIN =================
-
 const savedUser = localStorage.getItem('studyplan_user');
-
 if (savedUser) {
   authModal.style.display = 'none';
 } else {
   authModal.style.display = 'flex';
 }
 
-// ================= TOGGLE LOGIN/SIGNUP =================
-
 authToggleBtn.addEventListener('click', (e) => {
   e.preventDefault();
-
   isLoginMode = !isLoginMode;
-
   authError.style.display = 'none';
 
   if (isLoginMode) {
@@ -2119,10 +1966,7 @@ authToggleBtn.addEventListener('click', (e) => {
   }
 });
 
-// ================= LOGIN / SIGNUP =================
-
 authSubmitBtn.addEventListener('click', async () => {
-
   const email = emailInput.value.trim();
   const password = passwordInput.value.trim();
 
@@ -2132,67 +1976,37 @@ authSubmitBtn.addEventListener('click', async () => {
     return;
   }
 
-  const endpoint = isLoginMode
-    ? '/api/auth/login'
-    : '/api/auth/signup';
-
+  const endpoint = isLoginMode ? '/api/auth/login' : '/api/auth/signup';
   try {
-
     const response = await fetch(endpoint, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        email,
-        password
-      })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
     });
 
     const data = await response.json();
-
     if (!response.ok) {
       authError.textContent = data.error || 'Authentication failed';
       authError.style.display = 'block';
       return;
     }
 
-    // Save logged-in user
     localStorage.setItem('studyplan_user', email);
-
     authModal.style.display = 'none';
-
     location.reload();
-
   } catch (err) {
-
     authError.textContent = 'Server error';
     authError.style.display = 'block';
   }
 });
 
-// ================= LOGOUT =================
-
 logoutBtn.addEventListener('click', async () => {
-
   try {
-
-    await fetch('/api/auth/logout', {
-      method: 'POST'
-    });
-
+    await fetch('/api/auth/logout', { method: 'POST' });
     localStorage.removeItem('studyplan_user');
-
     location.reload();
-
   } catch (err) {
     console.error(err);
   }
 });
-
-
-if (calendarDownloadBtn) {
-  calendarDownloadBtn.addEventListener('click', () => {
-    downloadCalendar();
-  });
 }
