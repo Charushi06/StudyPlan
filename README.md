@@ -75,6 +75,12 @@ Planner + Calendar Update
 - Inline editing (no popups)
 - Modify extracted data before saving
 
+### 🔔 Smart Notifications
+- Modern, glassmorphic toast notifications
+- Interactive confirmation modals
+- Zero-dependency Vanilla JS implementation
+- Automatically adapts to Light/Dark mode
+
 ### 💾 Persistent Storage
 - SQLite-based local database
 - Structured task + subject mapping
@@ -168,11 +174,12 @@ Open → http://localhost:3000
 │   ├──  utils
 │   │   ├──  aiMock.js       # The original mock UI extraction hook (deprecated)
 │   │   ├──  api.js          # The live fetch logic communicating with our Express API
-│   │   └──  dom.js          # DOM helpers (escape, modals, toast, date format)
-│   ├──  app.js              # Main controller (views, calendar, tasks, panel)
-│   ├──  auth.js             # Login / signup modal logic
-│   ├──  settings.js         # Theme and compact-view preferences
-│   └──  store.js            # Custom state manager (pub/sub)
+│   │   ├── dom.js          # DOM helpers (escape, modals, toast, date format)
+│   │   ├── toast.js        # Modern toast & confirmation modal system
+│   ├── app.js              # Main controller (views, calendar, tasks, panel)
+│   ├── auth.js             # Login / signup modal logic
+│   ├── settings.js         # Theme and compact-view preferences
+│   └── store.js            # Custom state manager (pub/sub)
 ├──  .env.example            # Template file for setting the GEMINI_API_KEY
 ├──  .gitignore              # Tells git to ignore databases, environments, and node packages
 ├──  database.js             # Initializes the SQLite database and executes DB table schemas
@@ -257,9 +264,7 @@ GitHub: https://github.com/Charushi06
 
 ---
 
-## 🌱 Nexus Spring of Code 2026
-
-This project is part of NSoC 2026
+### GSSoC 2026
 
 ---
 

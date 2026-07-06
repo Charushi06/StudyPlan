@@ -5,14 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>StudyPlan</title>
   <link rel="stylesheet" href="/css/index.css">
+
   <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
   <a href="#main-content" class="sr-only">Skip to main content</a>
 
+  <!-- Auth Modal -->
   <div id="auth-modal" class="modal-backdrop modal-backdrop--elevated is-open" role="presentation">
     <div class="modal-card modal-card--narrow" role="dialog" aria-modal="true" aria-labelledby="auth-title">
       <h2 id="auth-title" class="modal-card__title">Welcome back</h2>
@@ -30,295 +33,590 @@
 
       <button id="auth-submit-btn" type="button" class="btn btn--brand btn--block">Sign In</button>
 
+      <div class="form-hint" style="margin-top:10px; line-height:1.6;">
+        Password must contain:
+        <ul style="padding-left:18px; margin-top:6px;">
+          <li>Minimum 8 characters</li>
+          <li>At least 1 capital letter</li>
+          <li>At least 1 special character</li>
+        </ul>
+      </div>
+
       <p class="auth-modal__toggle">
         <span id="auth-toggle-text">Don't have an account?</span>
         <a id="auth-toggle-btn" href="#">Sign Up</a>
       </p>
 
-      <p id="auth-error" class="form-error" role="alert"></p>
+      <p id="auth-error" class="form-error" role="alert" style="display:none;"></p>
     </div>
   </div>
 
   <header class="site-header">
-  <div class="header-left">
-    <img src="/logo.png" alt="Logo" class="logo">
-    <h1 class="site-title">StudyPlan</h1>
-  </div>
-
-  <nav class="header-nav" aria-label="Main">
-    <a href="#" id="nav-dashboard">Dashboard</a>
-    <a href="#" id="nav-tasks">Tasks</a>
-    <a href="#" id="nav-calendar">Calendar</a>
-    <a href="#" id="nav-settings">Settings</a>
-  </nav>
-
-  <div class="header-right">
-    <button class="profile-btn">Profile</button>
-    <button class="profile-btn" id="logout-btn">Logout</button>
-  </div>
-</header>
-
-
-<div class="wrapper">
-  <div class="app" id="main-content">
-    <!-- Sidebar -->
-    <div class="sidebar">
-      <div class="sidebar-header">Study Planner</div>
-      <button type="button" class="nav-item active" id="calendar-btn" aria-label="View calendar">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="1" y="2" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M1 6h14" stroke="currentColor" stroke-width="1.5"/><path d="M5 1v2M11 1v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-        Calendar
-      </button>
-      <button type="button" class="nav-item" id="all-tasks-btn" aria-label="View all tasks">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 4h12M2 8h9M2 12h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-        All Tasks
-        <span class="badge" id="all-tasks-badge">0</span>
-      </button>
-      <button type="button" class="nav-item" id="focus-mode-btn" aria-label="Focus mode">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-        Focus Mode
-      </button>
-      <button type="button" class="nav-item" id="archived-tasks-btn" aria-label="Archived tasks">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 3h12v2H2V3zm1 3h10v7H3V6zm2 2v3h2V8H5zm4 0v3h2V8H9z" fill="currentColor"/></svg>
-        Archived Tasks
-        <span class="badge" id="archived-tasks-badge">0</span>
-      </button>
-      <button type="button" class="nav-item" id="download-btn" aria-label="Download data as CSV">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h9M2 12h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-        Download Data
-      </button>
-      <div class="sidebar-divider"></div>
-      <div class="sidebar-header">Subjects</div>
-      <div id="subjects-sidebar-list"></div>
-      <div class="add-subject" id="add-subject-btn" role="button" tabindex="0">
-        <svg width="14" height="14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Add subject
-      </div>
+    <div class="header-left">
+      <img src="/logo.png" alt="Logo" class="logo">
+      <h1 class="site-title">StudyPlan</h1>
     </div>
 
-    <!-- Main -->
-    <div class="main">
-      <div class="topbar">
-        <div class="topbar-title">April 2026</div>
-        <button class="btn">Week</button>
-        <button class="btn btn-primary"  id="add-task-btn">
-          <svg class="btn__icon" width="12" height="12" fill="none" aria-hidden="true"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> New task
+    <nav class="header-nav" aria-label="Main">
+      <a href="#" id="nav-dashboard">Dashboard</a>
+      <a href="#" id="nav-tasks">Tasks</a>
+      <a href="#" id="nav-calendar">Calendar</a>
+      <a href="#" id="nav-settings">Settings</a>
+    </nav>
+
+    <div class="header-right">
+      <button class="profile-btn" id="profile-btn">Profile</button>
+      <!--Streak Badge-->
+      <div class="streak-badges">
+        <div class="badge-wrapper hidden" id="badge-3-wrapper" title="3 Day Streak">
+          <img src="/public/medal-3daystreak.svg" alt="3 Day Streak" class="streak-badge" />
+        </div>
+        <div class="badge-wrapper hidden" id="badge-7-wrapper" title="7 Day Streak">
+          <img src="/public/rocket-7daystreak.svg" alt="7 Day Streak" class="streak-badge" />
+        </div>
+        <div class="badge-wrapper hidden" id="badge-30-wrapper" title="30 Day Streak">
+          <img src="/public/crown-30andmorestreak.svg" alt="30 Day Streak" class="streak-badge" />
+        </div>
+      </div>
+      <button class="profile-btn" id="logout-btn">Logout</button>
+    </div>
+  </header>
+
+  <div class="wrapper">
+    <div class="app" id="main-content">
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <div class="sidebar-header">Study Planner</div>
+
+        <button type="button" class="nav-item active" id="calendar-btn" aria-label="View calendar">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="1" y="2" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M1 6h14" stroke="currentColor" stroke-width="1.5"/><path d="M5 1v2M11 1v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Calendar
         </button>
+
+        <button type="button" class="nav-item" id="all-tasks-btn" aria-label="View all tasks">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 4h12M2 8h9M2 12h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          All Tasks
+          <span class="badge" id="all-tasks-badge">0</span>
+        </button>
+
+        <button type="button" class="nav-item" id="focus-mode-btn" aria-label="Focus mode">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Focus Mode
+        </button>
+
+        <button type="button" class="nav-item" id="archived-tasks-btn" aria-label="Archived tasks">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 3h12v2H2V3zm1 3h10v7H3V6zm2 2v3h2V8H5zm4 0v3h2V8H9z" fill="currentColor"/></svg>
+          Archived Tasks
+          <span class="badge" id="archived-tasks-badge">0</span>
+        </button>
+
+        <button type="button" class="nav-item" id="download-btn" aria-label="Download data as CSV">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h9M2 12h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Download Data
+        </button>
+
+        <button type="button" class="nav-item" id="calendar-download-btn" aria-label="Export to calendar">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M1 6h14" stroke="currentColor" stroke-width="1.5"/><path d="M5 1v2M11 1v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Export to Calendar
+        </button>
+
+        <div class="sidebar-divider"></div>
+        <div class="sidebar-header">Subjects</div>
+        <div id="subjects-sidebar-list"></div>
+        <div class="add-subject" id="add-subject-btn" role="button" tabindex="0">
+          <svg width="14" height="14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Add subject
+        </div>
       </div>
 
-      <!-- Calendar -->
-      <div class="cal-section">
-        <div class="cal-header">
-          <div id="cal-month-title" class="cal-title">April 2026</div>
-          <span id="cal-prev" class="cal-nav" role="button" aria-label="Previous Month">‹</span>
-          <span id="cal-next" class="cal-nav" role="button" aria-label="Next Month">›</span>
+      <!-- Main -->
+      <div class="main">
+        <div class="topbar">
+          <div class="topbar-title">April 2026</div>
+          <!--Streak-->
+          <div class="streak-display" id="streak-display">
+            <img src="/public/streak-icon.svg" alt="Streak" class="streak-icon" id="streak-icon" />
+            <span id="streak-count">0</span>
+            <div class="streak-tooltip" id="streak-tooltip">
+              Complete tasks to build streak &amp; earn cool badges
+            </div>
+          </div>
+          <select id="label-filter" style="margin-left:auto; margin-right: 12px; padding: 6px; border-radius: 6px; border: 1px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); outline: none; cursor: pointer;">
+            <option value="">All Labels</option>
+          </select>
+          <button class="btn">Week</button>
+          <button class="btn btn-primary" id="add-task-btn">
+            <svg class="btn__icon" width="12" height="12" fill="none" aria-hidden="true"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> New task
+          </button>
         </div>
-        <div id="cal-grid" class="cal-grid">
-          <div class="cal-day-label">Su</div><div class="cal-day-label">Mo</div><div class="cal-day-label">Tu</div><div class="cal-day-label">We</div><div class="cal-day-label">Th</div><div class="cal-day-label">Fr</div><div class="cal-day-label">Sa</div>
-        </div>
-        <div class="cal-legend">
-          <span><span class="legend-dot legend-dot--info"></span>Study session</span>
-          <span><span class="legend-dot legend-dot--danger"></span>Deadline</span>
-        </div>
-      </div>
 
-      <!-- Tasks -->
-      <div id="tasks-section" class="tasks-section">
-        <!-- Javascript will inject tasks here -->
-        
-      </div>
-
-      <!-- Focus Mode -->
-      <div id="focus-section" class="focus-section hidden">
-        <div class="focus-dashboard">
-          <div class="timer-container">
-            <svg class="timer-svg" viewBox="0 0 100 100" aria-hidden="true">
-              <defs>
-                <linearGradient id="timer-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="#4f46e5"/>
-                  <stop offset="50%" stop-color="#8b5cf6"/>
-                  <stop offset="100%" stop-color="#06b6d4"/>
-                </linearGradient>
-              </defs>
-              <circle class="timer-path-elapsed" cx="50" cy="50" r="45" />
-              <path id="timer-path-remaining" stroke-dasharray="283" class="timer-path-remaining" d="
-                M 50, 50
-                m -45, 0
-                a 45,45 0 1,0 90,0
-                a 45,45 0 1,0 -90,0
-              "></path>
+        <!-- Dashboard Greeting -->
+        <div class="dashboard-greeting" style="padding: 16px 24px 0; display: flex; justify-content: center;">
+          <div class="quote-widget">
+            <svg class="quote-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-            <div id="timer-text" class="timer-text">25:00</div>
+            <p id="motivational-quotes">
+              Small Progress is still Progress
+            </p>
           </div>
-          <div class="timer-duration-row">
-            <label for="timer-duration-input" class="timer-duration-label">Duration (min)</label>
-            <input id="timer-duration-input" type="number" class="timer-duration-input" value="25" min="1" max="120">
+        </div>
+
+        <!-- Calendar -->
+        <div class="cal-section">
+          <div class="cal-header">
+            <div id="cal-month-title" class="cal-title">April 2026</div>
+            <span id="cal-prev" class="cal-nav" role="button" aria-label="Previous Month">‹</span>
+            <span id="cal-next" class="cal-nav" role="button" aria-label="Next Month">›</span>
           </div>
-          <div class="timer-controls">
-            <button id="timer-start-btn" class="btn btn-primary">Start Focus</button>
-            <button id="timer-pause-btn" class="btn hidden">Pause</button>
-            <button id="timer-reset-btn" class="btn">Reset</button>
+          <div id="cal-grid" class="cal-grid">
+            <div class="cal-day-label">Su</div><div class="cal-day-label">Mo</div><div class="cal-day-label">Tu</div><div class="cal-day-label">We</div><div class="cal-day-label">Th</div><div class="cal-day-label">Fr</div><div class="cal-day-label">Sa</div>
           </div>
-          
-          <div class="focus-task-container">
-            <div class="focus-task-header">Current Focus Task</div>
-            <div id="active-focus-task" class="active-focus-task">
-              <div class="no-task-selected">No task selected. Choose one below.</div>
+          <div class="cal-legend">
+            <span><span class="legend-dot legend-dot--info"></span>Study session</span>
+            <span><span class="legend-dot legend-dot--danger"></span>Deadline</span>
+          </div>
+        </div>
+
+        <!-- Daily Study Time Summary -->
+        <div id="daily-study-time" class="daily-study-time-banner" style="margin: 16px 24px; padding: 12px 16px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--color-border-secondary); border-radius: var(--border-radius-md); align-items: center; justify-content: space-between; gap: 12px; box-shadow: var(--shadow-sm); backdrop-filter: blur(5px);">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-clock" style="font-size: 18px;"></i>
+            <span style="font-size: 14px; font-weight: 500; color: var(--color-text-secondary);">Total Estimated Study Time</span>
+          </div>
+          <strong id="daily-study-time-value" style="font-size: 16px; font-weight: 700; color: var(--color-text-primary);">0 mins</strong>
+        </div>
+
+        <!-- Tasks -->
+        <div id="tasks-section" class="tasks-section">
+          <!-- Javascript will inject tasks here -->
+        </div>
+
+        <!-- Focus Mode -->
+        <div id="focus-section" class="focus-section hidden">
+          <div class="focus-dashboard">
+            <div class="timer-container">
+              <svg class="timer-svg" viewBox="0 0 100 100" aria-hidden="true">
+                <defs>
+                  <linearGradient id="timer-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#4f46e5"/>
+                    <stop offset="50%" stop-color="#8b5cf6"/>
+                    <stop offset="100%" stop-color="#06b6d4"/>
+                  </linearGradient>
+                </defs>
+                <circle class="timer-path-elapsed" cx="50" cy="50" r="45" />
+                <path id="timer-path-remaining" stroke-dasharray="283" class="timer-path-remaining" d="
+                  M 50, 50
+                  m -45, 0
+                  a 45,45 0 1,0 90,0
+                  a 45,45 0 1,0 -90,0
+                "></path>
+              </svg>
+              <div id="timer-text" class="timer-text">25:00</div>
+            </div>
+            <div class="timer-duration-row">
+              <label for="timer-duration-input" class="timer-duration-label">Duration (min)</label>
+              <input id="timer-duration-input" type="number" class="timer-duration-input" value="25" min="1" max="120">
+            </div>
+            <div class="timer-controls">
+              <button id="timer-start-btn" class="btn btn-primary">Start Focus</button>
+              <button id="timer-pause-btn" class="btn hidden">Pause</button>
+              <button id="timer-reset-btn" class="btn">Reset</button>
+            </div>
+
+            <div class="focus-task-container">
+              <div class="focus-task-header">Current Focus Task</div>
+              <div id="active-focus-task" class="active-focus-task">
+                <div class="no-task-selected">No task selected. Choose one below.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="focus-task-selector">
+            <div class="focus-task-header">Select a task to focus on</div>
+            <div id="focus-task-list" class="focus-task-list">
+              <!-- JS will populate tasks -->
             </div>
           </div>
         </div>
 
-        <div class="focus-task-selector">
-          <div class="focus-task-header">Select a task to focus on</div>
-          <div id="focus-task-list" class="focus-task-list">
-            <!-- JS will populate tasks -->
+        <!-- Profile -->
+        <div id="profile-section" class="profile-section hidden">
+          <div class="profile-header">
+            <div>
+              <div class="profile-page-title">Profile</div>
+              <p class="profile-page-subtitle">View your account summary, study stats, and future account settings in one place.</p>
+            </div>
           </div>
+
+          <div class="profile-grid">
+            <section class="profile-card">
+              <h2>Account details</h2>
+              <div class="profile-field">
+                <span class="profile-field-label">Username</span>
+                <span id="profile-username">StudyPlan User</span>
+              </div>
+              <div class="profile-field">
+                <span class="profile-field-label">Email</span>
+                <span id="profile-email">user@studyplan.app</span>
+              </div>
+              <div class="profile-field">
+                <span class="profile-field-label">Member since</span>
+                <span id="profile-joined">June 2026</span>
+              </div>
+            </section>
+
+            <section class="profile-card">
+              <h2>Study statistics</h2>
+              <div class="profile-stats">
+                <div>
+                  <span class="profile-stat-value" id="profile-completed-count">0</span>
+                  <span>Completed</span>
+                </div>
+                <div>
+                  <span class="profile-stat-value" id="profile-pending-count">0</span>
+                  <span>Pending</span>
+                </div>
+                <div>
+                  <span class="profile-stat-value" id="profile-archived-count">0</span>
+                  <span>Archived</span>
+                </div>
+                <div>
+                  <span class="profile-stat-value" id="profile-subjects-count">0</span>
+                  <span>Subjects</span>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <section class="profile-card profile-summary-card">
+            <h2>Account overview</h2>
+            <p id="profile-summary-text">Your profile information and study statistics will update automatically as you use StudyPlan.</p>
+          </section>
         </div>
       </div>
-    </div>
 
-    <!-- Right Panel -->
-    <div class="panel">
-      <div class="panel-header">
-        <button id="panel-toggle-btn" class="panel-toggle-btn" type="button" aria-label="Toggle Smart Paste panel" aria-expanded="true">
-          <svg id="panel-toggle-icon" width="16" height="16" fill="none" viewBox="0 0 16 16"><path d="M10 4l-4 4 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
-        <div>
-          <div class="panel-title">
-            <svg width="18" height="18" fill="none"><path d="M9 13V5M9 5L5 9M9 5l4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            Smart Paste
+      <!-- Right Panel -->
+      <div class="panel">
+        <div class="panel-header">
+          <button id="panel-toggle-btn" class="panel-toggle-btn" type="button" aria-label="Toggle Smart Paste panel" aria-expanded="true">
+            <svg id="panel-toggle-icon" width="16" height="16" fill="none" viewBox="0 0 16 16"><path d="M10 4l-4 4 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div>
+            <div class="panel-title">
+              <svg width="18" height="18" fill="none"><path d="M9 13V5M9 5L5 9M9 5l4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Smart Paste
+            </div>
+            <div class="panel-subtitle">Drop any text — email, brief, message</div>
           </div>
-          <div class="panel-subtitle">Drop any text — email, brief, message</div>
         </div>
-      </div>
 
-      <div class="paste-zone">
-        <div class="paste-icon">⌘ V</div>
-        <div class="paste-label">Paste text here</div>
-        <div class="paste-hint">e.g. "Your OS assignment is due this Friday by 11pm…"</div>
-        <textarea id="paste-input" class="paste-input" placeholder="Paste your syllabus or notes..."></textarea>
-      </div>
+        <div class="paste-zone" id="drop-zone">
+          <div class="paste-icon">⌘ V</div>
+          <div class="paste-label">Paste text or drop a file here</div>
+          <div class="paste-hint">Supports .txt, .md, or .json files (e.g. "Your OS assignment is due this Friday by 11pm…)"</div>
+          <textarea id="paste-input" class="paste-input" placeholder="Paste your syllabus or notes..."></textarea>
+          <div class="file-upload-wrapper" style="margin-top: 10px; font-size: 13px; text-align: center;"></div>
+        </div>
 
-      <div class="paste-actions paste-actions--balanced">
-        <button id="clear-btn" type="button" class="btn btn--grow-1" aria-label="Clear paste area">Clear</button>
-        <button id="extract-btn" type="button" class="btn btn-primary btn--grow-2" aria-label="Extract tasks with AI">Extract with AI →</button>
-      </div>
+        <div class="paste-actions paste-actions--balanced">
+          <button id="clear-btn" type="button" class="btn btn--grow-1" aria-label="Clear paste area">Clear</button>
+          <button id="extract-btn" type="button" class="btn btn-primary btn--grow-2" aria-label="Extract tasks with AI">Extract with AI →</button>
+        </div>
 
-      <div id="extract-preview" class="extract-preview">
-        <!-- Javascript will inject extracted items here -->
-      </div>
-      <div id="summary-box" class="summary-box"></div>
+        <div id="extract-preview" class="extract-preview">
+          <!-- Javascript will inject extracted items here -->
+        </div>
+        <div id="summary-box" class="summary-box"></div>
 
-      <button id="add-btn" class="add-btn" type="button" disabled>Add items to planner</button>
+        <button id="add-btn" class="add-btn" type="button" disabled>Add items to planner</button>
+      </div>
     </div>
   </div>
-</div>
 
-<footer class="site-footer">
-  <p>© 2026 StudyPlan. All rights reserved.</p>
-  <div class="footer-links">
-    <a href="/support-page/index.html#privacy">Privacy</a>
-    <a href="/support-page/index.html#terms">Terms</a>
-    <a href="/support-page/index.html#support">Support</a>
-  </div>
-</footer>
-
-<div id="settings-modal" class="modal-backdrop modal-backdrop--elevated" role="presentation">
-  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="settings-title">
-    <div class="modal-card__header">
-      <h2 id="settings-title" class="modal-card__title">Settings</h2>
-      <button id="settings-close" type="button" class="modal-card__close" aria-label="Close settings">&times;</button>
+  <footer class="site-footer">
+    <p>© 2026 StudyPlan. All rights reserved.</p>
+    <div class="footer-links">
+      <a href="/support-page/privacy.html">Privacy</a>
+      <a href="/support-page/terms.html">Terms</a>
+      <a href="/support-page/support.html">Support</a>
     </div>
+  </footer>
 
-    <section aria-labelledby="settings-appearance">
-      <h3 id="settings-appearance" class="modal-card__section-title">Appearance</h3>
-      <div class="modal-card__row">
-        <span class="modal-card__row-label">Dark Mode</span>
-        <label class="toggle-switch">
-          <input type="checkbox" id="dark-mode-toggle">
-          <span class="toggle-slider"></span>
-        </label>
+  <!-- Settings Modal -->
+  <div id="settings-modal" class="modal-backdrop modal-backdrop--elevated" role="presentation">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+      <div class="modal-card__header">
+        <h2 id="settings-title" class="modal-card__title">Settings</h2>
+        <button id="settings-close" type="button" class="modal-card__close" aria-label="Close settings">&times;</button>
       </div>
-      <div class="modal-card__row">
-        <span class="modal-card__row-label">Compact View</span>
-        <label class="toggle-switch">
-          <input type="checkbox" id="compact-view-toggle">
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
-    </section>
 
-    <section aria-labelledby="settings-notifications">
-      <h3 id="settings-notifications" class="modal-card__section-title">Notifications</h3>
-      <div class="modal-card__row">
-        <span class="modal-card__row-label">Email Reminders</span>
-        <label class="toggle-switch">
-          <input type="checkbox" checked>
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
-      <div class="modal-card__row">
-        <span class="modal-card__row-label">Browser Notifications</span>
-        <label class="toggle-switch">
-          <input type="checkbox">
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
-    </section>
+      <section aria-labelledby="settings-appearance">
+        <h3 id="settings-appearance" class="modal-card__section-title">Appearance</h3>
+        <div class="modal-card__row">
+          <span class="modal-card__row-label">Dark Mode</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="dark-mode-toggle">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="modal-card__row">
+          <span class="modal-card__row-label">Compact View</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="compact-view-toggle">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </section>
 
-    <button id="settings-save" type="button" class="btn btn--primary btn--block" style="margin-top:var(--space-2);">Save Changes</button>
+      <section aria-labelledby="settings-notifications">
+        <h3 id="settings-notifications" class="modal-card__section-title">Notifications</h3>
+        <div class="modal-card__row">
+          <span class="modal-card__row-label">Email Reminders</span>
+          <label class="toggle-switch">
+            <input type="checkbox" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="modal-card__row">
+          <span class="modal-card__row-label">Browser Notifications</span>
+          <label class="toggle-switch">
+            <input type="checkbox">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </section>
+
+      <button id="settings-save" type="button" class="btn btn--primary btn--block" style="margin-top:var(--space-2);">Save Changes</button>
+    </div>
   </div>
-</div>
 
   <div id="app-toast" class="toast" role="status" aria-live="polite"></div>
 
-<div id="new-subject-modal" class="modal-backdrop" role="presentation">
-  <div class="modal-card modal-card--narrow" role="dialog" aria-modal="true" aria-labelledby="new-subject-title">
-    <h3 id="new-subject-title" class="modal-card__title">New subject</h3>
-    <div class="form-field">
-      <label class="form-field__label" for="new-subject-name">Subject name</label>
-      <input id="new-subject-name" class="form-field__input" type="text" placeholder="e.g. History">
-    </div>
-    <div class="form-field">
-      <span class="form-field__label">Color</span>
-      <div id="new-subject-colors" class="subject-color-swatches"></div>
-    </div>
-    <div class="form-actions">
-      <button id="new-subject-cancel" type="button" class="btn btn--small">Cancel</button>
-      <button id="new-subject-save" type="button" class="btn btn-primary btn--small">Save</button>
-    </div>
-  </div>
-</div>
-
-<div id="new-task-modal" class="modal-backdrop" role="presentation">
-  <div class="modal-card modal-card--narrow" role="dialog" aria-modal="true" aria-labelledby="new-task-title-heading">
-    <h3 id="new-task-title-heading" class="modal-card__title">New task</h3>
-
-    <div class="form-field">
-      <label class="form-field__label" for="new-task-subject">Subject</label>
-      <select id="new-task-subject" class="form-field__select"></select>
-    </div>
-
-    <div class="form-field">
-      <label class="form-field__label" for="new-task-title">Task name</label>
-      <input id="new-task-title" class="form-field__input" type="text" placeholder="Task name">
-    </div>
-
-    <div class="form-field">
-      <label class="form-field__label" for="new-task-date">Deadline</label>
-      <input id="new-task-date" class="form-field__input" type="datetime-local">
-    </div>
-
-    <div class="form-field">
-      <label class="form-field__label" for="new-task-notes">Notes</label>
-      <input id="new-task-notes" class="form-field__input" type="text" placeholder="Notes">
-    </div>
-
-    <div class="form-actions">
-      <button id="new-task-cancel" type="button" class="btn btn--small">Cancel</button>
-      <button id="new-task-save" type="button" class="btn btn-primary btn--small">Save</button>
+  <!-- New Subject Modal -->
+  <div id="new-subject-modal" class="modal-backdrop" role="presentation">
+    <div class="modal-card modal-card--narrow" role="dialog" aria-modal="true" aria-labelledby="new-subject-title">
+      <h3 id="new-subject-title" class="modal-card__title">New subject</h3>
+      <div class="form-field">
+        <label class="form-field__label" for="new-subject-name">Subject name</label>
+        <input id="new-subject-name" class="form-field__input" type="text" placeholder="e.g. History">
+      </div>
+      <div class="form-field">
+        <span class="form-field__label">Color</span>
+        <div id="new-subject-colors" class="subject-color-swatches"></div>
+      </div>
+      <div class="form-actions">
+        <button id="new-subject-cancel" type="button" class="btn btn--small">Cancel</button>
+        <button id="new-subject-save" type="button" class="btn btn-primary btn--small">Save</button>
+      </div>
     </div>
   </div>
-</div>
 
+  <!-- New Task Modal -->
+  <div id="new-task-modal" class="modal-backdrop" role="presentation">
+    <div class="modal-card modal-card--narrow" role="dialog" aria-modal="true" aria-labelledby="new-task-title-heading">
+      <h3 id="new-task-title-heading" class="modal-card__title">New task</h3>
+
+      <div class="form-field">
+        <label class="form-field__label" for="new-task-subject">Subject</label>
+        <select id="new-task-subject" class="form-field__select"></select>
+      </div>
+
+      <div class="form-field">
+        <label class="form-field__label" for="new-task-title">Task name (use #tag for labels)</label>
+        <input id="new-task-title" class="form-field__input" type="text" placeholder="e.g. Study for exam #urgent #school">
+      </div>
+
+      <div class="form-field">
+        <label class="form-field__label" for="new-task-date">Deadline</label>
+        <input id="new-task-date" class="form-field__input" type="datetime-local">
+      </div>
+
+      <div class="form-field">
+        <label class="form-field__label" for="new-task-estimated-duration">Estimated Completion Time</label>
+        <div style="display:flex; gap:8px;">
+          <input id="new-task-estimated-duration" class="form-field__input" type="number" min="1" step="1" style="flex:1;" placeholder="Duration">
+          <div id="new-task-duration-switch" class="duration-switch" data-unit="minutes">
+            <span class="duration-switch-thumb"></span>
+            <button id="new-task-duration-min" type="button" class="duration-switch-option active" data-unit="minutes">Min</button>
+            <button id="new-task-duration-hr" type="button" class="duration-switch-option" data-unit="hours">Hr</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label class="form-field__label" for="new-task-notes">Notes</label>
+        <input id="new-task-notes" class="form-field__input" type="text" placeholder="Notes">
+      </div>
+
+      <div class="form-actions">
+        <button id="new-task-cancel" type="button" class="btn btn--small">Cancel</button>
+        <button id="new-task-save" type="button" class="btn btn-primary btn--small">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/lib/confetti.browser.min.js"></script>
   <script type="module" src="/js/app.js"></script>
+
+  <script>
+    let isLogin = true;
+
+    document.getElementById('auth-toggle-btn').addEventListener('click', (e) => {
+      e.preventDefault();
+      isLogin = !isLogin;
+      document.getElementById('auth-title').textContent = isLogin ? 'Welcome back' : 'Create account';
+      document.getElementById('auth-subtitle').textContent = isLogin ? 'Sign in to your StudyPlan account' : 'Start planning your studies';
+      document.getElementById('auth-submit-btn').textContent = isLogin ? 'Sign In' : 'Sign Up';
+      document.getElementById('auth-toggle-text').textContent = isLogin ? "Don't have an account?" : 'Already have an account?';
+      document.getElementById('auth-toggle-btn').textContent = isLogin ? 'Sign Up' : 'Sign In';
+      document.getElementById('auth-error').style.display = 'none';
+    });
+
+    // Password validation function
+    function validatePassword(password) {
+      const minLength = password.length >= 8;
+      const hasCapital = /[A-Z]/.test(password);
+      const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+      return minLength && hasCapital && hasSpecial;
+    }
+
+    document.getElementById('auth-submit-btn').addEventListener('click', async () => {
+      const email = document.getElementById('auth-email').value.trim();
+      const password = document.getElementById('auth-password').value.trim();
+      const errorEl = document.getElementById('auth-error');
+
+      errorEl.style.display = 'none';
+
+      // Empty fields check
+      if (!email || !password) {
+        errorEl.textContent = 'Please fill in all fields';
+        errorEl.style.display = 'block';
+        return;
+      }
+
+      // Password validation check
+      if (!validatePassword(password)) {
+        errorEl.textContent =
+          'Password must be at least 8 characters long, contain 1 capital letter and 1 special character.';
+        errorEl.style.display = 'block';
+        return;
+      }
+
+      const endpoint = isLogin ? '/api/auth/login' : '/api/auth/signup';
+
+      try {
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          errorEl.textContent = data.error || 'Something went wrong';
+          errorEl.style.display = 'block';
+          return;
+        }
+
+        localStorage.setItem('studyplan_user', JSON.stringify({ email: data.email }));
+        document.getElementById('auth-modal').style.display = 'none';
+
+      } catch (err) {
+        errorEl.textContent = 'Network error. Please try again.';
+        errorEl.style.display = 'block';
+      }
+    });
+
+    // Check if already logged in
+    if (localStorage.getItem('studyplan_user')) {
+      document.getElementById('auth-modal').style.display = 'none';
+    }
+
+    // Logout Button Functionality
+    const logoutBtn = document.getElementById('logout-btn');
+    logoutBtn.addEventListener('click', () => {
+      localStorage.removeItem('studyplan_user');
+
+      // Show login modal again
+      document.getElementById('auth-modal').style.display = 'flex';
+
+      // Refresh page state
+      window.location.reload();
+    });
+
+    // Settings Modal Logic
+    const settingsModal = document.getElementById('settings-modal');
+    const navSettings = document.getElementById('nav-settings');
+    const settingsClose = document.getElementById('settings-close');
+    const settingsSave = document.getElementById('settings-save');
+
+    navSettings.addEventListener('click', (e) => {
+      e.preventDefault();
+      settingsModal.style.display = 'flex';
+    });
+
+    settingsClose.addEventListener('click', () => {
+      settingsModal.style.display = 'none';
+    });
+
+    window.addEventListener('click', (e) => {
+      if (e.target === settingsModal) {
+        settingsModal.style.display = 'none';
+      }
+    });
+
+    // Settings Toggles State Management
+    const darkModeToggle = document.getElementById('dark-mode-toggle');
+    const compactViewToggle = document.getElementById('compact-view-toggle');
+
+    // Load preferences
+    const loadPreferences = () => {
+      const isDarkMode = localStorage.getItem('studyplan_dark_mode') === 'true';
+      const isCompactView = localStorage.getItem('studyplan_compact_view') === 'true';
+
+      darkModeToggle.checked = isDarkMode;
+      compactViewToggle.checked = isCompactView;
+
+      if (isDarkMode) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+
+      if (isCompactView) {
+        document.body.classList.add('compact-view');
+      } else {
+        document.body.classList.remove('compact-view');
+      }
+    };
+
+    // Run on load
+    loadPreferences();
+
+    // Save changes when user clicks "Save Changes"
+    settingsSave.addEventListener('click', () => {
+      localStorage.setItem('studyplan_dark_mode', darkModeToggle.checked);
+      localStorage.setItem('studyplan_compact_view', compactViewToggle.checked);
+      loadPreferences();
+      settingsModal.style.display = 'none';
+    });
+
+    // Also apply immediately on toggle for better UX
+    darkModeToggle.addEventListener('change', (e) => {
+      if (e.target.checked) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    });
+
+    compactViewToggle.addEventListener('change', (e) => {
+      if (e.target.checked) {
+        document.body.classList.add('compact-view');
+      } else {
+        document.body.classList.remove('compact-view');
+      }
+    });
+  </script>
 </body>
 </html>
