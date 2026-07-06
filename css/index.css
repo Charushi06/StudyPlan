@@ -1,3 +1,16 @@
+
+/**
+ * StudyPlan styles — ITCSS-inspired layers
+ * tokens → base → layout → components → features
+ */
+
+@import url('tokens.css');
+@import url('animations.css');
+@import url('base.css');
+@import url('layout.css');
+@import url('components.css');
+@import url('features.css');
+@import url('effects.css');
 /* css/index.css */
 *,
 *::before,
