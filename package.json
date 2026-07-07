@@ -12,6 +12,7 @@
   "description": "",
   "dependencies": {
     "@google/genai": "^1.49.0",
+    "chart.js": "^4.5.1",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
