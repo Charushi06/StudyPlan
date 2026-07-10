@@ -199,8 +199,9 @@
           <div class="cal-day-label">Su</div><div class="cal-day-label">Mo</div><div class="cal-day-label">Tu</div><div class="cal-day-label">We</div><div class="cal-day-label">Th</div><div class="cal-day-label">Fr</div><div class="cal-day-label">Sa</div>
         </div>
         <div class="cal-legend">
-          <span><span class="legend-dot" style="background:var(--color-text-info)"></span>Study session</span>
-          <span><span class="legend-dot" style="background:var(--color-text-danger)"></span>Deadline</span>
+          <span><span class="legend-dot" style="background:var(--color-text-danger)"></span>High priority</span>
+          <span><span class="legend-dot" style="background:var(--color-text-warning)"></span>Medium priority</span>
+          <span><span class="legend-dot" style="background:var(--color-text-success)"></span>Low priority</span>
         </div>
       </div>
 
@@ -314,6 +315,46 @@
         </section>
       </div>
 
+      <!-- Priority Board (navbar "Tasks") -->
+      <div id="priority-board-section" class="priority-board-section hidden">
+        <div class="priority-board-header">
+          <div>
+            <div class="priority-board-title">Task Priority Board</div>
+            <p class="priority-board-subtitle">Every task, grouped by how urgent it is.</p>
+          </div>
+          <div id="priority-board-date-filter" class="priority-board-date-filter hidden">
+            Showing tasks for <strong id="priority-board-date-label"></strong>
+            <button id="priority-board-clear-date" class="btn" type="button">Clear filter</button>
+          </div>
+        </div>
+
+        <div class="priority-board-columns">
+          <div class="priority-column priority-column-high">
+            <div class="priority-column-header">
+              <span class="priority-dot"></span> High Priority
+              <span class="priority-count" id="priority-count-high">0</span>
+            </div>
+            <div class="priority-column-list" id="priority-list-high"></div>
+          </div>
+
+          <div class="priority-column priority-column-medium">
+            <div class="priority-column-header">
+              <span class="priority-dot"></span> Medium Priority
+              <span class="priority-count" id="priority-count-medium">0</span>
+            </div>
+            <div class="priority-column-list" id="priority-list-medium"></div>
+          </div>
+
+          <div class="priority-column priority-column-low">
+            <div class="priority-column-header">
+              <span class="priority-dot"></span> Low Priority
+              <span class="priority-count" id="priority-count-low">0</span>
+            </div>
+            <div class="priority-column-list" id="priority-list-low"></div>
+          </div>
+        </div>
+      </div>
+
     </div>
 
     <!-- Right Panel -->
@@ -343,6 +384,38 @@
       <div class="paste-actions">
         <button id="clear-btn" class="btn" style="flex:1;" aria-label="Clear paste area">Clear</button>
         <button id="extract-btn" class="btn btn-primary" style="flex:2;" aria-label="Extract tasks with AI">Extract with AI →</button>
+      </div>
+
+      <!-- Image Extraction (Smart Paste from photo/screenshot) -->
+      <div class="image-extract-section" id="image-extract-section">
+        <div class="image-extract-divider"><span>or</span></div>
+
+        <div class="image-drop-zone" id="image-drop-zone">
+          <div class="image-drop-icon">📷</div>
+          <div class="image-drop-label">Upload a photo or screenshot</div>
+          <div class="image-drop-hint">PNG or JPEG — WhatsApp screenshots, LMS captures, handwritten notes, timetables (max 8MB)</div>
+          <input id="image-upload-input" type="file" accept="image/png,image/jpeg" hidden aria-label="Choose an image to extract tasks from">
+          <button id="image-upload-btn" class="btn btn-primary" type="button">Choose Image</button>
+        </div>
+
+        <div id="image-preview-card" class="image-preview-card hidden">
+          <img id="image-preview-thumb" class="image-preview-thumb" alt="Selected image preview">
+          <div class="image-preview-info">
+            <div id="image-preview-name" class="image-preview-name"></div>
+            <button id="image-remove-btn" class="btn" type="button" aria-label="Remove selected image">Remove</button>
+          </div>
+        </div>
+
+        <button id="image-extract-btn" class="btn btn-primary image-extract-btn" type="button" disabled>
+          Extract from Image →
+        </button>
+
+        <div id="image-extract-status" class="image-extract-status hidden" role="status" aria-live="polite"></div>
+
+        <div id="image-ocr-preview" class="image-ocr-preview hidden">
+          <button id="image-ocr-toggle" class="image-ocr-toggle" type="button" aria-expanded="false">▸ Show raw OCR text (fallback mode)</button>
+          <pre id="image-ocr-text" class="image-ocr-text hidden"></pre>
+        </div>
       </div>
 
       <div id="extract-preview" class="extract-preview">

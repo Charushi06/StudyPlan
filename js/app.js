@@ -3,8 +3,10 @@ import { extractTasksFromText } from './utils/api.js';
 import { initGlobalErrorBoundary } from './utils/errorBoundary.js';
 import { analyzeWorkload } from './utils/scheduler.js';
 import { Toast } from './utils/toast.js';
+import { initImageExtract } from './utils/imageExtract.js';
 
 initGlobalErrorBoundary();
+initImageExtract();
 
 function getLabelColor(labelStr) {
   const colors = ['#ef4444', '#f59e0b', '#3b82f6', '#8b5cf6', '#10b981', '#ec4899', '#14b8a6', '#f97316'];
@@ -86,7 +88,17 @@ function formatDuration(mins) {
 
 let currentMonthDate = new Date();
 let selectedDate = null;
-let currentView = 'calendar'; // 'calendar', 'all-tasks', 'archived'
+let currentView = 'calendar'; // 'calendar', 'all-tasks', 'archived', 'priority-board'
+let priorityBoardDate = null;
+
+const PRIORITY_COLORS = {
+  high: 'var(--color-text-danger)',
+  medium: 'var(--color-text-warning)',
+  low: 'var(--color-text-success)',
+};
+function getPriorityColor(priority) {
+  return PRIORITY_COLORS[priority] || PRIORITY_COLORS.medium;
+}
 
 const tasksSection = document.getElementById('tasks-section');
 const focusSection = document.getElementById('focus-section');
@@ -788,6 +800,7 @@ function showProfileSection() {
   document.querySelector('.cal-section')?.classList.add('hidden');
   document.getElementById('tasks-section')?.classList.add('hidden');
   document.getElementById('focus-section')?.classList.add('hidden');
+  hidePriorityBoard();
   profileSection?.classList.remove('hidden');
   topbar?.classList.add('hidden');
   renderProfileSection();
@@ -796,6 +809,90 @@ function showProfileSection() {
 function hideProfileSection() {
   profileSection?.classList.add('hidden');
   topbar?.classList.remove('hidden');
+}
+
+function showPriorityBoard(dateFilter = null) {
+  currentView = 'priority-board';
+  priorityBoardDate = dateFilter;
+  hideProfileSection();
+  document.querySelector('.cal-section')?.classList.add('hidden');
+  document.getElementById('tasks-section')?.classList.add('hidden');
+  document.getElementById('focus-section')?.classList.add('hidden');
+  document.getElementById('priority-board-section')?.classList.remove('hidden');
+  document.querySelectorAll('.sidebar .nav-item').forEach(el => el.classList.remove('active'));
+  const studyTimeEl = document.getElementById('daily-study-time');
+  if (studyTimeEl) studyTimeEl.style.display = 'none';
+  renderPriorityBoard();
+}
+
+function hidePriorityBoard() {
+  document.getElementById('priority-board-section')?.classList.add('hidden');
+}
+
+function renderPriorityBoard() {
+  const section = document.getElementById('priority-board-section');
+  if (!section || section.classList.contains('hidden')) return;
+
+  const dateFilterEl = document.getElementById('priority-board-date-filter');
+  const dateLabelEl = document.getElementById('priority-board-date-label');
+  if (priorityBoardDate) {
+    dateFilterEl?.classList.remove('hidden');
+    if (dateLabelEl) {
+      dateLabelEl.textContent = priorityBoardDate.toLocaleDateString('en-US', {
+        weekday: 'short', month: 'short', day: 'numeric',
+      });
+    }
+  } else {
+    dateFilterEl?.classList.add('hidden');
+  }
+
+  let tasks = store.tasks.filter(t => !t.archived && t.status !== 'Done');
+  if (priorityBoardDate) {
+    tasks = tasks.filter(t => t.due_at && store.isSameCalendarDate(new Date(t.due_at), priorityBoardDate));
+  }
+
+  const buckets = { high: [], medium: [], low: [] };
+  tasks.forEach(t => {
+    const p = buckets[t.priority] ? t.priority : 'medium';
+    buckets[p].push(t);
+  });
+
+  ['high', 'medium', 'low'].forEach(p => {
+    const listEl = document.getElementById(`priority-list-${p}`);
+    const countEl = document.getElementById(`priority-count-${p}`);
+    const items = buckets[p].sort((a, b) => new Date(a.due_at) - new Date(b.due_at));
+
+    if (countEl) countEl.textContent = items.length;
+    if (!listEl) return;
+
+    if (items.length === 0) {
+      listEl.innerHTML = `<div class="priority-column-empty">No ${p} priority tasks${priorityBoardDate ? ' on this date' : ''}</div>`;
+      return;
+    }
+
+    listEl.innerHTML = items.map(t => {
+      const sub = store.subjects.find(s => s.id === t.subject_id);
+      return `
+        <div class="priority-task-card" data-id="${t.id}" style="border-left-color:${getPriorityColor(p)}">
+          <div class="priority-task-top">
+            <button class="priority-task-check" data-id="${t.id}" type="button" aria-label="Mark complete"></button>
+            <div class="priority-task-title">${escapeHtml(t.title)}</div>
+          </div>
+          <div class="priority-task-meta">
+            <span class="priority-task-subject">${sub ? escapeHtml(sub.name) : 'General'}</span>
+            <span>${formatDate(t.due_at)}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  });
+
+  section.querySelectorAll('.priority-task-check').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      store.toggleTaskStatus(btn.dataset.id);
+    });
+  });
 }
 
 function formatDate(dateStr) {
@@ -1085,6 +1182,7 @@ function renderTasks() {
     const actionBar = `<div class="tasks-actions-bar">
            <button id="mark-all-pending-btn" class="task-action-btn" ${pending.length === 0 ? 'disabled' : ''}>Mark all pending completed (${pending.length})</button>
            <button id="mark-day-complete-btn" class="task-action-btn task-action-btn-secondary" ${pending.length === 0 ? 'disabled' : ''}>Mark selected day completed</button>
+           <button id="view-in-board-btn" class="task-action-btn task-action-btn-secondary" ${dueSoon.length === 0 && completed.length === 0 ? 'disabled' : ''}>View in Task Board →</button>
          </div>`;
 
     const emptyState = dueSoon.length === 0 && completed.length === 0
@@ -1328,6 +1426,15 @@ document.querySelectorAll('.task-item').forEach(taskEl => {
       store.markPendingTasksForDateCompleted(selectedDate);
     });
   }
+
+  const viewInBoardBtn = document.getElementById('view-in-board-btn');
+  if (viewInBoardBtn) {
+    viewInBoardBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      showPriorityBoard(selectedDate);
+    });
+  }
+
   const bulkCompleteBtn =
   document.getElementById('bulk-complete-btn');
 
@@ -1421,11 +1528,14 @@ function renderCalendar() {
 
     let indicatorHtml = '';
     if (dayTasks.length > 0) {
+      const PRIORITY_RANK = { high: 0, medium: 1, low: 2 };
+      const sortedDayTasks = [...dayTasks].sort(
+        (a, b) => (PRIORITY_RANK[a.priority] ?? 1) - (PRIORITY_RANK[b.priority] ?? 1)
+      );
       indicatorHtml = `<div class="cal-day-indicators">`;
-      dayTasks.forEach((t, idx) => {
+      sortedDayTasks.forEach((t, idx) => {
         if (idx > 2) return;
-        const sub = store.subjects.find(s => s.id === t.subject_id) || store.subjects[0];
-        indicatorHtml += `<div class="cal-day-indicator" style="background:${sub ? sub.color : 'var(--color-text-danger)'}"></div>`;
+        indicatorHtml += `<div class="cal-day-indicator" style="background:${getPriorityColor(t.priority)}"></div>`;
       });
       indicatorHtml += `</div>`;
     }
@@ -1647,6 +1757,7 @@ store.subscribe(renderFocusTasks);
 store.subscribe(renderProfileSection);
 store.subscribe(renderSidebarSubjects);
 store.subscribe(renderStreak);
+store.subscribe(renderPriorityBoard);
 
 document.addEventListener('DOMContentLoaded', () => {
   if (newSubjectColorsEl) {
@@ -1719,6 +1830,7 @@ document.addEventListener('DOMContentLoaded', () => {
   calendarBtn.addEventListener('click', () => {
     currentView = 'calendar';
     hideProfileSection();
+    hidePriorityBoard();
     document.querySelector('.cal-section').classList.remove('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
@@ -1729,6 +1841,7 @@ document.addEventListener('DOMContentLoaded', () => {
   allTasksBtn.addEventListener('click', () => {
     currentView = 'all-tasks';
     hideProfileSection();
+    hidePriorityBoard();
     document.querySelector('.cal-section').classList.add('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
@@ -1739,6 +1852,7 @@ document.addEventListener('DOMContentLoaded', () => {
   archivedTasksBtn.addEventListener('click', () => {
     currentView = 'archived';
     hideProfileSection();
+    hidePriorityBoard();
     document.querySelector('.cal-section').classList.add('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
@@ -1750,6 +1864,7 @@ document.addEventListener('DOMContentLoaded', () => {
     focusModeBtn.addEventListener('click', () => {
       currentView = 'focus';
       hideProfileSection();
+      hidePriorityBoard();
       document.querySelector('.cal-section').classList.add('hidden');
       document.getElementById('tasks-section').classList.add('hidden');
       document.getElementById('focus-section').classList.remove('hidden');
@@ -1783,6 +1898,8 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('nav-dashboard').addEventListener('click', (e) => {
     e.preventDefault();
     currentView = 'calendar';
+    hideProfileSection();
+    hidePriorityBoard();
     document.querySelector('.cal-section').classList.remove('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
@@ -1792,23 +1909,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('nav-tasks').addEventListener('click', (e) => {
     e.preventDefault();
-    currentView = 'all-tasks';
-    document.querySelector('.cal-section').classList.add('hidden');
-    document.getElementById('tasks-section').classList.remove('hidden');
-    document.getElementById('focus-section').classList.add('hidden');
-    updateSidebarActive('all-tasks-btn');
-    renderTasks();
+    showPriorityBoard();
   });
 
   document.getElementById('nav-calendar').addEventListener('click', (e) => {
     e.preventDefault();
     currentView = 'calendar';
+    hideProfileSection();
+    hidePriorityBoard();
     document.querySelector('.cal-section').classList.remove('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
     updateSidebarActive('calendar-btn');
     renderTasks();
   });
+
+  const priorityBoardClearDateBtn = document.getElementById('priority-board-clear-date');
+  if (priorityBoardClearDateBtn) {
+    priorityBoardClearDateBtn.addEventListener('click', () => {
+      priorityBoardDate = null;
+      renderPriorityBoard();
+    });
+  }
 
 //NEw Task addition event listeners
 newTaskBtn.addEventListener('click', () => {
