@@ -925,11 +925,30 @@ function renderTasks() {
         completed.push(t);
         return;
       }
+
       pending.push(t);
+
+      if (!t.due_at) {
+        thisWeek.push(t);
+        return;
+      }
+
       const d = new Date(t.due_at);
+
+      // Ignore invalid dates
+      if (isNaN(d.getTime())) {
+        thisWeek.push(t);
+        return;
+      }
+
       const diffDays = (d - now) / (1000 * 60 * 60 * 24);
-      if (diffDays <= 3) dueSoon.push(t);
-      else thisWeek.push(t);
+
+      // Due soon = upcoming within 3 days only
+      if (diffDays >= 0 && diffDays <= 3) {
+        dueSoon.push(t);
+      } else {
+        thisWeek.push(t);
+      }
     });
   }
 
@@ -1464,6 +1483,34 @@ function renderCalendar() {
   });
 }
 
+function findSubjectForExtractedItem(item) {
+  const requested = String(item.subject_name || '').trim().toLowerCase();
+  const defaultSubject = store.subjects[0] || null;
+  if (!requested || requested === 'general') return defaultSubject;
+
+  return store.subjects.find(s => s.name.toLowerCase() === requested)
+    || store.subjects.find(s => s.name.toLowerCase().includes(requested) || requested.includes(s.name.toLowerCase()))
+    || defaultSubject;
+}
+
+function prepareExtractedTasksForSave(items) {
+  return (items || []).map(item => {
+    const sub = store.subjects.find(s => String(s.id) === String(item.subject_id))
+      || findSubjectForExtractedItem(item);
+
+    return {
+      title: String(item.title || '').trim(),
+      subject_id: sub?.id,
+      due_at: item.due_at,
+      notes: item.notes || '',
+      priority: item.priority || 'medium',
+      confidence_score: item.confidence_score || 60,
+      status: item.status || 'Not Started',
+      archived: 0
+    };
+  }).filter(item => item.title && item.subject_id && item.due_at);
+}
+
 function renderExtraction() {
   const pasteItems = store.currentPaste;
   if (!pasteItems || pasteItems.length === 0) {
@@ -1479,7 +1526,8 @@ function renderExtraction() {
   let html = `<div class="extract-title">Extracted — ${pasteItems.length} items</div>`;
   pasteItems.forEach((item, index) => {
     // try to match subject name
-    const sub = store.subjects.find(s => s.name.toLowerCase().includes((item.subject_name || '').toLowerCase())) || store.subjects[3];
+    const sub = findSubjectForExtractedItem(item);
+    if (!sub) return;
     // Attach subject id to item so Add will work
     item.subject_id = sub.id;
 

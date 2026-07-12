@@ -113,10 +113,19 @@ export const store = {
   // ================= UPDATED FUNCTION =================
   async addTasks(newTasks) {
     try {
+      const tasksToAdd = (Array.isArray(newTasks) ? newTasks : [newTasks])
+        .filter(Boolean)
+        .map(({ _isEditing, icon, subject_name, ...task }) => task);
+
+      if (tasksToAdd.length === 0) {
+        alert("No valid tasks to add");
+        return false;
+      }
+
       const res = await fetch('/api/tasks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newTasks)
+        body: JSON.stringify(tasksToAdd)
       });
 
       const data = await res.json(); // always parse response
@@ -125,7 +134,7 @@ export const store = {
         //  Backend error
         Toast.show(`❌ ${data.message || "Failed to add tasks"}`, 'error');
         console.error('Add task error:', data);
-        return;
+        return false;
       }
 
       // ================= USER MESSAGES =================
@@ -150,6 +159,7 @@ export const store = {
       const tasksRes = await fetch('/api/tasks');
       this.tasks = await tasksRes.json();
       this.notify();
+      return data.inserted > 0;
 
     } catch (e) {
       console.error('Failed to add tasks', e);
@@ -348,7 +358,9 @@ export const store = {
   },
 
   setExtracted(items) {
-    this.currentPaste = items.map(item => ({ ...item, _isEditing: false }));
+    this.currentPaste = Array.isArray(items)
+      ? items.map(item => ({ ...item, _isEditing: false }))
+      : [];
     this.notify();
   },
 
