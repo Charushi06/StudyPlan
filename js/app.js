@@ -837,6 +837,115 @@ async function downloadData() {
         Toast.show('Failed to download data', 'error');
   }
 }
+async function renderReviewTable() {
+  const section = document.getElementById('tasks-section');
+  section.innerHTML = `<div style="padding:24px 0;text-align:center;color:var(--color-text-tertiary);font-size:14px;">Loading…</div>`;
+
+  let rows = [];
+  try {
+    const res = await fetch('/api/downloadReview');
+    console.log(res);
+    if (!res.ok) throw new Error('Failed to load review data');
+    rows = await res.json();
+  } catch (err) {
+    console.error(err);
+    section.innerHTML = `<div style="padding:24px;color:var(--color-text-danger);">Failed to load data. Please try again.</div>`;
+    return;
+  }
+
+  const [headerRow, ...dataRows] = rows;
+
+  function formatReviewDate(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    if (isNaN(d)) return iso;
+    return d.toLocaleString('en-IN', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit', hour12:true });
+  }
+
+  function isReviewOverdue(iso) {
+    if (!iso) return false;
+    return new Date(iso) < new Date();
+  }
+
+  function statusClass(s) {
+    const m = { 'not started':'status-not-started', 'in progress':'status-in-progress', 'completed':'status-completed', 'done':'status-completed' };
+    return m[(s || '').toLowerCase()] || 'status-not-started';
+  }
+
+  function priorityClass(p) {
+    const m = { high:'priority-high', medium:'priority-medium', low:'priority-low' };
+    return m[(p || '').toLowerCase()] || 'priority-medium';
+  }
+
+  function scoreFillClass(n) {
+    if (n >= 70) return '';
+    if (n >= 40) return 'mid';
+    return 'low';
+  }
+
+  const hi = {};
+  (headerRow || []).forEach((h, i) => { hi[h] = i; });
+
+  const tbodyRows = dataRows.map(row => {
+    const id       = row[hi['Task ID']]         ?? '';
+    const subject  = row[hi['Subject']]          ?? '';
+    const title    = row[hi['Title']]            ?? '';
+    const dueRaw   = row[hi['Due At']]           ?? '';
+    const status   = row[hi['Status']]           ?? '';
+    const priority = row[hi['Priority']]         ?? '';
+    const score    = row[hi['Confidence Score']] ?? '';
+    const notes    = (row[hi['Notes']] ?? '').replace(/^"|"$/g, '');
+
+    const overdue  = isReviewOverdue(dueRaw);
+    const scoreNum = parseFloat(score) || 0;
+    const pct      = Math.min(100, Math.max(0, scoreNum));
+    const fillCls  = scoreFillClass(scoreNum);
+    const capPriority = priority ? priority.charAt(0).toUpperCase() + priority.slice(1) : '';
+
+    return `<tr>
+      <td><span class="task-id">${id}</span></td>
+      <td><span class="subject-pill">📚 ${subject}</span></td>
+      <td><span class="title-cell">${title}</span></td>
+      <td><span class="due-date${overdue ? ' overdue' : ''}">${overdue ? '⚠ ' : ''}${formatReviewDate(dueRaw)}</span></td>
+      <td><span class="status-badge ${statusClass(status)}">${status}</span></td>
+      <td><span class="priority-badge ${priorityClass(priority)}">${capPriority}</span></td>
+      <td>
+        <div class="score-wrap">
+          <div class="score-bar"><div class="score-fill ${fillCls}" style="width:${pct}%"></div></div>
+          <span class="score-val">${score}</span>
+        </div>
+      </td>
+      <td><span class="notes-cell" title="${notes}">${notes}</span></td>
+    </tr>`;
+  }).join('');
+
+  section.innerHTML = `<br>
+    <div class="review-table-wrap" style="padding:0;">
+      <div class="card-header" style="display:flex;align-items:center;gap:12px;padding:20px 24px;border-bottom:1px solid var(--color-border-tertiary);background:var(--color-background-secondary);">
+        <span class="card-title" style="font-size:17px;font-weight:700;flex:1;letter-spacing:-.01em;">📋 Review Tasks</span>
+        <span style="font-size:12px;font-weight:600;background:var(--color-background-tertiary);color:var(--color-text-secondary);padding:3px 10px;border-radius:12px;border:1px solid var(--color-border-tertiary);">${dataRows.length} task${dataRows.length !== 1 ? 's' : ''}</span>
+        <button class="btn btn-primary" data-action="download" style="font-size:13px;font-weight:600;padding:8px 16px;">⬇ Download Data</button>
+      </div>
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+        <table style="width:100%;border-collapse:collapse;font-size:13.5px;">
+          <thead>
+            <tr style="background:var(--color-background-secondary);border-bottom:1px solid var(--color-border-secondary);">
+              <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--color-text-tertiary);letter-spacing:.07em;text-transform:uppercase;white-space:nowrap;">Task ID</th>
+              <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--color-text-tertiary);letter-spacing:.07em;text-transform:uppercase;white-space:nowrap;">Subject</th>
+              <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--color-text-tertiary);letter-spacing:.07em;text-transform:uppercase;white-space:nowrap;">Title</th>
+              <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--color-text-tertiary);letter-spacing:.07em;text-transform:uppercase;white-space:nowrap;">Due At</th>
+              <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--color-text-tertiary);letter-spacing:.07em;text-transform:uppercase;white-space:nowrap;">Status</th>
+              <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--color-text-tertiary);letter-spacing:.07em;text-transform:uppercase;white-space:nowrap;">Priority</th>
+              <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--color-text-tertiary);letter-spacing:.07em;text-transform:uppercase;white-space:nowrap;">Confidence Score</th>
+              <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--color-text-tertiary);letter-spacing:.07em;text-transform:uppercase;white-space:nowrap;">Notes</th>
+            </tr>
+          </thead>
+          <tbody>${tbodyRows}</tbody>
+        </table>
+      </div>
+    </div>`;
+  section.querySelector('button[data-action="download"]').addEventListener('click', downloadData);
+}
 
 async function downloadCalendar() {
     try {
@@ -1706,6 +1815,11 @@ store.subscribe(renderProfileSection);
 store.subscribe(renderSidebarSubjects);
 store.subscribe(renderStreak);
 
+function updateSidebarActive(id) {
+  document.querySelectorAll('.sidebar .nav-item').forEach(el => el.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   if (newSubjectColorsEl) {
     SUBJECT_COLORS.forEach(c => {
@@ -1769,11 +1883,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const archivedTasksBtn = document.getElementById('archived-tasks-btn');
   const focusModeBtn = document.getElementById('focus-mode-btn');
 
-  function updateSidebarActive(id) {
-    document.querySelectorAll('.sidebar .nav-item').forEach(el => el.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-  }
-
   calendarBtn.addEventListener('click', () => {
     currentView = 'calendar';
     hideProfileSection();
@@ -1816,27 +1925,24 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  if (profileBtn) {
-    profileBtn.addEventListener('click', () => {
-      showProfileSection();
-    });
-  }
+  downloadBtn.addEventListener('click', () => {
+    currentView = 'review';
+    document.querySelector('.cal-section').classList.add('hidden');
+    document.getElementById('focus-section').classList.add('hidden');
+    document.getElementById('tasks-section').classList.remove('hidden');
+    updateSidebarActive('download-btn');
+    renderReviewTable();
+  });
 
-  const calPrev = document.getElementById('cal-prev');
-  if (calPrev) {
-    calPrev.addEventListener('click', () => {
-      currentMonthDate.setMonth(currentMonthDate.getMonth() - 1);
-      renderCalendar();
-    });
-  }
+  document.getElementById('cal-prev').addEventListener('click', () => {
+    currentMonthDate.setMonth(currentMonthDate.getMonth() - 1);
+    renderCalendar();
+  });
 
-  const calNext = document.getElementById('cal-next');
-  if (calNext) {
-    calNext.addEventListener('click', () => {
-      currentMonthDate.setMonth(currentMonthDate.getMonth() + 1);
-      renderCalendar();
-    });
-  }
+  document.getElementById('cal-next').addEventListener('click', () => {
+    currentMonthDate.setMonth(currentMonthDate.getMonth() + 1);
+    renderCalendar();
+  });
 
   document.getElementById('nav-dashboard').addEventListener('click', (e) => {
     e.preventDefault();
@@ -1955,10 +2061,12 @@ if (!subject_id) {
     labels
   };
 
-    await store.addTasks([newTask]);
-    newTaskModal.style.display = 'none';
-  });
+  await store.addTasks([newTask]);
+  newTaskModal.style.display = 'none';
 
+  currentView = 'all-tasks';
+  updateSidebarActive('all-tasks-btn');
+});
 
 addItemsBtn.addEventListener('click', () => {
   if (store.currentPaste) {
@@ -2010,89 +2118,7 @@ pasteInput.addEventListener('input', () => {
     }
 });
 
-downloadBtn.addEventListener('click', () => {
-  downloadData();
-});
-
-const fileInput = document.getElementById('file-input');
-const dropZone = document.getElementById('drop-zone');
-
-// Handle File Selection via File Explorer
-if (fileInput) {
-  fileInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file) handleFileContent(file);
-  });
-}
-
-// Handle Drag & Drop Events
-if (dropZone) {
-  // Prevent browser from opening the file
-  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-    dropZone.addEventListener(eventName, (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-    });
-  });
-
-  // Add highlight effect
-  ['dragenter', 'dragover'].forEach(eventName => {
-    dropZone.addEventListener(eventName, () => {
-      dropZone.classList.add('paste-zone--dragover');
-    });
-  });
-
-  // Remove highlight effect
-  ['dragleave', 'drop'].forEach(eventName => {
-    dropZone.addEventListener(eventName, () => {
-      dropZone.classList.remove('paste-zone--dragover');
-    });
-  });
-
-  // Handle dropped file
-  dropZone.addEventListener('drop', (e) => {
-    const dt = e.dataTransfer;
-
-    if (dt && dt.files.length > 0) {
-      const file = dt.files[0];
-      handleFileContent(file);
-    }
-  });
-}
-
-// File Reader Function
-function handleFileContent(file) {
-  const allowedExtensions = ['txt', 'md', 'json'];
-  const fileExtension = file.name.split('.').pop().toLowerCase();
-
-  // Validate extension
-  if (!allowedExtensions.includes(fileExtension)) {
-    alert('Invalid file format. Please upload a .txt, .md, or .json file.');
-    return;
-  }
-
-  const reader = new FileReader();
-
-  reader.onload = (e) => {
-    const pasteInput = document.getElementById('paste-input');
-
-    if (pasteInput) {
-      pasteInput.value = e.target.result;
-
-      alert(
-        `Loaded "${file.name}" successfully! Click "Extract with AI" to find your tasks.`
-      );
-    }
-  };
-
-  reader.onerror = () => {
-    alert('Error reading file content. Please try again.');
-  };
-
-  reader.readAsText(file);
-}
-
-
+// Motivational Quotes
 const quotes = [
   "Small Progress is still Progress",
   "Focus on being productive instead of busy",
