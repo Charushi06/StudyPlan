@@ -39,7 +39,11 @@ function formatIcsDate(dateInput) {
 function buildCalendarIcs(tasks = []) {
   const dtstamp = formatIcsDate(new Date().toISOString());
   const events = tasks
-    .filter(task => task.due_at)
+    .filter(task => {
+      if (!task.due_at) return false;
+      const d = new Date(task.due_at);
+      return !isNaN(d.getTime());
+    })
     .map(task => {
       const start = new Date(task.due_at);
       const end = new Date(start.getTime() + 60 * 60 * 1000);

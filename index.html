@@ -25,6 +25,11 @@
     
     <input id="auth-password" type="password" placeholder="Password" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:20px; box-sizing:border-box;">
 
+    <input id="auth-confirm-password"
+       type="password"
+       placeholder="Confirm Password"
+       style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:20px; box-sizing:border-box; display:none;">
+
     <button id="auth-submit-btn" style="width:100%; padding:12px; background:#4f46e5; color:white; border:none; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer;">
     Sign In
     </button>
@@ -48,7 +53,6 @@
       <a id="auth-toggle-btn" href="#" style="color:#4f46e5; font-weight:600; margin-left:4px;">Sign Up</a>
     </p>
 
-    <p id="auth-error" style="color:red; font-size:13px; text-align:center; margin:8px 0 0; display:none;"></p>
   </div>
 </div>
 
@@ -59,14 +63,51 @@
   </div>
 
   <nav class="header-nav">
-    <a href="#">Dashboard</a>
-    <a href="#">Tasks</a>
-    <a href="#">Calendar</a>
-    <a href="#" id="nav-settings">Settings</a>
-  </nav>
+  <a href="#" id="nav-dashboard">Dashboard</a>
+  <a href="#" id="nav-tasks">Tasks</a>
+  <a href="#" id="nav-calendar">Calendar</a>
+  <a href="#" id="nav-settings">Settings</a>
+</nav>
 
   <div class="header-right">
-    <button class="profile-btn">Profile</button>
+    <button class="profile-btn" id="profile-btn">Profile</button>
+    <!--Streak Badge-->
+    <div class="streak-badges">
+      <div
+        class="badge-wrapper hidden"
+        id="badge-3-wrapper"
+        title="3 Day Streak"
+      >
+        <img
+          src="/public/medal-3daystreak.svg"
+          alt="3 Day Streak"
+          class="streak-badge"
+        />
+      </div>
+      <div
+        class="badge-wrapper hidden"
+        id="badge-7-wrapper"
+        title="7 Day Streak"
+      >
+        <img
+          src="/public/rocket-7daystreak.svg"
+          alt="7 Day Streak"
+          class="streak-badge"
+        />
+      </div>
+      <div
+        class="badge-wrapper hidden"
+        id="badge-30-wrapper"
+        title="30 Day Streak"
+      >
+        <img
+          src="/public/crown-30andmorestreak.svg"
+          alt="30 Day Streak"
+          class="streak-badge"
+        />
+      </div>
+    </div>
+    <!-- <button class="profile-btn">Profile</button> -->
     <button class="profile-btn" id="logout-btn">Logout</button>
   </div>
 </header>
@@ -119,6 +160,21 @@
     <div class="main">
       <div class="topbar">
         <div class="topbar-title">April 2026</div>
+        <!--Streak-->
+        <div class="streak-display" id="streak-display">
+          <img
+            src="/public/streak-icon.svg"
+            alt="Streak"
+            class="streak-icon"
+            id="streak-icon"
+          />
+          <span id="streak-count">0</span>
+
+           <div class="streak-tooltip" id="streak-tooltip">
+            Complete tasks to build streak & earn cool badges
+          </div>
+
+        </div>
         <select id="label-filter" style="margin-left:auto; margin-right: 12px; padding: 6px; border-radius: 6px; border: 1px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); outline: none; cursor: pointer;">
           <option value="">All Labels</option>
         </select>
@@ -211,6 +267,61 @@
           </div>
         </div>
       </div>
+
+      <div id="profile-section" class="profile-section hidden">
+        <div class="profile-header">
+          <div>
+            <div class="profile-page-title">Profile</div>
+            <p class="profile-page-subtitle">View your account summary, study stats, and future account settings in one place.</p>
+          </div>
+        </div>
+
+        <div class="profile-grid">
+          <section class="profile-card">
+            <h2>Account details</h2>
+            <div class="profile-field">
+              <span class="profile-field-label">Username</span>
+              <span id="profile-username">StudyPlan User</span>
+            </div>
+            <div class="profile-field">
+              <span class="profile-field-label">Email</span>
+              <span id="profile-email">user@studyplan.app</span>
+            </div>
+            <div class="profile-field">
+              <span class="profile-field-label">Member since</span>
+              <span id="profile-joined">June 2026</span>
+            </div>
+          </section>
+
+          <section class="profile-card">
+            <h2>Study statistics</h2>
+            <div class="profile-stats">
+              <div>
+                <span class="profile-stat-value" id="profile-completed-count">0</span>
+                <span>Completed</span>
+              </div>
+              <div>
+                <span class="profile-stat-value" id="profile-pending-count">0</span>
+                <span>Pending</span>
+              </div>
+              <div>
+                <span class="profile-stat-value" id="profile-archived-count">0</span>
+                <span>Archived</span>
+              </div>
+              <div>
+                <span class="profile-stat-value" id="profile-subjects-count">0</span>
+                <span>Subjects</span>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <section class="profile-card profile-summary-card">
+          <h2>Account overview</h2>
+          <p id="profile-summary-text">Your profile information and study statistics will update automatically as you use StudyPlan.</p>
+        </section>
+      </div>
+
     </div>
 
     <!-- Right Panel -->
@@ -329,6 +440,7 @@
     document.getElementById('auth-submit-btn').textContent = isLogin ? 'Sign In' : 'Sign Up';
     document.getElementById('auth-toggle-text').textContent = isLogin ? "Don't have an account?" : 'Already have an account?';
     document.getElementById('auth-toggle-btn').textContent = isLogin ? 'Sign Up' : 'Sign In';
+     document.getElementById('auth-confirm-password').style.display = isLogin ? 'none' : 'block';
     document.getElementById('auth-error').style.display = 'none';
   });
 
@@ -351,6 +463,7 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
 
   const email = document.getElementById('auth-email').value.trim();
   const password = document.getElementById('auth-password').value.trim();
+  const confirmPassword = document.getElementById('auth-confirm-password').value.trim();
   const errorEl = document.getElementById('auth-error');
 
   errorEl.style.display = 'none';
@@ -366,6 +479,11 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
   if (!validatePassword(password)) {
     errorEl.textContent =
       'Password must be at least 8 characters long, contain 1 capital letter and 1 special character.';
+    errorEl.style.display = 'block';
+    return;
+  }
+  if (!isLogin && password !== confirmPassword) {
+    errorEl.textContent = 'Passwords do not match';
     errorEl.style.display = 'block';
     return;
   }
@@ -536,18 +654,32 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
   });
 </script>
 
-<div id="new-subject-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0; z-index:9998; align-items:center; justify-content:center;">
-  <div class="modal-card" style="border-radius:12px; padding:20px; width:320px; box-shadow:0 12px 40px rgba(0,0,0,0.25);">
-    <h3 style="margin:0 0 12px; font-size:18px; font-weight:600;">New subject</h3>
-    <label style="display:block; font-size:12px; margin-bottom:4px;">Subject name</label>
-    <input id="new-subject-name" type="text" style="width:100%; padding:6px; margin-bottom:12px;" placeholder="e.g. History">
-    <label style="display:block; font-size:12px; margin-bottom:6px;">Color</label>
-    <div id="new-subject-colors" class="subject-color-swatches"></div>
-    <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
-      <button id="new-subject-cancel" class="btn" style="padding:6px 10px;">Cancel</button>
-      <button id="new-subject-save" class="btn btn-primary" style="padding:6px 12px;">Save</button>
+<div id="new-subject-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0; z-index:9998; align-items:center; justify-content:center; background:rgba(0,0,0,0.6);">
+    <div class="modal-card" style="border-radius:12px; padding:20px; width:320px; box-shadow:0 12px 40px rgba(0,0,0,0.5); background: #1e2538; border: 1px solid var(--color-border-tertiary);">
+        <h3 style="margin:0 0 12px; font-size:18px; font-weight:600; color:#ffffff;">New subject</h3>
+        
+        <label style="display:block; font-size:12px; margin-bottom:4px; color:#94a3b8; font-weight: 600;">SUBJECT NAME</label>
+        <input id="new-subject-name" type="text" style="width:100%; padding:10px 12px; border-radius:6px; border:1px solid #334155; background:#0f141c; color:#ffffff !important; font-size:14px; margin-bottom:14px;" placeholder="e.g. History">
+        
+        <label style="display:block; font-size:12px; margin-bottom:4px; color:#94a3b8; font-weight: 600;">COLOR PRESETS</label>
+        <div id="new-subject-colors" class="subject-color-swatches" style="margin-bottom:14px;"></div>
+
+        <label style="display:block; font-size:12px; margin-bottom:4px; color:#94a3b8; font-weight: 600;">OR CUSTOM COLOR</label>
+        <input id="new-subject-custom-color" type="color" value="#4f46e5" style="width:100%; height:38px; padding:0; border:1px solid #334155; border-radius:6px; cursor:pointer; background:none; margin-bottom:14px;">
+
+        <label style="display:block; font-size:12px; margin-bottom:4px; color:#94a3b8; font-weight: 600;">CLASS / CATEGORY</label>
+        <select id="new-subject-class" style="width:100%; padding:10px 12px; border-radius:6px; border:1px solid #334155; background:#0f141c; color:#ffffff !important; margin-bottom:18px; font-family:inherit; font-size:14px;">
+            <option value="School" style="background:#1e2538; color:#ffffff;">School</option>
+            <option value="Coaching" style="background:#1e2538; color:#ffffff;">Coaching</option>
+            <option value="Extracurricular" style="background:#1e2538; color:#ffffff;">Extracurricular</option>
+            <option value="Self-Study" style="background:#1e2538; color:#ffffff;">Self-Study</option>
+        </select>
+
+        <div style="display:flex; justify-content:flex-end; gap:8px;">
+            <button id="new-subject-cancel" class="btn" style="padding:6px 12px; background:#2e3748; color:#cbd5e1; border:1px solid #475569;">Cancel</button>
+            <button id="new-subject-save" class="btn btn-primary" style="padding:6px 12px;">Save</button>
+        </div>
     </div>
-  </div>
 </div>
 
 <div id="new-task-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0;  z-index:9998; align-items:center; justify-content:center;">
