@@ -119,9 +119,36 @@ function nlpExtractDate(text, now = new Date()) {
 
   m = lower.match(/\b(\d{1,2})[\/\-\.](\d{1,2})(?:[\/\-\.](\d{2,4}))?\b/);
   if (m) {
-    const day = parseInt(m[1]), month = parseInt(m[2]) - 1;
+    const first = parseInt(m[1]);
+    const second = parseInt(m[2]);
     const yr = m[3] ? (m[3].length === 2 ? 2000 + parseInt(m[3]) : parseInt(m[3])) : null;
-    return nlpWithTime(nlpStartOf(nlpResolveYear(now, month, day, yr)).toISOString(), time);
+
+    let day, month;
+    if (first > 12 && second <= 12) {
+      day = first;
+      month = second - 1;
+    } else if (second > 12 && first <= 12) {
+      day = second;
+      month = first - 1;
+    } else if (first <= 12 && second <= 12) {
+      day = first;
+      month = second - 1;
+    } else {
+      return null;
+    }
+
+    if (month >= 0 && month <= 11 && day >= 1 && day <= 31) {
+      const monthLengths = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+      const actualYear = yr || now.getFullYear();
+      if (month === 1) {
+        const isLeap = (actualYear % 4 === 0 && actualYear % 100 !== 0) || (actualYear % 400 === 0);
+        if (isLeap) monthLengths[1] = 29;
+      }
+      if (day <= monthLengths[month]) {
+        return nlpWithTime(nlpStartOf(nlpResolveYear(now, month, day, yr)).toISOString(), time);
+      }
+    }
+    return null;
   }
 
   if (/\bend of (the\s+)?week\b/.test(lower) || /\bby (the\s+)?weekend\b/.test(lower)) {
