@@ -24,6 +24,11 @@
     
     <input id="auth-password" type="password" placeholder="Password" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:20px; box-sizing:border-box;">
 
+    <input id="auth-confirm-password"
+       type="password"
+       placeholder="Confirm Password"
+       style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:20px; box-sizing:border-box; display:none;">
+
     <button id="auth-submit-btn" style="width:100%; padding:12px; background:#4f46e5; color:white; border:none; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer;">
     Sign In
     </button>
@@ -44,7 +49,6 @@
       <a id="auth-toggle-btn" href="#" style="color:#4f46e5; font-weight:600; margin-left:4px;">Sign Up</a>
     </p>
 
-    <p id="auth-error" style="color:red; font-size:13px; text-align:center; margin:8px 0 0; display:none;"></p>
   </div>
 </div>
 
@@ -432,6 +436,7 @@
     document.getElementById('auth-submit-btn').textContent = isLogin ? 'Sign In' : 'Sign Up';
     document.getElementById('auth-toggle-text').textContent = isLogin ? "Don't have an account?" : 'Already have an account?';
     document.getElementById('auth-toggle-btn').textContent = isLogin ? 'Sign Up' : 'Sign In';
+     document.getElementById('auth-confirm-password').style.display = isLogin ? 'none' : 'block';
     document.getElementById('auth-error').style.display = 'none';
   });
 
@@ -454,6 +459,7 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
 
   const email = document.getElementById('auth-email').value.trim();
   const password = document.getElementById('auth-password').value.trim();
+  const confirmPassword = document.getElementById('auth-confirm-password').value.trim();
   const errorEl = document.getElementById('auth-error');
 
   errorEl.style.display = 'none';
@@ -469,6 +475,11 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
   if (!validatePassword(password)) {
     errorEl.textContent =
       'Password must be at least 8 characters long, contain 1 capital letter and 1 special character.';
+    errorEl.style.display = 'block';
+    return;
+  }
+  if (!isLogin && password !== confirmPassword) {
+    errorEl.textContent = 'Passwords do not match';
     errorEl.style.display = 'block';
     return;
   }
