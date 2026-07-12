@@ -99,6 +99,9 @@ const downloadBtn = document.getElementById('download-btn');
 const calendarDownloadBtn = document.getElementById('calendar-download-btn');
 const newTaskBtn = document.getElementById('add-task-btn');
 const labelFilterSelect = document.getElementById('label-filter');
+const profileSection = document.getElementById('profile-section');
+const profileBtn = document.getElementById('profile-btn');
+const topbar = document.querySelector('.topbar');
 
 if (labelFilterSelect) {
   labelFilterSelect.addEventListener('change', (e) => {
@@ -124,6 +127,140 @@ function escapeHtml(s) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
+}
+
+function getSelectedTasks() {
+  return Array.isArray(store.selectedTasks) ? store.selectedTasks : [];
+}
+
+function isTaskSelected(taskId) {
+  return getSelectedTasks().some(id => String(id) === String(taskId));
+}
+
+function toggleTaskSelection(taskId) {
+  if (!taskId) return;
+  store.toggleTaskSelection(taskId);
+}
+
+function ensureTaskSelectionStyles() {
+  if (document.getElementById('task-selection-style')) return;
+
+  const style = document.createElement('style');
+  style.id = 'task-selection-style';
+  style.textContent = `
+    .task-item {
+      transition: background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+    }
+
+    .task-item:not(.editing) {
+      cursor: pointer;
+    }
+
+    .task-item:not(.editing):hover {
+      border-color: rgba(59, 130, 246, 0.34);
+      box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
+      transform: translateY(-1px);
+    }
+
+    .task-item.selected-task {
+      background: linear-gradient(90deg, rgba(219, 234, 254, 0.92), rgba(255, 255, 255, 0.98));
+      border-color: #3b82f6 !important;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.16), 0 10px 26px rgba(37, 99, 235, 0.12);
+    }
+
+    .task-item.selected-task::before {
+      content: "";
+      width: 5px;
+      align-self: stretch;
+      border-radius: 999px;
+      background: #2563eb;
+      margin: 0 4px 0 -2px;
+      flex: 0 0 5px;
+    }
+
+    .task-check {
+      appearance: none;
+      -webkit-appearance: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      padding: 0;
+      border: 2px solid var(--color-border-secondary);
+      border-radius: 6px;
+      background: var(--color-background-primary);
+      cursor: pointer;
+      flex: 0 0 auto;
+    }
+
+    .task-check:hover {
+      border-color: #16a34a;
+      background: rgba(220, 252, 231, 0.7);
+    }
+
+    .task-check.done {
+      border-color: #16a34a;
+      background: #16a34a;
+      color: #fff;
+    }
+
+    .task-check.done::after {
+      content: "✓";
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .bulk-toolbar {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 14px 0 24px;
+      padding: 12px 14px;
+      border: 1px solid var(--color-border-secondary);
+      border-radius: 8px;
+      background: var(--color-background-secondary);
+      box-shadow: 0 8px 22px rgba(15, 23, 42, 0.05);
+    }
+
+    .bulk-toolbar-count {
+      margin-right: 4px;
+      font-weight: 700;
+      color: var(--color-text-primary);
+      white-space: nowrap;
+    }
+
+    .bulk-action-btn {
+      min-height: 34px;
+      padding: 0 12px;
+      border: 1px solid var(--color-border-secondary);
+      border-radius: 6px;
+      background: var(--color-background-primary);
+      color: var(--color-text-primary);
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .bulk-action-btn:hover:not(:disabled) {
+      border-color: #3b82f6;
+      color: #1d4ed8;
+      background: rgba(219, 234, 254, 0.7);
+    }
+
+    .bulk-action-btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.46;
+    }
+
+    .bulk-action-btn-danger:hover:not(:disabled) {
+      border-color: #ef4444;
+      color: #b91c1c;
+      background: rgba(254, 226, 226, 0.82);
+    }
+  `;
+  document.head.appendChild(style);
 }
 
 const newSubjectModal = document.getElementById('new-subject-modal');
@@ -519,7 +656,7 @@ function renderFocusTasks() {
 
       return `
         <div class="focus-task-item" data-id="${t.id}">
-          <div class="task-name">${t.title}</div>
+          <div class="task-name">${escapeHtml(t.title)}</div>
           <div class="task-meta">
             <span class="task-pill ${pillClass}">${sub.short_code}</span>
           </div>
@@ -541,7 +678,7 @@ function renderFocusTasks() {
       const sub = subjects.find(s => s.id === activeT.subject_id) || subjects[0] || { name: 'General' };
       activeFocusTask.innerHTML = `
         <div class="task-info" style="width: 100%">
-          <div class="task-name" style="font-size: 16px;">${activeT.title}</div>
+          <div class="task-name" style="font-size: 16px;">${escapeHtml(activeT.title)}</div>
           <div class="task-meta">
             <span class="task-pill pill-amber">Due ${formatDate(activeT.due_at)}</span>
             <span class="task-pill">${sub.name}</span>
@@ -578,6 +715,99 @@ function renderFocusTasks() {
   }
 }
 
+function renderProfileSection() {
+  if (!profileSection) return;
+
+  const tasks = store.tasks || [];
+  const subjects = store.subjects || [];
+  const completedCount = tasks.filter(t => t.status === 'Done').length;
+  const pendingCount = tasks.filter(t => t.status !== 'Done' && !t.archived).length;
+  const archivedCount = tasks.filter(t => t.archived).length;
+  const subjectsCount = subjects.length;
+  const totalActiveTasks = completedCount + pendingCount;
+
+  const readinessPercentage =
+    totalActiveTasks === 0
+       ? 0
+       : Math.round((completedCount / totalActiveTasks) * 100);
+  const username = localStorage.getItem('studyplan_username') || 'StudyPlan User';
+  const email = localStorage.getItem('studyplan_email') || 'user@studyplan.app';
+  const joinedDate = localStorage.getItem('studyplan_joined') || 'June 2026';
+
+  profileSection.innerHTML = `
+    <div class="profile-header">
+      <div>
+        <div class="profile-page-title">Profile</div>
+        <p class="profile-page-subtitle">View your account summary, study stats, and future account settings in one place.</p>
+      </div>
+    </div>
+
+    <div class="profile-grid">
+      <section class="profile-card">
+        <h2>Account details</h2>
+        <div class="profile-field">
+          <span class="profile-field-label">Username</span>
+          <span>${escapeHtml(username)}</span>
+        </div>
+        <div class="profile-field">
+          <span class="profile-field-label">Email</span>
+          <span>${escapeHtml(email)}</span>
+        </div>
+        <div class="profile-field">
+          <span class="profile-field-label">Member since</span>
+          <span>${escapeHtml(joinedDate)}</span>
+        </div>
+      </section>
+
+      <section class="profile-card">
+        <h2>Study statistics</h2>
+        <div class="profile-stats">
+          <div>
+            <span class="profile-stat-value">${completedCount}</span>
+            <span>Completed</span>
+          </div>
+          <div>
+            <span class="profile-stat-value">${pendingCount}</span>
+            <span>Pending</span>
+          </div>
+          <div>
+            <span class="profile-stat-value">${archivedCount}</span>
+            <span>Archived</span>
+          </div>
+          <div>
+            <span class="profile-stat-value">${subjectsCount}</span>
+            <span>Subjects</span>
+          </div>
+          <div>
+             <span class="profile-stat-value">${readinessPercentage}%</span>
+              <span>Readiness</span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <section class="profile-card profile-summary-card">
+      <h2>Account overview</h2>
+      <p>Your profile information and study statistics will update automatically as you use StudyPlan.</p>
+    </section>
+  `;
+}
+
+function showProfileSection() {
+  currentView = 'profile';
+  document.querySelector('.cal-section')?.classList.add('hidden');
+  document.getElementById('tasks-section')?.classList.add('hidden');
+  document.getElementById('focus-section')?.classList.add('hidden');
+  profileSection?.classList.remove('hidden');
+  topbar?.classList.add('hidden');
+  renderProfileSection();
+}
+
+function hideProfileSection() {
+  profileSection?.classList.add('hidden');
+  topbar?.classList.remove('hidden');
+}
+
 function formatDate(dateStr) {
   if (!dateStr) return 'No Date';
   const d = new Date(dateStr);
@@ -607,6 +837,115 @@ async function downloadData() {
         Toast.show('Failed to download data', 'error');
   }
 }
+async function renderReviewTable() {
+  const section = document.getElementById('tasks-section');
+  section.innerHTML = `<div style="padding:24px 0;text-align:center;color:var(--color-text-tertiary);font-size:14px;">Loading…</div>`;
+
+  let rows = [];
+  try {
+    const res = await fetch('/api/downloadReview');
+    console.log(res);
+    if (!res.ok) throw new Error('Failed to load review data');
+    rows = await res.json();
+  } catch (err) {
+    console.error(err);
+    section.innerHTML = `<div style="padding:24px;color:var(--color-text-danger);">Failed to load data. Please try again.</div>`;
+    return;
+  }
+
+  const [headerRow, ...dataRows] = rows;
+
+  function formatReviewDate(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    if (isNaN(d)) return iso;
+    return d.toLocaleString('en-IN', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit', hour12:true });
+  }
+
+  function isReviewOverdue(iso) {
+    if (!iso) return false;
+    return new Date(iso) < new Date();
+  }
+
+  function statusClass(s) {
+    const m = { 'not started':'status-not-started', 'in progress':'status-in-progress', 'completed':'status-completed', 'done':'status-completed' };
+    return m[(s || '').toLowerCase()] || 'status-not-started';
+  }
+
+  function priorityClass(p) {
+    const m = { high:'priority-high', medium:'priority-medium', low:'priority-low' };
+    return m[(p || '').toLowerCase()] || 'priority-medium';
+  }
+
+  function scoreFillClass(n) {
+    if (n >= 70) return '';
+    if (n >= 40) return 'mid';
+    return 'low';
+  }
+
+  const hi = {};
+  (headerRow || []).forEach((h, i) => { hi[h] = i; });
+
+  const tbodyRows = dataRows.map(row => {
+    const id       = row[hi['Task ID']]         ?? '';
+    const subject  = row[hi['Subject']]          ?? '';
+    const title    = row[hi['Title']]            ?? '';
+    const dueRaw   = row[hi['Due At']]           ?? '';
+    const status   = row[hi['Status']]           ?? '';
+    const priority = row[hi['Priority']]         ?? '';
+    const score    = row[hi['Confidence Score']] ?? '';
+    const notes    = (row[hi['Notes']] ?? '').replace(/^"|"$/g, '');
+
+    const overdue  = isReviewOverdue(dueRaw);
+    const scoreNum = parseFloat(score) || 0;
+    const pct      = Math.min(100, Math.max(0, scoreNum));
+    const fillCls  = scoreFillClass(scoreNum);
+    const capPriority = priority ? priority.charAt(0).toUpperCase() + priority.slice(1) : '';
+
+    return `<tr>
+      <td><span class="task-id">${id}</span></td>
+      <td><span class="subject-pill">📚 ${subject}</span></td>
+      <td><span class="title-cell">${title}</span></td>
+      <td><span class="due-date${overdue ? ' overdue' : ''}">${overdue ? '⚠ ' : ''}${formatReviewDate(dueRaw)}</span></td>
+      <td><span class="status-badge ${statusClass(status)}">${status}</span></td>
+      <td><span class="priority-badge ${priorityClass(priority)}">${capPriority}</span></td>
+      <td>
+        <div class="score-wrap">
+          <div class="score-bar"><div class="score-fill ${fillCls}" style="width:${pct}%"></div></div>
+          <span class="score-val">${score}</span>
+        </div>
+      </td>
+      <td><span class="notes-cell" title="${notes}">${notes}</span></td>
+    </tr>`;
+  }).join('');
+
+  section.innerHTML = `<br>
+    <div class="review-table-wrap" style="padding:0;">
+      <div class="card-header" style="display:flex;align-items:center;gap:12px;padding:20px 24px;border-bottom:1px solid var(--color-border-tertiary);background:var(--color-background-secondary);">
+        <span class="card-title" style="font-size:17px;font-weight:700;flex:1;letter-spacing:-.01em;">📋 Review Tasks</span>
+        <span style="font-size:12px;font-weight:600;background:var(--color-background-tertiary);color:var(--color-text-secondary);padding:3px 10px;border-radius:12px;border:1px solid var(--color-border-tertiary);">${dataRows.length} task${dataRows.length !== 1 ? 's' : ''}</span>
+        <button class="btn btn-primary" data-action="download" style="font-size:13px;font-weight:600;padding:8px 16px;">⬇ Download Data</button>
+      </div>
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+        <table style="width:100%;border-collapse:collapse;font-size:13.5px;">
+          <thead>
+            <tr style="background:var(--color-background-secondary);border-bottom:1px solid var(--color-border-secondary);">
+              <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--color-text-tertiary);letter-spacing:.07em;text-transform:uppercase;white-space:nowrap;">Task ID</th>
+              <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--color-text-tertiary);letter-spacing:.07em;text-transform:uppercase;white-space:nowrap;">Subject</th>
+              <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--color-text-tertiary);letter-spacing:.07em;text-transform:uppercase;white-space:nowrap;">Title</th>
+              <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--color-text-tertiary);letter-spacing:.07em;text-transform:uppercase;white-space:nowrap;">Due At</th>
+              <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--color-text-tertiary);letter-spacing:.07em;text-transform:uppercase;white-space:nowrap;">Status</th>
+              <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--color-text-tertiary);letter-spacing:.07em;text-transform:uppercase;white-space:nowrap;">Priority</th>
+              <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--color-text-tertiary);letter-spacing:.07em;text-transform:uppercase;white-space:nowrap;">Confidence Score</th>
+              <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--color-text-tertiary);letter-spacing:.07em;text-transform:uppercase;white-space:nowrap;">Notes</th>
+            </tr>
+          </thead>
+          <tbody>${tbodyRows}</tbody>
+        </table>
+      </div>
+    </div>`;
+  section.querySelector('button[data-action="download"]').addEventListener('click', downloadData);
+}
 
 async function downloadCalendar() {
     try {
@@ -633,6 +972,8 @@ async function downloadCalendar() {
 }
 
 function renderTasks() {
+  ensureTaskSelectionStyles();
+
   const tasks = store.tasks;
   const subjects = store.subjects;
 
@@ -703,11 +1044,30 @@ function renderTasks() {
         completed.push(t);
         return;
       }
+
       pending.push(t);
+
+      if (!t.due_at) {
+        thisWeek.push(t);
+        return;
+      }
+
       const d = new Date(t.due_at);
+
+      // Ignore invalid dates
+      if (isNaN(d.getTime())) {
+        thisWeek.push(t);
+        return;
+      }
+
       const diffDays = (d - now) / (1000 * 60 * 60 * 24);
-      if (diffDays <= 3) dueSoon.push(t);
-      else thisWeek.push(t);
+
+      // Due soon = upcoming within 3 days only
+      if (diffDays >= 0 && diffDays <= 3) {
+        dueSoon.push(t);
+      } else {
+        thisWeek.push(t);
+      }
     });
   }
 
@@ -814,28 +1174,57 @@ function renderTasks() {
         }
 
         html += `
-          <div class="task-item ${isUrgent ? 'urgent' : ''} ${isHighPriority ? 'high-priority' : ''} ${isOverdue ? 'overdue' : ''} ${isDone ? 'done' : ''}" data-id="${t.id}">
-            <div class="task-check ${isDone ? 'done' : ''}"></div>
-            <div class="task-info">
-              <div class="task-name">${t.title}</div>
-              <div class="task-meta">
-                <span class="task-pill ${isDone ? 'pill-green' : (isOverdue || isHighPriority ? 'pill-red' : 'pill-amber')}">${isDone ? 'Done' : 'Due ' + formatDate(t.due_at)}</span>
-                <span class="task-pill ${pillClass}">${sub.short_code}</span>
-                ${revisionHtml}
-                ${labelsHtml}
+            <div class="task-item 
+              ${isUrgent ? 'urgent' : ''} 
+              ${isHighPriority ? 'high-priority' : ''} 
+              ${isOverdue ? 'overdue' : ''} 
+              ${isDone ? 'done' : ''} 
+              ${isTaskSelected(t.id) ? 'selected-task' : ''}
+            " 
+            data-id="${t.id}"
+            role="button"
+            tabindex="0"
+            aria-label="${isTaskSelected(t.id) ? 'Deselect' : 'Select'} ${escapeHtml(t.title)} for bulk actions"
+            aria-pressed="${isTaskSelected(t.id) ? 'true' : 'false'}">
+
+              <button
+                class="task-check ${isDone ? 'done' : ''}"
+                type="button"
+                aria-label="${isDone ? 'Mark task incomplete' : 'Mark task complete'}"
+              ></button>
+
+              <div class="task-info">
+                <div class="task-name">${t.title}</div>
+
+                <div class="task-meta">
+                  <span class="task-pill ${
+                    isDone
+                      ? 'pill-green'
+                      : (isOverdue || isHighPriority ? 'pill-red' : 'pill-amber')
+                  }">
+                    ${isDone ? 'Done' : 'Due ' + formatDate(t.due_at)}
+                  </span>
+
+                  <span class="task-pill ${pillClass}">
+                    ${sub.short_code}
+                  </span>
+                  
+                  ${revisionHtml}
+
+                  ${labelsHtml}
+                </div>
+              </div>
+
+              <div class="task-actions">
+                ${actionButtons}
               </div>
             </div>
-            <div class="task-actions">
-              ${actionButtons}
-            </div>
-          </div>
-        `;
-      }
-    });
-    html += `</div>`;
-    return html;
-  };
-
+          `;
+        }
+      });
+      html += `</div>`;
+      return html;
+    };
   if (currentView === 'calendar' && selectedDate) {
     const selStr = selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     const actionBar = `<div class="tasks-actions-bar">
@@ -875,15 +1264,55 @@ function renderTasks() {
       renderGroup('Completed', completed, 'var(--color-text-tertiary)') +
       emptyState;
   } else {
+    const selectedCount = getSelectedTasks().length;
+    const bulkToolbar = `
+    <div class="bulk-toolbar">
+      <span class="bulk-toolbar-count">${selectedCount} selected</span>
+
+      <button id="select-all-btn" class="bulk-action-btn" type="button">
+        Select All
+      </button>
+
+      <button id="bulk-complete-btn" class="bulk-action-btn" type="button" ${selectedCount === 0 ? 'disabled' : ''}>
+        Complete
+      </button>
+
+      <button id="bulk-archive-btn" class="bulk-action-btn" type="button" ${selectedCount === 0 ? 'disabled' : ''}>
+        Archive
+      </button>
+
+      <button id="bulk-delete-btn" class="bulk-action-btn bulk-action-btn-danger" type="button" ${selectedCount === 0 ? 'disabled' : ''}>
+        Delete
+      </button>
+
+      <button id="clear-selection-btn" class="bulk-action-btn" type="button" ${selectedCount === 0 ? 'disabled' : ''}>
+        Clear
+      </button>
+    </div>
+  `;
+
+const actionBar = currentView === 'archived'
+  ? ''
+  : `
+    ${bulkToolbar}
+
+    <div class="tasks-actions-bar">
+      <button
+        id="mark-all-pending-btn"
+        class="task-action-btn"
+        ${pending.length === 0 ? 'disabled' : ''}
+      >
+        Mark all pending completed (${pending.length})
+      </button>
+    </div>
+  `;
     console.log('[Daily Study Time] Hiding banner - currentView:', currentView, 'selectedDate:', selectedDate);
     const studyTimeEl = document.getElementById('daily-study-time');
     if (studyTimeEl) {
       studyTimeEl.style.display = 'none';
     }
 
-    const actionBar = currentView === 'archived' ? '' : `<div class="tasks-actions-bar">
-           <button id="mark-all-pending-btn" class="task-action-btn" ${pending.length === 0 ? 'disabled' : ''}>Mark all pending completed (${pending.length})</button>
-         </div>`;
+  
 
     const titlePrefix = currentView === 'archived' ? 'Archived: ' : '';
     const emptyStateTitle = currentView === 'archived' ? 'No archived tasks' : 'Start your journey';
@@ -905,13 +1334,34 @@ function renderTasks() {
          </div>`
       : '';
 
-    tasksSection.innerHTML = actionBar +
-                             renderGroup(titlePrefix + '⚠ Due soon', dueSoon, 'var(--color-text-danger)', true)
-                             + renderGroup(titlePrefix + 'This week', thisWeek, 'var(--color-text-secondary)', true) +
-                             renderGroup(titlePrefix + 'Completed', completed, 'var(--color-text-tertiary)') +
-                             emptyState;
-  }
+    tasksSection.innerHTML =
+  actionBar +
+  renderGroup(titlePrefix + '⚠ Due soon', dueSoon, 'var(--color-text-danger)', true) +
+  renderGroup(titlePrefix + 'This week', thisWeek, 'var(--color-text-secondary)', true) +
+  renderGroup(titlePrefix + 'Completed', completed, 'var(--color-text-tertiary)') +
+  emptyState;
 
+document.querySelectorAll('.task-item').forEach(taskEl => {
+  const selectTask = () => {
+    const taskId = taskEl.dataset.id;
+    const task = store.tasks.find(t => String(t.id) === String(taskId));
+    if (!taskId || (task && task._isEditing)) return;
+    toggleTaskSelection(taskId);
+  };
+
+  taskEl.addEventListener('click', (e) => {
+    if (e.target.closest('button, input, .task-actions, .edit-field')) return;
+    selectTask();
+  });
+
+  taskEl.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    if (e.target.closest('button, input, .edit-field')) return;
+    e.preventDefault();
+    selectTask();
+  });
+});
+  }
   // Bind CTA button in empty state
   const emptyStateAddBtn = document.getElementById('empty-state-add-btn');
   if (emptyStateAddBtn) {
@@ -920,18 +1370,6 @@ function renderTasks() {
     });
   }
                            
-  document.querySelectorAll('.task-item').forEach(el => {
-    el.addEventListener('click', (e) => {
-      if (e.target.closest('.task-actions') || e.target.closest('.task-check')) return;
-
-      const taskId = el.dataset.id;
-      const task = store.tasks.find(t => String(t.id) === String(taskId));
-      if (task && task._isEditing) return;
-
-      store.toggleTaskStatus(taskId);
-    });
-  });
-
   document.querySelectorAll('.edit-task-btn').forEach(el => {
     el.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -1035,6 +1473,50 @@ function renderTasks() {
       store.markPendingTasksForDateCompleted(selectedDate);
     });
   }
+  const bulkCompleteBtn =
+  document.getElementById('bulk-complete-btn');
+
+if (bulkCompleteBtn) {
+  bulkCompleteBtn.addEventListener('click', () => {
+    store.bulkCompleteTasks();
+  });
+}
+
+const bulkArchiveBtn =
+  document.getElementById('bulk-archive-btn');
+
+if (bulkArchiveBtn) {
+  bulkArchiveBtn.addEventListener('click', () => {
+    store.bulkArchiveTasks();
+  });
+}
+
+const bulkDeleteBtn =
+  document.getElementById('bulk-delete-btn');
+
+if (bulkDeleteBtn) {
+  bulkDeleteBtn.addEventListener('click', () => {
+    store.bulkDeleteTasks();
+  });
+}
+
+const clearSelectionBtn =
+  document.getElementById('clear-selection-btn');
+
+if (clearSelectionBtn) {
+  clearSelectionBtn.addEventListener('click', () => {
+    store.clearSelectedTasks();
+  });
+}
+
+const selectAllBtn =
+  document.getElementById('select-all-btn');
+
+if (selectAllBtn) {
+  selectAllBtn.addEventListener('click', () => {
+    store.selectAllTasks();
+  });
+}
 }
 
 
@@ -1104,7 +1586,8 @@ function renderCalendar() {
   const totalCells = firstDay + daysInMonth;
   const nextDays = (7 - (totalCells % 7)) % 7;
   for (let i = 1; i <= nextDays; i++) {
-    html += `<div class="cal-day muted">${i}</div>`;
+    html += `<div cl
+    ass="cal-day muted">${i}</div>`;
   }
 
   calGrid.innerHTML = html;
@@ -1126,6 +1609,34 @@ function renderCalendar() {
   });
 }
 
+function findSubjectForExtractedItem(item) {
+  const requested = String(item.subject_name || '').trim().toLowerCase();
+  const defaultSubject = store.subjects[0] || null;
+  if (!requested || requested === 'general') return defaultSubject;
+
+  return store.subjects.find(s => s.name.toLowerCase() === requested)
+    || store.subjects.find(s => s.name.toLowerCase().includes(requested) || requested.includes(s.name.toLowerCase()))
+    || defaultSubject;
+}
+
+function prepareExtractedTasksForSave(items) {
+  return (items || []).map(item => {
+    const sub = store.subjects.find(s => String(s.id) === String(item.subject_id))
+      || findSubjectForExtractedItem(item);
+
+    return {
+      title: String(item.title || '').trim(),
+      subject_id: sub?.id,
+      due_at: item.due_at,
+      notes: item.notes || '',
+      priority: item.priority || 'medium',
+      confidence_score: item.confidence_score || 60,
+      status: item.status || 'Not Started',
+      archived: 0
+    };
+  }).filter(item => item.title && item.subject_id && item.due_at);
+}
+
 function renderExtraction() {
   const pasteItems = store.currentPaste;
   if (!pasteItems || pasteItems.length === 0) {
@@ -1141,7 +1652,8 @@ function renderExtraction() {
   let html = `<div class="extract-title">Extracted — ${pasteItems.length} items</div>`;
   pasteItems.forEach((item, index) => {
     // try to match subject name
-    const sub = store.subjects.find(s => s.name.toLowerCase().includes((item.subject_name || '').toLowerCase())) || store.subjects[3];
+    const sub = findSubjectForExtractedItem(item);
+    if (!sub) return;
     // Attach subject id to item so Add will work
     item.subject_id = sub.id;
 
@@ -1306,8 +1818,14 @@ store.subscribe(renderTasks);
 store.subscribe(renderExtraction);
 store.subscribe(renderCalendar);
 store.subscribe(renderFocusTasks);
+store.subscribe(renderProfileSection);
 store.subscribe(renderSidebarSubjects);
 store.subscribe(renderStreak);
+
+function updateSidebarActive(id) {
+  document.querySelectorAll('.sidebar .nav-item').forEach(el => el.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   if (newSubjectColorsEl) {
@@ -1372,13 +1890,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const archivedTasksBtn = document.getElementById('archived-tasks-btn');
   const focusModeBtn = document.getElementById('focus-mode-btn');
 
-  function updateSidebarActive(id) {
-    document.querySelectorAll('.sidebar .nav-item').forEach(el => el.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-  }
-
   calendarBtn.addEventListener('click', () => {
     currentView = 'calendar';
+    hideProfileSection();
     document.querySelector('.cal-section').classList.remove('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
@@ -1388,6 +1902,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   allTasksBtn.addEventListener('click', () => {
     currentView = 'all-tasks';
+    hideProfileSection();
     document.querySelector('.cal-section').classList.add('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
@@ -1397,6 +1912,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   archivedTasksBtn.addEventListener('click', () => {
     currentView = 'archived';
+    hideProfileSection();
     document.querySelector('.cal-section').classList.add('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
@@ -1407,6 +1923,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (focusModeBtn) {
     focusModeBtn.addEventListener('click', () => {
       currentView = 'focus';
+      hideProfileSection();
       document.querySelector('.cal-section').classList.add('hidden');
       document.getElementById('tasks-section').classList.add('hidden');
       document.getElementById('focus-section').classList.remove('hidden');
@@ -1414,6 +1931,20 @@ document.addEventListener('DOMContentLoaded', () => {
       renderFocusTasks();
     });
   }
+
+  downloadBtn.addEventListener('click', () => {
+    currentView = 'review';
+    document.querySelector('.cal-section').classList.add('hidden');
+    document.getElementById('focus-section').classList.add('hidden');
+    document.getElementById('tasks-section').classList.remove('hidden');
+    updateSidebarActive('download-btn');
+    renderReviewTable();
+  });
+
+  document.getElementById('cal-prev').addEventListener('click', () => {
+    currentMonthDate.setMonth(currentMonthDate.getMonth() - 1);
+    renderCalendar();
+  });
 
   document.getElementById('cal-next').addEventListener('click', () => {
     currentMonthDate.setMonth(currentMonthDate.getMonth() + 1);
@@ -1537,10 +2068,12 @@ if (!subject_id) {
     labels
   };
 
-    await store.addTasks([newTask]);
-    newTaskModal.style.display = 'none';
-  });
+  await store.addTasks([newTask]);
+  newTaskModal.style.display = 'none';
 
+  currentView = 'all-tasks';
+  updateSidebarActive('all-tasks-btn');
+});
 
 addItemsBtn.addEventListener('click', () => {
   if (store.currentPaste) {
@@ -1592,89 +2125,7 @@ pasteInput.addEventListener('input', () => {
     }
 });
 
-downloadBtn.addEventListener('click', () => {
-  downloadData();
-});
-
-const fileInput = document.getElementById('file-input');
-const dropZone = document.getElementById('drop-zone');
-
-// Handle File Selection via File Explorer
-if (fileInput) {
-  fileInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file) handleFileContent(file);
-  });
-}
-
-// Handle Drag & Drop Events
-if (dropZone) {
-  // Prevent browser from opening the file
-  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-    dropZone.addEventListener(eventName, (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-    });
-  });
-
-  // Add highlight effect
-  ['dragenter', 'dragover'].forEach(eventName => {
-    dropZone.addEventListener(eventName, () => {
-      dropZone.classList.add('paste-zone--dragover');
-    });
-  });
-
-  // Remove highlight effect
-  ['dragleave', 'drop'].forEach(eventName => {
-    dropZone.addEventListener(eventName, () => {
-      dropZone.classList.remove('paste-zone--dragover');
-    });
-  });
-
-  // Handle dropped file
-  dropZone.addEventListener('drop', (e) => {
-    const dt = e.dataTransfer;
-
-    if (dt && dt.files.length > 0) {
-      const file = dt.files[0];
-      handleFileContent(file);
-    }
-  });
-}
-
-// File Reader Function
-function handleFileContent(file) {
-  const allowedExtensions = ['txt', 'md', 'json'];
-  const fileExtension = file.name.split('.').pop().toLowerCase();
-
-  // Validate extension
-  if (!allowedExtensions.includes(fileExtension)) {
-    alert('Invalid file format. Please upload a .txt, .md, or .json file.');
-    return;
-  }
-
-  const reader = new FileReader();
-
-  reader.onload = (e) => {
-    const pasteInput = document.getElementById('paste-input');
-
-    if (pasteInput) {
-      pasteInput.value = e.target.result;
-
-      alert(
-        `Loaded "${file.name}" successfully! Click "Extract with AI" to find your tasks.`
-      );
-    }
-  };
-
-  reader.onerror = () => {
-    alert('Error reading file content. Please try again.');
-  };
-
-  reader.readAsText(file);
-}
-
-
+// Motivational Quotes
 const quotes = [
   "Small Progress is still Progress",
   "Focus on being productive instead of busy",
@@ -1837,6 +2288,7 @@ if (calendarDownloadBtn) {
   });
 }
 
+
 // ================= SPACED REPETITION (Issue 1178) =================
 window.showRevisionModal = function(task) {
   const modal = document.getElementById('revision-modal');
@@ -1888,3 +2340,4 @@ window.showRevisionModal = function(task) {
   newMedium.addEventListener('click', () => handleFeedback('medium'));
   newHard.addEventListener('click', () => handleFeedback('hard'));
 };
+
