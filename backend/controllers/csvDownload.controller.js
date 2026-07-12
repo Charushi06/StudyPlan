@@ -39,7 +39,11 @@ function formatIcsDate(dateInput) {
 function buildCalendarIcs(tasks = []) {
   const dtstamp = formatIcsDate(new Date().toISOString());
   const events = tasks
-    .filter(task => task.due_at)
+    .filter(task => {
+      if (!task.due_at) return false;
+      const d = new Date(task.due_at);
+      return !isNaN(d.getTime());
+    })
     .map(task => {
       const start = new Date(task.due_at);
       const end = new Date(start.getTime() + 60 * 60 * 1000);
@@ -103,6 +107,31 @@ async function downloadData(req, res) {
   }
 }
 
+async function reviewDownloadData(req, res) {
+  try {
+    const data = await getAllTasksWithSubjects();
+
+    const rows = [
+      ['Task ID', 'Subject', 'Title', 'Due At', 'Status', 'Priority', 'Confidence Score', 'Notes'],
+      ...data.map(task => [
+        task.id,
+        task.subject_name,
+        task.title,
+        task.due_at,
+        task.status,
+        task.priority,
+        task.confidence_score,
+        `"${(task.notes || '').replace(/"/g, '""')}"`,
+      ]),
+    ];
+
+    return res.status(200).send(rows);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Failed to download data' });
+  }
+}
+
 async function downloadCalendar(req, res) {
   try {
     const data = await getAllTasksWithSubjects();
@@ -123,4 +152,5 @@ module.exports = {
   buildCalendarIcs,
   formatIcsDate,
   escapeIcsText,
+  reviewDownloadData
 };
