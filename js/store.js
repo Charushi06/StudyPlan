@@ -1,8 +1,12 @@
+import { Toast } from './utils/toast.js';
+import { triggerConfetti } from './utils/confetti.js';
+
 export const store = {
   subjects: [],
   tasks: [],
   currentPaste: null,
   listeners: [],
+  selectedTasks: [],
 
   isSameCalendarDate(dateA, dateB) {
     return (
@@ -37,7 +41,7 @@ export const store = {
   async addSubject({ name, color }) {
     const trimmed = String(name || '').trim();
     if (!trimmed) {
-      alert('Please enter a subject name');
+      Toast.show('Please enter a subject name', 'warning');
       return false;
     }
     try {
@@ -48,7 +52,7 @@ export const store = {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        alert(data.error || 'Failed to add subject');
+        Toast.show(data.error || 'Failed to add subject', 'error');
         return false;
       }
       const subsRes = await fetch('/api/subjects');
@@ -57,10 +61,54 @@ export const store = {
       return true;
     } catch (e) {
       console.error('Failed to add subject', e);
-      alert('Network error. Please try again.');
+      Toast.show('Network error. Please try again.', 'error');
       return false;
     }
   },
+
+    // ================= DELETE SUBJECT FUNCTION =================
+
+    async deleteSubject(subjectId) {
+  const subject = this.subjects.find(
+    s => String(s.id) === String(subjectId)
+  );
+
+  if (!subject) return;
+
+  const confirmed = confirm(
+    `Are you sure you want to delete "${subject.name}"?\n\nThis will also remove related tasks.`
+  );
+
+  if (!confirmed) return;
+
+  const originalSubjects = [...this.subjects];
+  const originalTasks = [...this.tasks];
+
+  // optimistic update
+  this.subjects = this.subjects.filter(
+    s => String(s.id) !== String(subjectId)
+  );
+
+  this.tasks = this.tasks.filter(
+    t => String(t.subject_id) !== String(subjectId)
+  );
+
+  this.notify();
+
+  try {
+    await fetch(`/api/subjects/${subjectId}`, {
+      method: 'DELETE'
+    });
+  } catch (e) {
+    this.subjects = originalSubjects;
+    this.tasks = originalTasks;
+    this.notify();
+
+    console.error('Failed to delete subject', e);
+    alert('❌ Failed to delete subject');
+  }
+},
+
 
   // ================= UPDATED FUNCTION =================
   async addTasks(newTasks) {
@@ -75,7 +123,7 @@ export const store = {
 
       if (!res.ok) {
         //  Backend error
-        alert(`❌ ${data.message || "Failed to add tasks"}`);
+        Toast.show(`❌ ${data.message || "Failed to add tasks"}`, 'error');
         console.error('Add task error:', data);
         return;
       }
@@ -83,11 +131,11 @@ export const store = {
       // ================= USER MESSAGES =================
 
       if (data.duplicates?.length > 0) {
-        alert(`⚠ ${data.duplicates.length} duplicate task(s) skipped`);
+        Toast.show(`⚠ ${data.duplicates.length} duplicate task(s) skipped`, 'warning');
       }
 
       if (data.errors?.length > 0) {
-        alert(`❌ ${data.errors.length} task(s) failed to add`);
+        Toast.show(`❌ ${data.errors.length} task(s) failed to add`, 'error');
       }
 
       if (
@@ -95,7 +143,7 @@ export const store = {
         (data.duplicates?.length || 0) === 0 &&
         (data.errors?.length || 0) === 0
       ) {
-        alert("✅ Tasks added successfully");
+        Toast.show("✅ Tasks added successfully", 'success');
       }
 
       // ================= REFRESH =================
@@ -105,7 +153,7 @@ export const store = {
 
     } catch (e) {
       console.error('Failed to add tasks', e);
-      alert("❌ Network error. Please try again.");
+      Toast.show("❌ Network error. Please try again.", 'error');
     }
   },
 
@@ -140,7 +188,7 @@ export const store = {
       }
     } catch (e) {
       console.error('Failed to update task', e);
-      alert("❌ Failed to save task changes. Please try again.");
+      Toast.show("❌ Failed to save task changes. Please try again.", 'error');
       // Revert
       this.tasks[taskIndex] = originalTask;
       this.notify();
@@ -153,6 +201,10 @@ export const store = {
       const newStatus = task.status === 'Done' ? 'Not Started' : 'Done';
       task.status = newStatus;
       this.notify();
+
+      if (newStatus === 'Done') {
+        triggerConfetti();
+      }
 
       try {
         await fetch(`/api/tasks/${taskId}`, {
@@ -206,7 +258,7 @@ export const store = {
   },
 
   async deleteTask(taskId) {
-    const confirmed = confirm('Are you sure you want to permanently delete this task?');
+    const confirmed = await Toast.confirm('Are you sure you want to permanently delete this task?');
     if (!confirmed) return;
 
     const taskIndex = this.tasks.findIndex(t => String(t.id) === String(taskId));
@@ -235,6 +287,7 @@ export const store = {
       t.status = 'Done';
     });
     this.notify();
+    triggerConfetti();
 
     try {
       await Promise.all(
@@ -272,6 +325,7 @@ export const store = {
       t.status = 'Done';
     });
     this.notify();
+    triggerConfetti();
 
     try {
       await Promise.all(
@@ -308,5 +362,107 @@ export const store = {
   clearExtracted() {
     this.currentPaste = null;
     this.notify();
+  },
+  toggleTaskSelection(taskId) {
+  taskId = String(taskId);
+
+  const exists =
+    this.selectedTasks.includes(taskId);
+
+  if (exists) {
+    this.selectedTasks =
+      this.selectedTasks.filter(
+        id => id !== taskId
+      );
+  } else {
+    this.selectedTasks.push(taskId);
   }
+
+  this.notify();
+},
+
+clearSelectedTasks() {
+  this.selectedTasks = [];
+  this.notify();
+},
+
+selectAllTasks() {
+  this.selectedTasks = this.tasks
+    .filter(t =>
+      !t.archived &&
+      t.status !== 'Done'
+    )
+    .map(t => String(t.id));
+
+  this.notify();
+},
+
+async bulkCompleteTasks() {
+  const selected = this.tasks.filter(t =>
+    this.selectedTasks.includes(String(t.id))
+  );
+
+  for (const task of selected) {
+    task.status = 'Done';
+
+    await fetch(`/api/tasks/${task.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        status: 'Done'
+      })
+    });
+  }
+
+  this.clearSelectedTasks();
+  this.notify();
+},
+
+async bulkArchiveTasks() {
+  const selected = this.tasks.filter(t =>
+    this.selectedTasks.includes(t.id)
+  );
+
+  for (const task of selected) {
+    task.archived = 1;
+
+    await fetch(`/api/tasks/${task.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        archived: 1
+      })
+    });
+  }
+
+  this.clearSelectedTasks();
+  this.notify();
+},
+
+async bulkDeleteTasks() {
+  const confirmed = confirm(
+    `Delete ${this.selectedTasks.length} selected tasks?`
+  );
+
+  if (!confirmed) return;
+
+  await Promise.all(
+    this.selectedTasks.map(id =>
+      fetch(`/api/tasks/${id}`, {
+        method: 'DELETE'
+      })
+    )
+  );
+
+  this.tasks = this.tasks.filter(
+    t => !this.selectedTasks.includes(String(t.id))
+  );
+
+  this.clearSelectedTasks();
+  this.notify();
+},
 };
