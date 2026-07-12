@@ -656,7 +656,7 @@ function renderFocusTasks() {
 
       return `
         <div class="focus-task-item" data-id="${t.id}">
-          <div class="task-name">${t.title}</div>
+          <div class="task-name">${escapeHtml(t.title)}</div>
           <div class="task-meta">
             <span class="task-pill ${pillClass}">${sub.short_code}</span>
           </div>
@@ -678,7 +678,7 @@ function renderFocusTasks() {
       const sub = subjects.find(s => s.id === activeT.subject_id) || subjects[0] || { name: 'General' };
       activeFocusTask.innerHTML = `
         <div class="task-info" style="width: 100%">
-          <div class="task-name" style="font-size: 16px;">${activeT.title}</div>
+          <div class="task-name" style="font-size: 16px;">${escapeHtml(activeT.title)}</div>
           <div class="task-meta">
             <span class="task-pill pill-amber">Due ${formatDate(activeT.due_at)}</span>
             <span class="task-pill">${sub.name}</span>
