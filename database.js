@@ -78,6 +78,11 @@ db.all("PRAGMA table_info(tasks)", (err, rows) => {
   if (!columnNames.includes("labels")) {
     db.run("ALTER TABLE tasks ADD COLUMN labels TEXT DEFAULT '[]'");
   }
+
+  // Revision stage
+  if (!columnNames.includes("revision_stage")) {
+    db.run("ALTER TABLE tasks ADD COLUMN revision_stage INTEGER DEFAULT 0");
+  }
 });
 
     // Pre-populate some subjects if empty

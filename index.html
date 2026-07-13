@@ -755,5 +755,16 @@ document
     </div>
   </div>
 </div>
+<div id="revision-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0; z-index:9999; align-items:center; justify-content:center;">
+  <div class="modal-card" style="border-radius:12px; padding:20px; width:340px; box-shadow:0 12px 40px rgba(0,0,0,0.25); text-align:center;">
+    <h3 style="margin:0 0 8px; font-size:18px; font-weight:600;">Revision Complete! 🎉</h3>
+    <p style="font-size:14px; margin-bottom:16px; color:var(--color-text-secondary);">How difficult was it to recall this concept?</p>
+    <div style="display:flex; justify-content:space-between; gap:8px;">
+      <button id="rev-btn-easy" class="btn" style="flex:1; background:var(--color-text-success); color:white; border:none;">Easy</button>
+      <button id="rev-btn-medium" class="btn" style="flex:1; background:var(--color-text-warning); color:black; border:none;">Medium</button>
+      <button id="rev-btn-hard" class="btn" style="flex:1; background:var(--color-text-danger); color:white; border:none;">Hard</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
