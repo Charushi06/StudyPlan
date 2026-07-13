@@ -280,6 +280,7 @@ body {
   color: var(--color-text-secondary);
   padding: 2px 8px;
   border-radius: 12px;
+  border: 1px solid transparent;
   transition: all 0.2s;
 }
 
@@ -2225,6 +2226,7 @@ body {
   color: var(--color-text-secondary);
   padding: 2px 8px;
   border-radius: 12px;
+  border: 1px solid transparent;
   transition: all 0.2s;
 }
 
@@ -3518,6 +3520,7 @@ body {
   color: var(--color-text-secondary);
   padding: 2px 8px;
   border-radius: 12px;
+  border: 1px solid transparent;
   transition: all 0.2s;
 }
 

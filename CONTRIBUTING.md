@@ -43,6 +43,17 @@ Welcome to GSSoC! Here's how the contribution flow works for this project:
    ```bash
    git checkout -b your-feature-name
    ```
+5. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+6. **Start the local development server**:
+   ```bash
+   npm run dev
+   ```
+
+   The dev server uses Nodemon and automatically restarts when backend files
+   such as `server.js`, controllers, or routers change.
 
 ---
 
