@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>StudyPlan</title>
   <link rel="stylesheet" href="/css/index.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intro.js/minified/introjs.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 
   <script src="/js/lib/confetti.browser.min.js"></script>
 
@@ -66,6 +68,7 @@
 </nav>
 
   <div class="header-right">
+    <button class="profile-btn" id="restart-tour-btn">Take Tour</button>
     <button class="profile-btn" id="profile-btn">Profile</button>
     <!--Streak Badge-->
     <div class="streak-badges">
@@ -114,7 +117,9 @@
 
   <div class="app">
     <!-- Sidebar -->
-    <div class="sidebar">
+    <div class="sidebar"
+        data-intro="This is your dashboard navigation where you can access planner features."
+        data-step="1">
       <div class="sidebar-header">Study Planner</div>
       <div class="nav-item active" id="calendar-btn" role="link" aria-label="View Calendar">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="1" y="2" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M1 6h14" stroke="currentColor" stroke-width="1.5"/><path d="M5 1v2M11 1v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
@@ -181,19 +186,23 @@
       </div>
 
       <!-- Dashboard Greeting -->
-        <div class="dashboard-greeting" style="padding: 16px 24px 0; display: flex; justify-content: center;">
-          <div class="quote-widget">
-            <svg class="quote-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path d="M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <p id="motivational-quotes">
-              Small Progress is still Progress
-            </p>
-          </div>
-        </div>
+        <<!-- Dashboard Greeting -->
+<div class="dashboard-greeting" style="padding: 16px 24px 0; display: flex; justify-content: center;">
+  <div class="quote-widget">
+    <svg class="quote-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <path d="M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+    </svg>
 
-      <!-- Calendar -->
-      <div class="cal-section">
+    <p id="motivational-quotes">
+      Stay consistent. Small progress every day leads to big success.
+    </p>
+
+  </div>
+</div>
+        <div class="cal-section"data-intro="Track deadlines and study sessions using the calendar."data-step="3">
         <div class="cal-header">
           <div id="cal-month-title" class="cal-title">April 2026</div>
           <span id="cal-prev" class="cal-nav" role="button" aria-label="Previous Month">‹</span>
@@ -218,13 +227,13 @@
       </div>
 
       <!-- Tasks -->
-      <div id="tasks-section" class="tasks-section">
+      <div id="tasks-section" class="tasks-section" data-intro="Manage and organize all your study tasks here."data-step="2">
         <!-- Javascript will inject tasks here -->
         
       </div>
 
       <!-- Focus Mode -->
-      <div id="focus-section" class="focus-section hidden">
+      <div id="focus-section"class="focus-section hidden"data-intro="Focus Mode helps you study distraction-free using a timer."data-step="5">
         <div class="focus-dashboard">
           <div class="timer-container">
             <svg class="timer-svg" viewBox="0 0 100 100">
@@ -321,7 +330,7 @@
     </div>
 
     <!-- Right Panel -->
-    <div class="panel">
+    <div class="panel"data-intro="Use Smart Paste to instantly extract tasks from text using AI."data-step="4">
       <div class="panel-header">
         <button id="panel-toggle-btn" class="panel-toggle-btn" title="Toggle Smart Paste">
           <svg id="panel-toggle-icon" width="16" height="16" fill="none" viewBox="0 0 16 16"><path d="M10 4l-4 4 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -359,9 +368,6 @@
   </button>
 </div>
 
-
-      <button id="add-btn" class="add-btn" disabled>Add items to planner</button>
-    </div>
   </div>
 </div>
 
@@ -424,6 +430,7 @@
 </div>
 
   <script type="module" src="/js/app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/intro.js/minified/intro.min.js"></script>
   <script>
   let isLogin = true;
 
@@ -653,6 +660,38 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
     } else {
       document.body.classList.remove('compact-view');
     }
+  });
+
+function startTour() {
+  introJs().setOptions({
+    nextLabel: "Next →",
+    prevLabel: "← Back",
+    doneLabel: "Finish",
+    skipLabel: "Skip",
+    showProgress: true,
+    exitOnOverlayClick: false,
+    scrollToElement: true,
+    disableInteraction: true
+  }).start();
+}
+
+// Auto-start tour for first-time users
+window.addEventListener("DOMContentLoaded", () => {
+  const tourSeen = localStorage.getItem("studyplan-tour");
+
+  if (!tourSeen) {
+    setTimeout(() => {
+      startTour();
+      localStorage.setItem("studyplan-tour", "seen");
+    }, 500);
+  }
+});
+
+// Restart Tour Button
+document
+  .getElementById("restart-tour-btn")
+  ?.addEventListener("click", () => {
+    startTour();
   });
 </script>
 
