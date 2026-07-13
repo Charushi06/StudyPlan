@@ -5,6 +5,7 @@ const { db, initDb } = require('./database');
 const { GoogleGenAI } = require('@google/genai');
 const path = require('path');
 const csvDownloadRouter = require('./backend/routers/csvDownload.router.js');
+const rateLimit = require('express-rate-limit');
 
 const app = express();
 app.use(cors());
@@ -525,7 +526,15 @@ app.delete('/api/tasks/:id', (req, res) => {
 });
 
 // ================= AI EXTRACTION =================
-app.post('/api/extract', async (req, res) => {
+const extractLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20, // limit each IP to 20 requests per windowMs
+  message: { error: 'Too many extraction requests from this IP, please try again after 15 minutes' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.post('/api/extract', extractLimiter, async (req, res) => {
   const { text } = req.body;
   if (!text) return res.status(400).json({ error: 'Text is required' });
 
