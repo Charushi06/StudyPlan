@@ -163,7 +163,7 @@ Open → http://localhost:3000
 │   └──  index.css           # Contains all styling rules, variables, and animations
 ├──  js
 │   ├──  utils
-│   │   ├──  aiMock.js       # The original mock UI extraction hook (deprecated)
+│   │
 │   │   ├──  api.js          # The live fetch logic communicating with our Express API
 │   │   └──  toast.js        # Modern toast & confirmation modal system
 │   ├──  app.js              # The main controller (handles DOM UI, event bindings, and Calendar)
