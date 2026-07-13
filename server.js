@@ -48,7 +48,7 @@ function nlpWithTime(dateStr, t) {
 }
 
 function nlpExtractTime(lower) {
-  if (/\bmidnight\b/.test(lower)) return { hours: 23, minutes: 59 };
+  if (/\bmidnight\b/.test(lower)) return { hours: 0, minutes: 0 };
   if (/\bnoon\b/.test(lower)) return { hours: 12, minutes: 0 };
   let m = lower.match(/\b(\d{1,2}):(\d{2})\s*(am|pm)?\b/);
   if (m) {
@@ -86,6 +86,7 @@ function nlpExtractDate(text, now = new Date()) {
   const time = nlpExtractTime(lower);
 
   if (/\btoday\b/.test(lower)) return nlpWithTime(nlpStartOf(now).toISOString(), time);
+  if (/\btonight\b/.test(lower)) return nlpWithTime(nlpStartOf(now).toISOString(), time);
   if (/\bday after tomorrow\b/.test(lower)) return nlpWithTime(nlpStartOf(nlpAddDays(now, 2)).toISOString(), time);
   if (/\btomorrow\b/.test(lower)) return nlpWithTime(nlpStartOf(nlpAddDays(now, 1)).toISOString(), time);
 
@@ -140,7 +141,7 @@ function nlpExtractDate(text, now = new Date()) {
 }
 
 const NLP_SUBJECT_KEYWORDS = {
-  'Computer Science': ['cs','computer science','programming','code','coding','algorithm','data structure','software','python','java','javascript','html','database','sql','network','operating system','os','web','scheduling','lab report','assignment'],
+  'Computer Science': ['cs','computer science','programming','code','coding','algorithm','data structure','software','python','java','javascript','html','database','sql','network','operating system','os','web','scheduling','lab report'],
   'Mathematics': ['maths','math','mathematics','calculus','algebra','statistics','probability','theorem','equation','integral','derivative','matrix','vector','problem set','pset','worksheet','integration'],
   'English Lit': ['english','literature','essay','novel','poem','poetry','shakespeare','writing','prose','narrative','analysis','literary','book report','reading','thesis','draft','revision'],
   'Physics': ['physics','mechanics','thermodynamics','optics','velocity','acceleration','force','energy','momentum','lab','experiment','wave','circuit','resistance','voltage'],
@@ -151,12 +152,18 @@ function nlpDetectSubject(text) {
   const scores = {};
   for (const [sub, kws] of Object.entries(NLP_SUBJECT_KEYWORDS)) {
     scores[sub] = 0;
+    const subjectWords = sub.toLowerCase().split(/\s+/).filter(Boolean);
+    if (lower.includes(sub.toLowerCase())) scores[sub] += 12;
+    if (subjectWords.length > 1 && subjectWords.every(word => lower.includes(word))) scores[sub] += 8;
     for (const kw of kws) {
       const re = new RegExp(`\\b${kw.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}\\b`, 'gi');
       const hits = lower.match(re);
       if (hits) scores[sub] += hits.length * (kw.length > 5 ? 2 : 1);
     }
   }
+  if (/\benglish\s+lit\b|\blit\s+assignment\b/.test(lower)) scores['English Lit'] += 10;
+  if (/\bmaths?\b|\bmathematics\b/.test(lower)) scores['Mathematics'] += 10;
+  if (/\bphysics\b/.test(lower)) scores['Physics'] += 10;
   const best = Object.entries(scores).sort((a, b) => b[1] - a[1])[0];
   return best && best[1] > 0 ? best[0] : null;
 }
@@ -172,7 +179,7 @@ function nlpTaskScore(seg) {
   const lower = seg.toLowerCase();
   let s = 0;
   for (const v of NLP_TASK_VERBS) if (lower.includes(v)) { s += 30; break; }
-  const sigs = ['due','deadline','by','before','submit','tomorrow','next','today','week','month',
+  const sigs = ['due','deadline','by','before','submit','tomorrow','tonight','next','today','week','month',
     'monday','tuesday','wednesday','thursday','friday','saturday','sunday',
     /\d+\/\d+/, /\d{1,2}(st|nd|rd|th)/];
   for (const sig of sigs) if (sig instanceof RegExp ? sig.test(lower) : lower.includes(sig)) { s += 25; break; }
@@ -553,30 +560,87 @@ Text: "${text}"
   return res.json(tasks);
 });
 // ================= AUTH =================
-const users = {}; // Simple in-memory user store
 
+// SIGNUP
 app.post('/api/auth/signup', (req, res) => {
   const { email, password } = req.body;
+
   if (!email || !password) {
-    return res.status(400).json({ error: 'Email and password required' });
+    return res.status(400).json({
+      error: 'Email and password required'
+    });
   }
-  if (users[email]) {
-    return res.status(400).json({ error: 'User already exists' });
-  }
-  users[email] = { email, password };
-  res.json({ success: true, message: 'Account created successfully' });
+
+  const id = 'user_' + Date.now();
+
+  db.run(
+    `INSERT INTO users (id, email, password)
+     VALUES (?, ?, ?)`,
+    [id, email, password],
+    function(err) {
+
+      if (err) {
+
+        if (err.message.includes('UNIQUE')) {
+          return res.status(400).json({
+            error: 'User already exists'
+          });
+        }
+
+        return res.status(500).json({
+          error: err.message
+        });
+      }
+
+      res.json({
+        success: true,
+        message: 'Account created successfully'
+      });
+    }
+  );
 });
 
+// LOGIN
 app.post('/api/auth/login', (req, res) => {
   const { email, password } = req.body;
+
   if (!email || !password) {
-    return res.status(400).json({ error: 'Email and password required' });
+    return res.status(400).json({
+      error: 'Email and password required'
+    });
   }
-  const user = users[email];
-  if (!user || user.password !== password) {
-    return res.status(401).json({ error: 'Invalid email or password' });
-  }
-  res.json({ success: true, email: user.email });
+
+  db.get(
+    `SELECT * FROM users WHERE email = ?`,
+    [email],
+    (err, user) => {
+
+      if (err) {
+        return res.status(500).json({
+          error: err.message
+        });
+      }
+
+      if (!user || user.password !== password) {
+        return res.status(401).json({
+          error: 'Invalid email or password'
+        });
+      }
+
+      res.json({
+        success: true,
+        email: user.email
+      });
+    }
+  );
+});
+
+// LOGOUT
+app.post('/api/auth/logout', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Logged out successfully'
+  });
 });
 
 // Intentional test route for verifying server error page behavior.
