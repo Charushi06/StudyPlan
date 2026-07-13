@@ -15,6 +15,44 @@ function getAllTasksWithSubjects() {
   });
 }
 
+function escapeCsvValue(value = '') {
+  const stringValue = String(value);
+  const formulaSafeValue = /^[=+\-@]/.test(stringValue)
+    ? `'${stringValue}`
+    : stringValue;
+
+  return `"${formulaSafeValue.replace(/"/g, '""')}"`;
+}
+
+function buildTasksCsv(tasks = []) {
+  const rows = [
+    [
+      'Task ID',
+      'Subject',
+      'Title',
+      'Due At',
+      'Status',
+      'Priority',
+      'Confidence Score',
+      'Notes',
+    ],
+    ...tasks.map(task => [
+      task.id,
+      task.subject_name,
+      task.title,
+      task.due_at,
+      task.status,
+      task.priority,
+      task.confidence_score,
+      task.notes,
+    ]),
+  ];
+
+  return rows
+    .map(row => row.map(escapeCsvValue).join(','))
+    .join('\n');
+}
+
 function escapeIcsText(value = '') {
   return String(value)
     .replace(/\\/g, '\\\\')
@@ -81,22 +119,7 @@ function buildCalendarIcs(tasks = []) {
 async function downloadData(req, res) {
   try {
     const data = await getAllTasksWithSubjects();
-
-    const rows = [
-      ['Task ID', 'Subject', 'Title', 'Due At', 'Status', 'Priority', 'Confidence Score', 'Notes'],
-      ...data.map(task => [
-        task.id,
-        task.subject_name,
-        task.title,
-        task.due_at,
-        task.status,
-        task.priority,
-        task.confidence_score,
-        `"${(task.notes || '').replace(/"/g, '""')}"`,
-      ]),
-    ];
-
-    const csvString = rows.map(row => row.join(',')).join('\n');
+    const csvString = buildTasksCsv(data);
 
     res.setHeader('Content-Type', 'text/csv');
     res.setHeader('Content-Disposition', 'attachment; filename="study_data.csv"');
@@ -149,6 +172,8 @@ async function downloadCalendar(req, res) {
 module.exports = {
   downloadData,
   downloadCalendar,
+  buildTasksCsv,
+  escapeCsvValue,
   buildCalendarIcs,
   formatIcsDate,
   escapeIcsText,

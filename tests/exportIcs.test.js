@@ -2,7 +2,9 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 
 const {
+  buildTasksCsv,
   buildCalendarIcs,
+  escapeCsvValue,
   formatIcsDate,
   escapeIcsText,
 } = require('../backend/controllers/csvDownload.controller.js');
@@ -19,6 +21,31 @@ test('escapeIcsText escapes special characters and newlines', () => {
     escapeIcsText('Math, notes; line 1\nline 2 \\ done'),
     'Math\\, notes\\; line 1\\nline 2 \\\\ done'
   );
+});
+
+test('escapeCsvValue quotes fields, escapes quotes, and blocks formula injection', () => {
+  assert.equal(escapeCsvValue('Simple value'), '"Simple value"');
+  assert.equal(escapeCsvValue('A "quoted" note'), '"A ""quoted"" note"');
+  assert.equal(escapeCsvValue('=HYPERLINK("http://evil.example")'), '"\'=HYPERLINK(""http://evil.example"")"');
+});
+
+test('buildTasksCsv exports all columns safely', () => {
+  const output = buildTasksCsv([
+    {
+      id: 'task_42',
+      subject_name: 'Math, "Advanced"',
+      title: '=SUM(1,2)',
+      due_at: '2026-05-15T09:00:00.000Z',
+      status: 'Not Started',
+      priority: 'high',
+      confidence_score: 91.5,
+      notes: 'Line 1\nLine 2',
+    },
+  ]);
+
+  assert.match(output, /^"Task ID","Subject","Title","Due At","Status","Priority","Confidence Score","Notes"/);
+  assert.match(output, /"task_42","Math, ""Advanced""","'\=SUM\(1,2\)","2026-05-15T09:00:00.000Z","Not Started","high","91.5","Line 1\nLine 2"/);
+  assert.doesNotMatch(output, /(^|,)=SUM\(1,2\)/);
 });
 
 test('buildCalendarIcs creates a valid empty calendar', () => {
