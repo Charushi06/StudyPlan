@@ -1615,6 +1615,23 @@ body {
   color: var(--color-background-primary);
   cursor: pointer;
   font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+.profile-btn:hover {
+  background: var(--color-text-secondary);
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: var(--shadow-md);
+}
+
+.profile-btn:active {
+  transform: translateY(0);
+}
+
+.profile-btn:focus {
+  outline: 2px solid var(--color-text-info);
+  outline-offset: 2px;
 }
 
 /* Footer */
@@ -3187,6 +3204,23 @@ body {
   color: var(--color-background-primary);
   cursor: pointer;
   font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+.profile-btn:hover {
+  background: var(--color-text-secondary);
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: var(--shadow-md);
+}
+
+.profile-btn:active {
+  transform: translateY(0);
+}
+
+.profile-btn:focus {
+  outline: 2px solid var(--color-text-info);
+  outline-offset: 2px;
 }
 
 /* Footer */
@@ -4930,6 +4964,23 @@ body {
   color: var(--color-background-primary);
   cursor: pointer;
   font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+.profile-btn:hover {
+  background: var(--color-text-secondary);
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: var(--shadow-md);
+}
+
+.profile-btn:active {
+  transform: translateY(0);
+}
+
+.profile-btn:focus {
+  outline: 2px solid var(--color-text-info);
+  outline-offset: 2px;
 }
 
 
