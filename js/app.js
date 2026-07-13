@@ -82,6 +82,10 @@ function formatDuration(mins) {
     return `${hrs}h ${m > 0 ? m + 'm' : ''}`;
   }
   return `${mins} mins`;
+function renderSummary() {
+  const summaryBox = document.getElementById('summary-box');
+  if (!summaryBox) return;
+  summaryBox.innerHTML = generateSummary(store.tasks, store.subjects);
 }
 
 let currentMonthDate = new Date();
@@ -1819,6 +1823,7 @@ function updateSidebarActive(id) {
   document.querySelectorAll('.sidebar .nav-item').forEach(el => el.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
+store.subscribe(renderSummary);
 
 document.addEventListener('DOMContentLoaded', () => {
   if (newSubjectColorsEl) {
@@ -2279,4 +2284,5 @@ if (calendarDownloadBtn) {
   calendarDownloadBtn.addEventListener('click', () => {
     downloadCalendar();
   });
+}
 }
