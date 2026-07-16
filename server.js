@@ -34,12 +34,10 @@ const ai = process.env.GEMINI_API_KEY
 
 // ============================================================
 // INLINE NLP FALLBACK
-// Moved to backend/utils/nlpTextExtractor.js (byte-identical logic)
-// so the new image-extraction route can reuse it without duplicating
-// ~200 lines of regex heuristics. No behavior changes here.
+// Moved to backend/utils/nlpTextExtractor.js so the image-extraction
+// route can reuse it without duplicating ~200 lines of regex heuristics.
 // ============================================================
 const { nlpExtractTasksFromText } = require('./backend/utils/nlpTextExtractor.js');
-// ============================================================
 
 // ================= SUBJECTS =================
 app.get('/api/subjects', (req, res) => {
