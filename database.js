@@ -1,7 +1,8 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
-const db = new sqlite3.Database(path.join(__dirname, 'studyplan.db'));
+const dbPath = process.env.DB_PATH || path.join(__dirname, 'studyplan.db');
+const db = new sqlite3.Database(dbPath);
 
 function initDb() {
   db.serialize(() => {
