@@ -20,3 +20,8 @@ Thumbs.db
 .vscode/
 .idea/
 studyplan.db
+
+# Tesseract OCR language data cache (downloaded at runtime)
+backend/.tesseract-cache/
+*.traineddata
+.gstack/
