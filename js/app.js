@@ -1027,6 +1027,25 @@ function renderTasks() {
   const completed = [];
   const pending = [];
 
+  const overdueTasks = activeTasks.filter(task => {
+  return (
+    task.status !== "Done" &&
+    task.due_at &&
+    new Date(task.due_at) < new Date()
+  );
+});
+  const smartBtn = document.getElementById(
+  "smart-reschedule-btn"
+);
+
+if (smartBtn) {
+  smartBtn.addEventListener(
+    "click",
+    async () => {
+      await store.smartRescheduleOverdueTasks();
+    }
+  );
+}
   if (currentView === 'calendar' && selectedDate) {
     sorted.forEach(t => {
       const d = new Date(t.due_at);
@@ -1070,7 +1089,22 @@ function renderTasks() {
       }
     });
   }
+  if (overdueTasks.length > 0) {
+  tasksSection.innerHTML = `
+    <div class="conflict-card smart-workload-card high">
+      <div>
+        ⚠ You have ${overdueTasks.length} overdue task(s)
+      </div>
 
+      <button
+        id="smart-reschedule-btn"
+        class="task-action-btn task-action-btn-secondary"
+      >
+        Reschedule Smartly
+      </button>
+    </div>
+  `;
+}
   const renderGroup = (title, items, titleColor, showConflict = false) => {
     if (items.length === 0) return '';
     let html = `<div class="tasks-group">

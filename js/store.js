@@ -23,7 +23,77 @@ export const store = {
   notify() {
     this.listeners.forEach(l => l());
   },
-  
+  async smartRescheduleOverdueTasks() {
+  const now = new Date();
+
+  const overdueTasks = this.tasks.filter(task => {
+    return (
+      task.status !== "Done" &&
+      !task.archived &&
+      task.due_at &&
+      new Date(task.due_at) < now
+    );
+  });
+
+  if (overdueTasks.length === 0) {
+    alert("No overdue tasks found.");
+    return;
+  }
+
+  const updatedTasks = [];
+
+  for (let i = 0; i < overdueTasks.length; i++) {
+    const task = overdueTasks[i];
+
+    let newDate = new Date();
+    newDate.setDate(newDate.getDate() + i + 1);
+
+    // avoid overloaded days
+    while (
+      this.tasks.filter(t => {
+        if (!t.due_at) return false;
+
+        const taskDate = new Date(t.due_at);
+
+        return (
+          taskDate.toDateString() ===
+          newDate.toDateString()
+        );
+      }).length >= 3
+    ) {
+      newDate.setDate(newDate.getDate() + 1);
+    }
+
+    task.due_at = newDate.toISOString();
+
+    updatedTasks.push(
+      fetch(`/api/tasks/${task.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          due_at: task.due_at
+        })
+      })
+    );
+  }
+
+  try {
+    await Promise.all(updatedTasks);
+    alert(
+      `${overdueTasks.length} overdue task(s) rescheduled successfully`
+    );
+
+    const tasksRes = await fetch('/api/tasks');
+    this.tasks = await tasksRes.json();
+    this.notify();
+
+  } catch (error) {
+    console.error(error);
+    alert("Failed to reschedule tasks");
+  }
+},
   async fetchInitialData() {
     try {
       const [subsRes, tasksRes] = await Promise.all([
