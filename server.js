@@ -5,10 +5,11 @@ const { db, initDb } = require('./database');
 const { GoogleGenAI } = require('@google/genai');
 const path = require('path');
 const csvDownloadRouter = require('./backend/routers/csvDownload.router.js');
+const { validateExtractionText } = require('./backend/utils/extractValidation.js');
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '1mb' }));
 
 const page404Path = path.join(__dirname, '404.html');
 const page500Path = path.join(__dirname, 'error.html');
@@ -530,7 +531,13 @@ app.delete('/api/tasks/:id', (req, res) => {
 // ================= AI EXTRACTION =================
 app.post('/api/extract', async (req, res) => {
   const { text } = req.body;
-  if (!text) return res.status(400).json({ error: 'Text is required' });
+  const validation = validateExtractionText(text);
+
+  if (!validation.ok) {
+    return res.status(validation.statusCode).json({ error: validation.error });
+  }
+
+  const safeText = validation.text;
 
   if (ai) {
     try {
@@ -540,7 +547,7 @@ Return ONLY a raw JSON array (no markdown, no backticks, no explanation).
 Each object must have: title (string), subject_name (string), due_at (ISO 8601 datetime), notes (string), confidence_score (number 0-100), priority ("low"|"medium"|"high"), icon (emoji).
 IMPORTANT: Do not strip hashtags from the task description! If the original text contains hashtag labels (e.g. #urgent, #Group), you MUST include them at the end of the 'title' field (e.g. 'Read chapter 1 #urgent').
 
-Text: "${text}"
+Text: "${safeText}"
 `;
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
@@ -559,7 +566,7 @@ Text: "${text}"
   }
 
   // NLP heuristic fallback (no API key, or Gemini failed)
-  const tasks = nlpExtractTasksFromText(text);
+  const tasks = nlpExtractTasksFromText(safeText);
   return res.json(tasks);
 });
 // ================= AUTH =================
