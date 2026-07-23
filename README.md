@@ -7,6 +7,31 @@
 
 ---
 
+
+## 📸 Screenshots
+
+### 🎯 Focus Mode
+![Focus Mode](screenshots/focus-mode.png)
+
+Stay productive using the built-in Pomodoro-style focus timer and task tracking system.
+
+### 📦 Archived Tasks
+![Archived Tasks](screenshots/archived-tasks.png)
+
+Access completed and archived tasks in a dedicated section for better organization.
+
+### 📅 Calendar View
+![Calendar View](screenshots/calendar-view.png)
+
+Visualize deadlines, study sessions, and upcoming tasks through an interactive calendar.
+
+### ➕ Create New Task
+![Create New Task](screenshots/create-task.png)
+
+Quickly create and manage study tasks with subject categorization and deadline support.
+
+---
+
 ## 🧠 The Idea
 
 Students don’t lack information.  
@@ -204,7 +229,13 @@ Open → http://localhost:3000
 ├──  js
 │   ├──  utils
 │   │   ├──  aiMock.js       # The original mock UI extraction hook (deprecated)
-│   │   ├──  api.js          # The live fetch logic communicating with our Express API
+│   │   ├──  api.js          # The live fetch logic communicating with our Express 
+screenshots/
+├── focus-mode.png
+├── archived-tasks.png
+├── calendar-view.png
+└── create-task.png
+API
 │   │   └──  toast.js        # Modern toast & confirmation modal system
 │   ├──  app.js              # The main controller (handles DOM UI, event bindings, and Calendar)
 │   └──  store.js            # The Custom State Manager handling our frontend Pub/Sub state
