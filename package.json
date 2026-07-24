@@ -1,7 +1,7 @@
 {
   "name": "study-plan",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "test": "node --test"
@@ -12,12 +12,14 @@
   "description": "",
   "dependencies": {
     "@google/genai": "^1.49.0",
+    "@google/generative-ai": "^0.24.1",
+    "axios": "^1.16.1",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "sqlite3": "^6.0.1"
   },
   "engines": {
-    "node": "20.x"
+    "node": ">=20.x"
   }
 }
