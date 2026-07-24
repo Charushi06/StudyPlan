@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const { db, initDb } = require('./database');
 const { GoogleGenAI } = require('@google/genai');
+const { randomUUID } = require('crypto');
 const path = require('path');
 const csvDownloadRouter = require('./backend/routers/csvDownload.router.js');
 const app = express();
@@ -372,7 +373,7 @@ app.get('/api/tasks', (req, res) => {
 });
 
 // ================= ADD TASKS =================
-app.post('/api/tasks', (req, res) => {
+app.post('/api/tasks', async (req, res) => {
   try {
     const tasks = Array.isArray(req.body) ? req.body : [req.body];
 
@@ -388,97 +389,80 @@ app.post('/api/tasks', (req, res) => {
       (id, subject_id, title, due_at, status, priority, confidence_score, notes, estimated_duration, is_estimated_duration_min, labels) 
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
 
+    const taskPromises = tasks.map((t) => {
+      return new Promise((resolve) => {
+        let validationError = null;
 
-    let pending = tasks.length;
-
-    tasks.forEach(t => {
-      let validationError = null;
-  if (!t.title && !t.subject_id && !t.due_at) {
-    validationError = "Missing title, subject, and deadline";
-  } else if (!t.title) {
-    validationError = "Task name is required";
-  } else if (!t.subject_id) {
-    validationError = "Subject is required";
-  } else if (!t.due_at) {
-    validationError = "Deadline is required";
-  }
-
-  if (validationError) {
-    errors.push({ task: t, error: validationError });
-    pending--;
-    if (pending === 0) {
-      if (inserted === 0) {
-        return res.status(400).json({ 
-          success: false, inserted, duplicates, errors, 
-          message: errors.length === tasks.length ? errors[0].error : "Some tasks are invalid"
-        });
-      }
-      stmt.finalize(() => res.status(400).json({ 
-        success: false, inserted, duplicates, errors, 
-        message: "Some tasks are invalid"
-      }));
-    }
-    return;
-  }
-
-      db.get(
-        `SELECT * FROM tasks WHERE LOWER(title) = LOWER(?) AND subject_id = ? AND DATE(due_at) = DATE(?)`,
-        [t.title, t.subject_id, t.due_at],
-        (err, existing) => {
-          if (err) {
-            errors.push({ task: t, error: err.message });
-          } else if (existing) {
-            duplicates.push({
-              title: t.title,
-              due_at: t.due_at,
-              subject_id: t.subject_id
-            });
-          } else {
-            const id = 'task_' + Date.now() + Math.random().toString(36).substr(2, 5);
-            stmt.run(
-              id,
-              t.subject_id,
-              t.title,
-              t.due_at,
-              t.status || 'Not Started',
-              t.priority || 'medium',
-              t.confidence_score || 100,
-              t.notes || '',
-              Number.isFinite(Number(t.estimated_duration)) ? Number(t.estimated_duration) : null,
-              t.is_estimated_duration_min === 0 ? 0 : 1,
-              typeof t.labels === 'string' ? t.labels : JSON.stringify(t.labels || []),
-              function (insertErr) {
-                if (insertErr) {
-                  errors.push({ task: t, error: insertErr.message });
-                } else {
-                  inserted++;
-                }
-              }
-            );
-          }
-
-          pending--;
-          if (pending === 0) {
-            stmt.finalize((finalErr) => {
-              if (finalErr) return res.status(500).json({ success: false, message: "Database error", error: finalErr.message });
-              return res.json({
-                success: true,
-                inserted,
-                duplicates,
-                errors,
-                message:
-                  errors.length > 0 && duplicates.length > 0
-                    ? "Some tasks failed and some duplicates were skipped"
-                    : errors.length > 0
-                      ? "Some tasks failed to add"
-                      : duplicates.length > 0
-                        ? "Duplicate tasks were skipped"
-                        : "All tasks added successfully"
-              });
-            });
-          }
+        if (!t.title && !t.subject_id && !t.due_at) {
+          validationError = "Missing title, subject, and deadline";
+        } else if (!t.title) {
+          validationError = "Task name is required";
+        } else if (!t.subject_id) {
+          validationError = "Subject is required";
+        } else if (!t.due_at) {
+          validationError = "Deadline is required";
         }
-      );
+
+        if (validationError) {
+          errors.push({ task: t, error: validationError });
+          return resolve();
+        }
+
+        const id = 'task_' + randomUUID();
+        stmt.run(
+          id,
+          t.subject_id,
+          t.title,
+          t.due_at,
+          t.status || 'Not Started',
+          t.priority || 'medium',
+          t.confidence_score || 100,
+          t.notes || '',
+          Number.isFinite(Number(t.estimated_duration)) ? Number(t.estimated_duration) : null,
+          t.is_estimated_duration_min === 0 ? 0 : 1,
+          typeof t.labels === 'string' ? t.labels : JSON.stringify(t.labels || []),
+          function (insertErr) {
+            if (insertErr) {
+              if (insertErr.code?.includes('SQLITE_CONSTRAINT') || insertErr.message?.includes('UNIQUE')) {
+                duplicates.push({ title: t.title, due_at: t.due_at, subject_id: t.subject_id });
+              } else {
+                errors.push({ task: t, error: insertErr.message });
+              }
+            } else {
+              inserted++;
+            }
+            resolve();
+          }
+        );
+      });
+    });
+
+    await Promise.all(taskPromises);
+    await new Promise((resolve) => stmt.finalize(resolve));
+
+    if (errors.length > 0 && inserted === 0) {
+      return res.status(400).json({
+        success: false,
+        inserted,
+        duplicates,
+        errors,
+        message: errors.length === tasks.length ? errors[0].error : "Some tasks are invalid"
+      });
+    }
+
+    return res.json({
+      success: true,
+      inserted,
+      duplicates,
+      errors,
+      message:
+        errors.length > 0 && duplicates.length > 0
+          ? "Some tasks failed and some duplicates were skipped"
+          : errors.length > 0
+            ? "Some tasks failed to add"
+            : duplicates.length > 0
+              ? "Duplicate tasks were skipped"
+              : "All tasks added successfully"
     });
 
   } catch (e) {

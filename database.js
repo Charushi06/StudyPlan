@@ -43,6 +43,8 @@ function initDb() {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (subject_id) REFERENCES subjects(id)
     )`);
+    db.run(`CREATE UNIQUE INDEX IF NOT EXISTS idx_tasks_unique_date_title_subject
+      ON tasks (LOWER(title), subject_id, DATE(due_at))`);
 
     // Add labels column to existing tasks table if it doesn't exist
     db.all("PRAGMA table_info(tasks)", (err, rows) => {
