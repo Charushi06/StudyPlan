@@ -5,9 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>StudyPlan</title>
   <link rel="stylesheet" href="/css/index.css">
-
+  <link rel="stylesheet" href="./css/chatbot.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intro.js/minified/introjs.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
   <script src="/js/lib/confetti.browser.min.js"></script>
-
   <link rel="icon" type="image/x-icon" href="/public/favicon.ico" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -23,6 +24,11 @@
     <input id="auth-email" type="email" placeholder="Email address" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:12px; box-sizing:border-box;">
     
     <input id="auth-password" type="password" placeholder="Password" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:20px; box-sizing:border-box;">
+
+    <input id="auth-confirm-password"
+       type="password"
+       placeholder="Confirm Password"
+       style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:20px; box-sizing:border-box; display:none;">
 
     <button id="auth-submit-btn" style="width:100%; padding:12px; background:#4f46e5; color:white; border:none; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer;">
     Sign In
@@ -44,7 +50,6 @@
       <a id="auth-toggle-btn" href="#" style="color:#4f46e5; font-weight:600; margin-left:4px;">Sign Up</a>
     </p>
 
-    <p id="auth-error" style="color:red; font-size:13px; text-align:center; margin:8px 0 0; display:none;"></p>
   </div>
 </div>
 
@@ -55,25 +60,66 @@
   </div>
 
   <nav class="header-nav">
-    <a href="#">Dashboard</a>
-    <a href="#">Tasks</a>
-    <a href="#">Calendar</a>
-    <a href="#" id="nav-settings">Settings</a>
-  </nav>
+  <a href="#" id="nav-dashboard">Dashboard</a>
+  <a href="#" id="nav-tasks">Tasks</a>
+  <a href="#" id="nav-calendar">Calendar</a>
+  <a href="#" id="nav-settings">Settings</a>
+</nav>
 
   <div class="header-right">
-    <button class="profile-btn">Profile</button>
+    <button class="profile-btn" id="restart-tour-btn">Take Tour</button>
+    <div style="position: relative; display: inline-block;">
+      <button class="profile-btn" id="profile-btn">Profile</button>
+      <div id="profile-popover" style="display:none; position:absolute; right:0; top:48px; background:var(--color-background-primary); border:1px solid var(--color-border-tertiary); border-radius:12px; padding:16px; width:260px; box-shadow:var(--shadow-lg); z-index:10000; color:var(--color-text-primary); text-align:left;">
+      </div>
+    </div>
+    <!--Streak Badge-->
+    <div class="streak-badges">
+      <div
+        class="badge-wrapper hidden"
+        id="badge-3-wrapper"
+        title="3 Day Streak"
+      >
+        <img
+          src="/public/medal-3daystreak.svg"
+          alt="3 Day Streak"
+          class="streak-badge"
+        />
+      </div>
+      <div
+        class="badge-wrapper hidden"
+        id="badge-7-wrapper"
+        title="7 Day Streak"
+      >
+        <img
+          src="/public/rocket-7daystreak.svg"
+          alt="7 Day Streak"
+          class="streak-badge"
+        />
+      </div>
+      <div
+        class="badge-wrapper hidden"
+        id="badge-30-wrapper"
+        title="30 Day Streak"
+      >
+        <img
+          src="/public/crown-30andmorestreak.svg"
+          alt="30 Day Streak"
+          class="streak-badge"
+        />
+      </div>
+    </div>
     <button class="profile-btn" id="logout-btn">Logout</button>
   </div>
 </header>
 
 
 <div class="wrapper">
-  <!-- <p class="label">StudyPlan</p> -->
-
   <div class="app">
     <!-- Sidebar -->
-    <div class="sidebar">
+    <div class="sidebar"
+        data-intro="This is your dashboard navigation where you can access planner features."
+        data-step="1">
       <div class="sidebar-header">Study Planner</div>
       <div class="nav-item active" id="calendar-btn" role="link" aria-label="View Calendar">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="1" y="2" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M1 6h14" stroke="currentColor" stroke-width="1.5"/><path d="M5 1v2M11 1v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
@@ -120,34 +166,49 @@
           <button class="view-btn" data-view="week">Week</button>
           <button class="view-btn" data-view="day">Day</button>
         </div>
+        <div class="streak-display" id="streak-display">
+          <img
+            src="/public/streak-icon.svg"
+            alt="Streak"
+            class="streak-icon"
+            id="streak-icon"
+          />
+          <span id="streak-count">0</span>
+           <div class="streak-tooltip" id="streak-tooltip">
+            Complete tasks to build streak & earn cool badges
+          </div>
+        </div>
+        <select id="label-filter" style="margin-left:auto; margin-right: 12px; padding: 6px; border-radius: 6px; border: 1px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); outline: none; cursor: pointer;">
+          <option value="">All Labels</option>
+        </select>
         <button class="btn btn-primary" id="add-task-btn">
           <svg width="12" height="12" fill="none" style="margin-right:2px"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> New task
         </button>
       </div>
 
       <!-- Dashboard Greeting -->
-        <div class="dashboard-greeting" style="padding: 16px 24px 0; display: flex; justify-content: center;">
-          <div class="quote-widget">
-            <svg class="quote-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path d="M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <p id="motivational-quotes">
-              Small Progress is still Progress
-            </p>
-          </div>
-        </div>
+<div class="dashboard-greeting" style="padding: 16px 24px 0; display: flex; justify-content: center;">
+  <div class="quote-widget">
+    <svg class="quote-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <path d="M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+    </svg>
 
-      <!-- Calendar -->
-      <div class="cal-section">
-        
+    <p id="motivational-quotes">
+      Stay consistent. Small progress every day leads to big success.
+    </p>
+
+  </div>
+</div>
+        <div class="cal-section" data-intro="Track deadlines and study sessions using the calendar." data-step="3">
         <div class="cal-header">
           
           <div id="cal-month-title" class="cal-title">April 2026</div>
           <span id="cal-prev" class="cal-nav">‹</span>
           <span id="cal-next" class="cal-nav">›</span>
           <span class="collapse-icon">▼</span>
-          <span id="cal-prev" class="cal-nav" role="button" aria-label="Previous Month">‹</span>
-          <span id="cal-next" class="cal-nav" role="button" aria-label="Next Month">›</span>
         </div>
         <div id="cal-grid" class="cal-grid">
           <div class="cal-day-label">Su</div><div class="cal-day-label">Mo</div><div class="cal-day-label">Tu</div><div class="cal-day-label">We</div><div class="cal-day-label">Th</div><div class="cal-day-label">Fr</div><div class="cal-day-label">Sa</div>
@@ -168,13 +229,13 @@
       </div>
 
       <!-- Tasks -->
-      <div id="tasks-section" class="tasks-section">
+      <div id="tasks-section" class="tasks-section" data-intro="Manage and organize all your study tasks here." data-step="2">
         <!-- Javascript will inject tasks here -->
         
       </div>
 
       <!-- Focus Mode -->
-      <div id="focus-section" class="focus-section hidden">
+      <div id="focus-section" class="focus-section hidden" data-intro="Focus Mode helps you study distraction-free using a timer." data-step="5">
         <div class="focus-dashboard">
           <div class="timer-container">
             <svg class="timer-svg" viewBox="0 0 100 100">
@@ -213,10 +274,65 @@
           </div>
         </div>
       </div>
+
+      <div id="profile-section" class="profile-section hidden">
+        <div class="profile-header">
+          <div>
+            <div class="profile-page-title">Profile</div>
+            <p class="profile-page-subtitle">View your account summary, study stats, and future account settings in one place.</p>
+          </div>
+        </div>
+
+        <div class="profile-grid">
+          <section class="profile-card">
+            <h2>Account details</h2>
+            <div class="profile-field">
+              <span class="profile-field-label">Username</span>
+              <span id="profile-username">StudyPlan User</span>
+            </div>
+            <div class="profile-field">
+              <span class="profile-field-label">Email</span>
+              <span id="profile-email">user@studyplan.app</span>
+            </div>
+            <div class="profile-field">
+              <span class="profile-field-label">Member since</span>
+              <span id="profile-joined">June 2026</span>
+            </div>
+          </section>
+
+          <section class="profile-card">
+            <h2>Study statistics</h2>
+            <div class="profile-stats">
+              <div>
+                <span class="profile-stat-value" id="profile-completed-count">0</span>
+                <span>Completed</span>
+              </div>
+              <div>
+                <span class="profile-stat-value" id="profile-pending-count">0</span>
+                <span>Pending</span>
+              </div>
+              <div>
+                <span class="profile-stat-value" id="profile-archived-count">0</span>
+                <span>Archived</span>
+              </div>
+              <div>
+                <span class="profile-stat-value" id="profile-subjects-count">0</span>
+                <span>Subjects</span>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <section class="profile-card profile-summary-card">
+          <h2>Account overview</h2>
+          <p id="profile-summary-text">Your profile information and study statistics will update automatically as you use StudyPlan.</p>
+        </section>
+      </div>
+
     </div>
 
     <!-- Right Panel -->
-    <div class="panel">
+    <div class="panel" data-intro="Use Smart Paste to instantly extract tasks from text using AI." data-step="4">
       <div class="panel-header">
         <button id="panel-toggle-btn" class="panel-toggle-btn" title="Toggle Smart Paste">
           <svg id="panel-toggle-icon" width="16" height="16" fill="none" viewBox="0 0 16 16"><path d="M10 4l-4 4 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -254,9 +370,6 @@
   </button>
 </div>
 
-<!-- 
-      <button id="add-btn" class="add-btn" disabled>Add items to planner</button> -->
-    </div>
   </div>
 </div>
 
@@ -313,13 +426,13 @@
       </div>
     </div>
 
-    <button id="settings-save" style="width:100%; padding:12px; background:var(--color-text-primary); color:var(--color-background-primary); border:none; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; margin-top:8px;">
-      Save Changes
+    <button id="settings-save" style="width:100%; padding:12px; background:var(--color-text-primary); color:var(--color-background-primary); border:none; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; margin-top:8px;">Close
     </button>
   </div>
 </div>
 
   <script type="module" src="/js/app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/intro.js/minified/intro.min.js"></script>
   <script>
   let isLogin = true;
 
@@ -331,10 +444,20 @@
     document.getElementById('auth-submit-btn').textContent = isLogin ? 'Sign In' : 'Sign Up';
     document.getElementById('auth-toggle-text').textContent = isLogin ? "Don't have an account?" : 'Already have an account?';
     document.getElementById('auth-toggle-btn').textContent = isLogin ? 'Sign Up' : 'Sign In';
+     document.getElementById('auth-confirm-password').style.display = isLogin ? 'none' : 'block';
     document.getElementById('auth-error').style.display = 'none';
   });
 
-  // Password validation function
+  // Email validation function
+function validateEmail(email) {
+
+  // format of email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  return emailRegex.test(email);
+}
+
+// Password validation function
 function validatePassword(password) {
 
   // Minimum 8 characters
@@ -353,6 +476,7 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
 
   const email = document.getElementById('auth-email').value.trim();
   const password = document.getElementById('auth-password').value.trim();
+  const confirmPassword = document.getElementById('auth-confirm-password').value.trim();
   const errorEl = document.getElementById('auth-error');
 
   errorEl.style.display = 'none';
@@ -364,10 +488,22 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
     return;
   }
 
+  // Email format validation
+  if (!validateEmail(email)) {
+    errorEl.textContent = 'Please enter a valid email address.';
+    errorEl.style.display = 'block';
+    return;
+  }
+
   // Password validation check
   if (!validatePassword(password)) {
     errorEl.textContent =
       'Password must be at least 8 characters long, contain 1 capital letter and 1 special character.';
+    errorEl.style.display = 'block';
+    return;
+  }
+  if (!isLogin && password !== confirmPassword) {
+    errorEl.textContent = 'Passwords do not match';
     errorEl.style.display = 'block';
     return;
   }
@@ -388,8 +524,11 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
         return;
       }
 
-      localStorage.setItem('studyplan_user', JSON.stringify({ email: data.email }));
+      const storedEmail = data.email || email;
+      const derivedName = data.name || (storedEmail ? storedEmail.split('@')[0] : 'User');
+      localStorage.setItem('studyplan_user', JSON.stringify({ email: storedEmail, name: derivedName }));
       document.getElementById('auth-modal').style.display = 'none';
+      try { if (typeof renderProfile === 'function') renderProfile(); } catch (e) {}
 
     } catch (err) {
       errorEl.textContent = 'Network error. Please try again.';
@@ -402,17 +541,73 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
     document.getElementById('auth-modal').style.display = 'none';
   }
 
-  // Logout Button Functionality
-  const logoutBtn = document.getElementById('logout-btn');
-  logoutBtn.addEventListener('click', () => {
-    localStorage.removeItem('studyplan_user');
+  // (Header logout removed) logout handled in profile popover
 
-    // Show login modal again
-    document.getElementById('auth-modal').style.display = 'flex';
+  // Profile Button / Popover
+  const profileBtn = document.getElementById('profile-btn');
+  const profilePopover = document.getElementById('profile-popover');
 
-    // Refresh page state
-    window.location.reload();
-});
+  function renderProfile() {
+    const userStr = localStorage.getItem('studyplan_user');
+    if (!profileBtn) return;
+    if (!userStr) {
+      profileBtn.innerHTML = 'Profile';
+      if (profilePopover) profilePopover.style.display = 'none';
+      return;
+    }
+    let user;
+    try { user = JSON.parse(userStr); } catch (e) { user = { email: userStr }; }
+    const name = user.name || (user.email ? user.email.split('@')[0] : 'User');
+    const avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=4f46e5&color=fff&size=128`;
+    profileBtn.innerHTML = `<img src="${avatar}" alt="avatar" style="width:28px;height:28px;border-radius:50%;vertical-align:middle;margin-right:8px;"> ${name}`;
+    if (profilePopover) {
+      profilePopover.innerHTML = `
+        <div style="display:flex; gap:12px; align-items:center; color:var(--color-text-primary);">
+          <img src="${avatar}" style="width:64px;height:64px;border-radius:50%">
+          <div>
+            <div style="font-weight:700">${name}</div>
+            <div style="color:var(--color-text-secondary); font-size:13px; word-break:break-all;">${user.email || ''}</div>
+          </div>
+        </div>
+        <div style="margin-top:12px;">
+          <button id="popover-logout" class="btn" style="width:100%; box-sizing:border-box; cursor:pointer;">Logout</button>
+        </div>
+      `;
+    }
+  }
+
+  profileBtn.addEventListener('click', (e) => {
+    if (!localStorage.getItem('studyplan_user')) {
+      document.getElementById('auth-modal').style.display = 'flex';
+      return;
+    }
+    if (profilePopover) {
+      profilePopover.style.display = profilePopover.style.display === 'block' ? 'none' : 'block';
+      const expanded = profilePopover.style.display === 'block';
+      profileBtn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+    }
+  });
+
+  // Close popover when clicking outside
+  document.addEventListener('click', (e) => {
+    if (profilePopover && !profilePopover.contains(e.target) && e.target !== profileBtn) {
+      profilePopover.style.display = 'none';
+      profileBtn.setAttribute('aria-expanded','false');
+    }
+  });
+
+  // Logout from popover
+  document.addEventListener('click', (e) => {
+    if (e.target && e.target.id === 'popover-logout') {
+      localStorage.removeItem('studyplan_user');
+      document.getElementById('auth-modal').style.display = 'flex';
+      if (profilePopover) profilePopover.style.display = 'none';
+      window.location.reload();
+    }
+  });
+
+  // Render profile on load
+  renderProfile();
 
   // Settings Modal Logic
   const settingsModal = document.getElementById('settings-modal');
@@ -467,11 +662,8 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
   // Run on load
   loadPreferences();
 
-  // Save changes when user clicks "Save Changes"
+  // Close modal when user clicks Close button
   settingsSave.addEventListener('click', () => {
-    localStorage.setItem('studyplan_dark_mode', darkModeToggle.checked);
-    localStorage.setItem('studyplan_compact_view', compactViewToggle.checked);
-    loadPreferences();
     settingsModal.style.display = 'none';
   });
 
@@ -491,53 +683,19 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
       document.body.classList.remove('compact-view');
     }
   });
-</script>
 
-<div id="new-subject-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0; z-index:9998; align-items:center; justify-content:center;">
-  <div class="modal-card" style="border-radius:12px; padding:20px; width:320px; box-shadow:0 12px 40px rgba(0,0,0,0.25);">
-    <h3 style="margin:0 0 12px; font-size:18px; font-weight:600;">New subject</h3>
-    <label style="display:block; font-size:12px; margin-bottom:4px;">Subject name</label>
-    <input id="new-subject-name" type="text" style="width:100%; padding:6px; margin-bottom:12px;" placeholder="e.g. History">
-    <label style="display:block; font-size:12px; margin-bottom:6px;">Color</label>
-    <div id="new-subject-colors" class="subject-color-swatches"></div>
-    <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
-      <button id="new-subject-cancel" class="btn" style="padding:6px 10px;">Cancel</button>
-      <button id="new-subject-save" class="btn btn-primary" style="padding:6px 12px;">Save</button>
-    </div>
-  </div>
-</div>
+function startTour() {
+  introJs().setOptions({
+    nextLabel: "Next →",
+    prevLabel: "← Back",
+    doneLabel: "Finish",
+    skipLabel: "Skip",
+    showProgress: true,
+    exitOnOverlayClick: false,
+    scrollToElement: true,
+    disableInteraction: true
+  }).start();
+}
 
-<div id="new-task-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0;  z-index:9998; align-items:center; justify-content:center;">
-  <div class="modal-card" style=" border-radius:12px; padding:20px; width:320px; box-shadow:0 12px 40px rgba(0,0,0,0.25);">
-    <h3 style="margin:0 0 12px; font-size:18px; font-weight:600;">New task</h3>
-
-    <label style="display:block; font-size:12px; margin-bottom:4px;">Subject</label>
-    <select id="new-task-subject" paceholder="Subject" style="width:100%; padding:6px; margin-bottom:10px;"></select>
-
-    <label style="display:block; font-size:12px; margin-bottom:4px;">Task name (Use #tag for labels)</label>
-    <input id="new-task-title" type="text" style="width:100%; padding:6px; margin-bottom:10px;"placeholder="e.g. Study for exam #urgent #school">
-
-    <label style="display:block; font-size:12px; margin-bottom:4px;">Deadline</label>
-    <input id="new-task-date" type="datetime-local" style="width:100%; padding:6px; margin-bottom:10px;" placeholder="Deadline">
-
-    <label style="display:block; font-size:12px; margin-bottom:4px;">Estimated Completion Time</label>
-    <div style="display:flex; gap:8px; margin-bottom:10px;">
-      <input id="new-task-estimated-duration" type="number" min="1" step="1" style="flex:1; padding:6px;" placeholder="Duration">
-      <div id="new-task-duration-switch" class="duration-switch" data-unit="minutes">
-        <span class="duration-switch-thumb"></span>
-        <button id="new-task-duration-min" type="button" class="duration-switch-option active" data-unit="minutes">Min</button>
-        <button id="new-task-duration-hr" type="button" class="duration-switch-option" data-unit="hours">Hr</button>
-      </div>
-    </div>
-
-    <!-- <label style="display:block; font-size:12px; margin-bottom:4px;">Notes</label> -->
-    <input id="new-task-notes" type="text" style="width:100%; padding:6px; margin-bottom:16px;" placeholder="Notes">
-
-    <div style="display:flex; justify-content:flex-end; gap:8px;">
-      <button id="new-task-cancel" class="btn" style="padding:6px 10px;">Cancel</button>
-      <button id="new-task-save" class="btn btn-primary" style="padding:6px 12px;">Save</button>
-    </div>
-  </div>
-</div>
-</body>
-</html>
+// Auto-start tour for first-time users
+window.addEventListener("DOMContentLoaded", ()

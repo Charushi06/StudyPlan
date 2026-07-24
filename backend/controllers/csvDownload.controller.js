@@ -39,7 +39,11 @@ function formatIcsDate(dateInput) {
 function buildCalendarIcs(tasks = []) {
   const dtstamp = formatIcsDate(new Date().toISOString());
   const events = tasks
-    .filter(task => task.due_at)
+    .filter(task => {
+      if (!task.due_at) return false;
+      const d = new Date(task.due_at);
+      return !isNaN(d.getTime());
+    })
     .map(task => {
       const start = new Date(task.due_at);
       const end = new Date(start.getTime() + 60 * 60 * 1000);
@@ -74,7 +78,42 @@ function buildCalendarIcs(tasks = []) {
   ].join('\r\n');
 }
 
+function escapeCsvField(value = '') {
+  const stringValue = String(value ?? '');
+
+  return `"${stringValue.replace(/"/g, '""')}"`;
+}
+
 async function downloadData(req, res) {
+  try {
+    const data = await getAllTasksWithSubjects();
+
+    const rows = [
+      ['Task ID', 'Subject', 'Title', 'Due At', 'Status', 'Priority', 'Confidence Score', 'Notes'],
+      ...data.map(task => [
+        escapeCsvField(task.id),
+        escapeCsvField(task.subject_name),
+        escapeCsvField(task.title),
+        escapeCsvField(task.due_at),
+        escapeCsvField(task.status),
+        escapeCsvField(task.priority),
+        escapeCsvField(task.confidence_score),
+        escapeCsvField(task.notes),
+      ]),
+    ];
+
+    const csvString = rows.map(row => row.join(',')).join('\n');
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="study_data.csv"');
+    return res.status(200).send(csvString);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Failed to download data' });
+  }
+}
+
+async function reviewDownloadData(req, res) {
   try {
     const data = await getAllTasksWithSubjects();
 
@@ -92,11 +131,7 @@ async function downloadData(req, res) {
       ]),
     ];
 
-    const csvString = rows.map(row => row.join(',')).join('\n');
-
-    res.setHeader('Content-Type', 'text/csv');
-    res.setHeader('Content-Disposition', 'attachment; filename="study_data.csv"');
-    return res.status(200).send(csvString);
+    return res.status(200).send(rows);
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Failed to download data' });
@@ -123,4 +158,5 @@ module.exports = {
   buildCalendarIcs,
   formatIcsDate,
   escapeIcsText,
+  reviewDownloadData
 };

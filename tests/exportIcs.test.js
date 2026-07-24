@@ -70,3 +70,19 @@ test('buildCalendarIcs skips tasks without due dates', () => {
 
   assert.doesNotMatch(output, /BEGIN:VEVENT/);
 });
+
+test('buildCalendarIcs skips tasks with invalid due dates', () => {
+  const output = buildCalendarIcs([
+    {
+      id: 'task_invalid_date',
+      title: 'Task with bad date',
+      due_at: 'invalid-date',
+      notes: '',
+      status: 'Not Started',
+      priority: 'medium',
+      subject_name: 'General',
+    },
+  ]);
+
+  assert.doesNotMatch(output, /BEGIN:VEVENT/);
+});

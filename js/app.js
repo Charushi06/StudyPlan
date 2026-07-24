@@ -1,4 +1,6 @@
 function renderTasks() {
+  ensureTaskSelectionStyles();
+
   const tasks = store.tasks;
   const subjects = store.subjects;
   
@@ -58,8 +60,22 @@ function renderTasks() {
         completed.push(t);
         return;
       }
+
       pending.push(t);
+
+      if (!t.due_at) {
+        thisWeek.push(t);
+        return;
+      }
+
       const d = new Date(t.due_at);
+
+      // Ignore invalid dates
+      if (isNaN(d.getTime())) {
+        thisWeek.push(t);
+        return;
+      }
+
       const diffDays = (d - now) / (1000 * 60 * 60 * 24);
       if (diffDays < 0) {
         overdue.push(t);
@@ -91,13 +107,13 @@ function renderTasks() {
       const isDone = t.status === 'Done';
       
       let pillClass = '';
-      if(sub.short_code === 'CS') pillClass = 'pill-blue';
-      else if(sub.short_code === 'Maths') pillClass = 'pill-green';
-      else if(sub.short_code === 'English') pillClass = 'pill-purple';
+      if (sub.short_code === 'CS') pillClass = 'pill-blue';
+      else if (sub.short_code === 'Maths') pillClass = 'pill-green';
+      else if (sub.short_code === 'English') pillClass = 'pill-purple';
       else pillClass = 'pill-amber';
-      
+
       if (t._isEditing) {
-        let subjectOptions = subjects.map(s => 
+        let subjectOptions = subjects.map(s =>
           `<option value="${s.id}" ${s.id === t.subject_id ? 'selected' : ''}>${s.name}</option>`
         ).join('');
         const localDate = t.due_at ? new Date(t.due_at).toISOString().substring(0, 16) : '';
@@ -151,7 +167,7 @@ function renderTasks() {
   };
   
   if (currentView === 'calendar' && selectedDate) {
-    const selStr = selectedDate.toLocaleDateString('en-US', {month:'short', day:'numeric'});
+    const selStr = selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     const actionBar = `<div class="tasks-actions-bar">
       <button id="mark-all-pending-btn" class="task-action-btn" ${pending.length === 0 ? 'disabled' : ''}>Mark all pending completed (${pending.length})</button>
       <button id="mark-day-complete-btn" class="task-action-btn task-action-btn-secondary" ${pending.length === 0 ? 'disabled' : ''}>Mark selected day completed</button>
@@ -260,4 +276,48 @@ function renderTasks() {
       store.markPendingTasksForDateCompleted(selectedDate);
     });
   }
+  const bulkCompleteBtn =
+  document.getElementById('bulk-complete-btn');
+
+if (bulkCompleteBtn) {
+  bulkCompleteBtn.addEventListener('click', () => {
+    store.bulkCompleteTasks();
+  });
+}
+
+const bulkArchiveBtn =
+  document.getElementById('bulk-archive-btn');
+
+if (bulkArchiveBtn) {
+  bulkArchiveBtn.addEventListener('click', () => {
+    store.bulkArchiveTasks();
+  });
+}
+
+const bulkDeleteBtn =
+  document.getElementById('bulk-delete-btn');
+
+if (bulkDeleteBtn) {
+  bulkDeleteBtn.addEventListener('click', () => {
+    store.bulkDeleteTasks();
+  });
+}
+
+const clearSelectionBtn =
+  document.getElementById('clear-selection-btn');
+
+if (clearSelectionBtn) {
+  clearSelectionBtn.addEventListener('click', () => {
+    store.clearSelectedTasks();
+  });
+}
+
+const selectAllBtn =
+  document.getElementById('select-all-btn');
+
+if (selectAllBtn) {
+  selectAllBtn.addEventListener('click', () => {
+    store.selectAllTasks();
+  });
+}
 }
