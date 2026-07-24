@@ -7,6 +7,31 @@
 
 ---
 
+
+## 📸 Screenshots
+
+### 🎯 Focus Mode
+![Focus Mode](screenshots/focus-mode.png)
+
+Stay productive using the built-in Pomodoro-style focus timer and task tracking system.
+
+### 📦 Archived Tasks
+![Archived Tasks](screenshots/archived-tasks.png)
+
+Access completed and archived tasks in a dedicated section for better organization.
+
+### 📅 Calendar View
+![Calendar View](screenshots/calendar-view.png)
+
+Visualize deadlines, study sessions, and upcoming tasks through an interactive calendar.
+
+### ➕ Create New Task
+![Create New Task](screenshots/create-task.png)
+
+Quickly create and manage study tasks with subject categorization and deadline support.
+
+---
+
 ## 🧠 The Idea
 
 Students don’t lack information.  
@@ -136,6 +161,44 @@ npm install
 
 ---
 
+## 🐳 Docker Development
+
+StudyPlan runs as a **single container** because Express serves both the API and static frontend, and SQLite is file-based (not a separate database server). Docker provides a consistent, reproducible environment for onboarding and local development.
+
+### Prerequisites
+
+- Docker Engine 24+ and Docker Compose v2 (`docker compose` CLI)
+- Copy [`.env.example`](.env.example) to `.env` and set `GEMINI_API_KEY` (optional — the app falls back to local NLP without it)
+
+### Quick Start
+
+```bash
+cp .env.example .env   # edit GEMINI_API_KEY
+docker compose up --build
+```
+
+Open → http://localhost:3000
+
+### Common Docker Commands
+
+| Command | Purpose |
+|---------|---------|
+| `docker compose up --build` | Build and start the stack |
+| `docker compose up -d` | Start detached |
+| `docker compose down` | Stop and remove containers (volume preserved) |
+| `docker compose down -v` | Stop and **delete** SQLite data |
+| `docker compose logs -f app` | Tail app logs |
+| `docker compose exec app npm test` | Run tests inside container |
+| `docker compose ps` | Show service health status |
+
+### Development Workflow
+
+- **Docker (recommended for onboarding):** one command, consistent Node 20 + sqlite3 build, persistent data in the `sqlite_data` volume
+- **Local npm (faster iteration):** use the bare-metal flow below — no Docker required for day-to-day UI changes
+- **Reset database:** `docker compose down -v` then `docker compose up --build`
+
+---
+
 ## 🔑 Environment Setup
 
 Create `.env`:
@@ -147,6 +210,8 @@ GEMINI_API_KEY=your_gen_ai_key_here
 ---
 
 ## ▶️ Run Locally
+
+Without Docker:
 
 ```bash
 node server.js
@@ -164,11 +229,20 @@ Open → http://localhost:3000
 ├──  js
 │   ├──  utils
 │   │   ├──  aiMock.js       # The original mock UI extraction hook (deprecated)
-│   │   ├──  api.js          # The live fetch logic communicating with our Express API
+│   │   ├──  api.js          # The live fetch logic communicating with our Express 
+screenshots/
+├── focus-mode.png
+├── archived-tasks.png
+├── calendar-view.png
+└── create-task.png
+API
 │   │   └──  toast.js        # Modern toast & confirmation modal system
 │   ├──  app.js              # The main controller (handles DOM UI, event bindings, and Calendar)
 │   └──  store.js            # The Custom State Manager handling our frontend Pub/Sub state
 ├──  .env.example            # Template file for setting the GEMINI_API_KEY
+├──  .dockerignore           # Files excluded from Docker build context
+├──  Dockerfile              # Container image for the app
+├──  docker-compose.yaml     # Orchestrates the local Docker development stack
 ├──  .gitignore              # Tells git to ignore databases, environments, and node packages
 ├──  database.js             # Initializes the SQLite database and executes DB table schemas
 ├──  index.html              # The frontend structural entry point
