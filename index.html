@@ -25,18 +25,16 @@
     <h2 id="auth-title" style="margin:0 0 8px; font-size:22px; font-weight:700;">Welcome back</h2>
     <p id="auth-subtitle" style="margin:0 0 24px; color:#666; font-size:14px;">Sign in to your StudyPlan account</p>
 
-    <input id="auth-email" type="email" placeholder="Email address" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:12px; box-sizing:border-box;">
-    
-    <input id="auth-password" type="password" placeholder="Password" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:20px; box-sizing:border-box;">
+    <!-- Wrapped inputs in a form tag to enable Enter key submission -->
+    <form id="auth-form">
+      <input id="auth-email" type="email" placeholder="Email address" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:12px; box-sizing:border-box;">
+      
+      <input id="auth-password" type="password" placeholder="Password" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:20px; box-sizing:border-box;">
 
-    <input id="auth-confirm-password"
-       type="password"
-       placeholder="Confirm Password"
-       style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:20px; box-sizing:border-box; display:none;">
-
-    <button id="auth-submit-btn" style="width:100%; padding:12px; background:#4f46e5; color:white; border:none; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer;">
-    Sign In
-    </button>
+      <button id="auth-submit-btn" type="submit" style="width:100%; padding:12px; background:#4f46e5; color:white; border:none; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer;">
+        Sign In
+      </button>
+    </form>
 
     <div style="font-size:12px; color:#666; margin-top:10px; line-height:1.6;">
     Password must contain:
@@ -370,11 +368,8 @@
       </div>
       <div id="summary-box" class="summary-box"></div>
 
-  <button id="add-btn" class="add-btn" disabled>
-    Add items to planner
-  </button>
-</div>
-
+      <button id="add-btn" class="add-btn" disabled>Add items to planner</button>
+    </div>
   </div>
 </div>
 
@@ -453,17 +448,12 @@
     document.getElementById('auth-error').style.display = 'none';
   });
 
-  // Email validation function
-function validateEmail(email) {
-
-  // format of email validation
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-  return emailRegex.test(email);
-}
-
-// Password validation function
-function validatePassword(password) {
+  // Replaced click event with form submit event to handle Enter key presses
+  document.getElementById('auth-form').addEventListener('submit', async (e) => {
+    e.preventDefault(); // Prevents page reload
+    const email = document.getElementById('auth-email').value.trim();
+    const password = document.getElementById('auth-password').value.trim();
+    const errorEl = document.getElementById('auth-error');
 
   // Minimum 8 characters
   const minLength = password.length >= 8;
@@ -689,37 +679,19 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
     }
   });
 
-function startTour() {
-  introJs().setOptions({
-    nextLabel: "Next →",
-    prevLabel: "← Back",
-    doneLabel: "Finish",
-    skipLabel: "Skip",
-    showProgress: true,
-    exitOnOverlayClick: false,
-    scrollToElement: true,
-    disableInteraction: true
-  }).start();
-}
-
-// Auto-start tour for first-time users
-window.addEventListener("DOMContentLoaded", () => {
-  const tourSeen = localStorage.getItem("studyplan-tour");
-
-  if (!tourSeen) {
-    setTimeout(() => {
-      startTour();
-      localStorage.setItem("studyplan-tour", "seen");
-    }, 500);
-  }
-});
-
-// Restart Tour Button
-document
-  .getElementById("restart-tour-btn")
-  ?.addEventListener("click", () => {
-    startTour();
+  // Enable Enter key submission for secondary modals (Subject and Task)
+  ['new-subject-name'].forEach(id => {
+    document.getElementById(id)?.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') document.getElementById('new-subject-save').click();
+    });
   });
+
+  ['new-task-title', 'new-task-date', 'new-task-notes'].forEach(id => {
+    document.getElementById(id)?.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') document.getElementById('new-task-save').click();
+    });
+  });
+
 </script>
 
 <div id="new-subject-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0; z-index:9998; align-items:center; justify-content:center; background:rgba(0,0,0,0.6);">
