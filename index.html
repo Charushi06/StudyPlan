@@ -6,13 +6,9 @@
   <title>StudyPlan</title>
   <link rel="stylesheet" href="/css/index.css">
   <link rel="stylesheet" href="./css/chatbot.css">
-
-
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intro.js/minified/introjs.min.css">
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
-
   <script src="/js/lib/confetti.browser.min.js"></script>
-
   <link rel="icon" type="image/x-icon" href="/public/favicon.ico" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -113,15 +109,12 @@
         />
       </div>
     </div>
-    <!-- <button class="profile-btn">Profile</button> -->
     <button class="profile-btn" id="logout-btn">Logout</button>
   </div>
 </header>
 
 
 <div class="wrapper">
-  <!-- <p class="label">StudyPlan</p> -->
-
   <div class="app">
     <!-- Sidebar -->
     <div class="sidebar"
@@ -168,7 +161,11 @@
     <div class="main">
       <div class="topbar">
         <div class="topbar-title">April 2026</div>
-        <!--Streak-->
+        <div class="view-toggle-group">
+          <button class="view-btn active" data-view="month">Month</button>
+          <button class="view-btn" data-view="week">Week</button>
+          <button class="view-btn" data-view="day">Day</button>
+        </div>
         <div class="streak-display" id="streak-display">
           <img
             src="/public/streak-icon.svg"
@@ -177,23 +174,19 @@
             id="streak-icon"
           />
           <span id="streak-count">0</span>
-
            <div class="streak-tooltip" id="streak-tooltip">
             Complete tasks to build streak & earn cool badges
           </div>
-
         </div>
         <select id="label-filter" style="margin-left:auto; margin-right: 12px; padding: 6px; border-radius: 6px; border: 1px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); outline: none; cursor: pointer;">
           <option value="">All Labels</option>
         </select>
-        <button class="btn">Week</button>
-        <button class="btn btn-primary"  id="add-task-btn">
+        <button class="btn btn-primary" id="add-task-btn">
           <svg width="12" height="12" fill="none" style="margin-right:2px"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> New task
         </button>
       </div>
 
       <!-- Dashboard Greeting -->
-        <<!-- Dashboard Greeting -->
 <div class="dashboard-greeting" style="padding: 16px 24px 0; display: flex; justify-content: center;">
   <div class="quote-widget">
     <svg class="quote-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -209,11 +202,13 @@
 
   </div>
 </div>
-        <div class="cal-section"data-intro="Track deadlines and study sessions using the calendar."data-step="3">
+        <div class="cal-section" data-intro="Track deadlines and study sessions using the calendar." data-step="3">
         <div class="cal-header">
+          
           <div id="cal-month-title" class="cal-title">April 2026</div>
-          <span id="cal-prev" class="cal-nav" role="button" aria-label="Previous Month">‹</span>
-          <span id="cal-next" class="cal-nav" role="button" aria-label="Next Month">›</span>
+          <span id="cal-prev" class="cal-nav">‹</span>
+          <span id="cal-next" class="cal-nav">›</span>
+          <span class="collapse-icon">▼</span>
         </div>
         <div id="cal-grid" class="cal-grid">
           <div class="cal-day-label">Su</div><div class="cal-day-label">Mo</div><div class="cal-day-label">Tu</div><div class="cal-day-label">We</div><div class="cal-day-label">Th</div><div class="cal-day-label">Fr</div><div class="cal-day-label">Sa</div>
@@ -234,13 +229,13 @@
       </div>
 
       <!-- Tasks -->
-      <div id="tasks-section" class="tasks-section" data-intro="Manage and organize all your study tasks here."data-step="2">
+      <div id="tasks-section" class="tasks-section" data-intro="Manage and organize all your study tasks here." data-step="2">
         <!-- Javascript will inject tasks here -->
         
       </div>
 
       <!-- Focus Mode -->
-      <div id="focus-section"class="focus-section hidden"data-intro="Focus Mode helps you study distraction-free using a timer."data-step="5">
+      <div id="focus-section" class="focus-section hidden" data-intro="Focus Mode helps you study distraction-free using a timer." data-step="5">
         <div class="focus-dashboard">
           <div class="timer-container">
             <svg class="timer-svg" viewBox="0 0 100 100">
@@ -337,7 +332,7 @@
     </div>
 
     <!-- Right Panel -->
-    <div class="panel"data-intro="Use Smart Paste to instantly extract tasks from text using AI."data-step="4">
+    <div class="panel" data-intro="Use Smart Paste to instantly extract tasks from text using AI." data-step="4">
       <div class="panel-header">
         <button id="panel-toggle-btn" class="panel-toggle-btn" title="Toggle Smart Paste">
           <svg id="panel-toggle-icon" width="16" height="16" fill="none" viewBox="0 0 16 16"><path d="M10 4l-4 4 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -703,109 +698,4 @@ function startTour() {
 }
 
 // Auto-start tour for first-time users
-window.addEventListener("DOMContentLoaded", () => {
-  const tourSeen = localStorage.getItem("studyplan-tour");
-
-  if (!tourSeen) {
-    setTimeout(() => {
-      startTour();
-      localStorage.setItem("studyplan-tour", "seen");
-    }, 500);
-  }
-});
-
-// Restart Tour Button
-document
-  .getElementById("restart-tour-btn")
-  ?.addEventListener("click", () => {
-    startTour();
-  });
-</script>
-
-<div id="new-subject-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0; z-index:9998; align-items:center; justify-content:center; background:rgba(0,0,0,0.6);">
-    <div class="modal-card" style="border-radius:12px; padding:20px; width:320px; box-shadow:0 12px 40px rgba(0,0,0,0.5); background: #1e2538; border: 1px solid var(--color-border-tertiary);">
-        <h3 style="margin:0 0 12px; font-size:18px; font-weight:600; color:#ffffff;">New subject</h3>
-        
-        <label style="display:block; font-size:12px; margin-bottom:4px; color:#94a3b8; font-weight: 600;">SUBJECT NAME</label>
-        <input id="new-subject-name" type="text" style="width:100%; padding:10px 12px; border-radius:6px; border:1px solid #334155; background:#0f141c; color:#ffffff !important; font-size:14px; margin-bottom:14px;" placeholder="e.g. History">
-        
-        <label style="display:block; font-size:12px; margin-bottom:4px; color:#94a3b8; font-weight: 600;">COLOR PRESETS</label>
-        <div id="new-subject-colors" class="subject-color-swatches" style="margin-bottom:14px;"></div>
-
-        <label style="display:block; font-size:12px; margin-bottom:4px; color:#94a3b8; font-weight: 600;">OR CUSTOM COLOR</label>
-        <input id="new-subject-custom-color" type="color" value="#4f46e5" style="width:100%; height:38px; padding:0; border:1px solid #334155; border-radius:6px; cursor:pointer; background:none; margin-bottom:14px;">
-
-        <label style="display:block; font-size:12px; margin-bottom:4px; color:#94a3b8; font-weight: 600;">CLASS / CATEGORY</label>
-        <select id="new-subject-class" style="width:100%; padding:10px 12px; border-radius:6px; border:1px solid #334155; background:#0f141c; color:#ffffff !important; margin-bottom:18px; font-family:inherit; font-size:14px;">
-            <option value="School" style="background:#1e2538; color:#ffffff;">School</option>
-            <option value="Coaching" style="background:#1e2538; color:#ffffff;">Coaching</option>
-            <option value="Extracurricular" style="background:#1e2538; color:#ffffff;">Extracurricular</option>
-            <option value="Self-Study" style="background:#1e2538; color:#ffffff;">Self-Study</option>
-        </select>
-
-        <div style="display:flex; justify-content:flex-end; gap:8px;">
-            <button id="new-subject-cancel" class="btn" style="padding:6px 12px; background:#2e3748; color:#cbd5e1; border:1px solid #475569;">Cancel</button>
-            <button id="new-subject-save" class="btn btn-primary" style="padding:6px 12px;">Save</button>
-        </div>
-    </div>
-</div>
-
-<div id="new-task-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0;  z-index:9998; align-items:center; justify-content:center;">
-  <div class="modal-card" style=" border-radius:12px; padding:20px; width:320px; box-shadow:0 12px 40px rgba(0,0,0,0.25);">
-    <h3 style="margin:0 0 12px; font-size:18px; font-weight:600;">New task</h3>
-
-    <label style="display:block; font-size:12px; margin-bottom:4px;">Subject</label>
-    <select id="new-task-subject" paceholder="Subject" style="width:100%; padding:6px; margin-bottom:10px;"></select>
-
-    <label style="display:block; font-size:12px; margin-bottom:4px;">Task name (Use #tag for labels)</label>
-    <input id="new-task-title" type="text" style="width:100%; padding:6px; margin-bottom:10px;"placeholder="e.g. Study for exam #urgent #school">
-
-    <label style="display:block; font-size:12px; margin-bottom:4px;">Deadline</label>
-    <input id="new-task-date" type="datetime-local" style="width:100%; padding:6px; margin-bottom:10px;" placeholder="Deadline">
-
-    <label style="display:block; font-size:12px; margin-bottom:4px;">Estimated Completion Time</label>
-    <div style="display:flex; gap:8px; margin-bottom:10px;">
-      <input id="new-task-estimated-duration" type="number" min="1" step="1" style="flex:1; padding:6px;" placeholder="Duration">
-      <div id="new-task-duration-switch" class="duration-switch" data-unit="minutes">
-        <span class="duration-switch-thumb"></span>
-        <button id="new-task-duration-min" type="button" class="duration-switch-option active" data-unit="minutes">Min</button>
-        <button id="new-task-duration-hr" type="button" class="duration-switch-option" data-unit="hours">Hr</button>
-      </div>
-    </div>
-
-    <!-- <label style="display:block; font-size:12px; margin-bottom:4px;">Notes</label> -->
-    <input id="new-task-notes" type="text" style="width:100%; padding:6px; margin-bottom:16px;" placeholder="Notes">
-
-    <div style="display:flex; justify-content:flex-end; gap:8px;">
-      <button id="new-task-cancel" class="btn" style="padding:6px 10px;">Cancel</button>
-      <button id="new-task-save" class="btn btn-primary" style="padding:6px 12px;">Save</button>
-    </div>
-  </div>
-</div>
-
-<div class="chatbot-container">
-
-    <div class="chat-header">
-        AI Assistant
-    </div>
-
-    <div id="chat-box"></div>
-
-    <div class="chat-input-area">
-
-        <input
-            type="text"
-            id="user-input"
-            placeholder="Ask something..."
-        />
-
-        <button id="send-btn">
-            Send
-        </button>
-
-    </div>
-</div>
-
-<script src="./js/chatbot.js"></script>
-</body>
-</html>
+window.addEventListener("DOMContentLoaded", ()
