@@ -27,6 +27,7 @@ function extractLabels(title) {
 }
 
 let activeLabelFilter = '';
+let searchQuery = '';
 
 function generateSummary(tasks, subjects) {
   const now = new Date();
@@ -99,6 +100,7 @@ const downloadBtn = document.getElementById('download-btn');
 const calendarDownloadBtn = document.getElementById('calendar-download-btn');
 const newTaskBtn = document.getElementById('add-task-btn');
 const labelFilterSelect = document.getElementById('label-filter');
+const taskSearch = document.getElementById('task-search');
 const profileSection = document.getElementById('profile-section');
 const profileBtn = document.getElementById('profile-btn');
 const topbar = document.querySelector('.topbar');
@@ -106,6 +108,13 @@ const topbar = document.querySelector('.topbar');
 if (labelFilterSelect) {
   labelFilterSelect.addEventListener('change', (e) => {
     activeLabelFilter = e.target.value;
+    renderTasks();
+  });
+}
+
+if (taskSearch) {
+  taskSearch.addEventListener('input', (e) => {
+    searchQuery = e.target.value.toLowerCase().trim();
     renderTasks();
   });
 }
@@ -996,10 +1005,17 @@ function renderTasks() {
 
   
   const displayTasksRaw = currentView === 'archived' ? archivedTasks : activeTasks;
-  const displayTasks = activeLabelFilter
-    ? displayTasksRaw.filter(t => t.labels && t.labels.includes(activeLabelFilter))
-    : displayTasksRaw;
-  
+  let displayTasks = displayTasksRaw;
+  if (activeLabelFilter) {
+    displayTasks = displayTasks.filter(t => t.labels && t.labels.includes(activeLabelFilter));
+  }
+  if (searchQuery) {
+    displayTasks = displayTasks.filter(t => {
+      const titleMatch = t.title && t.title.toLowerCase().includes(searchQuery);
+      const notesMatch = t.notes && t.notes.toLowerCase().includes(searchQuery);
+      return titleMatch || notesMatch;
+    });
+  }
   // Extract unique labels to populate the filter dropdown
   if (labelFilterSelect) {
     const uniqueLabels = new Set();
