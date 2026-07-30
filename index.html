@@ -560,42 +560,47 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
       if (profilePopover) profilePopover.style.display = 'none';
       return;
     }
+
     let user;
     try { user = JSON.parse(userStr); } catch (e) { user = { email: userStr }; }
     const name = user.name || (user.email ? user.email.split('@')[0] : 'User');
     const avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=4f46e5&color=fff&size=128`;
     profileBtn.innerHTML = `<img src="${avatar}" alt="avatar" style="width:28px;height:28px;border-radius:50%;vertical-align:middle;margin-right:8px;"> ${name}`;
+
     if (profilePopover) {
       profilePopover.innerHTML = `
-        <div style="display:flex; gap:12px; align-items:center; color:var(--color-text-primary);">
+        <div style="display:flex; gap:12px; align-items:center;">
           <img src="${avatar}" style="width:64px;height:64px;border-radius:50%">
           <div>
             <div style="font-weight:700">${name}</div>
-            <div style="color:var(--color-text-secondary); font-size:13px; word-break:break-all;">${user.email || ''}</div>
+            <div style="color:#666; font-size:13px;">${user.email || ''}</div>
           </div>
         </div>
         <div style="margin-top:12px;">
-          <button id="popover-logout" class="btn" style="width:100%; box-sizing:border-box; cursor:pointer;">Logout</button>
+          <button id="popover-logout" style="width:100%; padding:8px; border-radius:8px; border:1px solid #ddd; background:#fff; cursor:pointer;">Logout</button>
         </div>
       `;
     }
   }
 
-  profileBtn.addEventListener('click', (e) => {
-    if (!localStorage.getItem('studyplan_user')) {
-      document.getElementById('auth-modal').style.display = 'flex';
-      return;
-    }
-    if (profilePopover) {
-      profilePopover.style.display = profilePopover.style.display === 'block' ? 'none' : 'block';
-      const expanded = profilePopover.style.display === 'block';
-      profileBtn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-    }
-  });
+  if (profileBtn) {
+    profileBtn.addEventListener('click', (e) => {
+      if (!localStorage.getItem('studyplan_user')) {
+        document.getElementById('auth-modal').style.display = 'flex';
+        return;
+      }
+      if (profilePopover) {
+        profilePopover.style.display = profilePopover.style.display === 'block' ? 'none' : 'block';
+        const expanded = profilePopover.style.display === 'block';
+        profileBtn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+      }
+    });
+  }
 
   // Close popover when clicking outside
   document.addEventListener('click', (e) => {
-    if (profilePopover && !profilePopover.contains(e.target) && e.target !== profileBtn) {
+    if (!profilePopover || !profileBtn) return;
+    if (!profilePopover.contains(e.target) && e.target !== profileBtn) {
       profilePopover.style.display = 'none';
       profileBtn.setAttribute('aria-expanded','false');
     }
@@ -606,7 +611,9 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
     if (e.target && e.target.id === 'popover-logout') {
       localStorage.removeItem('studyplan_user');
       document.getElementById('auth-modal').style.display = 'flex';
-      if (profilePopover) profilePopover.style.display = 'none';
+      if (profilePopover) {
+        profilePopover.style.display = 'none';
+      }
       window.location.reload();
     }
   });

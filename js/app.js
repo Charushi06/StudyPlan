@@ -84,6 +84,12 @@ function formatDuration(mins) {
   return `${mins} mins`;
 }
 
+function renderSummary() {
+  const summaryBox = document.getElementById('summary-box');
+  if (!summaryBox) return;
+  summaryBox.innerHTML = generateSummary(store.tasks, store.subjects);
+}
+
 let currentMonthDate = new Date();
 let selectedDate = null;
 let currentView = 'calendar'; // 'calendar', 'all-tasks', 'archived'
@@ -1848,6 +1854,7 @@ store.subscribe(renderFocusTasks);
 store.subscribe(renderProfileSection);
 store.subscribe(renderSidebarSubjects);
 store.subscribe(renderStreak);
+store.subscribe(renderSummary);
 
 function updateSidebarActive(id) {
   document.querySelectorAll('.sidebar .nav-item').forEach(el => el.classList.remove('active'));
