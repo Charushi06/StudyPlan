@@ -1,14 +1,19 @@
-require('dotenv').config();
+require("dotenv").config();
 const express = require('express');
 const cors = require('cors');
 const { db, initDb } = require('./database');
 const { GoogleGenAI } = require('@google/genai');
 const path = require('path');
 const csvDownloadRouter = require('./backend/routers/csvDownload.router.js');
-
 const app = express();
+// middleware
 app.use(cors());
 app.use(express.json());
+
+// routes
+const chatRoutes = require("./backend/routers/chatRoutes");
+app.use("/api/chat", chatRoutes);
+
 
 const page404Path = path.join(__dirname, '404.html');
 const page500Path = path.join(__dirname, 'error.html');
@@ -131,6 +136,9 @@ function nlpExtractDate(text, now = new Date()) {
   }
   if (/\bend of (the\s+)?month\b/.test(lower)) {
     return nlpStartOf(new Date(now.getFullYear(), now.getMonth() + 1, 0)).toISOString();
+  }
+  if (/\bend of (the\s+)?year\b/.test(lower)) {
+  return nlpStartOf(new Date(now.getFullYear(), 11, 31)).toISOString();
   }
   if (/\bnext month\b/.test(lower)) {
     const d = new Date(now); d.setMonth(d.getMonth() + 1);

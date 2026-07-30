@@ -3987,6 +3987,12 @@ body {
   line-height: 1.4;
   transition: color 0.2s;
   margin-bottom: 6px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
 }
 
 .task-item.done .task-name {

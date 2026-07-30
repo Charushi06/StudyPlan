@@ -1033,6 +1033,25 @@ function renderTasks() {
   const completed = [];
   const pending = [];
 
+  const overdueTasks = activeTasks.filter(task => {
+  return (
+    task.status !== "Done" &&
+    task.due_at &&
+    new Date(task.due_at) < new Date()
+  );
+});
+  const smartBtn = document.getElementById(
+  "smart-reschedule-btn"
+);
+
+if (smartBtn) {
+  smartBtn.addEventListener(
+    "click",
+    async () => {
+      await store.smartRescheduleOverdueTasks();
+    }
+  );
+}
   if (currentView === 'calendar' && selectedDate) {
     sorted.forEach(t => {
       const d = new Date(t.due_at);
@@ -1076,7 +1095,22 @@ function renderTasks() {
       }
     });
   }
+  if (overdueTasks.length > 0) {
+  tasksSection.innerHTML = `
+    <div class="conflict-card smart-workload-card high">
+      <div>
+        ⚠ You have ${overdueTasks.length} overdue task(s)
+      </div>
 
+      <button
+        id="smart-reschedule-btn"
+        class="task-action-btn task-action-btn-secondary"
+      >
+        Reschedule Smartly
+      </button>
+    </div>
+  `;
+}
   const renderGroup = (title, items, titleColor, showConflict = false) => {
     if (items.length === 0) return '';
     let html = `<div class="tasks-group">
@@ -1130,7 +1164,7 @@ function renderTasks() {
             </select>
 
             <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Task Name</label>
-            <input class="board-edit-title edit-field" type="text" value="${t.title}${t.labels && t.labels.length > 0 ? ' #' + t.labels.join(' #') : ''}" style="width:100%; margin-bottom: 12px; font-size:13px; font-weight:600; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
+            <input class="board-edit-title edit-field" type="text" value="${escapeHtml(t.title + (t.labels && t.labels.length > 0 ? ' #' + t.labels.join(' #') : ''))}" style="width:100%; margin-bottom: 12px; font-size:13px; font-weight:600; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
 
             <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Deadline</label>
             <input class="board-edit-date edit-field" type="datetime-local" value="${localDate}" style="width:100%; margin-bottom: 12px; font-size:12px; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
@@ -1146,7 +1180,7 @@ function renderTasks() {
             </div>
 
             <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Notes</label>
-            <input class="board-edit-notes edit-field" type="text" value="${t.notes || ''}" placeholder="Notes..." style="width:100%; margin-bottom: 12px; font-size:12px; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
+            <input class="board-edit-notes edit-field" type="text" value="${escapeHtml(t.notes || '')}" placeholder="Notes..." style="width:100%; margin-bottom: 12px; font-size:12px; padding:6px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">
 
             <label style="display:block; font-size:10px; font-weight:700; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Priority</label>
             <select class="board-edit-priority edit-field" style="width:100%; margin-bottom: 12px; font-size:12px; padding:4px; border: 1px solid var(--color-border-secondary); border-radius: 4px; background: var(--color-background-primary); color: var(--color-text-primary);">

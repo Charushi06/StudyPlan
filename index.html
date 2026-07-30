@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>StudyPlan</title>
   <link rel="stylesheet" href="/css/index.css">
+  <link rel="stylesheet" href="./css/chatbot.css">
+
+
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intro.js/minified/introjs.min.css">
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 
@@ -69,7 +72,11 @@
 
   <div class="header-right">
     <button class="profile-btn" id="restart-tour-btn">Take Tour</button>
-    <button class="profile-btn" id="profile-btn">Profile</button>
+    <div style="position: relative; display: inline-block;">
+      <button class="profile-btn" id="profile-btn">Profile</button>
+      <div id="profile-popover" style="display:none; position:absolute; right:0; top:48px; background:var(--color-background-primary); border:1px solid var(--color-border-tertiary); border-radius:12px; padding:16px; width:260px; box-shadow:var(--shadow-lg); z-index:10000; color:var(--color-text-primary); text-align:left;">
+      </div>
+    </div>
     <!--Streak Badge-->
     <div class="streak-badges">
       <div
@@ -446,7 +453,16 @@
     document.getElementById('auth-error').style.display = 'none';
   });
 
-  // Password validation function
+  // Email validation function
+function validateEmail(email) {
+
+  // format of email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  return emailRegex.test(email);
+}
+
+// Password validation function
 function validatePassword(password) {
 
   // Minimum 8 characters
@@ -473,6 +489,13 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
   // Empty fields check
   if (!email || !password) {
     errorEl.textContent = 'Please fill in all fields';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  // Email format validation
+  if (!validateEmail(email)) {
+    errorEl.textContent = 'Please enter a valid email address.';
     errorEl.style.display = 'block';
     return;
   }
@@ -534,9 +557,7 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
     if (!profileBtn) return;
     if (!userStr) {
       profileBtn.innerHTML = 'Profile';
-      if (profilePopover) {
-        profilePopover.style.display = 'none';
-      }
+      if (profilePopover) profilePopover.style.display = 'none';
       return;
     }
 
@@ -768,5 +789,30 @@ document
     </div>
   </div>
 </div>
+
+<div class="chatbot-container">
+
+    <div class="chat-header">
+        AI Assistant
+    </div>
+
+    <div id="chat-box"></div>
+
+    <div class="chat-input-area">
+
+        <input
+            type="text"
+            id="user-input"
+            placeholder="Ask something..."
+        />
+
+        <button id="send-btn">
+            Send
+        </button>
+
+    </div>
+</div>
+
+<script src="./js/chatbot.js"></script>
 </body>
 </html>

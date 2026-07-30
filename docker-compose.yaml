@@ -1,0 +1,28 @@
+services:
+  app:
+    build: .
+    ports:
+      - "${PORT:-3000}:3000"
+    env_file:
+      - .env
+    environment:
+      PORT: 3000
+      DB_PATH: /data/studyplan.db
+    volumes:
+      - sqlite_data:/data
+    networks:
+      - studyplan-net
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+    restart: unless-stopped
+
+volumes:
+  sqlite_data:
+
+networks:
+  studyplan-net:
+    driver: bridge
