@@ -1,0 +1,9 @@
+node_modules/
+.git/
+.env
+.env.local
+studyplan.db
+studyplan.db-journal
+.DS_Store
+.vscode/
+.idea/

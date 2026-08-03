@@ -6,6 +6,7 @@ export const store = {
   tasks: [],
   currentPaste: null,
   listeners: [],
+  selectedTasks: [],
 
   isSameCalendarDate(dateA, dateB) {
     return (
@@ -22,7 +23,77 @@ export const store = {
   notify() {
     this.listeners.forEach(l => l());
   },
-  
+  async smartRescheduleOverdueTasks() {
+  const now = new Date();
+
+  const overdueTasks = this.tasks.filter(task => {
+    return (
+      task.status !== "Done" &&
+      !task.archived &&
+      task.due_at &&
+      new Date(task.due_at) < now
+    );
+  });
+
+  if (overdueTasks.length === 0) {
+    alert("No overdue tasks found.");
+    return;
+  }
+
+  const updatedTasks = [];
+
+  for (let i = 0; i < overdueTasks.length; i++) {
+    const task = overdueTasks[i];
+
+    let newDate = new Date();
+    newDate.setDate(newDate.getDate() + i + 1);
+
+    // avoid overloaded days
+    while (
+      this.tasks.filter(t => {
+        if (!t.due_at) return false;
+
+        const taskDate = new Date(t.due_at);
+
+        return (
+          taskDate.toDateString() ===
+          newDate.toDateString()
+        );
+      }).length >= 3
+    ) {
+      newDate.setDate(newDate.getDate() + 1);
+    }
+
+    task.due_at = newDate.toISOString();
+
+    updatedTasks.push(
+      fetch(`/api/tasks/${task.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          due_at: task.due_at
+        })
+      })
+    );
+  }
+
+  try {
+    await Promise.all(updatedTasks);
+    alert(
+      `${overdueTasks.length} overdue task(s) rescheduled successfully`
+    );
+
+    const tasksRes = await fetch('/api/tasks');
+    this.tasks = await tasksRes.json();
+    this.notify();
+
+  } catch (error) {
+    console.error(error);
+    alert("Failed to reschedule tasks");
+  }
+},
   async fetchInitialData() {
     try {
       const [subsRes, tasksRes] = await Promise.all([
@@ -138,10 +209,19 @@ export const store = {
   // ================= UPDATED FUNCTION =================
   async addTasks(newTasks) {
     try {
+      const tasksToAdd = (Array.isArray(newTasks) ? newTasks : [newTasks])
+        .filter(Boolean)
+        .map(({ _isEditing, icon, subject_name, ...task }) => task);
+
+      if (tasksToAdd.length === 0) {
+        alert("No valid tasks to add");
+        return false;
+      }
+
       const res = await fetch('/api/tasks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newTasks)
+        body: JSON.stringify(tasksToAdd)
       });
 
       const data = await res.json(); // always parse response
@@ -150,7 +230,7 @@ export const store = {
         //  Backend error
         Toast.show(`❌ ${data.message || "Failed to add tasks"}`, 'error');
         console.error('Add task error:', data);
-        return;
+        return false;
       }
 
       // ================= USER MESSAGES =================
@@ -175,6 +255,7 @@ export const store = {
       const tasksRes = await fetch('/api/tasks');
       this.tasks = await tasksRes.json();
       this.notify();
+      return data.inserted > 0;
 
     } catch (e) {
       console.error('Failed to add tasks', e);
@@ -373,7 +454,9 @@ export const store = {
   },
 
   setExtracted(items) {
-    this.currentPaste = items.map(item => ({ ...item, _isEditing: false }));
+    this.currentPaste = Array.isArray(items)
+      ? items.map(item => ({ ...item, _isEditing: false }))
+      : [];
     this.notify();
   },
 
@@ -387,5 +470,107 @@ export const store = {
   clearExtracted() {
     this.currentPaste = null;
     this.notify();
+  },
+  toggleTaskSelection(taskId) {
+  taskId = String(taskId);
+
+  const exists =
+    this.selectedTasks.includes(taskId);
+
+  if (exists) {
+    this.selectedTasks =
+      this.selectedTasks.filter(
+        id => id !== taskId
+      );
+  } else {
+    this.selectedTasks.push(taskId);
   }
+
+  this.notify();
+},
+
+clearSelectedTasks() {
+  this.selectedTasks = [];
+  this.notify();
+},
+
+selectAllTasks() {
+  this.selectedTasks = this.tasks
+    .filter(t =>
+      !t.archived &&
+      t.status !== 'Done'
+    )
+    .map(t => String(t.id));
+
+  this.notify();
+},
+
+async bulkCompleteTasks() {
+  const selected = this.tasks.filter(t =>
+    this.selectedTasks.includes(String(t.id))
+  );
+
+  for (const task of selected) {
+    task.status = 'Done';
+
+    await fetch(`/api/tasks/${task.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        status: 'Done'
+      })
+    });
+  }
+
+  this.clearSelectedTasks();
+  this.notify();
+},
+
+async bulkArchiveTasks() {
+  const selected = this.tasks.filter(t =>
+    this.selectedTasks.includes(t.id)
+  );
+
+  for (const task of selected) {
+    task.archived = 1;
+
+    await fetch(`/api/tasks/${task.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        archived: 1
+      })
+    });
+  }
+
+  this.clearSelectedTasks();
+  this.notify();
+},
+
+async bulkDeleteTasks() {
+  const confirmed = confirm(
+    `Delete ${this.selectedTasks.length} selected tasks?`
+  );
+
+  if (!confirmed) return;
+
+  await Promise.all(
+    this.selectedTasks.map(id =>
+      fetch(`/api/tasks/${id}`, {
+        method: 'DELETE'
+      })
+    )
+  );
+
+  this.tasks = this.tasks.filter(
+    t => !this.selectedTasks.includes(String(t.id))
+  );
+
+  this.clearSelectedTasks();
+  this.notify();
+},
 };
