@@ -136,48 +136,74 @@ export const store = {
     }
   },
 
-    // ================= DELETE SUBJECT FUNCTION =================
+  async updateSubject(id, { name, color }) {
+    const idx = this.subjects.findIndex(s => s.id === id);
+    if (idx === -1) return false;
 
-    async deleteSubject(subjectId) {
-  const subject = this.subjects.find(
-    s => String(s.id) === String(subjectId)
-  );
+    const original = { ...this.subjects[idx] };
 
-  if (!subject) return;
-
-  const confirmed = confirm(
-    `Are you sure you want to delete "${subject.name}"?\n\nThis will also remove related tasks.`
-  );
-
-  if (!confirmed) return;
-
-  const originalSubjects = [...this.subjects];
-  const originalTasks = [...this.tasks];
-
-  // optimistic update
-  this.subjects = this.subjects.filter(
-    s => String(s.id) !== String(subjectId)
-  );
-
-  this.tasks = this.tasks.filter(
-    t => String(t.subject_id) !== String(subjectId)
-  );
-
-  this.notify();
-
-  try {
-    await fetch(`/api/subjects/${subjectId}`, {
-      method: 'DELETE'
-    });
-  } catch (e) {
-    this.subjects = originalSubjects;
-    this.tasks = originalTasks;
+    // Optimistic update
+    if (name) {
+      this.subjects[idx].name = name;
+      this.subjects[idx].short_code = name.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 4) || 'SUB';
+    }
+    if (color) this.subjects[idx].color = color;
     this.notify();
 
-    console.error('Failed to delete subject', e);
-    alert('❌ Failed to delete subject');
-  }
-},
+    try {
+      const res = await fetch(`/api/subjects/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, color })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        Toast.show(data.error || 'Failed to update subject', 'error');
+        this.subjects[idx] = original;
+        this.notify();
+        return false;
+      }
+      Toast.show('Subject updated', 'success');
+      return true;
+    } catch (e) {
+      console.error('Failed to update subject', e);
+      Toast.show('Network error. Please try again.', 'error');
+      this.subjects[idx] = original;
+      this.notify();
+      return false;
+    }
+  },
+
+  async deleteSubject(id) {
+    const confirmed = await Toast.confirm('Delete this subject? Tasks assigned to it will become unassigned.');
+    if (!confirmed) return;
+
+    const idx = this.subjects.findIndex(s => s.id === id);
+    if (idx === -1) return;
+
+    const removed = this.subjects.splice(idx, 1)[0];
+    // Unassign tasks in local state
+    this.tasks.forEach(t => { if (t.subject_id === id) t.subject_id = null; });
+    this.notify();
+
+    try {
+      const res = await fetch(`/api/subjects/${id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        Toast.show(data.error || 'Failed to delete subject', 'error');
+        this.subjects.splice(idx, 0, removed);
+        this.tasks.forEach(t => { if (t.subject_id === null && removed) t.subject_id = removed.id; });
+        this.notify();
+      } else {
+        Toast.show('Subject deleted', 'success');
+      }
+    } catch (e) {
+      console.error('Failed to delete subject', e);
+      Toast.show('Network error. Please try again.', 'error');
+      this.subjects.splice(idx, 0, removed);
+      this.notify();
+    }
+  },
 
 
   // ================= UPDATED FUNCTION =================

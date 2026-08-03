@@ -319,41 +319,58 @@ app.post('/api/subjects', (req, res) => {
   )
 });
 
+// ================= UPDATE SUBJECT =================
+app.put('/api/subjects/:id', (req, res) => {
+  const { id } = req.params;
+  let name = String(req.body?.name || '').trim();
+  let color = String(req.body?.color || '').trim();
+
+  if (!name && !color) {
+    return res.status(400).json({ error: 'Nothing to update. Provide name or color.' });
+  }
+
+  if (color && !ALLOWED_SUBJECT_COLORS.has(color)) {
+    return res.status(400).json({ error: 'Invalid color value.' });
+  }
+
+  db.get('SELECT * FROM subjects WHERE id = ?', [id], (err, row) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!row) return res.status(404).json({ error: 'Subject not found' });
+
+    const updatedName = name || row.name;
+    const updatedColor = color || row.color;
+    const updatedShortCode = updatedName.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 4) || 'SUB';
+
+    db.run(
+      'UPDATE subjects SET name = ?, short_code = ?, color = ? WHERE id = ?',
+      [updatedName, updatedShortCode, updatedColor, id],
+      function (err) {
+        if (err) return res.status(500).json({ error: err.message });
+        if (this.changes === 0) return res.status(404).json({ error: 'Subject not found' });
+        res.json({ success: true, id, name: updatedName, short_code: updatedShortCode, color: updatedColor });
+      }
+    );
+  });
+});
+
 // ================= DELETE SUBJECT =================
 app.delete('/api/subjects/:id', (req, res) => {
-
   const { id } = req.params;
 
-  db.run(
-    'DELETE FROM tasks WHERE subject_id = ?',
-    [id],
-    function(taskErr) {
+  db.get('SELECT * FROM subjects WHERE id = ?', [id], (err, row) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!row) return res.status(404).json({ error: 'Subject not found' });
 
-      if (taskErr) {
-        return res.status(500).json({
-          error: taskErr.message
-        });
-      }
+    // Nullify subject_id on tasks that belonged to this subject before deleting
+    db.run('UPDATE tasks SET subject_id = NULL WHERE subject_id = ?', [id], (err) => {
+      if (err) return res.status(500).json({ error: err.message });
 
-      db.run(
-        'DELETE FROM subjects WHERE id = ?',
-        [id],
-        function(subjectErr) {
-
-          if (subjectErr) {
-            return res.status(500).json({
-              error: subjectErr.message
-            });
-          }
-
-          res.json({
-            success: true,
-            deleted: this.changes
-          });
-        }
-      );
-    }
-  );
+      db.run('DELETE FROM subjects WHERE id = ?', [id], function (err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true, changes: this.changes });
+      });
+    });
+  });
 });
 
 // ================= TASKS =================

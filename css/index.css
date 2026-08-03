@@ -310,6 +310,59 @@ body {
   color: var(--color-text-primary);
 }
 
+.subject-sidebar-item {
+  position: relative;
+}
+
+.subject-sidebar-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.subject-actions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  position: absolute;
+  right: 12px;
+  background: var(--color-background-primary);
+  padding-left: 4px;
+}
+
+.subject-sidebar-item:hover .subject-actions {
+  opacity: 1;
+}
+
+.subject-sidebar-item:hover .badge {
+  opacity: 0;
+}
+
+.subject-action-btn {
+  background: transparent;
+  border: none;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.subject-action-btn:hover {
+  background: var(--color-background-secondary);
+  color: var(--color-text-primary);
+}
+
+.delete-subject-btn:hover {
+  color: var(--color-text-danger);
+  background: var(--color-background-danger);
+}
+
+
 /* Main */
 .main {
   display: flex;
@@ -1779,9 +1832,7 @@ body {
 
 
 #new-task-modal input,
-#new-task-modal select,
-#new-subject-modal input,
-#new-subject-modal select {
+#new-task-modal select {
   width: 100%;
   box-sizing: border-box;
   font-size: 13px;
@@ -1795,49 +1846,38 @@ body {
   color-scheme: dark;
 }
 
-
-#new-task-modal input::placeholder,
-#new-subject-modal input::placeholder {
+#new-task-modal input::placeholder {
   color: #6b7280;
 }
 
-
 #new-task-modal input:focus,
-#new-task-modal select:focus,
-#new-subject-modal input:focus,
-#new-subject-modal select:focus {
+#new-task-modal select:focus {
   outline: none;
   border-color: #4f46e5;
   box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.35);
   background: #020617;
 }
 
-
-#new-task-modal .modal-card>div:last-child,
-#new-subject-modal .modal-card>div:last-child {
+#new-task-modal .modal-card>div:last-child {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
   margin-top: 6px;
 }
 
-
-#new-task-modal .btn,
-#new-subject-modal .btn {
+#new-task-modal .btn {
   font-size: 12px;
   padding: 6px 10px;
   border-radius: 999px;
 }
 
-#new-task-modal .btn:not(.btn-primary),
-#new-subject-modal .btn:not(.btn-primary) {
+#new-task-modal .btn:not(.btn-primary) {
   background: rgba(15, 23, 42, 0.9);
   color: #e5e7eb;
   border: 1px solid #4b5563;
 }
 
-#new-task-modal .btn:not(.btn-primary):hover,
-#new-subject-modal .btn:not(.btn-primary):hover {
+#new-task-modal .btn:not(.btn-primary):hover {
   background: #020617;
 }
 
@@ -1916,14 +1956,14 @@ body {
   }
 }
 
-#new-subject-modal .subject-color-swatches {
+.subject-color-swatches {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 4px;
 }
 
-#new-subject-modal .subject-color-swatch {
+.subject-color-swatch {
   width: 28px;
   height: 28px;
   border-radius: 50%;
@@ -1935,12 +1975,12 @@ body {
   transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
 
-#new-subject-modal .subject-color-swatch:hover {
+.subject-color-swatch:hover {
   transform: scale(1.06);
 }
 
-#new-subject-modal .subject-color-swatch--selected {
-  box-shadow: 0 0 0 2px #0f172a, 0 0 0 4px #a5b4fc;
+.subject-color-swatch--selected {
+  box-shadow: 0 0 0 2px var(--color-background-primary), 0 0 0 4px var(--color-text-primary);
 }
 
 /* css/index.css */

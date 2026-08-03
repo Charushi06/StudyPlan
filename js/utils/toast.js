@@ -61,17 +61,17 @@ class ToastManager {
   confirm(message) {
     return new Promise((resolve) => {
       const backdrop = document.createElement('div');
-      backdrop.className = 'custom-confirm-backdrop';
+      backdrop.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; display:flex; align-items:center; justify-content:center;';
       
       const modal = document.createElement('div');
-      modal.className = 'custom-confirm-modal modal-card';
+      modal.style.cssText = 'background:var(--color-background-primary); border-radius:16px; padding:32px; width:360px; box-shadow:0 20px 60px rgba(0,0,0,0.3); color:var(--color-text-primary); text-align:center;';
       
       modal.innerHTML = `
-        <h3 style="margin:0 0 12px; font-size:18px; font-weight:600;">Confirm Action</h3>
-        <p style="font-size:14px; margin-bottom: 24px; color: var(--color-text-secondary); line-height: 1.5;">${message}</p>
-        <div style="display:flex; justify-content:flex-end; gap:8px;">
-          <button class="btn confirm-cancel" style="padding:6px 16px;">Cancel</button>
-          <button class="btn btn-primary task-btn-danger confirm-ok" style="padding:6px 16px;">Confirm</button>
+        <h3 style="margin:0 0 8px; font-size:22px; font-weight:700;">Are you sure?</h3>
+        <p style="margin:0 0 24px; color:var(--color-text-secondary); font-size:14px; line-height: 1.5;">${message}</p>
+        <div style="display:flex; gap:12px;">
+          <button class="confirm-cancel" style="flex:1; padding:12px; background:var(--color-background-secondary); color:var(--color-text-primary); border:1px solid var(--color-border-secondary); border-radius:8px; font-size:15px; font-weight:600; cursor:pointer; transition:all 0.2s;">Cancel</button>
+          <button class="confirm-ok" style="flex:1; padding:12px; background:#ef4444; color:white; border:none; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer; transition:all 0.2s;">Delete</button>
         </div>
       `;
       
