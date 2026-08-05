@@ -86,7 +86,10 @@ function formatDuration(mins) {
 
 let currentMonthDate = new Date();
 let selectedDate = null;
-let currentView = 'calendar'; // 'calendar', 'all-tasks', 'archived'
+let currentView = ['calendar', 'all-tasks', 'archived', 'focus']
+  .includes(localStorage.getItem('currentView'))
+  ? localStorage.getItem('currentView')
+  : 'calendar';// 'calendar', 'all-tasks', 'archived'
 
 const tasksSection = document.getElementById('tasks-section');
 const focusSection = document.getElementById('focus-section');
@@ -1917,56 +1920,77 @@ document.addEventListener('DOMContentLoaded', () => {
   const archivedTasksBtn = document.getElementById('archived-tasks-btn');
   const focusModeBtn = document.getElementById('focus-mode-btn');
 
-  calendarBtn.addEventListener('click', () => {
-    currentView = 'calendar';
-    hideProfileSection();
+function updateSidebarActive(id) {
+  document.querySelectorAll('.sidebar .nav-item').forEach(el => el.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function applyView(view) {
+  currentView = view;
+  hideProfileSection();
+
+  document.querySelector('.cal-section').classList.add('hidden');
+  document.getElementById('tasks-section').classList.add('hidden');
+  document.getElementById('focus-section').classList.add('hidden');
+
+  if (view === 'calendar') {
     document.querySelector('.cal-section').classList.remove('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
-    document.getElementById('focus-section').classList.add('hidden');
     updateSidebarActive('calendar-btn');
     renderTasks();
-  });
-
-  allTasksBtn.addEventListener('click', () => {
-    currentView = 'all-tasks';
-    hideProfileSection();
-    document.querySelector('.cal-section').classList.add('hidden');
+  } else if (view === 'all-tasks') {
     document.getElementById('tasks-section').classList.remove('hidden');
-    document.getElementById('focus-section').classList.add('hidden');
     updateSidebarActive('all-tasks-btn');
     renderTasks();
-  });
-
-  archivedTasksBtn.addEventListener('click', () => {
-    currentView = 'archived';
-    hideProfileSection();
-    document.querySelector('.cal-section').classList.add('hidden');
+  } else if (view === 'archived') {
     document.getElementById('tasks-section').classList.remove('hidden');
-    document.getElementById('focus-section').classList.add('hidden');
     updateSidebarActive('archived-tasks-btn');
     renderTasks();
-  });
-
-  if (focusModeBtn) {
-    focusModeBtn.addEventListener('click', () => {
-      currentView = 'focus';
-      hideProfileSection();
-      document.querySelector('.cal-section').classList.add('hidden');
-      document.getElementById('tasks-section').classList.add('hidden');
-      document.getElementById('focus-section').classList.remove('hidden');
-      updateSidebarActive('focus-mode-btn');
-      renderFocusTasks();
-    });
+  } else if (view === 'focus') {
+    document.getElementById('focus-section').classList.remove('hidden');
+    updateSidebarActive('focus-mode-btn');
+    renderFocusTasks();
   }
+}
 
-  downloadBtn.addEventListener('click', () => {
-    currentView = 'review';
-    document.querySelector('.cal-section').classList.add('hidden');
-    document.getElementById('focus-section').classList.add('hidden');
-    document.getElementById('tasks-section').classList.remove('hidden');
-    updateSidebarActive('download-btn');
-    renderReviewTable();
+calendarBtn.addEventListener('click', () => {
+  localStorage.setItem('currentView', 'calendar');
+  applyView('calendar');
+});
+
+allTasksBtn.addEventListener('click', () => {
+  localStorage.setItem('currentView', 'all-tasks');
+  applyView('all-tasks');
+});
+
+archivedTasksBtn.addEventListener('click', () => {
+  localStorage.setItem('currentView', 'archived');
+  applyView('archived');
+});
+
+if (focusModeBtn) {
+  focusModeBtn.addEventListener('click', () => {
+    localStorage.setItem('currentView', 'focus');
+    applyView('focus');
   });
+}
+
+applyView(currentView);
+
+if (profileBtn) {
+  profileBtn.addEventListener('click', () => {
+    showProfileSection();
+  });
+}
+
+downloadBtn.addEventListener('click', () => {
+  currentView = 'review';
+  document.querySelector('.cal-section').classList.add('hidden');
+  document.getElementById('focus-section').classList.add('hidden');
+  document.getElementById('tasks-section').classList.remove('hidden');
+  updateSidebarActive('download-btn');
+  renderReviewTable();
+});
 
   document.getElementById('cal-prev').addEventListener('click', () => {
     currentMonthDate.setMonth(currentMonthDate.getMonth() - 1);
@@ -1978,35 +2002,23 @@ document.addEventListener('DOMContentLoaded', () => {
     renderCalendar();
   });
 
-  document.getElementById('nav-dashboard').addEventListener('click', (e) => {
-    e.preventDefault();
-    currentView = 'calendar';
-    document.querySelector('.cal-section').classList.remove('hidden');
-    document.getElementById('tasks-section').classList.remove('hidden');
-    document.getElementById('focus-section').classList.add('hidden');
-    updateSidebarActive('calendar-btn');
-    renderTasks();
-  });
+document.getElementById('nav-dashboard').addEventListener('click', (e) => {
+  e.preventDefault();
+  localStorage.setItem('currentView', 'calendar');
+  applyView('calendar');
+});
 
-  document.getElementById('nav-tasks').addEventListener('click', (e) => {
-    e.preventDefault();
-    currentView = 'all-tasks';
-    document.querySelector('.cal-section').classList.add('hidden');
-    document.getElementById('tasks-section').classList.remove('hidden');
-    document.getElementById('focus-section').classList.add('hidden');
-    updateSidebarActive('all-tasks-btn');
-    renderTasks();
-  });
+document.getElementById('nav-tasks').addEventListener('click', (e) => {
+  e.preventDefault();
+  localStorage.setItem('currentView', 'all-tasks');
+  applyView('all-tasks');
+});
 
-  document.getElementById('nav-calendar').addEventListener('click', (e) => {
-    e.preventDefault();
-    currentView = 'calendar';
-    document.querySelector('.cal-section').classList.remove('hidden');
-    document.getElementById('tasks-section').classList.remove('hidden');
-    document.getElementById('focus-section').classList.add('hidden');
-    updateSidebarActive('calendar-btn');
-    renderTasks();
-  });
+document.getElementById('nav-calendar').addEventListener('click', (e) => {
+  e.preventDefault();
+  localStorage.setItem('currentView', 'calendar');
+  applyView('calendar');
+});
 
 //NEw Task addition event listeners
 newTaskBtn.addEventListener('click', () => {
