@@ -6,8 +6,201 @@
   <title>Privacy Policy | StudyPlan</title>
 
   <link rel="stylesheet" href="/support-page/support.css">
-
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f5f5f5;
+      color: #171717;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .site-header {
+      width: min(1400px, 90%);
+      margin: 2rem auto 1.5rem;
+      background: #ffffff;
+      border: 1px solid #e5e5e5;
+      border-radius: 20px;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo {
+      width: 48px;
+      height: 48px;
+      object-fit: contain;
+    }
+
+    .site-title {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #111111;
+    }
+
+    .nav-btn {
+      background: #111111;
+      color: white;
+      text-decoration: none;
+      padding: 12px 22px;
+      border-radius: 12px;
+      font-weight: 600;
+      transition: 0.2s ease;
+    }
+
+    .nav-btn:hover {
+      opacity: 0.9;
+    }
+
+    .support-wrapper {
+      width: min(1000px, 90%);
+      margin: 0 auto 2rem;
+      flex: 1;
+    }
+
+    .card {
+      background: #ffffff;
+      border: 1px solid #e5e5e5;
+      border-radius: 24px;
+      padding: 3rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+
+    .card h2 {
+      font-size: 2.4rem;
+      margin-bottom: 0.5rem;
+      color: #111111;
+    }
+
+    .last-updated {
+      color: #737373;
+      margin-bottom: 2rem;
+      font-size: 0.95rem;
+    }
+
+    .intro-box {
+      background: #fafafa;
+      border: 1px solid #e5e5e5;
+      border-radius: 16px;
+      padding: 1.25rem;
+      margin-bottom: 2rem;
+      line-height: 1.7;
+      color: #404040;
+    }
+
+    .policy-section {
+      padding-top: 1.75rem;
+      margin-top: 1.75rem;
+      border-top: 1px solid #eeeeee;
+    }
+
+    .policy-section h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 0.8rem;
+      color: #111111;
+    }
+
+    .policy-section p,
+    .policy-section li {
+      color: #525252;
+      line-height: 1.8;
+      font-size: 1rem;
+    }
+
+    .policy-section ul {
+      padding-left: 1.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .policy-section li {
+      margin-bottom: 0.5rem;
+    }
+
+    .contact-box {
+      margin-top: 2rem;
+      padding: 1.25rem;
+      background: #fafafa;
+      border: 1px solid #e5e5e5;
+      border-radius: 16px;
+    }
+
+    .site-footer {
+      width: min(1400px, 90%);
+      margin: 0 auto 2rem;
+      background: #ffffff;
+      border: 1px solid #e5e5e5;
+      border-radius: 20px;
+      padding: 1.5rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .site-footer p {
+      color: #525252;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    .footer-links a {
+      text-decoration: none;
+      color: #111111;
+      font-weight: 500;
+      transition: 0.2s ease;
+    }
+
+    .footer-links a:hover {
+      opacity: 0.7;
+    }
+
+    @media (max-width: 768px) {
+      .site-header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+      }
+
+      .card {
+        padding: 2rem 1.5rem;
+      }
+
+      .card h2 {
+        font-size: 2rem;
+      }
+
+      .site-footer {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .footer-links {
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+    }
+  </style>
 </head>
 
 <body>
@@ -26,16 +219,92 @@
 <main class="support-wrapper">
 
   <section class="card">
+
     <h2>Privacy Policy</h2>
+    <p class="last-updated">Last Updated: June 2026</p>
 
-    <p>
-      StudyPlan values your privacy. We securely store your tasks and academic planning data.
-      We do not sell your personal information to third parties.
-    </p>
+    <div class="intro-box">
+      At StudyPlan, your privacy matters. We are committed to protecting your
+      personal information and ensuring transparency about how your data is
+      collected, used, and stored.
+    </div>
 
-    <p>
-      Data submitted through AI extraction is processed only for task extraction purposes.
-    </p>
+    <div class="policy-section">
+      <h3>Information We Collect</h3>
+      <p>
+        We may collect information that you voluntarily provide, including
+        study tasks, deadlines, subjects, schedules, notes, and planner-related
+        content. Account-related information may also be stored when required
+        for authentication and account management.
+      </p>
+    </div>
+
+    <div class="policy-section">
+      <h3>How We Use Your Information</h3>
+      <ul>
+        <li>To organize and manage your study schedule.</li>
+        <li>To provide task tracking and planning features.</li>
+        <li>To improve platform functionality and user experience.</li>
+        <li>To maintain account security and data integrity.</li>
+      </ul>
+    </div>
+
+    <div class="policy-section">
+      <h3>AI-Powered Features</h3>
+      <p>
+        Content submitted through Smart Paste or AI extraction tools is
+        processed solely for extracting academic tasks, deadlines, reminders,
+        and study-related information. This data is not sold or shared for
+        advertising purposes.
+      </p>
+    </div>
+
+    <div class="policy-section">
+      <h3>Data Storage & Security</h3>
+      <p>
+        We implement reasonable technical and organizational safeguards to
+        protect your information from unauthorized access, loss, misuse, or
+        disclosure. While no system can guarantee absolute security, we
+        continuously work to maintain a secure environment.
+      </p>
+    </div>
+
+    <div class="policy-section">
+      <h3>Third-Party Services</h3>
+      <p>
+        StudyPlan may use trusted third-party providers for hosting,
+        authentication, analytics, and infrastructure services. These providers
+        only receive access necessary to perform their services and are expected
+        to handle data responsibly.
+      </p>
+    </div>
+
+    <div class="policy-section">
+      <h3>Your Rights</h3>
+      <p>
+        You may request access to your data, correction of inaccurate
+        information, or deletion of your account data where applicable. Users
+        remain in control of the information they create and store within the
+        platform.
+      </p>
+    </div>
+
+    <div class="policy-section">
+      <h3>Changes to This Policy</h3>
+      <p>
+        We may update this Privacy Policy periodically to reflect changes in our
+        services or legal requirements. Any updates will be posted on this page
+        along with a revised "Last Updated" date.
+      </p>
+    </div>
+
+    <div class="contact-box">
+      <h3>Contact Us</h3>
+      <p>
+        If you have questions regarding this Privacy Policy or how your data is
+        handled, please visit our Support page for assistance.
+      </p>
+    </div>
 
   </section>
 
