@@ -84,9 +84,22 @@ function formatDuration(mins) {
   return `${mins} mins`;
 }
 
+function renderSummary() {
+  const summaryBox = document.getElementById('summary-box');
+  if (!summaryBox) return;
+  summaryBox.innerHTML = generateSummary(store.tasks, store.subjects);
+}
+
+function updateSidebarActive(id) {
+  document.querySelectorAll('.sidebar .nav-item').forEach(el => el.classList.remove('active'));
+  const el = document.getElementById(id);
+  if (el) el.classList.add('active');
+}
+
 let currentMonthDate = new Date();
 let selectedDate = null;
 let currentView = 'calendar'; // 'calendar', 'all-tasks', 'archived'
+let selectedSubjectFilter = null; // Filter tasks by subject
 
 const tasksSection = document.getElementById('tasks-section');
 const focusSection = document.getElementById('focus-section');
@@ -307,9 +320,14 @@ function renderSidebarSubjects() {
   listEl.innerHTML = subjects.map(s => {
     const n = countBySubject[s.id] ?? 0;
     const safeColor = s.color ? escapeHtml(s.color) : 'var(--color-text-info)';
-return `
-  <div class="nav-item subject-sidebar-item" data-subject-id="${escapeHtml(s.id)}">
+const isSelected = selectedSubjectFilter === s.id ? 'active' : '';
 
+return `
+  <div
+    class="nav-item subject-sidebar-item ${isSelected}"
+    data-subject-id="${escapeHtml(s.id)}"
+    style="${isSelected ? 'background:var(--color-background-secondary); border-radius:6px;' : ''}"
+  >
     <div class="subject-sidebar-content">
       <span class="nav-dot" style="background:${safeColor}"></span>
 
@@ -329,22 +347,42 @@ return `
         ✕
       </button>
     </div>
-
   </div>
 `;
-  }).join('');
+}).join('');
 
-  document.querySelectorAll('.delete-subject-btn')
-  .forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
+// Subject filter
+document.querySelectorAll('.subject-sidebar-item').forEach(el => {
+  el.addEventListener('click', () => {
+    const subjectId = el.dataset.subjectId;
 
-      const subjectId = btn.dataset.subjectId;
+    if (selectedSubjectFilter === subjectId) {
+      selectedSubjectFilter = null;
+    } else {
+      selectedSubjectFilter = subjectId;
+    }
 
-      store.deleteSubject(subjectId);
-    });
+    currentView = 'all-tasks';
+    renderSidebarSubjects();
+    renderTasks();
+    updateSidebarActive('all-tasks-btn');
   });
-}
+});
+
+// Delete subject
+document.querySelectorAll('.delete-subject-btn').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+
+    const subjectId = btn.dataset.subjectId;
+
+    store.deleteSubject(subjectId);
+
+    // Keep the remaining delete-subject code that comes after this line
+    // from the original file.
+  });
+});
+
 
 const newTaskModal = document.getElementById('new-task-modal');
 const newTaskSubject = document.getElementById('new-task-subject');
@@ -983,6 +1021,17 @@ function renderTasks() {
   const activeTasks = tasks.filter(t => !t.archived);
   const archivedTasks = tasks.filter(t => t.archived);
 
+  
+  let displayTasks = currentView === 'archived' ? archivedTasks : activeTasks;
+
+  if (selectedSubjectFilter && currentView === 'all-tasks') {
+    displayTasks = displayTasks.filter(t => String(t.subject_id) === String(selectedSubjectFilter));
+  }
+
+  if (activeLabelFilter) {
+    displayTasks = displayTasks.filter(t => t.labels && t.labels.includes(activeLabelFilter));
+  }
+
   // Update badges
   const allTasksBadge = document.querySelector('#all-tasks-btn .badge');
   if (allTasksBadge) {
@@ -993,13 +1042,6 @@ function renderTasks() {
     archivedBadge.textContent = archivedTasks.length;
   }
 
-
-  
-  const displayTasksRaw = currentView === 'archived' ? archivedTasks : activeTasks;
-  const displayTasks = activeLabelFilter
-    ? displayTasksRaw.filter(t => t.labels && t.labels.includes(activeLabelFilter))
-    : displayTasksRaw;
-  
   // Extract unique labels to populate the filter dropdown
   if (labelFilterSelect) {
     const uniqueLabels = new Set();
@@ -1347,6 +1389,20 @@ const actionBar = currentView === 'archived'
       ? 'Your archive is empty. Completed tasks you archive will appear here.' 
       : 'No tasks yet! Start planning your study schedule and stay on top of your goals.';
     const emptyStateIcon = currentView === 'archived' ? '📦' : '✨';
+    const subjectFilterInfo = selectedSubjectFilter 
+      ? ` - Filtered by ${subjects.find(s => s.id === selectedSubjectFilter)?.name || 'Subject'}`
+      : '';
+    const clearFilterBtn = selectedSubjectFilter 
+      ? `<button id="clear-subject-filter-btn" class="task-action-btn task-action-btn-secondary" style="margin-left: auto;">✕ Clear filter</button>`
+      : '';
+    
+    const actionBar = currentView === 'archived' ? '' : `<div class="tasks-actions-bar">
+           <button id="mark-all-pending-btn" class="task-action-btn" ${pending.length === 0 ? 'disabled' : ''}>Mark all pending completed (${pending.length})</button>
+           ${clearFilterBtn}
+         </div>`;
+
+    const titlePrefix = currentView === 'archived' ? 'Archived: ' : '';
+    const emptyStateText = currentView === 'archived' ? 'No archived tasks.' : (selectedSubjectFilter ? 'No tasks for this subject.' : 'No tasks yet. Add tasks from Smart Paste to get started.');
 
     const emptyState = dueSoon.length === 0 && thisWeek.length === 0 && completed.length === 0
       ? `<div class="tasks-empty-state">
@@ -1379,7 +1435,23 @@ document.querySelectorAll('.task-item').forEach(taskEl => {
   taskEl.addEventListener('click', (e) => {
     if (e.target.closest('button, input, .task-actions, .edit-field')) return;
     selectTask();
-  });
+
+    tasksSection.innerHTML = actionBar +
+                             renderGroup(titlePrefix + '⚠ Due soon' + subjectFilterInfo, dueSoon, 'var(--color-text-danger)', true) +
+                             renderGroup(titlePrefix + 'This week', thisWeek, 'var(--color-text-secondary)', true) +
+                             renderGroup(titlePrefix + 'Completed', completed, 'var(--color-text-tertiary)') +
+                             emptyState;
+                             
+    // Add clear filter button handler
+    const clearFilterBtn_el = document.getElementById('clear-subject-filter-btn');
+    if (clearFilterBtn_el) {
+      clearFilterBtn_el.addEventListener('click', () => {
+        selectedSubjectFilter = null;
+        renderSidebarSubjects();
+        renderTasks();
+      });
+    }
+  });                      
 
   taskEl.addEventListener('keydown', (e) => {
     if (e.key !== 'Enter' && e.key !== ' ') return;
@@ -1853,6 +1925,7 @@ function updateSidebarActive(id) {
   document.querySelectorAll('.sidebar .nav-item').forEach(el => el.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
+store.subscribe(renderSummary);
 
 document.addEventListener('DOMContentLoaded', () => {
   if (newSubjectColorsEl) {
@@ -1928,12 +2001,14 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   allTasksBtn.addEventListener('click', () => {
+    selectedSubjectFilter = null; // Clear filter when clicking All Tasks
     currentView = 'all-tasks';
     hideProfileSection();
     document.querySelector('.cal-section').classList.add('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
     updateSidebarActive('all-tasks-btn');
+    renderSidebarSubjects(); // Update sidebar to deselect subject
     renderTasks();
   });
 
@@ -2313,4 +2388,5 @@ if (calendarDownloadBtn) {
   calendarDownloadBtn.addEventListener('click', () => {
     downloadCalendar();
   });
+}
 }
