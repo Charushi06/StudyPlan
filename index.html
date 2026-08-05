@@ -142,6 +142,10 @@
         Focus Mode
         
       </div>
+      <div class="nav-item" id="heatmap-btn" role="link" aria-label="View Heatmap">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M6 2v12M10 2v12M2 6h12M2 10h12" stroke="currentColor" stroke-width="1.5"/></svg>
+        Heatmap
+      </div>
       <div class="nav-item" id="archived-tasks-btn">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 3h12v2H2V3zm1 3h10v7H3V6zm2 2v3h2V8H5zm4 0v3h2V8H9z" fill="currentColor"/></svg>
         Archived Tasks
@@ -280,6 +284,27 @@
         </div>
       </div>
 
+
+      <!-- Heatmap Section -->
+      <div id="heatmap-section" class="heatmap-section hidden">
+        <div class="heatmap-header">
+          <h2>Workload Heatmap</h2>
+          <div class="heatmap-legend">
+            <span style="font-size: 12px; color: var(--color-text-secondary); margin-right: 6px;">Low</span>
+            <span class="legend-cell workload-none"></span>
+            <span class="legend-cell workload-low"></span>
+            <span class="legend-cell workload-medium"></span>
+            <span class="legend-cell workload-heavy"></span>
+            <span style="font-size: 12px; color: var(--color-text-secondary); margin-left: 6px;">Heavy</span>
+          </div>
+        </div>
+        <div class="heatmap-container">
+          <div class="heatmap-grid" id="heatmap-grid"></div>
+        </div>
+        <!-- Tooltip -->
+        <div id="heatmap-tooltip" class="heatmap-tooltip hidden"></div>
+      </div>
+
       <div id="profile-section" class="profile-section hidden">
         <div class="profile-header">
           <div>
@@ -333,6 +358,7 @@
           <p id="profile-summary-text">Your profile information and study statistics will update automatically as you use StudyPlan.</p>
         </section>
       </div>
+
 
     </div>
 

@@ -1848,6 +1848,13 @@ store.subscribe(renderFocusTasks);
 store.subscribe(renderProfileSection);
 store.subscribe(renderSidebarSubjects);
 store.subscribe(renderStreak);
+store.subscribe(() => {
+  if (typeof currentView !== 'undefined' && currentView === 'heatmap') {
+    if (typeof fetchWorkload === 'function' && typeof renderHeatmap === 'function') {
+      fetchWorkload().then(renderHeatmap);
+    }
+  }
+});
 
 function updateSidebarActive(id) {
   document.querySelectorAll('.sidebar .nav-item').forEach(el => el.classList.remove('active'));
@@ -1916,13 +1923,25 @@ document.addEventListener('DOMContentLoaded', () => {
   const allTasksBtn = document.getElementById('all-tasks-btn');
   const archivedTasksBtn = document.getElementById('archived-tasks-btn');
   const focusModeBtn = document.getElementById('focus-mode-btn');
+  const heatmapBtn = document.getElementById('heatmap-btn');
 
+<<<<<<< HEAD
+  function updateSidebarActive(id) {
+    document.querySelectorAll('.sidebar .nav-item').forEach(el => el.classList.remove('active'));
+    const btn = document.getElementById(id);
+    if(btn) btn.classList.add('active');
+  }
+
+=======
+>>>>>>> origin/main
   calendarBtn.addEventListener('click', () => {
     currentView = 'calendar';
     hideProfileSection();
     document.querySelector('.cal-section').classList.remove('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
+    const heatmapSection = document.getElementById('heatmap-section');
+    if(heatmapSection) heatmapSection.classList.add('hidden');
     updateSidebarActive('calendar-btn');
     renderTasks();
   });
@@ -1933,6 +1952,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('.cal-section').classList.add('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
+    const heatmapSection = document.getElementById('heatmap-section');
+    if(heatmapSection) heatmapSection.classList.add('hidden');
     updateSidebarActive('all-tasks-btn');
     renderTasks();
   });
@@ -1943,6 +1964,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('.cal-section').classList.add('hidden');
     document.getElementById('tasks-section').classList.remove('hidden');
     document.getElementById('focus-section').classList.add('hidden');
+    const heatmapSection = document.getElementById('heatmap-section');
+    if(heatmapSection) heatmapSection.classList.add('hidden');
     updateSidebarActive('archived-tasks-btn');
     renderTasks();
   });
@@ -1954,8 +1977,96 @@ document.addEventListener('DOMContentLoaded', () => {
       document.querySelector('.cal-section').classList.add('hidden');
       document.getElementById('tasks-section').classList.add('hidden');
       document.getElementById('focus-section').classList.remove('hidden');
+      const heatmapSection = document.getElementById('heatmap-section');
+      if(heatmapSection) heatmapSection.classList.add('hidden');
       updateSidebarActive('focus-mode-btn');
       renderFocusTasks();
+    });
+  }
+
+
+  let heatmapData = {};
+  async function fetchWorkload() {
+    try {
+      const res = await fetch('/api/workload');
+      if (res.ok) {
+        heatmapData = await res.json();
+      }
+    } catch (err) {
+      console.error('Failed to fetch workload:', err);
+    }
+  }
+
+  function renderHeatmap() {
+    const grid = document.getElementById('heatmap-grid');
+    const tooltip = document.getElementById('heatmap-tooltip');
+    if (!grid || !tooltip) return;
+
+    grid.innerHTML = '';
+    const now = new Date();
+    // Default to current year
+    const yearStart = new Date(now.getFullYear(), 0, 1);
+    const yearEnd = new Date(now.getFullYear(), 11, 31);
+    
+    // adjust start to first Sunday
+    const startDay = new Date(yearStart);
+    startDay.setDate(startDay.getDate() - startDay.getDay());
+    
+    const endDay = new Date(yearEnd);
+    endDay.setDate(endDay.getDate() + (6 - endDay.getDay()));
+
+    let current = new Date(startDay);
+    while (current <= endDay) {
+      const dateStr = current.toISOString().split('T')[0];
+      const data = heatmapData[dateStr] || { count: 0, tasks: [] };
+      
+      const cell = document.createElement('div');
+      cell.className = 'heatmap-cell';
+      
+      if (data.count === 0) cell.classList.add('workload-none');
+      else if (data.count <= 2) cell.classList.add('workload-low');
+      else if (data.count <= 5) cell.classList.add('workload-medium');
+      else cell.classList.add('workload-heavy');
+
+      cell.addEventListener('mouseenter', (e) => {
+        const rect = cell.getBoundingClientRect();
+        tooltip.style.left = \`\${rect.left + window.scrollX}px\`;
+        tooltip.style.top = \`\${rect.top + window.scrollY - 10}px\`;
+        tooltip.style.transform = 'translate(-50%, -100%)';
+        
+        let html = \`<strong>\${current.toDateString()} (\${data.count} tasks)</strong>\`;
+        if (data.count > 0) {
+          html += '<ul>' + data.tasks.slice(0, 5).map(t => \`<li>\${escapeHtml(t.title)}</li>\`).join('') + '</ul>';
+          if (data.count > 5) html += \`<div style="margin-top:4px;font-style:italic">+\${data.count - 5} more...</div>\`;
+        }
+        tooltip.innerHTML = html;
+        tooltip.classList.remove('hidden');
+      });
+
+      cell.addEventListener('mouseleave', () => {
+        tooltip.classList.add('hidden');
+      });
+
+      cell.addEventListener('click', () => {
+        selectedDate = dateStr;
+        document.getElementById('all-tasks-btn').click();
+      });
+
+      grid.appendChild(cell);
+      current.setDate(current.getDate() + 1);
+    }
+  }
+
+  if (heatmapBtn) {
+    heatmapBtn.addEventListener('click', () => {
+      currentView = 'heatmap';
+      document.querySelector('.cal-section').classList.add('hidden');
+      document.getElementById('tasks-section').classList.add('hidden');
+      document.getElementById('focus-section').classList.add('hidden');
+      const heatmapSection = document.getElementById('heatmap-section');
+      if (heatmapSection) heatmapSection.classList.remove('hidden');
+      updateSidebarActive('heatmap-btn');
+      fetchWorkload().then(() => renderHeatmap());
     });
   }
 
@@ -1972,6 +2083,7 @@ document.addEventListener('DOMContentLoaded', () => {
     currentMonthDate.setMonth(currentMonthDate.getMonth() - 1);
     renderCalendar();
   });
+
 
   document.getElementById('cal-next').addEventListener('click', () => {
     currentMonthDate.setMonth(currentMonthDate.getMonth() + 1);
