@@ -27,7 +27,12 @@
 
     <input id="auth-email" type="email" placeholder="Email address" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:12px; box-sizing:border-box;">
     
-    <input id="auth-password" type="password" placeholder="Password" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:20px; box-sizing:border-box;">
+    <div style="position:relative; margin-bottom:20px;">
+      <input id="auth-password" type="password" placeholder="Password" style="width:100%; padding:12px 44px 12px 12px; border:1px solid #ddd; border-radius:8px; font-size:14px; box-sizing:border-box;">
+      <button type="button" id="password-toggle-btn" aria-label="Show password" aria-pressed="false" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); border:none; background:transparent; cursor:pointer; color:#4b5563; font-size:16px; display:flex; align-items:center; justify-content:center; padding:4px;">
+        <i class="fa-regular fa-eye" aria-hidden="true"></i>
+      </button>
+    </div>
 
     <input id="auth-confirm-password"
        type="password"
@@ -71,6 +76,7 @@
 </nav>
 
   <div class="header-right">
+
     <button class="profile-btn" id="restart-tour-btn">Take Tour</button>
     <div style="position: relative; display: inline-block;">
       <button class="profile-btn" id="profile-btn">Profile</button>
@@ -440,6 +446,22 @@
   <script src="https://cdn.jsdelivr.net/npm/intro.js/minified/intro.min.js"></script>
   <script>
   let isLogin = true;
+
+  const passwordToggleBtn = document.getElementById('password-toggle-btn');
+  const authPasswordInput = document.getElementById('auth-password');
+
+  if (passwordToggleBtn && authPasswordInput) {
+    passwordToggleBtn.addEventListener('click', () => {
+      const isVisible = authPasswordInput.type === 'text';
+      authPasswordInput.type = isVisible ? 'password' : 'text';
+      const icon = passwordToggleBtn.querySelector('i');
+      if (icon) {
+        icon.className = isVisible ? 'fa-regular fa-eye' : 'fa-regular fa-eye-slash';
+      }
+      passwordToggleBtn.setAttribute('aria-label', isVisible ? 'Show password' : 'Hide password');
+      passwordToggleBtn.setAttribute('aria-pressed', (!isVisible).toString());
+    });
+  }
 
   document.getElementById('auth-toggle-btn').addEventListener('click', (e) => {
     e.preventDefault();

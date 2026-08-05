@@ -778,10 +778,12 @@ function renderProfileSection() {
             <span class="profile-stat-value">${subjectsCount}</span>
             <span>Subjects</span>
           </div>
+
           <div>
              <span class="profile-stat-value">${readinessPercentage}%</span>
               <span>Readiness</span>
           </div>
+
         </div>
       </section>
     </div>
@@ -1958,7 +1960,6 @@ document.addEventListener('DOMContentLoaded', () => {
       renderFocusTasks();
     });
   }
-
   downloadBtn.addEventListener('click', () => {
     currentView = 'review';
     document.querySelector('.cal-section').classList.add('hidden');
@@ -1972,7 +1973,6 @@ document.addEventListener('DOMContentLoaded', () => {
     currentMonthDate.setMonth(currentMonthDate.getMonth() - 1);
     renderCalendar();
   });
-
   document.getElementById('cal-next').addEventListener('click', () => {
     currentMonthDate.setMonth(currentMonthDate.getMonth() + 1);
     renderCalendar();
