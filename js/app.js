@@ -2066,19 +2066,20 @@ newTaskSave.addEventListener('click', async () => {
     : null;
 
   if (!rawTitle) {
-    alert('Please enter a task name');
+    Toast.show('Please enter a task name', 'warning');
     return;
   }
 
   if (!dateVal) {
-  alert('Please enter a deadline');
-  return;
-}
+    Toast.show('Please enter a deadline', 'warning');
+    return;
+  }
 
-if (!subject_id) {
-  alert('Please select a subject');
-  return;
-}
+  if (!subject_id) {
+    Toast.show('Please select a subject', 'warning');
+    return;
+  }
+
   const { cleanTitle, labels } = extractLabels(rawTitle);
   const due_at = dateVal ? new Date(dateVal).toISOString() : '';
 
