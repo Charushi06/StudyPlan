@@ -579,6 +579,19 @@ app.post('/api/auth/signup', (req, res) => {
     });
   }
 
+  // Email validation
+  const emailRegex =
+    /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}$/;
+
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({
+      error: 'Invalid email format'
+    });
+  }
+
+  // Check existing user
+ 
+
   const id = 'user_' + Date.now();
 
   db.run(
