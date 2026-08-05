@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require('express');
 const cors = require('cors');
+const bcrypt = require('bcrypt');
 const { db, initDb } = require('./database');
 const { GoogleGenAI } = require('@google/genai');
 const path = require('path');
@@ -570,7 +571,7 @@ Text: "${text}"
 // ================= AUTH =================
 
 // SIGNUP
-app.post('/api/auth/signup', (req, res) => {
+app.post('/api/auth/signup', async(req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -581,10 +582,11 @@ app.post('/api/auth/signup', (req, res) => {
 
   const id = 'user_' + Date.now();
 
+  const hashedPassword = await bcrypt.hash(password, 10);
   db.run(
     `INSERT INTO users (id, email, password)
      VALUES (?, ?, ?)`,
-    [id, email, password],
+    [id, email, hashedPassword],
     function(err) {
 
       if (err) {
@@ -609,7 +611,7 @@ app.post('/api/auth/signup', (req, res) => {
 });
 
 // LOGIN
-app.post('/api/auth/login', (req, res) => {
+app.post('/api/auth/login',async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -621,7 +623,7 @@ app.post('/api/auth/login', (req, res) => {
   db.get(
     `SELECT * FROM users WHERE email = ?`,
     [email],
-    (err, user) => {
+    async (err, user) => {
 
       if (err) {
         return res.status(500).json({
@@ -629,12 +631,21 @@ app.post('/api/auth/login', (req, res) => {
         });
       }
 
-      if (!user || user.password !== password) {
+      if (!user) {
         return res.status(401).json({
           error: 'Invalid email or password'
         });
       }
+      const isValid = await bcrypt.compare(
+        password,
+        user.password
+      );
 
+      if (!isValid) {
+        return res.status(401).json({
+          error: 'Invalid email or password'
+        });
+      }
       res.json({
         success: true,
         email: user.email
