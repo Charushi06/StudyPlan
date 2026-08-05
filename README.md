@@ -249,7 +249,7 @@ API
 ├──  package.json            # Node project configuration and backend dependencies
 ├──  README.md               # The comprehensive project documentation
 ├──  server.js               # The primary Node.js & Express REST Backend logic
-└──  studyplan.db
+└──  studyplan.db            # SQLite database file storing study tasks
 ```
 
 ---
