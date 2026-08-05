@@ -263,7 +263,28 @@
             <button id="timer-pause-btn" class="btn hidden">Pause</button>
             <button id="timer-reset-btn" class="btn">Reset</button>
           </div>
+          <div class="timer-sound-settings">
+          <label for="soundSelect">Timer Sound:</label>
+          <select id="soundSelect">
+          <option value="default.mp3">Default Bell</option>
+          <option value="zen.mp3">Zen Chime</option>
+          <option value="beep.mp3">Digital Beep</option>
+          </select>
+          </div>
           
+          <div class="timer-volume-settings">
+          <label for="volumeControl">
+           Volume
+          </label>
+          <input
+            type="range"
+            id="volumeControl"
+            min="0"
+            max="1"
+            step="0.1"
+          value="1">                                             
+          </div>
+
           <div class="focus-task-container">
             <div class="focus-task-header">Current Focus Task</div>
             <div id="active-focus-task" class="active-focus-task">

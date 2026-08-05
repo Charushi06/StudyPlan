@@ -1430,6 +1430,25 @@ body {
   cursor: not-allowed;
 }
 
+/*timer sound catalogue*/
+.timer-sound-settings {
+  margin-top: 12px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/*volume toggle*/
+.timer-volume-settings {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+  #volumeControl {
+  cursor: pointer;
+}
+
 /* Focus Mode */
 .focus-section {
   flex: 1;
