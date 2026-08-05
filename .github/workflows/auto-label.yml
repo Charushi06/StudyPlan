@@ -1,0 +1,141 @@
+name: Auto Label Issues
+
+on:
+  issues:
+    types:
+      - opened
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  label-issue:
+    name: label issue by keywords
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Apply automatic labels
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const searchableText = `${issue.title}\n${issue.body ?? ''}`.toLowerCase();
+
+            const labelRules = [
+              {
+                label: 'gssoc-2026',
+                patterns: [
+                  /\bgssoc\b/i,
+                  /\bgsoc\b/i,
+                  /google summer of code/i,
+                  /world gssoc/i,
+                ],
+              },
+              {
+                label: 'bug',
+                patterns: [
+                  /\bbug\b/i,
+                  /\bcrash(?:es|ed|ing)?\b/i,
+                  /\berror\b/i,
+                  /\bbroken\b/i,
+                  /\bfail(?:s|ed|ure|ing)?\b/i,
+                ],
+              },
+              {
+                label: 'feature',
+                patterns: [
+                  /\bfeature\b/i,
+                  /\benhancement\b/i,
+                  /\bimprovement\b/i,
+                  /\bsupport\b/i,
+                  /\bimplement(?:ation)?\b/i,
+                ],
+              },
+              {
+                label: 'documentation',
+                patterns: [
+                  /\bdocs?\b/i,
+                  /\bdocumentation\b/i,
+                  /\breadme\b/i,
+                  /\bguide\b/i,
+                  /\bapi docs?\b/i,
+                ],
+              },
+              {
+                label: 'ui',
+                patterns: [
+                  /\bui\b/i,
+                  /\bux\b/i,
+                  /\bdesign\b/i,
+                  /\blayout\b/i,
+                  /\bfrontend\b/i,
+                  /\bvisual\b/i,
+                ],
+              },
+              {
+                label: 'infra',
+                patterns: [
+                  /\binfra\b/i,
+                  /\bdeployment\b/i,
+                  /\bdevops\b/i,
+                  /\bci\b/i,
+                  /github actions/i,
+                  /\bvercel\b/i,
+                ],
+              },
+            ];
+
+            const matchedLabels = labelRules
+              .filter((rule) => rule.patterns.some((pattern) => pattern.test(searchableText)))
+              .map((rule) => rule.label);
+
+            const labelsToApply = [...new Set(matchedLabels)];
+
+            if (labelsToApply.length === 0) {
+              core.info('No labels matched for this issue.');
+              return;
+            }
+
+            const defaultLabelDefinitions = {
+              bug: { color: 'd73a4a', description: 'Confirmed defects or broken behavior.' },
+              feature: { color: 'a2eeef', description: 'New functionality or enhancements.' },
+              documentation: { color: '0075ca', description: 'Documentation updates or improvements.' },
+              ui: { color: '5319e7', description: 'User interface or visual design work.' },
+              infra: { color: '1d76db', description: 'Infrastructure, CI, deployment, or tooling work.' },
+              'gssoc-2026': { color: '0e8a16', description: 'Issue appears to be GSSoC-eligible.' },
+            };
+
+            for (const labelName of labelsToApply) {
+              try {
+                await github.rest.issues.getLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: labelName,
+                });
+              } catch (error) {
+                if (error?.status !== 404) {
+                  throw error;
+                }
+
+                const fallback = defaultLabelDefinitions[labelName] ?? {
+                  color: 'ededed',
+                  description: `Auto-created label for ${labelName} issues.`,
+                };
+
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: labelName,
+                  color: fallback.color,
+                  description: fallback.description,
+                });
+              }
+            }
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue.number,
+              labels: labelsToApply,
+            });
