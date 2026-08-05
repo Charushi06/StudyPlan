@@ -596,7 +596,8 @@ function resetTimer() {
 }
 
 timerDurationInput.addEventListener('change', () => {
-  if (!timerInterval && timePassed === 0) {
+  if (!timerInterval) {
+    timePassed = 0;
     TIME_LIMIT = getTimerDuration();
     timeLeft = TIME_LIMIT;
     timerText.innerHTML = formatTimeLeft(timeLeft);
