@@ -221,35 +221,64 @@ Open → http://localhost:3000
 ---
  
 ## Project Structure
- 
+
 ```
- StudyPlan
-├──  css
-│   └──  index.css           # Contains all styling rules, variables, and animations
-├──  js
-│   ├──  utils
-│   │   ├──  aiMock.js       # The original mock UI extraction hook (deprecated)
-│   │   ├──  api.js          # The live fetch logic communicating with our Express 
-screenshots/
-├── focus-mode.png
-├── archived-tasks.png
-├── calendar-view.png
-└── create-task.png
-API
-│   │   └──  toast.js        # Modern toast & confirmation modal system
-│   ├──  app.js              # The main controller (handles DOM UI, event bindings, and Calendar)
-│   └──  store.js            # The Custom State Manager handling our frontend Pub/Sub state
-├──  .env.example            # Template file for setting the GEMINI_API_KEY
-├──  .dockerignore           # Files excluded from Docker build context
-├──  Dockerfile              # Container image for the app
-├──  docker-compose.yaml     # Orchestrates the local Docker development stack
-├──  .gitignore              # Tells git to ignore databases, environments, and node packages
-├──  database.js             # Initializes the SQLite database and executes DB table schemas
-├──  index.html              # The frontend structural entry point
-├──  package.json            # Node project configuration and backend dependencies
-├──  README.md               # The comprehensive project documentation
-├──  server.js               # The primary Node.js & Express REST Backend logic
-└──  studyplan.db
+StudyPlan
+├── backend
+│   ├── controllers
+│   │   ├── chatController.js       # Handles AI chatbot request logic
+│   │   └── csvDownload.controller.js # Builds CSV/ICS exports of tasks
+│   └── routers
+│       ├── chatRoutes.js           # Routes for the AI chatbot API
+│       └── csvDownload.router.js   # Routes for CSV/ICS export endpoints
+├── css
+│   ├── chatbot.css                 # Styling for the AI chatbot widget
+│   └── index.css                   # Contains all styling rules, variables, and animations
+├── js
+│   ├── lib
+│   │   └── confetti.browser.min.js # Third-party confetti animation library
+│   ├── utils
+│   │   ├── aiMock.js               # The original mock UI extraction hook (deprecated)
+│   │   ├── api.js                  # The live fetch logic communicating with our Express API
+│   │   ├── chatbot.js              # Frontend logic for the AI chatbot widget
+│   │   ├── confetti.js             # Confetti trigger helper
+│   │   ├── errorBoundary.js        # Frontend error boundary/handling utility
+│   │   ├── nlpDateExtractor.js     # Client-side heuristic date extraction
+│   │   ├── nlpSubjectExtractor.js  # Client-side heuristic subject extraction
+│   │   ├── scheduler.js            # Deadline clustering / conflict detection logic
+│   │   └── toast.js                # Modern toast & confirmation modal system
+│   ├── app.js                      # The main controller (handles DOM UI, event bindings, and Calendar)
+│   └── store.js                    # The Custom State Manager handling our frontend Pub/Sub state
+├── public
+│   ├── favicon.ico
+│   └── *.svg                       # Streak/achievement icons
+├── screenshots
+│   ├── focus-mode.png
+│   ├── archived-tasks.png
+│   ├── calendar-view.png
+│   └── create-task.png
+├── support-page
+│   ├── privacy.html                # Privacy policy page
+│   ├── support.html                # Support/help page
+│   ├── support.css
+│   ├── support.js
+│   └── terms.html                  # Terms of service page
+├── tests
+│   └── exportIcs.test.js           # Unit tests for ICS export helpers
+├── .env.example                    # Template file for setting the GEMINI_API_KEY
+├── .dockerignore                   # Files excluded from Docker build context
+├── .render-build.sh                # Build script used by the Render deployment
+├── 404.html                        # Custom 404 error page
+├── error.html                      # Custom 500 error page
+├── Dockerfile                      # Container image for the app
+├── docker-compose.yaml             # Orchestrates the local Docker development stack
+├── .gitignore                      # Tells git to ignore databases, environments, and node packages
+├── database.js                     # Initializes the SQLite database and executes DB table schemas
+├── index.html                      # The frontend structural entry point
+├── package.json                    # Node project configuration and backend dependencies
+├── README.md                       # The comprehensive project documentation
+├── server.js                       # The primary Node.js & Express REST backend logic
+└── studyplan.db                    # Local SQLite database file (git-ignored)
 ```
 
 ---
