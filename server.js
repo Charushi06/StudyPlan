@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require('express');
 const cors = require('cors');
+const bcrypt = require('bcryptjs');
 const { db, initDb } = require('./database');
 const { GoogleGenAI } = require('@google/genai');
 const path = require('path');
@@ -570,7 +571,9 @@ Text: "${text}"
 // ================= AUTH =================
 
 // SIGNUP
-app.post('/api/auth/signup', (req, res) => {
+const BCRYPT_SALT_ROUNDS = 10;
+
+app.post('/api/auth/signup', async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -579,12 +582,25 @@ app.post('/api/auth/signup', (req, res) => {
     });
   }
 
+  if (password.length < 8) {
+    return res.status(400).json({
+      error: 'Password must be at least 8 characters long'
+    });
+  }
+
   const id = 'user_' + Date.now();
+
+  let passwordHash;
+  try {
+    passwordHash = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
+  } catch (hashErr) {
+    return res.status(500).json({ error: 'Failed to process password' });
+  }
 
   db.run(
     `INSERT INTO users (id, email, password)
      VALUES (?, ?, ?)`,
-    [id, email, password],
+    [id, email, passwordHash],
     function(err) {
 
       if (err) {
@@ -621,7 +637,7 @@ app.post('/api/auth/login', (req, res) => {
   db.get(
     `SELECT * FROM users WHERE email = ?`,
     [email],
-    (err, user) => {
+    async (err, user) => {
 
       if (err) {
         return res.status(500).json({
@@ -629,7 +645,20 @@ app.post('/api/auth/login', (req, res) => {
         });
       }
 
-      if (!user || user.password !== password) {
+      if (!user) {
+        return res.status(401).json({
+          error: 'Invalid email or password'
+        });
+      }
+
+      let passwordMatches;
+      try {
+        passwordMatches = await bcrypt.compare(password, user.password);
+      } catch (compareErr) {
+        return res.status(500).json({ error: 'Failed to verify password' });
+      }
+
+      if (!passwordMatches) {
         return res.status(401).json({
           error: 'Invalid email or password'
         });
