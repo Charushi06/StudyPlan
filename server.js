@@ -19,9 +19,15 @@ const page404Path = path.join(__dirname, '404.html');
 const page500Path = path.join(__dirname, 'error.html');
 
 // Static
+// Only expose the specific directories/files the frontend actually needs.
+// (Previously `express.static(__dirname)` served the entire project root,
+// including server.js, database.js, package.json, and other internal files.)
 app.use('/css', express.static(path.join(__dirname, 'css')));
 app.use('/js', express.static(path.join(__dirname, 'js')));
-app.use(express.static(__dirname));
+app.use('/public', express.static(path.join(__dirname, 'public')));
+app.use('/support-page', express.static(path.join(__dirname, 'support-page')));
+app.get('/logo.png', (req, res) => res.sendFile(path.join(__dirname, 'logo.png')));
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
 initDb();
 
