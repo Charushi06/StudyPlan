@@ -229,13 +229,7 @@ Open → http://localhost:3000
 ├──  js
 │   ├──  utils
 │   │   ├──  aiMock.js       # The original mock UI extraction hook (deprecated)
-│   │   ├──  api.js          # The live fetch logic communicating with our Express 
-screenshots/
-├── focus-mode.png
-├── archived-tasks.png
-├── calendar-view.png
-└── create-task.png
-API
+│   │   ├──  api.js          # The live fetch logic communicating with our Express API
 │   │   └──  toast.js        # Modern toast & confirmation modal system
 │   ├──  app.js              # The main controller (handles DOM UI, event bindings, and Calendar)
 │   └──  store.js            # The Custom State Manager handling our frontend Pub/Sub state
