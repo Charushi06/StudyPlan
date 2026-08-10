@@ -418,10 +418,10 @@ body {
 .panel-title svg { opacity: 0.8; }
 .panel-subtitle { font-size: 12px; font-weight: 500; color: var(--color-text-tertiary); margin-top: 4px; }
 
-.paste-zone { margin: 20px 20px 12px; border: 2px dashed var(--color-border-secondary); border-radius: var(--border-radius-lg); padding: 24px 20px; text-align: center; cursor: text; transition: all 0.2s; background: var(--color-background-primary); display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; min-height: 120px; overflow: hidden; }
+.paste-zone { margin: 12px 16px 8px; border: 2px dashed var(--color-border-secondary); border-radius: var(--border-radius-lg); padding: 12px 16px; text-align: center; cursor: text; transition: all 0.2s; background: var(--color-background-primary); display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; min-height: 80px; overflow: hidden; }
 .paste-zone:hover { border-color: var(--color-text-info); background: var(--color-background-info); }
 .paste-zone:focus-within { border-color: var(--color-text-primary); border-style: solid; box-shadow: inset 0 0 0 1px var(--color-text-primary); outline: none; }
-.paste-icon { font-size: 24px; margin-bottom: 8px; color: var(--color-text-secondary); transition: color 0.2s; }
+.paste-icon { font-size: 18px; margin-bottom: 4px; color: var(--color-text-secondary); transition: color 0.2s; }
 .paste-zone:hover .paste-icon { color: var(--color-text-info); }
 
 .btn-primary:hover {
@@ -1098,10 +1098,10 @@ body {
 }
 
 .paste-zone {
-  margin: 20px 20px 12px;
+  margin: 12px 16px 8px;
   border: 2px dashed var(--color-border-secondary);
   border-radius: var(--border-radius-lg);
-  padding: 24px 20px;
+  padding: 12px 16px;
   text-align: center;
   cursor: text;
   transition: all 0.2s;
@@ -1111,7 +1111,7 @@ body {
   align-items: center;
   justify-content: center;
   position: relative;
-  min-height: 120px;
+  min-height: 80px;
   overflow: hidden;
 }
 
@@ -1128,8 +1128,8 @@ body {
 }
 
 .paste-icon {
-  font-size: 24px;
-  margin-bottom: 8px;
+  font-size: 18px;
+  margin-bottom: 4px;
   color: var(--color-text-secondary);
   transition: color 0.2s;
 }
@@ -1149,7 +1149,7 @@ body {
   opacity: 0;
   resize: none;
   border: none;
-  padding: 20px;
+  padding: 10px 12px;
   font-family: inherit;
   font-size: 13px;
   z-index: 2;
@@ -1165,22 +1165,22 @@ body {
 }
 
 .paste-label {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--color-text-primary);
-  margin-bottom: 4px;
+  margin-bottom: 2px;
   pointer-events: none;
 }
 
 .paste-hint {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--color-text-tertiary);
-  line-height: 1.5;
+  line-height: 1.3;
   pointer-events: none;
 }
 
 .paste-actions {
-  padding: 0 20px 16px;
+  padding: 0 16px 12px;
   display: flex;
   gap: 12px;
 }
@@ -2752,10 +2752,10 @@ body {
 }
 
 .paste-zone {
-  margin: 20px 20px 12px;
+  margin: 12px 16px 8px;
   border: 2px dashed var(--color-border-secondary);
   border-radius: var(--border-radius-lg);
-  padding: 24px 20px;
+  padding: 12px 16px;
   text-align: center;
   cursor: text;
   transition: all 0.2s;
@@ -2765,7 +2765,7 @@ body {
   align-items: center;
   justify-content: center;
   position: relative;
-  min-height: 120px;
+  min-height: 80px;
   overflow: hidden;
 }
 
@@ -2782,8 +2782,8 @@ body {
 }
 
 .paste-icon {
-  font-size: 24px;
-  margin-bottom: 8px;
+  font-size: 18px;
+  margin-bottom: 4px;
   color: var(--color-text-secondary);
   transition: color 0.2s;
 }
@@ -2803,7 +2803,7 @@ body {
   opacity: 0;
   resize: none;
   border: none;
-  padding: 20px;
+  padding: 10px 12px;
   font-family: inherit;
   font-size: 13px;
   z-index: 2;
@@ -2832,22 +2832,22 @@ body {
 }
 
 .paste-label {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--color-text-primary);
-  margin-bottom: 4px;
+  margin-bottom: 2px;
   pointer-events: none;
 }
 
 .paste-hint {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--color-text-tertiary);
-  line-height: 1.5;
+  line-height: 1.3;
   pointer-events: none;
 }
 
 .paste-actions {
-  padding: 0 20px 16px;
+  padding: 0 16px 12px;
   display: flex;
   gap: 12px;
 }
@@ -4241,10 +4241,10 @@ body {
 }
 
 .paste-zone {
-  margin: 20px 20px 12px;
+  margin: 12px 16px 8px;
   border: 2px dashed var(--color-border-secondary);
   border-radius: var(--border-radius-lg);
-  padding: 24px 20px;
+  padding: 12px 16px;
   text-align: center;
   cursor: text;
   transition: all 0.2s;
@@ -4254,7 +4254,7 @@ body {
   align-items: center;
   justify-content: center;
   position: relative;
-  min-height: 120px;
+  min-height: 80px;
   overflow: hidden;
 }
 
@@ -4271,8 +4271,8 @@ body {
 }
 
 .paste-icon {
-  font-size: 24px;
-  margin-bottom: 8px;
+  font-size: 18px;
+  margin-bottom: 4px;
   color: var(--color-text-secondary);
   transition: color 0.2s;
 }
@@ -4292,7 +4292,7 @@ body {
   opacity: 0;
   resize: none;
   border: none;
-  padding: 20px;
+  padding: 10px 12px;
   font-family: inherit;
   font-size: 13px;
   z-index: 2;
@@ -4308,22 +4308,22 @@ body {
 }
 
 .paste-label {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--color-text-primary);
-  margin-bottom: 4px;
+  margin-bottom: 2px;
   pointer-events: none;
 }
 
 .paste-hint {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--color-text-tertiary);
-  line-height: 1.5;
+  line-height: 1.3;
   pointer-events: none;
 }
 
 .paste-actions {
-  padding: 0 20px 16px;
+  padding: 0 16px 12px;
 }
 /* Main */
 .main { display: flex; flex-direction: column; overflow: hidden; position: relative; }
