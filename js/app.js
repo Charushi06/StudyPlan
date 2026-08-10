@@ -110,6 +110,17 @@ if (labelFilterSelect) {
   });
 }
 
+const compactBtn = document.getElementById('density-compact-btn');
+const expandedBtn = document.getElementById('density-expanded-btn');
+if (compactBtn && expandedBtn) {
+  compactBtn.addEventListener('click', () => {
+    store.setViewMode('compact');
+  });
+  expandedBtn.addEventListener('click', () => {
+    store.setViewMode('expanded');
+  });
+}
+
 const SUBJECT_COLORS = [
   'var(--color-text-info)',
   'var(--color-text-success)',
@@ -1202,6 +1213,14 @@ if (smartBtn) {
           labelsHtml = t.labels.map(l => `<span class="task-pill" style="background:${getLabelColor(l)}; color:white;">${l}</span>`).join(' ');
         }
 
+        const notesHtml = t.notes
+          ? `<div class="task-notes" style="font-size:12px; color:var(--color-text-secondary); margin-top:6px; font-style:italic; line-height:1.4; word-break:break-word;">${escapeHtml(t.notes)}</div>`
+          : '';
+
+        const durationHtml = t.estimated_duration
+          ? `<span class="task-pill pill-duration" style="background:var(--color-background-tertiary); color:var(--color-text-secondary); border:1px solid var(--color-border-tertiary);">⏱ ${formatDuration(t.estimated_duration)}</span>`
+          : '';
+
   html += `
             <div class="task-item 
               ${isUrgent ? 'urgent' : ''} 
@@ -1209,6 +1228,7 @@ if (smartBtn) {
               ${isOverdue ? 'overdue' : ''} 
               ${isDone ? 'done' : ''} 
               ${isTaskSelected(t.id) ? 'selected-task' : ''}
+              ${store.viewMode === 'compact' ? 'compact' : 'expanded'}
             " 
             data-id="${t.id}"
             role="button"
@@ -1238,8 +1258,10 @@ if (smartBtn) {
                     ${sub.short_code}
                   </span>
 
-                  ${labelsHtml}
+                  ${durationHtml}
+                  <span class="task-labels">${labelsHtml}</span>
                 </div>
+                ${notesHtml}
               </div>
 
               <div class="task-actions">
@@ -1544,6 +1566,23 @@ if (selectAllBtn) {
     store.selectAllTasks();
   });
 }
+
+  const compactBtn = document.getElementById('density-compact-btn');
+  const expandedBtn = document.getElementById('density-expanded-btn');
+  if (compactBtn && expandedBtn) {
+    const mode = store.viewMode || 'expanded';
+    if (mode === 'compact') {
+      compactBtn.classList.add('active');
+      compactBtn.setAttribute('aria-pressed', 'true');
+      expandedBtn.classList.remove('active');
+      expandedBtn.setAttribute('aria-pressed', 'false');
+    } else {
+      expandedBtn.classList.add('active');
+      expandedBtn.setAttribute('aria-pressed', 'true');
+      compactBtn.classList.remove('active');
+      compactBtn.setAttribute('aria-pressed', 'false');
+    }
+  }
 }
 
 
