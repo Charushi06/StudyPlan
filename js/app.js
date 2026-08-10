@@ -2199,7 +2199,7 @@ const authError = document.getElementById('auth-error');
 const emailInput = document.getElementById('auth-email');
 const passwordInput = document.getElementById('auth-password');
 
-const logoutBtn = document.getElementById('logout-btn');
+
 
 let isLoginMode = true;
 
@@ -2289,24 +2289,7 @@ authSubmitBtn.addEventListener('click', async () => {
   }
 });
 
-// ================= LOGOUT =================
 
-logoutBtn.addEventListener('click', async () => {
-
-  try {
-
-    await fetch('/api/auth/logout', {
-      method: 'POST'
-    });
-
-    localStorage.removeItem('studyplan_user');
-
-    location.reload();
-
-  } catch (err) {
-    console.error(err);
-  }
-});
 
 
 if (calendarDownloadBtn) {
