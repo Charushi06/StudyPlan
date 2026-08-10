@@ -7,6 +7,7 @@ export const store = {
   currentPaste: null,
   listeners: [],
   selectedTasks: [],
+  viewMode: (typeof localStorage !== 'undefined' ? localStorage.getItem('studyplan_planner_density') : null) || 'expanded',
 
   isSameCalendarDate(dateA, dateB) {
     return (
@@ -22,6 +23,16 @@ export const store = {
   
   notify() {
     this.listeners.forEach(l => l());
+  },
+
+  setViewMode(mode) {
+    if (mode === 'compact' || mode === 'expanded') {
+      this.viewMode = mode;
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('studyplan_planner_density', mode);
+      }
+      this.notify();
+    }
   },
   async smartRescheduleOverdueTasks() {
   const now = new Date();

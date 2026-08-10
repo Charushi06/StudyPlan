@@ -5394,3 +5394,108 @@ body {
     .review-table-wrap tbody tr:last-child { border-bottom: none; }
     .review-table-wrap tbody tr:hover { background: var(--color-background-secondary); }
     .review-table-wrap td { padding: 14px 16px; vertical-align: middle; }
+
+/* Segmented button group control for display density */
+.density-toggle {
+  display: inline-flex;
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-sm);
+  background: var(--color-background-primary);
+  overflow: hidden;
+  height: 32px;
+  align-items: center;
+  flex-shrink: 0;
+  min-width: 140px;
+}
+
+.density-btn {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  padding: 0 12px;
+  height: 100%;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  white-space: nowrap;
+}
+
+.density-btn:hover {
+  background: var(--color-background-secondary);
+  color: var(--color-text-primary);
+}
+
+.density-btn:focus-visible {
+  outline: 2px solid var(--color-text-info);
+  outline-offset: -2px;
+}
+
+.density-btn.active {
+  background: var(--color-background-tertiary);
+  color: var(--color-text-primary);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* Compact vs. Expanded Task Item layout styling */
+
+/* Compact Mode styling */
+.task-item.compact {
+  padding: 6px 12px;
+  min-height: auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.task-item.compact .task-name {
+  font-size: 13.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 400px;
+}
+
+.task-item.compact .task-meta {
+  gap: 6px;
+  margin-top: 2px;
+}
+
+/* Hide non-essential metadata fields in compact view */
+.task-item.compact .task-notes,
+.task-item.compact .task-labels,
+.task-item.compact .pill-duration {
+  display: none !important;
+}
+
+/* Expanded/Detailed Mode styling */
+.task-item.expanded {
+  /* standard card padding */
+  padding: 14px 16px;
+}
+
+.task-item.expanded .task-notes {
+  display: block;
+}
+
+.task-item.expanded .task-labels {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.task-item.expanded .pill-duration {
+  display: inline-flex;
+}
+
+/* Toolbar wrap compatibility on small viewports */
+.topbar {
+  flex-wrap: wrap;
+  row-gap: 8px;
+}
