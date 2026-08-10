@@ -5394,3 +5394,139 @@ body {
     .review-table-wrap tbody tr:last-child { border-bottom: none; }
     .review-table-wrap tbody tr:hover { background: var(--color-background-secondary); }
     .review-table-wrap td { padding: 14px 16px; vertical-align: middle; }
+
+/* ============================================================
+   ONBOARDING TOUR TOOLTIP CUSTOM STYLING (Issue #1240)
+   ============================================================ */
+.introjs-tooltip {
+  overflow: visible !important;
+  border-radius: var(--border-radius-md, 10px) !important;
+  padding: 8px 4px 4px 4px !important;
+  box-shadow: var(--shadow-lg) !important;
+  border: 1px solid var(--color-border-tertiary) !important;
+  background: var(--color-background-primary) !important;
+  color: var(--color-text-primary) !important;
+}
+
+.introjs-tooltiptext {
+  color: var(--color-text-primary) !important;
+  font-family: var(--font-sans) !important;
+  padding: 20px 20px 10px 20px !important;
+}
+
+.introjs-dontShowAgain {
+  padding-left: 20px !important;
+  padding-right: 20px !important;
+  margin-bottom: 8px !important;
+}
+
+.introjs-dontShowAgain label {
+  background-color: transparent !important;
+  color: var(--color-text-secondary) !important;
+}
+
+.introjs-skipbutton {
+  position: absolute !important;
+  top: 10px !important;
+  right: 10px !important;
+  width: auto !important;
+  height: auto !important;
+  line-height: 1 !important;
+  padding: 6px 10px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: var(--color-text-secondary) !important;
+  border: 1px solid var(--color-border-secondary) !important;
+  border-radius: var(--border-radius-sm, 6px) !important;
+  background-color: var(--color-background-secondary) !important;
+  text-align: center !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.introjs-skipbutton:hover,
+.introjs-skipbutton:focus {
+  color: var(--color-text-primary) !important;
+  background-color: var(--color-background-tertiary) !important;
+  border-color: var(--color-border-primary) !important;
+  text-decoration: none !important;
+  outline: none !important;
+}
+
+.introjs-tooltipbuttons {
+  border-top: 1px solid var(--color-border-tertiary) !important;
+  padding: 12px 20px 16px 20px !important;
+  background: transparent !important;
+}
+
+.introjs-button {
+  font-family: var(--font-sans) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  padding: 6px 12px !important;
+  border-radius: var(--border-radius-sm, 6px) !important;
+  border: 1px solid var(--color-border-secondary) !important;
+  background-color: var(--color-background-secondary) !important;
+  color: var(--color-text-primary) !important;
+  text-shadow: none !important;
+  box-shadow: none !important;
+  transition: all 0.2s ease !important;
+}
+
+.introjs-button:hover,
+.introjs-button:focus {
+  background-color: var(--color-background-tertiary) !important;
+  border-color: var(--color-border-primary) !important;
+  color: var(--color-text-primary) !important;
+}
+
+.introjs-button:active {
+  background-color: var(--color-background-tertiary) !important;
+}
+
+.introjs-arrow {
+  border: 6px solid transparent !important;
+}
+
+/* Maintain theme-matching background colors for arrows */
+.introjs-arrow.top,
+.introjs-arrow.top-right,
+.introjs-arrow.top-middle {
+  border-bottom-color: var(--color-background-primary) !important;
+}
+
+.introjs-arrow.right,
+.introjs-arrow.right-bottom {
+  border-left-color: var(--color-background-primary) !important;
+}
+
+.introjs-arrow.bottom,
+.introjs-arrow.bottom-right,
+.introjs-arrow.bottom-middle {
+  border-top-color: var(--color-background-primary) !important;
+}
+
+.introjs-arrow.left,
+.introjs-arrow.left-bottom {
+  border-right-color: var(--color-background-primary) !important;
+}
+
+/* Progress bar and bullet styling */
+.introjs-progress {
+  background-color: var(--color-background-tertiary) !important;
+  border-radius: 4px !important;
+}
+
+.introjs-progressbar {
+  background-color: var(--color-text-info, #4f46e5) !important;
+  border-radius: 4px !important;
+}
+
+.introjs-bullets ul li a {
+  background: var(--color-text-tertiary) !important;
+}
+
+.introjs-bullets ul li a.active {
+  background: var(--color-text-info, #4f46e5) !important;
+}
