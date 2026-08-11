@@ -4,6 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>StudyPlan</title>
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('studyplan_theme');
+      const isDarkMode = savedTheme ? (savedTheme === 'dark') : (localStorage.getItem('studyplan_dark_mode') === 'true');
+      document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+    })();
+  </script>
   <link rel="stylesheet" href="/css/index.css">
   <link rel="stylesheet" href="./css/chatbot.css">
 
@@ -645,7 +652,8 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
 
   // Load preferences
   const loadPreferences = () => {
-    const isDarkMode = localStorage.getItem('studyplan_dark_mode') === 'true';
+    const savedTheme = localStorage.getItem('studyplan_theme');
+    const isDarkMode = savedTheme ? (savedTheme === 'dark') : (localStorage.getItem('studyplan_dark_mode') === 'true');
     const isCompactView = localStorage.getItem('studyplan_compact_view') === 'true';
 
     darkModeToggle.checked = isDarkMode;
@@ -674,10 +682,15 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
 
   // Also apply immediately on toggle for better UX
   darkModeToggle.addEventListener('change', (e) => {
-    if (e.target.checked) {
+    const isChecked = e.target.checked;
+    if (isChecked) {
       document.documentElement.setAttribute('data-theme', 'dark');
+      localStorage.setItem('studyplan_theme', 'dark');
+      localStorage.setItem('studyplan_dark_mode', 'true');
     } else {
       document.documentElement.setAttribute('data-theme', 'light');
+      localStorage.setItem('studyplan_theme', 'light');
+      localStorage.setItem('studyplan_dark_mode', 'false');
     }
   });
 
