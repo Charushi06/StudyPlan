@@ -190,6 +190,9 @@
         <button class="btn btn-primary"  id="add-task-btn">
           <svg width="12" height="12" fill="none" style="margin-right:2px"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> New task
         </button>
+        <button class="btn" id="keyboard-shortcuts-btn" title="Keyboard shortcuts (?)">
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M6 14h12"/></svg>
+        </button>
       </div>
 
       <!-- Dashboard Greeting -->
@@ -804,6 +807,30 @@ document
         </button>
 
     </div>
+</div>
+
+<!-- Keyboard shortcuts help -->
+<div id="keyboard-shortcuts-modal" class="modal-backdrop" style="display:none; position:fixed; inset:0; z-index:9998; align-items:center; justify-content:center; background:rgba(0,0,0,0.6);">
+  <div class="modal-card" style="border-radius:12px; padding:24px; width:420px; max-width:92vw; box-shadow:0 12px 40px rgba(0,0,0,0.25);">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+      <h3 style="margin:0; font-size:18px; font-weight:600;">Keyboard shortcuts</h3>
+      <button class="btn" id="keyboard-shortcuts-close" style="padding:4px 10px;">Esc</button>
+    </div>
+    <div style="display:grid; grid-template-columns: 1fr auto; gap:8px 16px; font-size:13px;">
+      <span>Go to Planner</span><kbd>P</kbd>
+      <span>Go to All tasks</span><kbd>C</kbd>
+      <span>Go to Focus</span><kbd>F</kbd>
+      <span>New task</span><kbd>N</kbd>
+      <span>Move between tasks</span><kbd>↑ ↓ ← →</kbd>
+      <span>Open focused task</span><kbd>Enter / Space</kbd>
+      <span>Complete focused task</span><kbd>Ctrl/Cmd + Enter</kbd>
+      <span>Archive focused task</span><kbd>A</kbd>
+      <span>Delete focused task</span><kbd>Del</kbd>
+      <span>Start / pause timer (Focus)</span><kbd>Space</kbd>
+      <span>Close dialogs</span><kbd>Esc</kbd>
+      <span>This help</span><kbd>?</kbd>
+    </div>
+  </div>
 </div>
 
 <script src="./js/chatbot.js"></script>
