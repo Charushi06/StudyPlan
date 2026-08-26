@@ -3,8 +3,49 @@ import { extractTasksFromText } from './utils/api.js';
 import { initGlobalErrorBoundary } from './utils/errorBoundary.js';
 import { analyzeWorkload } from './utils/scheduler.js';
 import { Toast } from './utils/toast.js';
+import { normalizeKey, mapKeyToAction } from './utils/keyboardShortcuts.js';
 
 initGlobalErrorBoundary();
+
+// ================= KEYBOARD-FIRST NAVIGATION =================
+// Tracks the "current task" so arrow keys + action shortcuts can operate
+// on a single focused item without a mouse.
+let focusedTaskId = null;
+
+function getVisibleTaskIds() {
+  // Only task items that actually carry a data-id (not the empty-state CTA).
+  return Array.from(document.querySelectorAll('.task-item[data-id]'))
+    .map(el => el.dataset.id);
+}
+
+function applyFocusStyle() {
+  document.querySelectorAll('.task-item.kb-focus').forEach(el => el.classList.remove('kb-focus'));
+  if (!focusedTaskId) return;
+  const el = document.querySelector(`.task-item[data-id="${CSS.escape(String(focusedTaskId))}"]`);
+  if (el) {
+    el.classList.add('kb-focus');
+    el.scrollIntoView({ block: 'nearest' });
+  }
+}
+
+function moveFocus(offset) {
+  const ids = getVisibleTaskIds();
+  if (ids.length === 0) { focusedTaskId = null; return; }
+  const idx = focusedTaskId ? ids.indexOf(String(focusedTaskId)) : -1;
+  let next;
+  if (idx === -1) next = offset > 0 ? 0 : ids.length - 1;
+  else next = Math.min(ids.length - 1, Math.max(0, idx + offset));
+  focusedTaskId = ids[next];
+  applyFocusStyle();
+}
+
+function focusFirstTask() {
+  const ids = getVisibleTaskIds();
+  if (ids.length === 0) { focusedTaskId = null; return; }
+  // Keep current focus if still visible, else select first.
+  if (!focusedTaskId || !ids.includes(String(focusedTaskId))) focusedTaskId = ids[0];
+  applyFocusStyle();
+}
 
 function getLabelColor(labelStr) {
   const colors = ['#ef4444', '#f59e0b', '#3b82f6', '#8b5cf6', '#10b981', '#ec4899', '#14b8a6', '#f97316'];
@@ -1544,6 +1585,12 @@ if (selectAllBtn) {
     store.selectAllTasks();
   });
 }
+
+  // Restore keyboard focus highlight after the DOM is rebuilt.
+  if (focusedTaskId && !document.querySelector(`.task-item[data-id="${CSS.escape(String(focusedTaskId))}"]`)) {
+    focusedTaskId = null;
+  }
+  focusFirstTask();
 }
 
 
@@ -1966,6 +2013,109 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('tasks-section').classList.remove('hidden');
     updateSidebarActive('download-btn');
     renderReviewTable();
+  });
+
+  // ================= GLOBAL KEYBOARD HANDLER =================
+  const helpModal = document.getElementById('keyboard-shortcuts-modal');
+  const helpCloseBtn = document.getElementById('keyboard-shortcuts-close');
+
+  function isTypingContext() {
+    const el = document.activeElement;
+    if (!el) return false;
+    const tag = el.tagName;
+    return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el.isContentEditable;
+  }
+
+  function anyModalOpen() {
+    // Treat native modal-backdrop elements shown via display:flex as open.
+    return Array.from(document.querySelectorAll('.modal-backdrop'))
+      .some(m => getComputedStyle(m).display !== 'none');
+  }
+
+  function getFocusedTask() {
+    if (!focusedTaskId) return null;
+    return store.tasks.find(t => String(t.id) === String(focusedTaskId)) || null;
+  }
+
+  function performAction(action) {
+    switch (action) {
+      case 'go-calendar': calendarBtn.click(); break;
+      case 'go-all-tasks': allTasksBtn.click(); break;
+      case 'go-focus': focusModeBtn?.click(); break;
+      case 'new-task': newTaskBtn.click(); break;
+      case 'toggle-help': toggleHelpModal(); break;
+      case 'escape': closeHelpModal(); break;
+      case 'focus-next': moveFocus(1); break;
+      case 'focus-prev': moveFocus(-1); break;
+      case 'open-task': {
+        const task = getFocusedTask();
+        if (task) store.setTaskEditing(String(task.id), true);
+        break;
+      }
+      case 'complete-task': {
+        const task = getFocusedTask();
+        if (task) store.toggleTaskStatus(String(task.id));
+        break;
+      }
+      case 'archive-task': {
+        const task = getFocusedTask();
+        if (task) store.archiveTask(String(task.id));
+        break;
+      }
+      case 'restore-task': {
+        const task = getFocusedTask();
+        if (task) store.restoreTask(String(task.id));
+        break;
+      }
+      case 'delete-task': {
+        const task = getFocusedTask();
+        if (task) store.deleteTask(String(task.id));
+        break;
+      }
+      case 'toggle-timer': {
+        if (timerInterval) pauseTimer();
+        else startTimer();
+        break;
+      }
+      default: break;
+    }
+  }
+
+  function toggleHelpModal() {
+    if (!helpModal) return;
+    const open = helpModal.style.display !== 'flex';
+    helpModal.style.display = open ? 'flex' : 'none';
+  }
+
+  function closeHelpModal() {
+    if (helpModal) helpModal.style.display = 'none';
+  }
+
+  if (helpCloseBtn) helpCloseBtn.addEventListener('click', closeHelpModal);
+  if (helpModal) helpModal.addEventListener('click', (e) => { if (e.target === helpModal) closeHelpModal(); });
+
+  const helpBtn = document.getElementById('keyboard-shortcuts-btn');
+  if (helpBtn) helpBtn.addEventListener('click', toggleHelpModal);
+
+  document.addEventListener('keydown', (e) => {
+    // The help dialog is modal: only Esc / ? should interact with it.
+    const helpOpen = helpModal && helpModal.style.display === 'flex';
+    if (helpOpen) {
+      const k = normalizeKey(e);
+      if (k === 'escape' || k === '?') { e.preventDefault(); closeHelpModal(); }
+      return;
+    }
+
+    // Don't hijack typing or native browser shortcuts.
+    if (isTypingContext()) return;
+    if (anyModalOpen()) return;
+
+    const key = normalizeKey(e);
+    const action = mapKeyToAction(key, currentView);
+    if (!action) return;
+
+    e.preventDefault();
+    performAction(action);
   });
 
   document.getElementById('cal-prev').addEventListener('click', () => {

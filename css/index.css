@@ -5394,3 +5394,21 @@ body {
     .review-table-wrap tbody tr:last-child { border-bottom: none; }
     .review-table-wrap tbody tr:hover { background: var(--color-background-secondary); }
     .review-table-wrap td { padding: 14px 16px; vertical-align: middle; }
+/* Keyboard-first navigation */
+.task-item.kb-focus {
+  outline: 2px solid var(--color-text-primary);
+  outline-offset: -2px;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.35);
+}
+kbd {
+  display: inline-block;
+  padding: 2px 8px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--color-text-primary);
+  background: var(--color-background-secondary);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: 6px;
+  white-space: nowrap;
+}
